@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase.server'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { GMPageClient } from './GMPageClient'
 
