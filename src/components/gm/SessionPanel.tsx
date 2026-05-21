@@ -46,8 +46,8 @@ export function SessionPanel({ sessionId }: Props) {
   const expanded = expandedId ? characters.find(c => c.id === expandedId) : null
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
         {characters.map(c => (
           <PlayerCard
             key={c.id}
@@ -57,14 +57,39 @@ export function SessionPanel({ sessionId }: Props) {
           />
         ))}
         {characters.length === 0 && (
-          <p className="text-zinc-500 text-sm col-span-full">No characters in this session.</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#3A2E18', gridColumn: '1 / -1' }}>
+            Nenhum aventureiro nesta sessão.
+          </p>
         )}
       </div>
+
       {expanded && (
-        <div className="rounded border border-amber-700 bg-zinc-800 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-amber-400">{expanded.name}</h2>
-            <button onClick={() => setExpandedId(null)} className="text-zinc-400 hover:text-white">✕</button>
+        <div
+          className="worn-border"
+          style={{
+            background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), #2E2210',
+            border: '1px solid rgba(139,112,48,0.42)',
+            borderTop: '2px solid #7A6030',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.7)',
+            padding: '18px 20px',
+            display: 'flex', flexDirection: 'column', gap: 14,
+            animation: 'inkSpread 400ms cubic-bezier(0.4,0,0.2,1) both',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 700, color: '#E8D9A8', letterSpacing: '0.04em' }}>
+              {expanded.name}
+            </h2>
+            <button
+              onClick={() => setExpandedId(null)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#4A3520', fontFamily: 'var(--font-mono)', fontSize: 12,
+                transition: 'color 300ms',
+              }}
+            >
+              ✕
+            </button>
           </div>
           <StatBlock stats={expanded.stats} />
           <Equipment equipment={expanded.equipment} />

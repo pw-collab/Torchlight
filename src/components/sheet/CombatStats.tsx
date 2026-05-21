@@ -9,37 +9,125 @@ interface Props {
 
 export function CombatStats({ hpMax, hpCurrent, ac, onHpChange }: Props) {
   const hpPercent = Math.max(0, (hpCurrent / hpMax) * 100)
-  const hpColor = hpPercent > 50 ? 'bg-green-600' : hpPercent > 25 ? 'bg-yellow-600' : 'bg-red-600'
+  const hpColor = hpPercent > 50 ? '#3D7060' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-mid)'
 
   function handleHpInput(delta: number) {
     const next = Math.min(hpMax, Math.max(0, hpCurrent + delta))
     onHpChange(next)
   }
 
+  const panelStyle = {
+    background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
+    border: '1px solid rgba(139,112,48,0.33)',
+    boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+  } as const
+
   return (
-    <div className="flex gap-4">
-      <div className="flex-1 rounded border border-amber-800 bg-zinc-800 p-3">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs font-bold text-amber-400">HP</span>
-          <span className="text-sm text-white">{hpCurrent} / {hpMax}</span>
+    <div style={{ display: 'flex', gap: 12 }}>
+      <div
+        className="worn-border"
+        style={{ flex: 1, ...panelStyle, padding: '12px 14px' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 8.5,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'var(--bone-muted)',
+          }}>
+            Pontos de Vida
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--parchment-light)' }}>
+            {hpCurrent} / {hpMax}
+          </span>
         </div>
-        <div className="mb-2 h-2 w-full rounded bg-zinc-700">
-          <div className={`h-2 rounded transition-all ${hpColor}`} style={{ width: `${hpPercent}%` }} />
+        <div style={{
+          height: 4,
+          width: '100%',
+          background: 'var(--ink-deep)',
+          borderRadius: 1,
+          marginBottom: 10,
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            height: 4,
+            background: hpColor,
+            width: `${hpPercent}%`,
+            transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)',
+            boxShadow: `0 0 6px ${hpColor}60`,
+          }} />
         </div>
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => handleHpInput(-1)}
-            className="flex-1 rounded bg-red-800 py-1 text-sm font-bold text-white hover:bg-red-700"
-          >−1</button>
+            style={{
+              flex: 1,
+              background: 'rgba(139,21,21,0.25)',
+              border: '1px solid var(--blood-mid)',
+              color: 'var(--bone-white)',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              padding: '7px 0',
+              cursor: 'pointer',
+              borderRadius: 1,
+              transition: 'all 350ms',
+            }}
+          >
+            − Dano
+          </button>
           <button
             onClick={() => handleHpInput(1)}
-            className="flex-1 rounded bg-green-800 py-1 text-sm font-bold text-white hover:bg-green-700"
-          >+1</button>
+            style={{
+              flex: 1,
+              background: 'rgba(42,80,69,0.25)',
+              border: '1px solid #2A5045',
+              color: 'var(--bone-white)',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              padding: '7px 0',
+              cursor: 'pointer',
+              borderRadius: 1,
+              transition: 'all 350ms',
+            }}
+          >
+            + Cura
+          </button>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center rounded border border-amber-800 bg-zinc-800 p-3">
-        <span className="text-xs font-bold text-amber-400">AC</span>
-        <span className="text-3xl font-bold text-white">{ac}</span>
+
+      <div
+        className="worn-border"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '12px 20px',
+          ...panelStyle,
+        }}
+      >
+        <span style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--bone-muted)',
+          marginBottom: 4,
+        }}>
+          CA
+        </span>
+        <span style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 28,
+          fontWeight: 700,
+          color: 'var(--bone-white)',
+          lineHeight: 1,
+        }}>
+          {ac}
+        </span>
       </div>
     </div>
   )

@@ -17,33 +17,97 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
   const isLit = torchEndAt !== null
   const isLow = minutesLeft !== null && minutesLeft <= 10
 
+  const background = isLit
+    ? isLow
+      ? 'linear-gradient(148deg, rgba(139,21,21,.18) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
+      : 'linear-gradient(148deg, rgba(106,58,10,.2) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
+    : 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
+
+  const borderColor = isLit
+    ? isLow ? 'rgba(139,21,21,0.45)' : 'rgba(196,120,42,0.35)'
+    : 'rgba(139,112,48,0.33)'
+
+  const boxShadow = isLit
+    ? isLow
+      ? '0 4px 14px rgba(0,0,0,0.6), 0 0 8px rgba(139,21,21,0.2)'
+      : '0 4px 14px rgba(0,0,0,0.6), 0 0 8px rgba(196,120,42,0.15)'
+    : '0 4px 14px rgba(0,0,0,0.6)'
+
+  const labelColor = isLit
+    ? isLow ? 'var(--blood-bright)' : 'var(--candle-amber)'
+    : 'var(--bone-muted)'
+
+  const labelText = isLit
+    ? isLow ? '⚠ Tocha Quase Apagando' : '🕯 Tocha Acesa'
+    : '🌑 Tocha Apagada'
+
   return (
-    <div className={`rounded border p-3 ${isLit ? (isLow ? 'border-orange-600 bg-orange-950' : 'border-amber-600 bg-amber-950') : 'border-zinc-700 bg-zinc-800'}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-amber-400">TORCH</span>
+    <div
+      className="worn-border"
+      style={{ background, border: `1px solid ${borderColor}`, boxShadow, padding: '12px 14px' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8.5,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: labelColor,
+        }}>
+          {labelText}
+        </span>
         {isLit && minutesLeft !== null && (
-          <span className={`text-sm font-semibold ${isLow ? 'text-orange-400' : 'text-amber-300'}`}>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 13,
+            fontWeight: 700,
+            color: isLow ? 'var(--blood-bright)' : 'var(--candle-amber)',
+          }}>
             {minutesLeft}min
           </span>
         )}
       </div>
-      <div className="mt-2 flex gap-2">
-        {!isLit ? (
-          <button
-            onClick={lightTorch}
-            className="flex-1 rounded bg-amber-700 py-1 text-sm font-bold text-white hover:bg-amber-600"
-          >
-            🕯️ Acender
-          </button>
-        ) : (
-          <button
-            onClick={extinguishTorch}
-            className="flex-1 rounded bg-zinc-700 py-1 text-sm font-bold text-white hover:bg-zinc-600"
-          >
-            🌑 Apagar
-          </button>
-        )}
-      </div>
+      {!isLit ? (
+        <button
+          onClick={lightTorch}
+          style={{
+            width: '100%',
+            background: 'rgba(107,58,10,0.3)',
+            border: '1px solid #6B3A0A',
+            color: 'var(--bone-white)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 9.5,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            padding: '8px 0',
+            cursor: 'pointer',
+            borderRadius: 1,
+            transition: 'all 350ms',
+          }}
+        >
+          Acender Tocha
+        </button>
+      ) : (
+        <button
+          onClick={extinguishTorch}
+          style={{
+            width: '100%',
+            background: 'rgba(42,34,16,0.4)',
+            border: '1px solid rgba(139,112,48,0.3)',
+            color: 'var(--bone-muted)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 9.5,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            padding: '8px 0',
+            cursor: 'pointer',
+            borderRadius: 1,
+            transition: 'all 350ms',
+          }}
+        >
+          Apagar Tocha
+        </button>
+      )}
     </div>
   )
 }

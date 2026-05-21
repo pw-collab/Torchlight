@@ -6,21 +6,58 @@ interface Props {
 }
 
 export function LuckTokens({ luckTokens, onChange }: Props) {
+  const displayCount = Math.max(luckTokens, 5)
   return (
-    <div className="flex items-center gap-3 rounded border border-amber-800 bg-zinc-800 p-3">
-      <span className="text-xs font-bold text-amber-400">LUCK</span>
-      <div className="flex gap-1">
-        {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-          <span
+    <div
+      className="worn-border"
+      style={{
+        background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
+        border: '1px solid rgba(139,112,48,0.33)',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+        padding: '12px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <span style={{
+        fontFamily: 'var(--font-heading)',
+        fontSize: 8.5,
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'var(--bone-muted)',
+      }}>
+        Fortuna
+      </span>
+      <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+        {Array.from({ length: displayCount }).map((_, i) => (
+          <button
             key={i}
-            className={`text-lg cursor-pointer ${i < luckTokens ? 'text-amber-400' : 'text-zinc-600'}`}
             onClick={() => onChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              fontSize: 14,
+              color: i < luckTokens ? 'var(--gold-bright)' : 'var(--parchment-deep)',
+              filter: i < luckTokens ? 'drop-shadow(0 0 3px rgba(201,168,76,0.5))' : 'none',
+              transition: 'all 300ms',
+            }}
+            title={i < luckTokens ? 'Remover token' : 'Adicionar token'}
           >
-            🍀
-          </span>
+            ✦
+          </button>
         ))}
       </div>
-      <span className="ml-auto text-white font-bold">{luckTokens}</span>
+      <span style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 14,
+        fontWeight: 700,
+        color: 'var(--gold-bright)',
+      }}>
+        {luckTokens}
+      </span>
     </div>
   )
 }
