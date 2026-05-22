@@ -1,12 +1,19 @@
 # Deploy — Torchlight (Shadowdark VTT)
 
-## 1. Supabase
+## Status (via Cursor MCP)
 
-1. Crie um projeto em [supabase.com](https://supabase.com).
-2. **SQL Editor** → execute, nesta ordem:
-   - `supabase/migrations/001_initial.sql`
-   - `supabase/seed_allowed_users.sql`
-3. **Authentication → Providers → Discord**: ative e configure com uma app em [Discord Developer Portal](https://discord.com/developers/applications).
+| Etapa | Status |
+|-------|--------|
+| Projeto Supabase `torchlight` (`duidhsevhpcppmszdlaj`) | ✅ Criado (sa-east-1) |
+| Migração `001_initial` + allowlist (7 usuários) | ✅ Aplicado |
+| Vercel deploy + env vars | ⏳ Importar repo e colar variáveis abaixo |
+| Discord OAuth no Supabase | ⏳ Ativar no painel (passo 1) |
+
+**URL Supabase:** `https://duidhsevhpcppmszdlaj.supabase.co`
+
+## 1. Supabase — Discord OAuth (manual)
+
+1. **Authentication → Providers → Discord**: ative e configure com uma app em [Discord Developer Portal](https://discord.com/developers/applications).
    - Redirect URL do Supabase: `https://<project-ref>.supabase.co/auth/v1/callback`
 4. **Authentication → URL Configuration**:
    - Site URL: `https://<seu-dominio-vercel>`
