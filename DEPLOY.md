@@ -11,13 +11,32 @@
 
 **URL Supabase:** `https://duidhsevhpcppmszdlaj.supabase.co`
 
-## 1. Supabase — Discord OAuth (manual)
+## 1. Discord OAuth — corrigir "redirect uri inválido"
 
-1. **Authentication → Providers → Discord**: ative e configure com uma app em [Discord Developer Portal](https://discord.com/developers/applications).
-   - Redirect URL do Supabase: `https://<project-ref>.supabase.co/auth/v1/callback`
-4. **Authentication → URL Configuration**:
-   - Site URL: `https://<seu-dominio-vercel>`
-   - Redirect URLs: `https://<seu-dominio-vercel>/auth/callback`, `http://localhost:3000/auth/callback`
+O Discord **não** usa a URL da Vercel. Ele só aceita o callback do **Supabase**.
+
+### Discord Developer Portal → sua app → OAuth2 → Redirects
+
+Adicione **exatamente** (sem barra no final):
+
+```
+https://duidhsevhpcppmszdlaj.supabase.co/auth/v1/callback
+```
+
+Remova entradas erradas como `https://torchlight-nine.vercel.app/auth/callback` — isso causa o erro.
+
+Client ID e Client Secret dessa app vão no [Supabase → Auth → Discord](https://supabase.com/dashboard/project/duidhsevhpcppmszdlaj/auth/providers).
+
+### Supabase → Authentication → URL Configuration
+
+| Campo | Valor |
+|-------|--------|
+| **Site URL** | `https://torchlight-nine.vercel.app` |
+| **Redirect URLs** (uma por linha) | `https://torchlight-nine.vercel.app/auth/callback` |
+| | `https://torchlight-pw-collabs-projects.vercel.app/auth/callback` |
+| | `http://localhost:3000/auth/callback` |
+
+Salve e espere ~1 minuto. Teste de novo em `https://torchlight-nine.vercel.app/login` (use este domínio, não o alias longo do deploy).
 5. Copie em **Project Settings → API**:
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
