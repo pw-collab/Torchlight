@@ -1,6 +1,6 @@
 import type { DiscordEvent } from '@/types/discord.types'
 
-function formatEvent(event: DiscordEvent): string {
+export function formatDiscordMessage(event: DiscordEvent): string {
   switch (event.type) {
     case 'roll': {
       const sign = event.modifier >= 0 ? '+' : ''
@@ -27,12 +27,13 @@ function formatEvent(event: DiscordEvent): string {
 }
 
 export async function sendToDiscord(event: DiscordEvent): Promise<void> {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL
-  if (!webhookUrl) return
-  const message = formatEvent(event)
-  await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content: message }),
-  })
+  try {
+    await fetch('/api/discord', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    })
+  } catch {
+    // Non-blocking: rolls and HP still work if Discord is down
+  }
 }
