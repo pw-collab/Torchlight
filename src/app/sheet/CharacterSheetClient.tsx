@@ -5,19 +5,33 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { CombatStats } from '@/components/sheet/CombatStats'
+import { CombatBonuses } from '@/components/sheet/CombatBonuses'
+import { XPBar } from '@/components/sheet/XPBar'
 import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { LuckTokens } from '@/components/sheet/LuckTokens'
 import { TorchTimer } from '@/components/sheet/TorchTimer'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
-import { Equipment } from '@/components/sheet/Equipment'
+import { InventoryView } from '@/components/sheet/InventoryView'
+import { TalentsPanel } from '@/components/sheet/TalentsPanel'
+import { CurrencyPanel } from '@/components/sheet/CurrencyPanel'
 import { Spells } from '@/components/sheet/Spells'
 import { sendToDiscord } from '@/lib/discord'
 import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
+import type { InventoryItem } from '@/types/inventory.types'
+import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
+
+type Tab = 'stats' | 'inventory' | 'spells'
+
+const TAB_LABELS: Record<Tab, string> = {
+  stats: '✦ Atributos',
+  inventory: '⚗ Inventário',
+  spells: '☽ Magias',
+}
 
 interface Props {
   characterId: string
@@ -26,6 +40,7 @@ interface Props {
 
 export function CharacterSheetClient({ characterId, playerName }: Props) {
   const { character, loading, updateCharacter } = useCharacter(characterId)
+  const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const [isRolling, setIsRolling] = useState(false)
   const [lastResult, setLastResult] = useState<RollResult | null>(null)
@@ -50,25 +65,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   if (loading) {
     return (
       <AppShell breadcrumbs={['Ficha do Personagem']} playerName={playerName}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            gap: 12,
-          }}
-        >
-          <span
-            className="animate-flicker"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 10,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--parchment-warm)',
-            }}
-          >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <span className="animate-flicker" style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
             ✦ O arquivo está sendo consultado...
           </span>
         </div>
@@ -79,22 +77,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   if (!character) {
     return (
       <AppShell breadcrumbs={['Ficha do Personagem']} playerName={playerName}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              color: 'var(--blood-bright)',
-            }}
-          >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--blood-bright)' }}>
             Personagem não encontrado no arquivo.
           </p>
         </div>
@@ -122,116 +106,142 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ torch_end_at: torchEndAt } as Partial<CharacterRow>)
   }
 
+  async function handleInventoryUpdate(inventory: InventoryItem[]) {
+    await updateCharacter({ equipment: inventory as any } as Partial<CharacterRow>)
+  }
+
+  async function handleTalentsUpdate(talents: Talent[]) {
+    await updateCharacter({ talents: talents as any } as Partial<CharacterRow>)
+  }
+
+  async function handleCurrencyUpdate(patch: { gold?: number; silver?: number; copper?: number }) {
+    await updateCharacter(patch as Partial<CharacterRow>)
+  }
+
+  async function handleCombatBonusUpdate(patch: { meleeBonus?: number; rangedBonus?: number; spellcastingBonus?: number }) {
+    const dbPatch: Partial<CharacterRow> = {}
+    if (patch.meleeBonus !== undefined) (dbPatch as any).melee_bonus = patch.meleeBonus
+    if (patch.rangedBonus !== undefined) (dbPatch as any).ranged_bonus = patch.rangedBonus
+    if (patch.spellcastingBonus !== undefined) (dbPatch as any).spellcasting_bonus = patch.spellcastingBonus
+    await updateCharacter(dbPatch)
+  }
+
+  async function handleXpUpdate(xp: number) {
+    await updateCharacter({ xp } as Partial<CharacterRow>)
+  }
+
   return (
     <AppShell
       breadcrumbs={['Ficha do Personagem']}
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 700, margin: '0 auto', padding: '0 24px 32px' }}>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 32px' }}>
 
         {/* Character header */}
-        <div
-          style={{
-            padding: '22px 0 18px',
-            borderBottom: '1px solid rgba(139,112,48,0.22)',
-            marginBottom: 18,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
+        <div style={{ padding: '22px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 24,
-                  fontWeight: 700,
-                  color: 'var(--parchment-pale)',
-                  letterSpacing: '0.05em',
-                  marginBottom: 4,
-                  lineHeight: 1.1,
-                }}
-              >
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
                 {character.name}
               </h1>
-              <p
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 12,
-                  color: '#6A5A3A',
-                }}
-              >
+              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A' }}>
                 {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
               </p>
             </div>
-
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 8,
-                color: '#3A2E18',
-                letterSpacing: '0.08em',
-                whiteSpace: 'nowrap',
-                paddingTop: 4,
-              }}
-            >
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap', paddingTop: 4 }}>
               FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
             </span>
           </div>
         </div>
 
-        {/* Two-column layout */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-
-          {/* Main column */}
-          <div
-            style={{
-              flex: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 14,
-              minWidth: 0,
-            }}
-          >
-            <StatBlock stats={character.stats} onRoll={handleRoll} />
-            <CombatStats
-              hpMax={character.hpMax}
-              hpCurrent={character.hpCurrent}
-              ac={character.ac}
-              onHpChange={handleHpChange}
-            />
-            <DiceRoller characterName={playerName} onRoll={handleRoll} />
-            <Equipment equipment={character.equipment} />
-            <Spells classId={character.classId} equippedSpells={character.spells} />
-          </div>
-
-          {/* Side column */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 14,
-              minWidth: 0,
-            }}
-          >
-            <SlotTracker str={character.stats.str} equipment={character.equipment} />
-            <LuckTokens luckTokens={character.luckTokens} onChange={handleLuckChange} />
-            <TorchTimer
-              torchEndAt={character.torchEndAt}
-              playerName={playerName}
-              characterId={characterId}
-              onUpdate={handleTorchUpdate}
-            />
-          </div>
+        {/* XP bar */}
+        <div style={{ marginBottom: 14 }}>
+          <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
         </div>
+
+        {/* Tab navigation */}
+        <div style={{ display: 'flex', gap: 2, marginBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+          {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                background: tab === t ? 'rgba(139,112,48,0.15)' : 'none',
+                border: 'none',
+                borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
+                cursor: 'pointer',
+                fontFamily: 'var(--font-heading)',
+                fontSize: 9,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
+                padding: '8px 16px 6px',
+                transition: 'all 300ms',
+                marginBottom: -1,
+              }}
+            >
+              {TAB_LABELS[t]}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab: Stats */}
+        {tab === 'stats' && (
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+              <StatBlock stats={character.stats} onRoll={handleRoll} />
+              <CombatStats
+                hpMax={character.hpMax}
+                hpCurrent={character.hpCurrent}
+                ac={character.ac}
+                onHpChange={handleHpChange}
+              />
+              <CombatBonuses
+                meleeBonus={character.meleeBonus}
+                rangedBonus={character.rangedBonus}
+                spellcastingBonus={character.spellcastingBonus}
+                onUpdate={handleCombatBonusUpdate}
+              />
+              <DiceRoller characterName={playerName} onRoll={handleRoll} />
+              <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
+            </div>
+
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+              <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ itemId: i.id, slots: i.slots }))} />
+              <LuckTokens luckTokens={character.luckTokens} onChange={handleLuckChange} />
+              <TorchTimer
+                torchEndAt={character.torchEndAt}
+                playerName={playerName}
+                characterId={characterId}
+                onUpdate={handleTorchUpdate}
+              />
+              <CurrencyPanel
+                gold={character.gold}
+                silver={character.silver}
+                copper={character.copper}
+                onUpdate={handleCurrencyUpdate}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Tab: Inventory */}
+        {tab === 'inventory' && (
+          <InventoryView
+            inventory={character.inventory}
+            str={character.stats.str}
+            onUpdate={handleInventoryUpdate}
+            onRoll={handleRoll}
+            meleeBonus={character.meleeBonus}
+            rangedBonus={character.rangedBonus}
+          />
+        )}
+
+        {/* Tab: Spells */}
+        {tab === 'spells' && (
+          <Spells classId={character.classId} equippedSpells={character.spells} />
+        )}
       </div>
 
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
