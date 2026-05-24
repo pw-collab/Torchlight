@@ -1,14 +1,84 @@
-export interface Spell {
-  id: string
-  name: string
-  tier: number
-  description: string
-}
+import type { Spell } from '../wizard/index'
 
 export const priestSpells: Spell[] = [
-  { id: 'pri_cure_wounds', name: 'Cure Wounds', tier: 1, description: 'Restore 1d8+WIS modifier HP to one creature.' },
-  { id: 'pri_bless', name: 'Bless', tier: 1, description: '+1 to attack rolls and saving throws for allies.' },
-  { id: 'pri_turn_undead', name: 'Turn Undead', tier: 1, description: 'Undead flee if they fail a WIS save.' },
-  { id: 'pri_hold_person', name: 'Hold Person', tier: 2, description: 'Paralyze a humanoid on a failed WIS save.' },
-  { id: 'pri_raise_dead', name: 'Raise Dead', tier: 5, description: 'Restore life to a creature dead no more than 10 days.' },
+  {
+    id: 'pri_cure_wounds',
+    name: 'Curar Ferimentos',
+    tier: 1,
+    range: 'Toque',
+    duration: 'Instantâneo',
+    castingTime: 'Ação',
+    description: 'Restaura 1d8 + modificador de SAB de PV a uma criatura que você toca.',
+    school: 'Cura',
+  },
+  {
+    id: 'pri_bless',
+    name: 'Abençoar',
+    tier: 1,
+    range: 'Próximo',
+    duration: '1 turno',
+    castingTime: 'Ação',
+    description: '+1 em jogadas de ataque e testes de resistência para aliados dentro do alcance.',
+    school: 'Encantamento',
+  },
+  {
+    id: 'pri_turn_undead',
+    name: 'Afastar Mortos-Vivos',
+    tier: 1,
+    range: 'Próximo',
+    duration: '1 turno',
+    castingTime: 'Ação',
+    description: 'Mortos-vivos com menos de 5 PV fogem em pânico. DV maior faz jogada de SAB para resistir.',
+    school: 'Conjuração',
+  },
+  {
+    id: 'pri_hold_person',
+    name: 'Paralisar Pessoa',
+    tier: 2,
+    range: 'Próximo',
+    duration: 'Foco',
+    castingTime: 'Ação',
+    description: 'Paralisa um humanoide. Falha em SAB anula. Ataques contra ele são críticos automáticos.',
+    school: 'Encantamento',
+  },
+  {
+    id: 'pri_silence',
+    name: 'Silêncio',
+    tier: 2,
+    range: '60 pés',
+    duration: 'Foco',
+    castingTime: 'Ação',
+    description: 'Cria uma zona de silêncio de 6 metros. Nenhuma magia com componente verbal pode ser conjurada.',
+    school: 'Ilusão',
+  },
+  {
+    id: 'pri_spiritual_weapon',
+    name: 'Arma Espiritual',
+    tier: 2,
+    range: '60 pés',
+    duration: 'Foco',
+    castingTime: 'Ação',
+    description: 'Invoca uma arma espiritual flutuante que ataca por sua ordem. Causa 1d8 + SAB.',
+    school: 'Evocação',
+  },
+  {
+    id: 'pri_commune',
+    name: 'Comunhão',
+    tier: 5,
+    range: 'Pessoal',
+    duration: 'Especial',
+    castingTime: '10 minutos',
+    description: 'Você consulta a divindade, que responde até 3 perguntas sim/não honestamente.',
+    school: 'Adivinhação',
+  },
+  {
+    id: 'pri_raise_dead',
+    name: 'Ressuscitar Morto',
+    tier: 5,
+    range: 'Toque',
+    duration: 'Instantâneo',
+    castingTime: '1 hora',
+    description: 'Restaura a vida a uma criatura morta há no máximo 10 dias. Reduz FOR, DES e CON em 1.',
+    school: 'Necromancia',
+  },
 ]

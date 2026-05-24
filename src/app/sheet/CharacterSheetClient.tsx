@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { useCharacter } from '@/hooks/useCharacter'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
@@ -8,9 +9,12 @@ import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { LuckTokens } from '@/components/sheet/LuckTokens'
 import { TorchTimer } from '@/components/sheet/TorchTimer'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
+import { DiceOverlay } from '@/components/sheet/DiceOverlay'
+import { RollToasts } from '@/components/sheet/RollToasts'
 import { Equipment } from '@/components/sheet/Equipment'
 import { Spells } from '@/components/sheet/Spells'
 import { sendToDiscord } from '@/lib/discord'
+import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
@@ -22,6 +26,26 @@ interface Props {
 
 export function CharacterSheetClient({ characterId, playerName }: Props) {
   const { character, loading, updateCharacter } = useCharacter(characterId)
+  const [rollHistory, setRollHistory] = useState<RollResult[]>([])
+  const [isRolling, setIsRolling] = useState(false)
+  const [lastResult, setLastResult] = useState<RollResult | null>(null)
+
+  const handleRoll = useCallback((result: RollResult) => {
+    setIsRolling(true)
+    setLastResult(result)
+    setTimeout(() => {
+      setRollHistory(prev => [result, ...prev].slice(0, 20))
+      setIsRolling(false)
+    }, 600)
+    sendToDiscord({
+      type: 'roll',
+      player: playerName,
+      die: result.die,
+      result: result.result,
+      modifier: result.modifier ?? 0,
+      total: result.total,
+    })
+  }, [playerName])
 
   if (loading) {
     return (
@@ -176,14 +200,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               minWidth: 0,
             }}
           >
-            <StatBlock stats={character.stats} />
+            <StatBlock stats={character.stats} onRoll={handleRoll} />
             <CombatStats
               hpMax={character.hpMax}
               hpCurrent={character.hpCurrent}
               ac={character.ac}
               onHpChange={handleHpChange}
             />
-            <DiceRoller characterName={playerName} />
+            <DiceRoller characterName={playerName} onRoll={handleRoll} />
             <Equipment equipment={character.equipment} />
             <Spells classId={character.classId} equippedSpells={character.spells} />
           </div>
@@ -209,6 +233,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           </div>
         </div>
       </div>
+
+      <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
+      <RollToasts rolls={rollHistory} />
     </AppShell>
   )
 }
