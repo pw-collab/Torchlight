@@ -17,6 +17,7 @@ import { InventoryView } from '@/components/sheet/InventoryView'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { CurrencyPanel } from '@/components/sheet/CurrencyPanel'
 import { Spells } from '@/components/sheet/Spells'
+import { CharacterEditModal } from '@/components/sheet/CharacterEditModal'
 import { sendToDiscord } from '@/lib/discord'
 import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
@@ -44,6 +45,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const [isRolling, setIsRolling] = useState(false)
   const [lastResult, setLastResult] = useState<RollResult | null>(null)
+  const [showEdit, setShowEdit] = useState(false)
 
   const handleRoll = useCallback((result: RollResult) => {
     setIsRolling(true)
@@ -130,6 +132,11 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ xp } as Partial<CharacterRow>)
   }
 
+  async function handleCharacterEdit(patch: Partial<CharacterRow>) {
+    await updateCharacter(patch)
+    setShowEdit(false)
+  }
+
   return (
     <AppShell
       breadcrumbs={['Ficha do Personagem']}
@@ -141,13 +148,42 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         {/* Character header */}
         <div style={{ padding: '22px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
-                {character.name}
-              </h1>
-              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A' }}>
-                {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-              </p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div>
+                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
+                  {character.name}
+                </h1>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A' }}>
+                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowEdit(true)}
+                title="Editar personagem"
+                style={{
+                  background: 'rgba(42,34,16,0.4)',
+                  border: '1px solid rgba(139,112,48,0.28)',
+                  color: 'var(--bone-muted)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 10,
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  padding: '4px 8px',
+                  lineHeight: 1,
+                  transition: 'all 250ms',
+                  marginTop: 2,
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
+                  ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,112,48,0.5)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--bone-muted)'
+                  ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,112,48,0.28)'
+                }}
+              >
+                ✏
+              </button>
             </div>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap', paddingTop: 4 }}>
               FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
@@ -244,6 +280,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         )}
       </div>
 
+      {showEdit && (
+        <CharacterEditModal
+          character={character}
+          onSave={handleCharacterEdit}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />
     </AppShell>
