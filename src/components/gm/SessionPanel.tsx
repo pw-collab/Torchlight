@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { PlayerCard } from './PlayerCard'
 import { StatBlock } from '@/components/sheet/StatBlock'
-import { Equipment } from '@/components/sheet/Equipment'
 import { Spells } from '@/components/sheet/Spells'
 import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
@@ -92,7 +91,6 @@ export function SessionPanel({ sessionId }: Props) {
             </button>
           </div>
           <StatBlock stats={expanded.stats} />
-          <Equipment equipment={expanded.equipment} />
           {expanded.spells.length > 0 && <Spells classId={expanded.classId} equippedSpells={expanded.spells} />}
         </div>
       )}
