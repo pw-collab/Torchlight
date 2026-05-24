@@ -4,8 +4,12 @@ export function formatDiscordMessage(event: DiscordEvent): string {
   switch (event.type) {
     case 'roll': {
       const sign = event.modifier >= 0 ? '+' : ''
-      const outcome = event.success ? 'SUCESSO' : 'FALHOU'
-      return `🎲 [${event.player}] ${event.die}${sign}${event.modifier} → ${event.total}   ${outcome} vs DC ${event.dc}`
+      const base = `🎲 [${event.player}] ${event.die}${sign}${event.modifier} → **${event.total}**`
+      if (event.dc !== undefined && event.success !== undefined) {
+        const outcome = event.success ? 'SUCESSO' : 'FALHOU'
+        return `${base}   ${outcome} vs DC ${event.dc}`
+      }
+      return base
     }
     case 'torch_lit':
       return `🕯️ [${event.player}] Tocha acesa — ${event.minutesLeft}min restantes`

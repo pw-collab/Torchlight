@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { getSpellsForClass } from '@/data/spells/index'
+
+const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
 interface Props {
   classId: string
@@ -9,6 +12,8 @@ interface Props {
 
 export function Spells({ classId, equippedSpells }: Props) {
   const available = getSpellsForClass(classId)
+  const [expanded, setExpanded] = useState<string | null>(null)
+
   if (available.length === 0) return null
 
   return (
@@ -34,45 +39,125 @@ export function Spells({ classId, equippedSpells }: Props) {
       }}>
         ☽ Magias Preparadas
       </div>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {equippedSpells.length === 0 ? (
-          <li style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 12,
-            color: 'var(--parchment-warm)',
-          }}>
-            Nenhuma magia preparada.
-          </li>
-        ) : equippedSpells.map(id => {
-          const spell = available.find(s => s.id === id)
-          return (
-            <li key={id} style={{ padding: '7px 0', borderBottom: '1px solid rgba(107,78,138,0.1)' }}>
-              <div style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 11.5,
-                fontWeight: 500,
-                color: '#6B4E8A',
-                letterSpacing: '0.04em',
-                marginBottom: 2,
-              }}>
-                {spell?.name ?? id}
-              </div>
-              {spell && (
-                <div style={{
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 11,
-                  color: 'var(--bone-muted)',
-                  lineHeight: 1.55,
-                }}>
-                  {spell.description}
+
+      {equippedSpells.length === 0 ? (
+        <p style={{
+          fontFamily: 'var(--font-body)',
+          fontStyle: 'italic',
+          fontSize: 12,
+          color: 'var(--parchment-warm)',
+        }}>
+          Nenhuma magia preparada.
+        </p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {equippedSpells.map(id => {
+            const spell = available.find(s => s.id === id)
+            const isOpen = expanded === id
+
+            return (
+              <li
+                key={id}
+                onClick={() => setExpanded(isOpen ? null : id)}
+                style={{
+                  padding: '8px 0',
+                  borderBottom: '1px solid rgba(107,78,138,0.12)',
+                  cursor: spell ? 'pointer' : 'default',
+                  transition: 'all 250ms',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {spell && (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 8,
+                      fontWeight: 700,
+                      color: '#6B4E8A',
+                      background: 'rgba(107,78,138,0.15)',
+                      border: '1px solid rgba(107,78,138,0.3)',
+                      padding: '1px 5px',
+                      borderRadius: 1,
+                      flexShrink: 0,
+                    }}>
+                      {TIER_LABEL[(spell.tier - 1)] ?? spell.tier}
+                    </span>
+                  )}
+                  <span style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 11.5,
+                    fontWeight: 500,
+                    color: '#8B6AAA',
+                    letterSpacing: '0.04em',
+                    flex: 1,
+                  }}>
+                    {spell?.name ?? id}
+                  </span>
+                  {spell && (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 8,
+                      color: 'var(--parchment-warm)',
+                      flexShrink: 0,
+                    }}>
+                      {isOpen ? '▲' : '▼'}
+                    </span>
+                  )}
                 </div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
+
+                {spell && isOpen && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      paddingTop: 8,
+                      borderTop: '1px solid rgba(107,78,138,0.1)',
+                      animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div style={{ display: 'flex', gap: 14, marginBottom: 7, flexWrap: 'wrap' }}>
+                      {[
+                        { label: 'Alcance', value: spell.range },
+                        { label: 'Duração', value: spell.duration },
+                        { label: 'Conjuração', value: spell.castingTime },
+                        ...(spell.school ? [{ label: 'Escola', value: spell.school }] : []),
+                      ].map(({ label, value }) => (
+                        <div key={label}>
+                          <div style={{
+                            fontFamily: 'var(--font-heading)',
+                            fontSize: 7,
+                            letterSpacing: '0.14em',
+                            textTransform: 'uppercase',
+                            color: '#6B4E8A',
+                            marginBottom: 1,
+                          }}>
+                            {label}
+                          </div>
+                          <div style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 9,
+                            color: 'var(--parchment-light)',
+                          }}>
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{
+                      fontFamily: 'var(--font-body)',
+                      fontStyle: 'italic',
+                      fontSize: 11,
+                      color: 'var(--bone-muted)',
+                      lineHeight: 1.6,
+                    }}>
+                      {spell.description}
+                    </p>
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

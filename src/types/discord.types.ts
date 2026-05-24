@@ -1,5 +1,5 @@
 export type DiscordEvent =
-  | { type: 'roll'; player: string; die: string; result: number; modifier: number; total: number; dc: number; success: boolean }
+  | { type: 'roll'; player: string; die: string; result: number; modifier: number; total: number; dc?: number; success?: boolean }
   | { type: 'torch_lit'; player: string; minutesLeft: number }
   | { type: 'torch_warning'; player: string; minutesLeft: number }
   | { type: 'torch_out'; player: string }
