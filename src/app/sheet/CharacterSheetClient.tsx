@@ -9,13 +9,11 @@ import { CombatBonuses } from '@/components/sheet/CombatBonuses'
 import { XPBar } from '@/components/sheet/XPBar'
 import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { LuckTokens } from '@/components/sheet/LuckTokens'
-import { TorchTimer } from '@/components/sheet/TorchTimer'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
-import { CurrencyPanel } from '@/components/sheet/CurrencyPanel'
 import { Spells } from '@/components/sheet/Spells'
 import { CharacterEditModal } from '@/components/sheet/CharacterEditModal'
 import { sendToDiscord } from '@/lib/discord'
@@ -104,10 +102,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     if (newValue < prev) await sendToDiscord({ type: 'luck_used', player: playerName, remaining: newValue })
   }
 
-  async function handleTorchUpdate(torchEndAt: string | null) {
-    await updateCharacter({ torch_end_at: torchEndAt } as Partial<CharacterRow>)
-  }
-
   async function handleInventoryUpdate(inventory: InventoryItem[]) {
     await updateCharacter({ equipment: inventory as any } as Partial<CharacterRow>)
   }
@@ -126,6 +120,10 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     if (patch.rangedBonus !== undefined) (dbPatch as any).ranged_bonus = patch.rangedBonus
     if (patch.spellcastingBonus !== undefined) (dbPatch as any).spellcasting_bonus = patch.spellcastingBonus
     await updateCharacter(dbPatch)
+  }
+
+  async function handleAcChange(ac: number) {
+    await updateCharacter({ ac } as Partial<CharacterRow>)
   }
 
   async function handleXpUpdate(xp: number) {
@@ -246,18 +244,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
               <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ itemId: i.id, slots: i.slots }))} />
               <LuckTokens luckTokens={character.luckTokens} onChange={handleLuckChange} />
-              <TorchTimer
-                torchEndAt={character.torchEndAt}
-                playerName={playerName}
-                characterId={characterId}
-                onUpdate={handleTorchUpdate}
-              />
-              <CurrencyPanel
-                gold={character.gold}
-                silver={character.silver}
-                copper={character.copper}
-                onUpdate={handleCurrencyUpdate}
-              />
             </div>
           </div>
         )}
@@ -267,10 +253,17 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <InventoryView
             inventory={character.inventory}
             str={character.stats.str}
+            dex={character.stats.dex}
+            gold={character.gold}
+            silver={character.silver}
+            copper={character.copper}
             onUpdate={handleInventoryUpdate}
+            onAcChange={handleAcChange}
+            onCurrencyUpdate={handleCurrencyUpdate}
             onRoll={handleRoll}
             meleeBonus={character.meleeBonus}
             rangedBonus={character.rangedBonus}
+            playerName={playerName}
           />
         )}
 
