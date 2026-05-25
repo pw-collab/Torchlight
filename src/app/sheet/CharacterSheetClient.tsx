@@ -121,6 +121,10 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter(dbPatch)
   }
 
+  async function handleSpellsChange(spells: string[]) {
+    await updateCharacter({ spells } as Partial<CharacterRow>)
+  }
+
   async function handleSpellcastingUpdate(patch: { spellcastingBonus?: number; castingAttr?: string }) {
     const dbPatch: Partial<CharacterRow> = {}
     if (patch.spellcastingBonus !== undefined) (dbPatch as any).spellcasting_bonus = patch.spellcastingBonus
@@ -306,6 +310,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             stats={character.stats}
             onRoll={handleRoll}
             onUpdate={handleSpellcastingUpdate}
+            onSpellsChange={handleSpellsChange}
           />
         )}
       </div>
