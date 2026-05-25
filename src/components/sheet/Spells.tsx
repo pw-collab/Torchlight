@@ -5,6 +5,7 @@ import { getSpell, getSpellsForClass } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
 import { rollDie, modifier } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
+import { NumInput } from '@/components/sheet/NumInput'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -298,14 +299,9 @@ export function Spells({
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
               Bônus
             </span>
-            <input
-              key={`sb-${spellcastingBonus}`}
-              type="number"
-              defaultValue={spellcastingBonus}
-              onBlur={e => {
-                const n = parseInt(e.target.value, 10)
-                if (!isNaN(n) && onUpdate) onUpdate({ spellcastingBonus: n })
-              }}
+            <NumInput
+              value={spellcastingBonus}
+              onCommit={n => onUpdate?.({ spellcastingBonus: n })}
               style={{
                 width: 46,
                 background: 'rgba(42,26,58,0.5)',

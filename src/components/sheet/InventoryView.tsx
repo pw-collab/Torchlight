@@ -7,6 +7,7 @@ import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
+import { NumInput } from '@/components/sheet/NumInput'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -271,11 +272,10 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 4 }}>
               {label}
             </div>
-            <input
-              type="number"
+            <NumInput
               value={value}
               min={0}
-              onChange={e => onUpdate({ [key]: Math.max(0, parseInt(e.target.value) || 0) })}
+              onCommit={n => onUpdate({ [key]: n })}
               style={{
                 width: '100%',
                 background: 'transparent',
@@ -843,14 +843,9 @@ export function InventoryView({
                 <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 2 }}>
                   {label}
                 </div>
-                <input
-                  key={`${key}-${value}`}
-                  type="number"
-                  defaultValue={value}
-                  onBlur={e => {
-                    const n = parseInt(e.target.value, 10)
-                    if (!isNaN(n)) onMeleeRangedUpdate({ [key]: n })
-                  }}
+                <NumInput
+                  value={value}
+                  onCommit={n => onMeleeRangedUpdate({ [key]: n })}
                   style={{
                     width: '100%', background: 'transparent', border: 'none', outline: 'none',
                     textAlign: 'center', fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700,
