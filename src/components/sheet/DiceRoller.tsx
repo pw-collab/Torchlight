@@ -1,29 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { sendToDiscord } from '@/lib/discord'
+import { rollDie } from '@/lib/dice'
+import type { RollResult } from '@/lib/dice'
 
 const DICE = [4, 6, 8, 10, 12, 20]
 
 interface Props {
   characterName: string
   statMod?: number
+  onRoll?: (result: RollResult) => void
 }
 
-export function DiceRoller({ characterName, statMod = 0 }: Props) {
+export function DiceRoller({ characterName: _, statMod = 0, onRoll }: Props) {
   const [selectedDie, setSelectedDie] = useState(20)
   const [extraMod, setExtraMod] = useState(0)
   const [dc, setDc] = useState(14)
-  const [lastResult, setLastResult] = useState<{ roll: number; total: number; success: boolean } | null>(null)
+  const [lastResult, setLastResult] = useState<RollResult | null>(null)
 
   function roll() {
-    const result = Math.floor(Math.random() * selectedDie) + 1
     const totalMod = statMod + extraMod
-    const total = result + totalMod
-    const success = total >= dc
-    setLastResult({ roll: result, total, success })
-    sendToDiscord({ type: 'roll', player: characterName, die: `d${selectedDie}`, result, modifier: totalMod, total, dc, success })
+    const result = rollDie(`d${selectedDie}`, `Rolagem d${selectedDie}`, undefined, totalMod)
+    result.isCritical = selectedDie === 20 && result.result === 20
+    result.isFumble = selectedDie === 20 && result.result === 1
+    setLastResult(result)
+    if (onRoll) {
+      onRoll(result)
+    }
   }
+
+  const success = lastResult ? lastResult.total >= dc : null
 
   return (
     <div
@@ -156,13 +162,13 @@ export function DiceRoller({ characterName, statMod = 0 }: Props) {
         ✦ Rolar d{selectedDie}
       </button>
 
-      {lastResult && (
+      {lastResult && success !== null && (
         <div style={{
           marginTop: 10,
           padding: '10px 12px',
           borderRadius: 1,
-          background: lastResult.success ? 'rgba(42,80,69,0.2)' : 'rgba(139,21,21,0.15)',
-          border: `1px solid ${lastResult.success ? 'rgba(42,80,69,0.4)' : 'rgba(139,21,21,0.4)'}`,
+          background: success ? 'rgba(42,80,69,0.2)' : 'rgba(139,21,21,0.15)',
+          border: `1px solid ${success ? 'rgba(42,80,69,0.4)' : 'rgba(139,21,21,0.4)'}`,
           display: 'flex',
           alignItems: 'center',
           gap: 10,
@@ -172,7 +178,7 @@ export function DiceRoller({ characterName, statMod = 0 }: Props) {
             fontFamily: 'var(--font-mono)',
             fontSize: 22,
             fontWeight: 700,
-            color: lastResult.success ? '#3D7060' : 'var(--blood-bright)',
+            color: success ? '#3D7060' : 'var(--blood-bright)',
           }}>
             {lastResult.total}
           </span>
@@ -182,9 +188,9 @@ export function DiceRoller({ characterName, statMod = 0 }: Props) {
               fontSize: 8,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: lastResult.success ? '#3D7060' : 'var(--blood-bright)',
+              color: success ? '#3D7060' : 'var(--blood-bright)',
             }}>
-              {lastResult.success ? 'Sucesso' : 'Falhou'}
+              {success ? 'Sucesso' : 'Falhou'}
             </div>
             <div style={{
               fontFamily: 'var(--font-body)',
@@ -192,7 +198,7 @@ export function DiceRoller({ characterName, statMod = 0 }: Props) {
               fontSize: 10,
               color: 'var(--bone-muted)',
             }}>
-              rolou {lastResult.roll} vs DC {dc}
+              rolou {lastResult.result} vs DC {dc}
             </div>
           </div>
         </div>
