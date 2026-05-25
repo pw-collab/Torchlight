@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types'
 import type { RollResult } from '@/lib/dice'
-import { rollDie } from '@/lib/dice'
+import { rollDie, rollFormula } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -336,8 +336,9 @@ function PresetPickerModal({ onSelect, onClose }: {
           padding: '18px 20px',
           minWidth: 320,
           maxWidth: 420,
+          display: 'flex',
+          flexDirection: 'column',
           maxHeight: '70vh',
-          overflowY: 'auto',
         }}
       >
         <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 12 }}>
@@ -369,38 +370,40 @@ function PresetPickerModal({ onSelect, onClose }: {
           ))}
         </div>
 
-        {PRESET_TABS[tab].items.map((preset, i) => (
-          <button
-            key={i}
-            onClick={() => onSelect(preset)}
-            style={{
-              display: 'block',
-              width: '100%',
-              textAlign: 'left',
-              background: 'none',
-              border: 'none',
-              borderBottom: '1px solid rgba(139,112,48,0.1)',
-              padding: '9px 4px',
-              cursor: 'pointer',
-              transition: 'background 200ms',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-          >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', marginBottom: 2 }}>
-              {preset.isLight
-                ? LIGHT_ICON[preset.lightKind ?? 'torch']
-                : ITEM_ICON[preset.type ?? 'gear'] ?? '⚗'
-              } {preset.name}
-            </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
-              {preset.slots} slot{preset.slots !== 1 ? 's' : ''}
-              {preset.damageDie ? ` · ${preset.damageDie}` : ''}
-              {preset.acBonus ? ` · CA ${preset.acBonus}` : ''}
-              {preset.description ? ` · ${preset.description}` : ''}
-            </div>
-          </button>
-        ))}
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          {PRESET_TABS[tab].items.map((preset, i) => (
+            <button
+              key={i}
+              onClick={() => onSelect(preset)}
+              style={{
+                display: 'block',
+                width: '100%',
+                textAlign: 'left',
+                background: 'none',
+                border: 'none',
+                borderBottom: '1px solid rgba(139,112,48,0.1)',
+                padding: '9px 4px',
+                cursor: 'pointer',
+                transition: 'background 200ms',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            >
+              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', marginBottom: 2 }}>
+                {preset.isLight
+                  ? LIGHT_ICON[preset.lightKind ?? 'torch']
+                  : ITEM_ICON[preset.type ?? 'gear'] ?? '⚗'
+                } {preset.name}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
+                {preset.slots} slot{preset.slots !== 1 ? 's' : ''}
+                {preset.damageDie ? ` · ${preset.damageDie}` : ''}
+                {preset.acBonus ? ` · CA ${preset.acBonus}` : ''}
+                {preset.description ? ` · ${preset.description}` : ''}
+              </div>
+            </button>
+          ))}
+        </div>
 
         <button onClick={onClose} style={{ ...quickBtnStyle('dark'), width: '100%', marginTop: 12, padding: '7px 0' }}>
           Cancelar
@@ -764,7 +767,7 @@ export function InventoryView({
 
   function rollDamage(item: InventoryItem) {
     if (!onRoll || !item.damageDie) return
-    const result = rollDie(item.damageDie, `Dano: ${item.name}`, 'Arma')
+    const result = rollFormula(item.damageDie, `Dano: ${item.name}`, 'Arma')
     onRoll(result)
   }
 
@@ -789,7 +792,7 @@ export function InventoryView({
         <div style={{ flex: 1 }}>
           <CapacityDashboard str={str} usedSlots={usedSlots} />
         </div>
-        <div className="worn-border" style={{ ...panelStyle({ padding: '12px 14px' }), flexShrink: 0, minWidth: 148 }}>
+        <div className="worn-border" style={{ ...panelStyle({ padding: '12px 14px' }), flex: 1 }}>
           {sectionLabel('Bônus', '⚔')}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {([
@@ -805,9 +808,13 @@ export function InventoryView({
                   {label}
                 </div>
                 <input
+                  key={`${key}-${value}`}
                   type="number"
-                  value={value}
-                  onChange={e => onMeleeRangedUpdate({ [key]: parseInt(e.target.value) || 0 })}
+                  defaultValue={value}
+                  onBlur={e => {
+                    const n = parseInt(e.target.value, 10)
+                    if (!isNaN(n)) onMeleeRangedUpdate({ [key]: n })
+                  }}
                   style={{
                     width: '100%', background: 'transparent', border: 'none', outline: 'none',
                     textAlign: 'center', fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700,

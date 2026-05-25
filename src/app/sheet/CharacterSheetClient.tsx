@@ -303,6 +303,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             equippedSpells={character.spells}
             spellcastingBonus={character.spellcastingBonus}
             castingAttr={character.castingAttr}
+            stats={character.stats}
+            onRoll={handleRoll}
             onUpdate={handleSpellcastingUpdate}
           />
         )}

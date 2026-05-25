@@ -11,6 +11,10 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.hp_current !== undefined && { hpCurrent: updates.hp_current }),
     ...(updates.luck_tokens !== undefined && { luckTokens: updates.luck_tokens }),
     ...('torch_end_at' in updates && { torchEndAt: updates.torch_end_at ?? null }),
+    ...(updates.melee_bonus !== undefined && { meleeBonus: updates.melee_bonus }),
+    ...(updates.ranged_bonus !== undefined && { rangedBonus: updates.ranged_bonus }),
+    ...(updates.spellcasting_bonus !== undefined && { spellcastingBonus: updates.spellcasting_bonus }),
+    ...(updates.casting_attr !== undefined && { castingAttr: updates.casting_attr }),
   }
 }
 
