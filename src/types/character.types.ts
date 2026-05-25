@@ -26,6 +26,7 @@ export interface Character {
   meleeBonus: number
   rangedBonus: number
   spellcastingBonus: number
+  castingAttr: string
   talents: Talent[]
   languages: string[]
   backgroundText: string
@@ -123,6 +124,7 @@ export interface CharacterRow {
   melee_bonus?: number
   ranged_bonus?: number
   spellcasting_bonus?: number
+  casting_attr?: string
   talents?: Talent[]
   languages?: string[]
   background_text?: string | null
@@ -166,6 +168,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     meleeBonus: row.melee_bonus ?? 0,
     rangedBonus: row.ranged_bonus ?? 0,
     spellcastingBonus: row.spellcasting_bonus ?? 0,
+    castingAttr: row.casting_attr ?? 'int',
     talents: row.talents ?? [],
     languages: row.languages ?? [],
     backgroundText: row.background_text ?? '',

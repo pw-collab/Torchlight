@@ -6,7 +6,6 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { CombatStats } from '@/components/sheet/CombatStats'
-import { CombatBonuses } from '@/components/sheet/CombatBonuses'
 import { XPBar } from '@/components/sheet/XPBar'
 import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { LuckTokens } from '@/components/sheet/LuckTokens'
@@ -115,11 +114,17 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter(patch as Partial<CharacterRow>)
   }
 
-  async function handleCombatBonusUpdate(patch: { meleeBonus?: number; rangedBonus?: number; spellcastingBonus?: number }) {
+  async function handleMeleeRangedUpdate(patch: { meleeBonus?: number; rangedBonus?: number }) {
     const dbPatch: Partial<CharacterRow> = {}
     if (patch.meleeBonus !== undefined) (dbPatch as any).melee_bonus = patch.meleeBonus
     if (patch.rangedBonus !== undefined) (dbPatch as any).ranged_bonus = patch.rangedBonus
+    await updateCharacter(dbPatch)
+  }
+
+  async function handleSpellcastingUpdate(patch: { spellcastingBonus?: number; castingAttr?: string }) {
+    const dbPatch: Partial<CharacterRow> = {}
     if (patch.spellcastingBonus !== undefined) (dbPatch as any).spellcasting_bonus = patch.spellcastingBonus
+    if (patch.castingAttr !== undefined) (dbPatch as any).casting_attr = patch.castingAttr
     await updateCharacter(dbPatch)
   }
 
@@ -145,7 +150,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 32px' }}>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 80px' }}>
 
         <Link
           href="/home"
@@ -215,9 +220,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           </div>
         </div>
 
-        {/* XP bar */}
-        <div style={{ marginBottom: 14 }}>
-          <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
+        {/* XP bar + Attribute row */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+          <div style={{ width: 220, flexShrink: 0 }}>
+            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <StatBlock stats={character.stats} onRoll={handleRoll} />
+          </div>
         </div>
 
         {/* Tab navigation */}
@@ -250,20 +260,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         {tab === 'stats' && (
           <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-              <StatBlock stats={character.stats} onRoll={handleRoll} />
               <CombatStats
                 hpMax={character.hpMax}
                 hpCurrent={character.hpCurrent}
                 ac={character.ac}
                 onHpChange={handleHpChange}
               />
-              <CombatBonuses
-                meleeBonus={character.meleeBonus}
-                rangedBonus={character.rangedBonus}
-                spellcastingBonus={character.spellcastingBonus}
-                onUpdate={handleCombatBonusUpdate}
-              />
-              <DiceRoller characterName={playerName} onRoll={handleRoll} />
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
             </div>
 
@@ -286,6 +288,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             onUpdate={handleInventoryUpdate}
             onAcChange={handleAcChange}
             onCurrencyUpdate={handleCurrencyUpdate}
+            onMeleeRangedUpdate={handleMeleeRangedUpdate}
             onRoll={handleRoll}
             meleeBonus={character.meleeBonus}
             rangedBonus={character.rangedBonus}
@@ -295,7 +298,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
         {/* Tab: Spells */}
         {tab === 'spells' && (
-          <Spells classId={character.classId} equippedSpells={character.spells} />
+          <Spells
+            classId={character.classId}
+            equippedSpells={character.spells}
+            spellcastingBonus={character.spellcastingBonus}
+            castingAttr={character.castingAttr}
+            onUpdate={handleSpellcastingUpdate}
+          />
         )}
       </div>
 
@@ -306,6 +315,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onClose={() => setShowEdit(false)}
         />
       )}
+      <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />
     </AppShell>
