@@ -94,7 +94,7 @@ export default function CharacterCreatorPage() {
       torch_end_at: null,
     }).select('id').single()
 
-    if (data) router.push('/sheet')
+    if (data) router.push(`/sheet/${data.id}`)
     else { console.error(error); setSaving(false) }
   }
 

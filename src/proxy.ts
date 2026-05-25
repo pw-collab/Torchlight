@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/login', '/auth', '/_next', '/favicon.ico']
+const PUBLIC_PATHS = ['/', '/login', '/auth', '/_next', '/favicon.ico']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith('/gm') && allowed.role !== 'gm') {
-    return NextResponse.redirect(new URL('/sheet', request.url))
+    return NextResponse.redirect(new URL('/home', request.url))
   }
 
   return response
