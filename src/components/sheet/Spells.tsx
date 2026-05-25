@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getSpell, getSpellsForClass } from '@/data/spells/index'
+import { rollDie, modifier, RollResult } from '@/lib/dice'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -19,10 +20,12 @@ interface Props {
   equippedSpells: string[]
   spellcastingBonus?: number
   castingAttr?: string
+  stats?: Record<string, number>
   onUpdate?: (patch: { spellcastingBonus?: number; castingAttr?: string }) => void
+  onRoll?: (result: RollResult) => void
 }
 
-export function Spells({ classId, equippedSpells, spellcastingBonus = 0, castingAttr = 'int', onUpdate }: Props) {
+export function Spells({ classId, equippedSpells, spellcastingBonus = 0, castingAttr = 'int', stats, onUpdate, onRoll }: Props) {
   const available = getSpellsForClass(classId)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -58,9 +61,13 @@ export function Spells({ classId, equippedSpells, spellcastingBonus = 0, casting
               Bônus
             </span>
             <input
+              key={`sb-${spellcastingBonus}`}
               type="number"
-              value={spellcastingBonus}
-              onChange={e => onUpdate({ spellcastingBonus: parseInt(e.target.value) || 0 })}
+              defaultValue={spellcastingBonus}
+              onBlur={e => {
+                const n = parseInt(e.target.value, 10)
+                if (!isNaN(n) && onUpdate) onUpdate({ spellcastingBonus: n })
+              }}
               style={{
                 width: 46,
                 background: 'rgba(42,26,58,0.5)',
@@ -113,23 +120,28 @@ export function Spells({ classId, equippedSpells, spellcastingBonus = 0, casting
           Nenhuma magia preparada.
         </p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <div>
           {equippedSpells.map(id => {
             const spell = getSpell(id) ?? available.find(s => s.id === id)
             const isOpen = expanded === id
 
             return (
-              <li
+              <div
                 key={id}
-                onClick={() => setExpanded(isOpen ? null : id)}
+                className="worn-border"
                 style={{
-                  padding: '8px 0',
-                  borderBottom: '1px solid rgba(107,78,138,0.12)',
-                  cursor: spell ? 'pointer' : 'default',
-                  transition: 'all 250ms',
+                  background: 'rgba(42,26,58,0.2)',
+                  border: '1px solid rgba(107,78,138,0.25)',
+                  borderRadius: 2,
+                  marginBottom: 8,
+                  overflow: 'hidden',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Clickable header row */}
+                <div
+                  onClick={() => setExpanded(isOpen ? null : id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', cursor: 'pointer', userSelect: 'none' }}
+                >
                   {spell && (
                     <span style={{
                       fontFamily: 'var(--font-mono)',
@@ -142,84 +154,92 @@ export function Spells({ classId, equippedSpells, spellcastingBonus = 0, casting
                       borderRadius: 1,
                       flexShrink: 0,
                     }}>
-                      {TIER_LABEL[(spell.tier - 1)] ?? spell.tier}
+                      {TIER_LABEL[spell.tier - 1] ?? spell.tier}
                     </span>
                   )}
-                  <span style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: 11.5,
-                    fontWeight: 500,
-                    color: '#8B6AAA',
-                    letterSpacing: '0.04em',
-                    flex: 1,
-                  }}>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-heading)', fontSize: 11, color: '#8B6AAA', letterSpacing: '0.04em' }}>
                     {spell?.name ?? id}
                   </span>
+
+                  {/* Cast button — only shown if spell exists, onRoll provided, stats provided */}
+                  {spell && onRoll && stats && (
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        const castMod = modifier(stats[castingAttr ?? 'int'] ?? 10) + (spellcastingBonus ?? 0)
+                        const spellDC = 10 + spell.tier
+                        const result = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
+                        result.isCritical = result.result === 20
+                        result.isFumble = result.result === 1
+                        onRoll(result)
+                      }}
+                      style={{
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: 7.5,
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        background: 'rgba(42,26,58,0.6)',
+                        border: '1px solid rgba(107,78,138,0.4)',
+                        color: '#8B6AAA',
+                        padding: '4px 8px',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 200ms',
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,78,138,0.3)'
+                        ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,26,58,0.6)'
+                        ;(e.currentTarget as HTMLButtonElement).style.color = '#8B6AAA'
+                      }}
+                    >
+                      ☽ Conjurar
+                    </button>
+                  )}
+
                   {spell && (
-                    <span style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 8,
-                      color: 'var(--parchment-warm)',
-                      flexShrink: 0,
-                    }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)', flexShrink: 0 }}>
                       {isOpen ? '▲' : '▼'}
                     </span>
                   )}
                 </div>
 
+                {/* Expanded details */}
                 {spell && isOpen && (
                   <div
-                    style={{
-                      marginTop: 8,
-                      paddingTop: 8,
-                      borderTop: '1px solid rgba(107,78,138,0.1)',
-                      animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
-                    }}
+                    style={{ padding: '0 12px 10px', borderTop: '1px solid rgba(107,78,138,0.15)', animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both' }}
                     onClick={e => e.stopPropagation()}
                   >
-                    <div style={{ display: 'flex', gap: 14, marginBottom: 7, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: 14, marginTop: 8, marginBottom: 7, flexWrap: 'wrap' }}>
                       {[
                         { label: 'Alcance', value: spell.range },
                         { label: 'Duração', value: spell.duration },
                         { label: 'Conjuração', value: spell.castingTime },
                         ...(spell.school ? [{ label: 'Escola', value: spell.school }] : []),
+                        { label: 'DC', value: String(10 + spell.tier) },
                       ].map(({ label, value }) => (
                         <div key={label}>
-                          <div style={{
-                            fontFamily: 'var(--font-heading)',
-                            fontSize: 7,
-                            letterSpacing: '0.14em',
-                            textTransform: 'uppercase',
-                            color: '#6B4E8A',
-                            marginBottom: 1,
-                          }}>
+                          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#6B4E8A', marginBottom: 1 }}>
                             {label}
                           </div>
-                          <div style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: 9,
-                            color: 'var(--parchment-light)',
-                          }}>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--parchment-light)' }}>
                             {value}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <p style={{
-                      fontFamily: 'var(--font-body)',
-                      fontStyle: 'italic',
-                      fontSize: 11,
-                      color: 'var(--bone-muted)',
-                      lineHeight: 1.6,
-                    }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6 }}>
                       {spell.description}
                     </p>
                   </div>
                 )}
-              </li>
+              </div>
             )
           })}
-        </ul>
+        </div>
       )}
     </div>
   )
