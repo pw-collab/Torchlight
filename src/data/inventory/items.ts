@@ -1,0 +1,90 @@
+import type { Item, ItemInput } from './types'
+import { slugFromName } from './ids'
+
+function withIds(entries: ItemInput[]): Item[] {
+  return entries.map((entry) => ({
+    ...entry,
+    id: entry.id ?? slugFromName(entry.name),
+  }))
+}
+
+const WEAPON_ENTRIES: ItemInput[] = [
+  { name: 'Shortsword', cost: '7 gp', damageDie: '1d6', description: '-', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Club', cost: '5 cp', damageDie: '1d4', description: 'Sundering', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Crossbow', cost: '8 gp', damageDie: '1d6', description: '2 Handed, Loading', range: 'F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Dagger', cost: '1 gp', damageDie: '1d4', description: 'Finesse, Thrown', range: 'C/N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Longbow', cost: '8 gp', damageDie: '1d8', description: '2 Handed', range: 'F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Mace', cost: '5 gp', damageDie: '1d6', description: '-', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Greatsword', cost: '12 gp', damageDie: '1d12', description: '2 Handed', range: 'C', type: 'weapon', weaponType: 'melee', weight: 2 },
+  { name: 'Javelin', cost: '5 sp', damageDie: '1d4', description: 'Thrown', range: 'C/F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Bastard Sword', cost: '10 gp', damageDie: '1d8/1d10', description: 'Versatile', range: 'C', type: 'weapon', weaponType: 'melee', weight: 2 },
+  { name: 'Longsword', cost: '9 gp', damageDie: '1d8', description: '-', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Shortbow', cost: '6 gp', damageDie: '1d4', description: '2 Handed', range: 'F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Greataxe', cost: '10 gp', damageDie: '1d8/1d10', description: 'Versatile', range: 'C', type: 'weapon', weaponType: 'melee', weight: 2 },
+  { name: 'Scimitar', cost: '8 gp', damageDie: '1d6', description: 'Finesse', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Razor chain', cost: '12 gp', damageDie: '1d6', description: 'Finesse, Lash', range: 'C/N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Staff', cost: '5 sp', damageDie: '1d4', description: '2 Handed, Sundering', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Shuriken', cost: '1 gp', damageDie: '1d4', description: 'Thrown', range: 'N', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Spear', cost: '5 sp', damageDie: '1d6', description: 'Thrown', range: 'C/N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Bolas', cost: '2 gp', damageDie: '-', description: 'Slows movement', range: 'N', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Blowgun', cost: '5 gp', damageDie: '1', description: 'Dont break stealth', range: 'N', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Morningstar', cost: '5 gp', damageDie: '1d6/1d8', description: 'Versatile', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Pike', cost: '10 gp', damageDie: '1d10', description: '2 Handed, 2 slots', range: '2x C', type: 'weapon', weaponType: 'melee', weight: 2 },
+  { name: 'Warhammer', cost: '10 gp', damageDie: '1d10', description: '2 Handed', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Censer Flail', cost: '20 gp', damageDie: '1d8', description: 'Finesse, Gas, Lash', range: 'N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Hunting Knife', cost: '2 sp', damageDie: '1d4', description: 'Finesse', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Pickaxe', cost: '5 gp', damageDie: '1d6/1d8', description: 'Versatile', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Pistol', cost: '10 gp', damageDie: '1d10', description: 'Loading, Black powder, Point blank', range: 'C/N', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Rapier', cost: '8 gp', damageDie: '1d6', description: 'Finesse, Injectable', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Needle Whip', cost: '10 gp', damageDie: '1d4', description: 'Finesse, Lash, Injectable', range: 'N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Stiletto', cost: '5 sp', damageDie: '1d4', description: 'Finesse, Injectable', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Darts [5]', cost: '1 gp', damageDie: '1d2', description: 'Thrown, Injectable', range: 'N', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Sling', cost: '5 sp', damageDie: '1d4', description: '-', range: 'F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Shovel', cost: '1 gp', damageDie: '1d6', description: '2 Handed', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Whip', cost: '10 gp', damageDie: '1d4', description: 'Finesse, Lash', range: 'C/N', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Scythe', cost: '2 gp', damageDie: '1d6', description: '2 Handed', range: 'C', type: 'weapon', weaponType: 'melee', weight: 1 },
+  { name: 'Musket', cost: '20 gp', damageDie: '1d12', description: '2 Handed, Loading, Black powder', range: '2xN', type: 'weapon', weaponType: 'ranged', weight: 1 },
+  { name: 'Vial [5]', cost: '20 gp', damageDie: '1d1', description: 'Thrown, Loading, Gas', range: 'F', type: 'weapon', weaponType: 'ranged', weight: 1 },
+]
+
+const ARMOR_ENTRIES: ItemInput[] = [
+  { name: 'Chainmail', acBonus: 13, cost: '60 gp', description: '13 + DEX mod. Disadv on stealth & swim', type: 'armor', weight: 2 },
+  { name: 'Plate mail', acBonus: 15, cost: '130 gp', description: 'No swim, disadv on stealth', type: 'armor', weight: 3 },
+  { name: 'Mithral plate mail', acBonus: 15, cost: '520 gp', description: 'Disadv on swim', type: 'armor', weight: 2 },
+  { name: 'Shield', acBonus: 2, cost: '10 gp', description: 'Occupies one hand', type: 'shield', weight: 1 },
+  { name: 'Mithral shield', acBonus: 2, cost: '40 gp', description: 'Occupies one hand', type: 'shield', weight: 0 },
+  { name: 'Leather armor', acBonus: 11, cost: '10 gp', description: '-', type: 'armor', weight: 1 },
+  { name: 'Mithral chainmail', acBonus: 13, cost: '240 gp', description: '13 + DEX mod', type: 'armor', weight: 1 },
+  { name: 'Round shield', acBonus: 2, cost: '15 gp', description: "Occupies one hand, Sunder to negate one melee hit's damage", type: 'shield', weight: 1 },
+  { name: 'None', acBonus: 10, cost: '0', description: '', type: 'armor', weight: 0 },
+]
+
+const GEAR_ENTRIES: ItemInput[] = [
+  { name: 'Rações [3]', cost: '5 sp', description: 'Comida e água suficientes para uma pessoa, por um dia', type: 'gear', weight: 1 },
+  { name: 'Lampião', cost: '5 gp', description: 'Ilumina até a distância Perto x2 (veja Fontes de Luz, pág. 86). Requer óleo. Possui uma tampa para ocultar a luz', type: 'gear', weight: 1 },
+  { name: 'Vara', cost: '5 sp', description: 'Madeira, 3 m de comprimento', type: 'gear', weight: 1 },
+  { name: 'Arpéu', cost: '1 gp', description: 'Uma âncora de corda com três pontas afiadas e recurvadas', type: 'gear', weight: 1 },
+  { name: 'Virotes de besta [20]', cost: '1 gp', description: 'Munição para bestas', type: 'gear', weight: 1 },
+  { name: 'Estrepes (pacote)', cost: '5 sp', description: 'Pequenos cravos de ferro em formato de triângulo. Criaturas vivas que pisarem nos estrepes sofrem 1 de dano e só podem se mover com metade de sua velocidade pelas próximas 10 rodadas', type: 'gear', weight: 1 },
+  { name: 'Frasco ou garrafa', cost: '3 sp', description: 'Recipientes  de vidro que comportam uma  quantidade específica de líquido', type: 'gear', weight: 1 },
+  { name: 'Cravos de ferro [10]', cost: '1 gp', description: 'Cravos resistentes. Cada um deles tem um buraco para passar corda. Podem ser martelados com armas ou com outro cravo de ferro', type: 'gear', weight: 1 },
+  { name: 'Flechas [20]', cost: '1 gp', description: 'Munição para arcos curtos e arcos longos', type: 'gear', weight: 1 },
+  { name: 'Corda, 18m', cost: '1 gp', description: 'Cânhamo, 18 m de comprimento', type: 'gear', weight: 1 },
+  { name: 'Espelho', cost: '10 gp', description: 'Um pequeno espelho polido', type: 'gear', weight: 1 },
+  { name: 'Frasco de óleo', cost: '5 sp', description: 'Abastece um lampião por uma hora de tempo real. Um frasco consegue cobrir uma área Adjacente  e queima por 4 rodadas, causando  1d4 de dano a cada rodada', type: 'gear', weight: 1 },
+  { name: 'Pederneira', cost: '5 sp', description: 'Um pequeno iniciador de fogo. Com ela, tentativas rotineiras de acender um fogo sempre são bem-sucedidas', type: 'gear', weight: 1 },
+  { name: 'Mochila', cost: '2 gp', description: 'Guarda todo o equipamento que você pode carregar. Não a perca', type: 'gear', weight: 0 },
+  { name: 'Pé de cabra', cost: '5 sp', description: 'Concede Vantagem em testes para abrir objetos emperrados usando a física de alavanca', type: 'gear', weight: 1 },
+  { name: 'Tocha', cost: '5 sp', description: 'Ilumina até a distância Perto. Queima por uma hora de tempo real', type: 'gear', weight: 1, isTorch: true },
+  { name: 'Vela [3]', cost: '1 sp', description: 'Ilumina até a distância Adjacente. Queima por duas horas de tempo real', type: 'gear', weight: 1, isTorch: true },
+  { name: 'Kit primeiros socorros', cost: '30 gp', description: 'Uma caixa de equipamentos médicos e bandagens que concede +2 de bônus em testes para estabilizar um alvo', type: 'gear', weight: 2 },
+  { name: 'Laço de caça [2]', cost: '5 gp', description: 'Usado para capturar pequenos animais. 1d10 rodadas de preparação. Teste de WIS DC12 para armar e usa uma ração de carne', type: 'gear', weight: 1 },
+  { name: 'Algemas', cost: '5 gp', description: 'Algemas de restrição. Teste de FOR DC 15 para quebrar', type: 'gear', weight: 1 },
+  { name: 'Ferramentas de reparo', cost: '20 gp', description: 'Ferramentas necessária para consertar equipamentos. Bônus de +2 em testes para reparo de armas e armaduras', type: 'gear', weight: 2 },
+]
+
+export const WEAPONS: Item[] = withIds(WEAPON_ENTRIES)
+export const ARMORS: Item[] = withIds(ARMOR_ENTRIES)
+export const GEAR: Item[] = withIds(GEAR_ENTRIES)
+
+export const ALL_ITEMS: Item[] = [...WEAPONS, ...ARMORS, ...GEAR]

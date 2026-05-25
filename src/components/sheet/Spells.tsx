@@ -1,6 +1,6 @@
 'use client'
 
-import { getSpellsForClass } from '@/data/spells/index'
+import { getSpell, getSpellsForClass } from '@/data/spells/index'
 
 interface Props {
   classId: string
@@ -45,7 +45,7 @@ export function Spells({ classId, equippedSpells }: Props) {
             Nenhuma magia preparada.
           </li>
         ) : equippedSpells.map(id => {
-          const spell = available.find(s => s.id === id)
+          const spell = getSpell(id) ?? available.find(s => s.id === id)
           return (
             <li key={id} style={{ padding: '7px 0', borderBottom: '1px solid rgba(107,78,138,0.1)' }}>
               <div style={{
