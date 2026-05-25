@@ -1,6 +1,13 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
-export default function Home() {
+export default async function LandingPage() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) redirect('/home')
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <h1 className="text-4xl font-bold text-amber-400 mb-2">🕯️ Torchlight</h1>

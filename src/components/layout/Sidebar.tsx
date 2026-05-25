@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 const MAIN_NAV = [
-  { id: 'sheet',              icon: '✦', label: 'Ficha do Personagem' },
+  { id: 'home',               icon: '✦', label: 'Meus arquivos' },
   { id: 'character-creator',  icon: '⚗', label: 'Criar Personagem' },
   { id: 'gm',                 icon: '☽', label: 'Painel do Mestre' },
 ]
@@ -14,10 +14,17 @@ const SYS_NAV = [
 ]
 
 const ICON_COLOR: Record<string, string> = {
-  sheet: '#C4A96A',
+  home: '#C4A96A',
   'character-creator': '#C9A84C',
   gm: '#6B4E8A',
   settings: '#6A5A3A',
+}
+
+function isNavActive(navId: string, currentPath: string): boolean {
+  if (navId === 'home') {
+    return currentPath === 'home' || currentPath.startsWith('sheet/')
+  }
+  return currentPath === navId || currentPath.startsWith(`${navId}/`)
 }
 
 interface Props {
@@ -36,14 +43,14 @@ export function Sidebar({ currentPath, onNavigate, playerName = 'Arquivista', pl
     gap: 10,
     width: '100%',
     padding: '9px 14px',
-    background: currentPath === id
+    background: isNavActive(id, currentPath)
       ? 'rgba(139,21,21,0.13)'
       : hov === id
         ? 'rgba(139,112,48,0.07)'
         : 'transparent',
     border: 'none',
-    borderLeft: `2px solid ${currentPath === id ? '#8B1515' : hov === id ? 'rgba(139,112,48,0.25)' : 'transparent'}`,
-    color: currentPath === id ? '#D4C9A0' : hov === id ? '#C4A96A' : '#6A5A3A',
+    borderLeft: `2px solid ${isNavActive(id, currentPath) ? '#8B1515' : hov === id ? 'rgba(139,112,48,0.25)' : 'transparent'}`,
+    color: isNavActive(id, currentPath) ? '#D4C9A0' : hov === id ? '#C4A96A' : '#6A5A3A',
     fontFamily: 'var(--font-heading)',
     fontSize: 11,
     letterSpacing: '0.05em',

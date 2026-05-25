@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
@@ -64,7 +65,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   if (loading) {
     return (
-      <AppShell breadcrumbs={['Ficha do Personagem']} playerName={playerName}>
+      <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <span className="animate-flicker" style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
             ✦ O arquivo está sendo consultado...
@@ -76,7 +77,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   if (!character) {
     return (
-      <AppShell breadcrumbs={['Ficha do Personagem']} playerName={playerName}>
+      <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--blood-bright)' }}>
             Personagem não encontrado no arquivo.
@@ -137,14 +138,39 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   return (
     <AppShell
-      breadcrumbs={['Ficha do Personagem']}
+      breadcrumbs={[
+        { label: 'Meus arquivos', href: '/home' },
+        { label: character.name },
+      ]}
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
       <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 32px' }}>
 
+        <Link
+          href="/home"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            marginTop: 18,
+            marginBottom: 4,
+            fontFamily: 'var(--font-heading)',
+            fontSize: 9,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: 'var(--bone-muted)',
+            textDecoration: 'none',
+            transition: 'color 200ms',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--parchment-light)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--bone-muted)' }}
+        >
+          ← Voltar aos arquivos
+        </Link>
+
         {/* Character header */}
-        <div style={{ padding: '22px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
+        <div style={{ padding: '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <div>

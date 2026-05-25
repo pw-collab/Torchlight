@@ -3,11 +3,16 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 
+export interface BreadcrumbItem {
+  label: string
+  href?: string
+}
+
 interface Props {
   children: React.ReactNode
   playerName?: string
   playerRole?: string
-  breadcrumbs?: string[]
+  breadcrumbs?: BreadcrumbItem[]
   topbarTitle?: string
 }
 
@@ -59,7 +64,27 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], t
             {breadcrumbs.map((crumb, i) => (
               <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ color: '#3A2E18' }}>›</span>
-                <span style={i === breadcrumbs.length - 1 ? { color: '#8B7030' } : {}}>{crumb}</span>
+                {crumb.href ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push(crumb.href!)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      font: 'inherit',
+                      fontSize: 'inherit',
+                      letterSpacing: 'inherit',
+                      textTransform: 'inherit',
+                      color: i === breadcrumbs.length - 1 ? '#8B7030' : '#6A5A3A',
+                    }}
+                  >
+                    {crumb.label}
+                  </button>
+                ) : (
+                  <span style={i === breadcrumbs.length - 1 ? { color: '#8B7030' } : {}}>{crumb.label}</span>
+                )}
               </span>
             ))}
           </div>
