@@ -145,7 +145,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 32px' }}>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 80px' }}>
 
         <Link
           href="/home"
@@ -263,7 +263,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 spellcastingBonus={character.spellcastingBonus}
                 onUpdate={handleCombatBonusUpdate}
               />
-              <DiceRoller characterName={playerName} onRoll={handleRoll} />
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
             </div>
 
@@ -306,6 +305,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onClose={() => setShowEdit(false)}
         />
       )}
+      <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />
     </AppShell>
