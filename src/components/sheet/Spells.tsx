@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getSpellsForClass } from '@/data/spells/index'
+import { getSpell, getSpellsForClass } from '@/data/spells/index'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -52,7 +52,7 @@ export function Spells({ classId, equippedSpells }: Props) {
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {equippedSpells.map(id => {
-            const spell = available.find(s => s.id === id)
+            const spell = getSpell(id) ?? available.find(s => s.id === id)
             const isOpen = expanded === id
 
             return (
