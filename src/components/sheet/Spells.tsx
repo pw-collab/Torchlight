@@ -5,12 +5,24 @@ import { getSpell, getSpellsForClass } from '@/data/spells/index'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
+const STAT_OPTIONS = [
+  { value: 'str', label: 'FOR — Força' },
+  { value: 'dex', label: 'DES — Destreza' },
+  { value: 'con', label: 'CON — Constituição' },
+  { value: 'int', label: 'INT — Inteligência' },
+  { value: 'wis', label: 'SAB — Sabedoria' },
+  { value: 'cha', label: 'CAR — Carisma' },
+]
+
 interface Props {
   classId: string
   equippedSpells: string[]
+  spellcastingBonus?: number
+  castingAttr?: string
+  onUpdate?: (patch: { spellcastingBonus?: number; castingAttr?: string }) => void
 }
 
-export function Spells({ classId, equippedSpells }: Props) {
+export function Spells({ classId, equippedSpells, spellcastingBonus = 0, castingAttr = 'int', onUpdate }: Props) {
   const available = getSpellsForClass(classId)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -27,17 +39,68 @@ export function Spells({ classId, equippedSpells }: Props) {
         borderRadius: 1,
       }}
     >
-      <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 8.5,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: '#6B4E8A',
-        marginBottom: 10,
-        paddingBottom: 7,
-        borderBottom: '1px solid rgba(107,78,138,0.2)',
-      }}>
-        ☽ Magias Preparadas
+      {/* Header + spellcasting controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(107,78,138,0.2)' }}>
+        <span style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8.5,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: '#6B4E8A',
+          flex: 1,
+        }}>
+          ☽ Magias Preparadas
+        </span>
+
+        {onUpdate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
+              Bônus
+            </span>
+            <input
+              type="number"
+              value={spellcastingBonus}
+              onChange={e => onUpdate({ spellcastingBonus: parseInt(e.target.value) || 0 })}
+              style={{
+                width: 46,
+                background: 'rgba(42,26,58,0.5)',
+                border: '1px solid rgba(107,78,138,0.35)',
+                color: spellcastingBonus > 0 ? 'var(--verdigris-light)' : spellcastingBonus < 0 ? 'var(--blood-bright)' : 'var(--bone-white)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 13,
+                fontWeight: 700,
+                padding: '3px 4px',
+                outline: 'none',
+                borderRadius: 2,
+                textAlign: 'center',
+                boxSizing: 'border-box',
+              }}
+            />
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
+              Atrib.
+            </span>
+            <select
+              value={castingAttr}
+              onChange={e => onUpdate({ castingAttr: e.target.value })}
+              style={{
+                background: 'rgba(42,26,58,0.5)',
+                border: '1px solid rgba(107,78,138,0.35)',
+                color: 'var(--parchment-light)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                fontWeight: 700,
+                padding: '3px 6px',
+                outline: 'none',
+                borderRadius: 2,
+                cursor: 'pointer',
+              }}
+            >
+              {STAT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {equippedSpells.length === 0 ? (

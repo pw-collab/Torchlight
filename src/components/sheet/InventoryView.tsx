@@ -670,6 +670,7 @@ interface Props {
   onUpdate: (inventory: InventoryItem[]) => void
   onAcChange: (ac: number) => void
   onCurrencyUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
+  onMeleeRangedUpdate: (patch: { meleeBonus?: number; rangedBonus?: number }) => void
   onRoll?: (result: RollResult) => void
   meleeBonus: number
   rangedBonus: number
@@ -679,7 +680,7 @@ interface Props {
 export function InventoryView({
   inventory, str, dex,
   gold, silver, copper,
-  onUpdate, onAcChange, onCurrencyUpdate,
+  onUpdate, onAcChange, onCurrencyUpdate, onMeleeRangedUpdate,
   onRoll, meleeBonus, rangedBonus, playerName,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
@@ -783,8 +784,42 @@ export function InventoryView({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* A: Capacity Dashboard */}
-      <CapacityDashboard str={str} usedSlots={usedSlots} />
+      {/* A: Capacity Dashboard + Melee/Ranged bonuses */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+        <div style={{ flex: 1 }}>
+          <CapacityDashboard str={str} usedSlots={usedSlots} />
+        </div>
+        <div className="worn-border" style={{ ...panelStyle({ padding: '12px 14px' }), flexShrink: 0, minWidth: 148 }}>
+          {sectionLabel('Bônus', '⚔')}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {([
+              { key: 'meleeBonus' as const, label: '⚔ Corpo', value: meleeBonus },
+              { key: 'rangedBonus' as const, label: '🏹 Dist.', value: rangedBonus },
+            ] as const).map(({ key, label, value }) => (
+              <div
+                key={key}
+                className="worn-border"
+                style={{ background: 'rgba(42,34,16,0.4)', border: '1px solid rgba(139,112,48,0.22)', padding: '6px 8px', textAlign: 'center' }}
+              >
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 2 }}>
+                  {label}
+                </div>
+                <input
+                  type="number"
+                  value={value}
+                  onChange={e => onMeleeRangedUpdate({ [key]: parseInt(e.target.value) || 0 })}
+                  style={{
+                    width: '100%', background: 'transparent', border: 'none', outline: 'none',
+                    textAlign: 'center', fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700,
+                    color: value > 0 ? 'var(--verdigris-light)' : value < 0 ? 'var(--blood-bright)' : 'var(--bone-white)',
+                    cursor: 'text',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* B: Equipped Slots */}
       <div className="worn-border" style={panelStyle({ padding: '14px 15px' })}>
