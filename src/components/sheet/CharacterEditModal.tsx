@@ -14,7 +14,6 @@ interface EditForm {
   name: string
   level: number
   hpMax: number
-  ac: number
   str: number
   dex: number
   con: number
@@ -39,7 +38,6 @@ function isValid(form: EditForm): boolean {
     form.name.trim().length > 0 &&
     Number.isInteger(form.level) && form.level >= 1 && form.level <= 10 &&
     Number.isInteger(form.hpMax) && form.hpMax >= 1 && form.hpMax <= 999 &&
-    Number.isInteger(form.ac) && form.ac >= 1 && form.ac <= 30 &&
     STAT_KEYS.every(s => {
       const v = form[s]
       return Number.isInteger(v) && v >= 1 && v <= 20
@@ -97,7 +95,6 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
     name: character.name,
     level: character.level,
     hpMax: character.hpMax,
-    ac: character.ac,
     str: character.stats.str,
     dex: character.stats.dex,
     con: character.stats.con,
@@ -132,7 +129,6 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
       level: form.level,
       hp_max: form.hpMax,
       hp_current: Math.min(character.hpCurrent, form.hpMax),
-      ac: form.ac,
       str: form.str,
       dex: form.dex,
       con: form.con,
@@ -240,40 +236,30 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
         {/* Combat */}
         <div>
           <SectionDivider>⚔ Combate</SectionDivider>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div>
-              <FieldLabel>HP Máximo</FieldLabel>
-              <input
-                type="number"
-                value={form.hpMax}
-                min={1}
-                max={999}
-                onChange={numField('hpMax', 1, 999)}
-                style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
-              />
-              {form.hpMax < character.hpCurrent && (
-                <div style={{
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 9.5,
-                  color: 'var(--candle-amber)',
-                  marginTop: 4,
-                }}>
-                  ⚠ PV atual ({character.hpCurrent}) será reduzido para {form.hpMax}
-                </div>
-              )}
-            </div>
-            <div>
-              <FieldLabel>CA (1–30)</FieldLabel>
-              <input
-                type="number"
-                value={form.ac}
-                min={1}
-                max={30}
-                onChange={numField('ac', 1, 30)}
-                style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
-              />
-            </div>
+          <div style={{ maxWidth: 180 }}>
+            <FieldLabel>HP Máximo</FieldLabel>
+            <input
+              type="number"
+              value={form.hpMax}
+              min={1}
+              max={999}
+              onChange={numField('hpMax', 1, 999)}
+              style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
+            />
+            {form.hpMax < character.hpCurrent && (
+              <div style={{
+                fontFamily: 'var(--font-body)',
+                fontStyle: 'italic',
+                fontSize: 9.5,
+                color: 'var(--candle-amber)',
+                marginTop: 4,
+              }}>
+                ⚠ PV atual ({character.hpCurrent}) será reduzido para {form.hpMax}
+              </div>
+            )}
+          </div>
+          <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 8 }}>
+            CA é calculada automaticamente pela armadura equipada na aba Inventário.
           </div>
         </div>
 
