@@ -15,6 +15,9 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.ranged_bonus !== undefined && { rangedBonus: updates.ranged_bonus }),
     ...(updates.spellcasting_bonus !== undefined && { spellcastingBonus: updates.spellcasting_bonus }),
     ...(updates.casting_attr !== undefined && { castingAttr: updates.casting_attr }),
+    ...(updates.gold !== undefined && { gold: updates.gold }),
+    ...(updates.silver !== undefined && { silver: updates.silver }),
+    ...(updates.copper !== undefined && { copper: updates.copper }),
   }
 }
 

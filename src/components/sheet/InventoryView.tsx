@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types'
 import type { RollResult } from '@/lib/dice'
+import type { Item as CatalogItem } from '@/data/inventory/index'
+import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
+import { NumInput } from '@/components/sheet/NumInput'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -34,34 +37,33 @@ const LIGHT_ICON: Record<string, string> = {
   lantern: '🏮',
 }
 
-// ─── Item Presets ─────────────────────────────────────────────────────────────
+// ─── Catalog helpers ──────────────────────────────────────────────────────────
 
-const WEAPON_PRESETS: Array<Partial<InventoryItem>> = [
-  { name: 'Espada',     type: 'weapon', slots: 1, quantity: 1, weaponKind: 'melee',  damageDie: '1d8', description: '' },
-  { name: 'Adaga',      type: 'weapon', slots: 1, quantity: 1, weaponKind: 'melee',  damageDie: '1d4', description: '' },
-  { name: 'Maça',       type: 'weapon', slots: 1, quantity: 1, weaponKind: 'melee',  damageDie: '1d6', description: '' },
-  { name: 'Arco Curto', type: 'weapon', slots: 2, quantity: 1, weaponKind: 'ranged', damageDie: '1d6', description: 'Duas mãos' },
-  { name: 'Lança',      type: 'weapon', slots: 1, quantity: 1, weaponKind: 'melee',  damageDie: '1d6', description: '' },
-  { name: 'Machado',    type: 'weapon', slots: 1, quantity: 1, weaponKind: 'melee',  damageDie: '1d6', description: '' },
-]
-
-const ARMOR_PRESETS: Array<Partial<InventoryItem>> = [
-  { name: 'Couro',              type: 'armor',  slots: 1, quantity: 1, acBonus: 11, description: 'CA 11 + mod DES' },
-  { name: 'Cota de Malha',      type: 'armor',  slots: 2, quantity: 1, acBonus: 14, description: 'CA 14' },
-  { name: 'Armadura de Placas', type: 'armor',  slots: 3, quantity: 1, acBonus: 16, description: 'CA 16' },
-  { name: 'Escudo',             type: 'shield', slots: 1, quantity: 1, acBonus: 2,  description: '+2 CA' },
-]
-
-const GEAR_PRESETS: Array<Partial<InventoryItem>> = [
-  { name: 'Tocha',           type: 'gear', slots: 1, quantity: 1, isLight: true, lightKind: 'torch',   lightMaxMinutes: 60,  lightMinutesLeft: 60,  description: '60 min de luz' },
-  { name: 'Lanterna',        type: 'gear', slots: 1, quantity: 1, isLight: true, lightKind: 'lantern', lightMaxMinutes: 120, lightMinutesLeft: 120, description: '120 min de luz' },
-  { name: 'Vela',            type: 'gear', slots: 1, quantity: 3, isLight: true, lightKind: 'candle',  lightMaxMinutes: 30,  lightMinutesLeft: 30,  description: '30 min de luz fraca' },
-  { name: 'Corda (15m)',     type: 'gear', slots: 1, quantity: 1, description: '' },
-  { name: 'Rações (3 dias)', type: 'gear', slots: 1, quantity: 1, description: '' },
-  { name: 'Mochila',         type: 'gear', slots: 0, quantity: 1, description: 'Não ocupa espaço' },
-  { name: 'Óleo (frasco)',   type: 'gear', slots: 1, quantity: 1, description: 'Combustível para lanterna' },
-  { name: 'Alavanca',        type: 'gear', slots: 1, quantity: 1, description: '' },
-]
+function catalogToInventoryItem(cat: CatalogItem): InventoryItem {
+  const n = cat.name.toLowerCase()
+  const isLantern = n.includes('lamp')
+  const isCandle  = n.includes('vela')
+  const isLight   = cat.isTorch || isLantern
+  return {
+    id: cat.id + '-' + Math.random().toString(36).substring(2, 6),
+    name: cat.name,
+    description: cat.description,
+    slots: cat.weight,
+    quantity: 1,
+    type: cat.type as ItemType,
+    cost: cat.cost,
+    ...(cat.weaponType && { weaponKind: cat.weaponType as 'melee' | 'ranged' }),
+    ...(cat.damageDie && cat.damageDie !== '-' && { damageDie: cat.damageDie }),
+    ...(cat.acBonus  && { acBonus: cat.acBonus }),
+    ...(cat.range    && { range: cat.range }),
+    ...(isLight && {
+      isLight: true,
+      lightKind:        isLantern ? 'lantern' : isCandle ? 'candle' : 'torch',
+      lightMaxMinutes:  isLantern ? 120       : isCandle ? 30       : 60,
+      lightMinutesLeft: isLantern ? 120       : isCandle ? 30       : 60,
+    }),
+  }
+}
 
 // ─── AC Calculation ───────────────────────────────────────────────────────────
 
@@ -270,11 +272,10 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 4 }}>
               {label}
             </div>
-            <input
-              type="number"
+            <NumInput
               value={value}
               min={0}
-              onChange={e => onUpdate({ [key]: Math.max(0, parseInt(e.target.value) || 0) })}
+              onCommit={n => onUpdate({ [key]: n })}
               style={{
                 width: '100%',
                 background: 'transparent',
@@ -298,18 +299,23 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
   )
 }
 
-type PresetTab = 'weapons' | 'armors' | 'gear'
-const PRESET_TABS: Record<PresetTab, { label: string; items: Array<Partial<InventoryItem>> }> = {
-  weapons: { label: '⚔ Armas',        items: WEAPON_PRESETS },
-  armors:  { label: '🛡 Armaduras',   items: ARMOR_PRESETS  },
-  gear:    { label: '⚗ Equipamentos', items: GEAR_PRESETS   },
+type CatalogTab = 'weapons' | 'armors' | 'gear'
+const CATALOG_TABS: Record<CatalogTab, { label: string; items: CatalogItem[] }> = {
+  weapons: { label: '⚔ Armas',        items: WEAPONS },
+  armors:  { label: '🛡 Armaduras',   items: ARMORS  },
+  gear:    { label: '⚗ Equipamentos', items: GEAR    },
 }
 
-function PresetPickerModal({ onSelect, onClose }: {
-  onSelect: (preset: Partial<InventoryItem>) => void
+function CatalogPickerModal({ onAdd, onClose }: {
+  onAdd: (item: InventoryItem) => void
   onClose: () => void
 }) {
-  const [tab, setTab] = useState<PresetTab>('weapons')
+  const [tab, setTab]     = useState<CatalogTab>('weapons')
+  const [query, setQuery] = useState('')
+
+  const allForTab  = CATALOG_TABS[tab].items
+  const q          = query.toLowerCase().trim()
+  const filtered   = q ? allForTab.filter(i => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q)) : allForTab
 
   return (
     <div
@@ -334,19 +340,44 @@ function PresetPickerModal({ onSelect, onClose }: {
           borderTop: '2px solid #7A6030',
           boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
           padding: '18px 20px',
-          minWidth: 320,
-          maxWidth: 420,
+          minWidth: 340,
+          maxWidth: 460,
+          width: '90vw',
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '70vh',
+          maxHeight: '78vh',
         }}
       >
-        <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 12 }}>
-          ⚗ Adicionar de Predefinição
+        {/* Header */}
+        <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 10 }}>
+          ⚗ Adicionar do Catálogo
         </div>
 
-        <div style={{ display: 'flex', gap: 2, marginBottom: 12, borderBottom: '1px solid rgba(139,112,48,0.2)', paddingBottom: 0 }}>
-          {(Object.keys(PRESET_TABS) as PresetTab[]).map(t => (
+        {/* Search */}
+        <input
+          autoFocus
+          type="text"
+          placeholder="Buscar..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          style={{
+            width: '100%',
+            background: 'rgba(14,10,3,0.8)',
+            border: '1px solid rgba(139,112,48,0.35)',
+            color: 'var(--parchment-light)',
+            fontFamily: 'var(--font-body)',
+            fontSize: 11,
+            padding: '6px 9px',
+            outline: 'none',
+            borderRadius: 2,
+            marginBottom: 10,
+            boxSizing: 'border-box',
+          }}
+        />
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid rgba(139,112,48,0.2)', marginBottom: 0 }}>
+          {(Object.keys(CATALOG_TABS) as CatalogTab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -365,16 +396,22 @@ function PresetPickerModal({ onSelect, onClose }: {
                 transition: 'all 250ms',
               }}
             >
-              {PRESET_TABS[t].label}
+              {CATALOG_TABS[t].label}
             </button>
           ))}
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          {PRESET_TABS[tab].items.map((preset, i) => (
+        {/* Item list — scrolls */}
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingTop: 4 }}>
+          {filtered.length === 0 && (
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', padding: '8px 4px' }}>
+              Nenhum item encontrado.
+            </p>
+          )}
+          {filtered.map(cat => (
             <button
-              key={i}
-              onClick={() => onSelect(preset)}
+              key={cat.id}
+              onClick={() => { onAdd(catalogToInventoryItem(cat)); onClose() }}
               style={{
                 display: 'block',
                 width: '100%',
@@ -382,31 +419,34 @@ function PresetPickerModal({ onSelect, onClose }: {
                 background: 'none',
                 border: 'none',
                 borderBottom: '1px solid rgba(139,112,48,0.1)',
-                padding: '9px 4px',
+                padding: '8px 4px',
                 cursor: 'pointer',
-                transition: 'background 200ms',
+                transition: 'background 180ms',
               }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}
             >
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', marginBottom: 2 }}>
-                {preset.isLight
-                  ? LIGHT_ICON[preset.lightKind ?? 'torch']
-                  : ITEM_ICON[preset.type ?? 'gear'] ?? '⚗'
-                } {preset.name}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', flex: 1 }}>
+                  {ITEM_ICON[cat.type] ?? '⚗'} {cat.name}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--gold-bright)', flexShrink: 0 }}>
+                  {cat.cost}
+                </span>
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
-                {preset.slots} slot{preset.slots !== 1 ? 's' : ''}
-                {preset.damageDie ? ` · ${preset.damageDie}` : ''}
-                {preset.acBonus ? ` · CA ${preset.acBonus}` : ''}
-                {preset.description ? ` · ${preset.description}` : ''}
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                {cat.weight} slot{cat.weight !== 1 ? 's' : ''}
+                {cat.damageDie && cat.damageDie !== '-' ? ` · ${cat.damageDie}` : ''}
+                {cat.acBonus ? ` · CA ${cat.acBonus}` : ''}
+                {cat.range ? ` · ${cat.range}` : ''}
+                {cat.description && cat.description !== '-' ? ` — ${cat.description}` : ''}
               </div>
             </button>
           ))}
         </div>
 
-        <button onClick={onClose} style={{ ...quickBtnStyle('dark'), width: '100%', marginTop: 12, padding: '7px 0' }}>
-          Cancelar
+        <button onClick={onClose} style={{ ...quickBtnStyle('dark'), width: '100%', marginTop: 10, padding: '7px 0' }}>
+          Fechar
         </button>
       </div>
     </div>
@@ -688,7 +728,7 @@ export function InventoryView({
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
-  const [showPresets, setShowPresets]     = useState(false)
+  const [showCatalog, setShowCatalog]     = useState(false)
   const [editingId, setEditingId]         = useState<string | null>(null)
 
   // Stable refs for the light timer (avoids stale closures)
@@ -777,10 +817,6 @@ export function InventoryView({
       (SLOT_ALLOWED[slot].includes(i.type) || (slot !== 'armor' && i.isLight))
     )
 
-  function handlePresetSelect(preset: Partial<InventoryItem>) {
-    setShowPresets(false)
-    setAddingForm(preset)
-  }
 
   const calcAC = calculateAC(inventory, dex)
 
@@ -807,14 +843,9 @@ export function InventoryView({
                 <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 2 }}>
                   {label}
                 </div>
-                <input
-                  key={`${key}-${value}`}
-                  type="number"
-                  defaultValue={value}
-                  onBlur={e => {
-                    const n = parseInt(e.target.value, 10)
-                    if (!isNaN(n)) onMeleeRangedUpdate({ [key]: n })
-                  }}
+                <NumInput
+                  value={value}
+                  onCommit={n => onMeleeRangedUpdate({ [key]: n })}
                   style={{
                     width: '100%', background: 'transparent', border: 'none', outline: 'none',
                     textAlign: 'center', fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700,
@@ -1012,19 +1043,19 @@ export function InventoryView({
             ⚗ Inventário
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button onClick={() => { setShowPresets(true); setAddingForm(null) }} style={quickBtnStyle('dark')}>
-              ⚗ Predefinição
+            <button onClick={() => setShowCatalog(true)} style={quickBtnStyle('dark')}>
+              ⚗ Catálogo
             </button>
-            <button onClick={() => { setAddingForm({}); setShowPresets(false) }} style={quickBtnStyle('blood')}>
-              + Adicionar
+            <button onClick={() => setAddingForm({})} style={quickBtnStyle('blood')}>
+              + Manual
             </button>
           </div>
         </div>
 
-        {showPresets && (
-          <PresetPickerModal
-            onSelect={handlePresetSelect}
-            onClose={() => setShowPresets(false)}
+        {showCatalog && (
+          <CatalogPickerModal
+            onAdd={addItem}
+            onClose={() => setShowCatalog(false)}
           />
         )}
 
