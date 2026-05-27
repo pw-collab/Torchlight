@@ -29,9 +29,9 @@ import { getAncestry } from '@/data/ancestries/index'
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
 const TAB_LABELS: Record<Tab, string> = {
-  stats: '✦ Atributos',
+  stats: '✦ Habilidades',
   inventory: '⚗ Inventário',
-  spells: '☽ Magias',
+  spells: '☽ Grimório',
   backstory: '✎ História',
 }
 
