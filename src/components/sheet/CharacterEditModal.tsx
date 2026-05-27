@@ -6,6 +6,8 @@ import type { Stat } from '@/types/class.types'
 import type { Class } from '@/types/class.types'
 import type { Talent } from '@/types/talent.types'
 import { rollClassTalent } from '@/data/classes/index'
+import { getAncestry } from '@/data/ancestries/index'
+import { getDomain } from '@/data/domains/index'
 
 const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -136,6 +138,31 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
     setLocalTalents(prev => prev.filter(t => t.id !== id))
   }
 
+  // ── Language state ──────────────────────────────────────────────────────────
+  const [localLanguages, setLocalLanguages] = useState<string[]>(() => character.languages)
+  const [langInput, setLangInput] = useState('')
+
+  // Resolve ancestry domain pool for the picker (derived, not state)
+  const ancestryData = getAncestry(character.ancestryId)
+  const domainId = ancestryData?.domainOptions?.[0]
+  const domain = domainId ? getDomain(domainId) : undefined
+  const domainPool = domain?.languages ?? []
+
+  function addLang(lang: string) {
+    const trimmed = lang.trim()
+    if (!trimmed || localLanguages.includes(trimmed)) return
+    setLocalLanguages(prev => [...prev, trimmed])
+  }
+
+  function removeLang(lang: string) {
+    setLocalLanguages(prev => prev.filter(l => l !== lang))
+  }
+
+  function addLangFromInput() {
+    addLang(langInput)
+    setLangInput('')
+  }
+
   // ── Form helpers ────────────────────────────────────────────────────────────
   const set = (patch: Partial<EditForm>) => setForm(f => ({ ...f, ...patch }))
 
@@ -169,6 +196,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
       wis: form.wis,
       cha: form.cha,
       talents: localTalents,
+      languages: localLanguages,
     } as Partial<CharacterRow>)
     setSaving(false)
   }
@@ -545,6 +573,150 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             </div>
           </div>
         )}
+
+        {/* ── Languages ───────────────────────────────────────────────── */}
+        <div>
+          <SectionDivider>✦ Idiomas</SectionDivider>
+
+          {/* INT modifier info */}
+          {(() => {
+            const intModVal = Math.floor((form.int - 10) / 2)
+            const domainLabel = domain ? ` de ${domain.name}` : ''
+            return (
+              <div style={{
+                fontFamily: 'var(--font-body)', fontStyle: 'italic',
+                fontSize: 9.5, color: 'var(--bone-muted)', marginBottom: 10,
+              }}>
+                {intModVal > 0
+                  ? `Modificador INT: +${intModVal} idioma${intModVal !== 1 ? 's' : ''}${domainLabel} disponível${intModVal !== 1 ? 'is' : ''}.`
+                  : intModVal < 0
+                    ? `Modificador INT: ${intModVal} — sem idiomas de domínio adicionais.`
+                    : `Modificador INT: 0 — sem bônus de domínio.`
+                }
+                {ancestryData?.fixedLanguages?.length
+                  ? ` Idiomas fixos da ancestralidade: ${ancestryData.fixedLanguages.join(', ')}.`
+                  : ''
+                }
+              </div>
+            )
+          })()}
+
+          {/* Current languages — chips with remove */}
+          {localLanguages.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+              {localLanguages.map(lang => (
+                <span
+                  key={lang}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    background: 'rgba(42,34,16,0.5)',
+                    border: '1px solid rgba(139,112,48,0.35)',
+                    borderRadius: 2,
+                    padding: '3px 7px 3px 9px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 10.5,
+                    color: 'var(--parchment-light)',
+                  }}
+                >
+                  {lang}
+                  <button
+                    onClick={() => removeLang(lang)}
+                    title={`Remover ${lang}`}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'rgba(139,21,21,0.45)', fontSize: 10,
+                      padding: '0 1px', lineHeight: 1, transition: 'color 160ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{
+              fontFamily: 'var(--font-body)', fontStyle: 'italic',
+              fontSize: 10.5, color: 'var(--bone-muted)', marginBottom: 10,
+            }}>
+              Nenhum idioma registrado.
+            </p>
+          )}
+
+          {/* Domain pool picker */}
+          {domainPool.length > 0 && (() => {
+            const available = domainPool.filter(l => !localLanguages.includes(l))
+            if (available.length === 0) return null
+            return (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{
+                  fontFamily: 'var(--font-heading)', fontSize: 7,
+                  letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'var(--bone-muted)', marginBottom: 5,
+                }}>
+                  Idiomas do domínio {domain?.name}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {available.map(lang => (
+                    <button
+                      key={lang}
+                      onClick={() => addLang(lang)}
+                      style={{
+                        background: 'rgba(42,34,16,0.3)',
+                        border: '1px solid rgba(139,112,48,0.2)',
+                        color: 'var(--bone-muted)',
+                        fontFamily: 'var(--font-body)', fontSize: 10,
+                        padding: '2px 8px', borderRadius: 2, cursor: 'pointer',
+                        transition: 'all 160ms',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(106,58,10,0.3)'
+                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
+                        e.currentTarget.style.color = 'var(--candle-amber)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(42,34,16,0.3)'
+                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
+                        e.currentTarget.style.color = 'var(--bone-muted)'
+                      }}
+                    >
+                      + {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Free-text add */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              type="text"
+              value={langInput}
+              onChange={e => setLangInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLangFromInput() } }}
+              placeholder="Outro idioma…"
+              maxLength={40}
+              style={{ flex: 1, ...inp }}
+            />
+            <button
+              onClick={addLangFromInput}
+              disabled={!langInput.trim()}
+              style={{
+                background: langInput.trim() ? 'rgba(42,80,69,0.3)' : 'rgba(42,80,69,0.12)',
+                border: `1px solid ${langInput.trim() ? '#2A5045' : 'rgba(42,80,69,0.2)'}`,
+                color: langInput.trim() ? 'var(--bone-white)' : 'var(--bone-muted)',
+                fontFamily: 'var(--font-heading)', fontSize: 7.5,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                padding: '0 12px', cursor: langInput.trim() ? 'pointer' : 'not-allowed',
+                borderRadius: 1, transition: 'all 200ms', whiteSpace: 'nowrap',
+              }}
+            >
+              ✦ Adicionar
+            </button>
+          </div>
+        </div>
 
         {/* ── Actions ──────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
