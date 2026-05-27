@@ -21,8 +21,8 @@ export function StepClass({ classId, onChange }: Props) {
             <p className="font-bold text-white">{c.name}</p>
             <span className="text-xs text-zinc-400">d{c.hitDie} HD</span>
           </div>
-          <p className="text-xs text-zinc-400 mt-1">Armor: {c.armorTraining.join(', ')}</p>
-          <p className="text-xs text-zinc-400">Weapons: {c.weaponTraining.join(', ')}</p>
+          <p className="text-xs text-zinc-400 mt-1">{c.armorProficiency}</p>
+          <p className="text-xs text-zinc-400">{c.weaponProficiency}</p>
           {c.spellcasting && (
             <p className="text-xs text-amber-400 mt-1">✨ Spellcasting ({c.spellcasting.stat.toUpperCase()})</p>
           )}
