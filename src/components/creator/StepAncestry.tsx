@@ -1,7 +1,6 @@
 'use client'
 
 import { ancestries } from '@/data/ancestries/index'
-import type { Ancestry } from '@/types/ancestry.types'
 
 interface Props {
   name: string
@@ -10,38 +9,156 @@ interface Props {
   onAncestryChange: (id: string) => void
 }
 
+const ANCESTRY_FLAVOR: Record<string, string> = {
+  human:      'Ambiciosos e adaptáveis, os humanos prosperam em qualquer domínio das Terras das Névoas.',
+  elf:        'Antiquíssimos e distantes, os elfos guardam segredos que antecedem as próprias trevas.',
+  dwarf:      'Forjados em cavernas profundas, os anões carregam a pedra no sangue e a teimosia no espírito.',
+  halfling:   'Pequenos e sorridentes mesmo diante do horror, os halflings sobrevivem pela sorte e pela astúcia.',
+  resurrected:'Mortos que retornam sem memória, os Ressurretos carregam o estigma da morte como uma segunda pele.',
+}
+
 export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange }: Props) {
+  const selected = ancestries.find(a => a.id === ancestryId)
+
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Name */}
       <div>
-        <label className="block text-xs font-bold text-amber-400 mb-1">CHARACTER NAME</label>
+        <label style={{
+          display: 'block',
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--candle-amber)',
+          marginBottom: 10,
+        }}>
+          Nome do Personagem
+        </label>
         <input
           type="text"
           value={name}
           onChange={e => onNameChange(e.target.value)}
-          placeholder="Enter name..."
-          className="w-full rounded bg-zinc-700 px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-amber-600"
+          placeholder="Como te chamam nas Terras das Névoas?"
+          style={{
+            width: '100%',
+            background: 'rgba(13,10,5,0.8)',
+            border: '1px solid rgba(139,112,48,0.3)',
+            borderRadius: 2,
+            padding: '12px 14px',
+            fontFamily: 'var(--font-body)',
+            fontSize: 15,
+            color: 'var(--parchment-pale)',
+            outline: 'none',
+            letterSpacing: '0.02em',
+          }}
+          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.6)' }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)' }}
         />
       </div>
+
+      {/* Ancestry grid */}
       <div>
-        <label className="block text-xs font-bold text-amber-400 mb-2">ANCESTRY</label>
-        <div className="grid grid-cols-2 gap-2">
-          {ancestries.map(a => (
-            <button
-              key={a.id}
-              onClick={() => onAncestryChange(a.id)}
-              className={`rounded border p-3 text-left transition-colors ${ancestryId === a.id ? 'border-amber-500 bg-amber-900' : 'border-zinc-700 bg-zinc-800 hover:border-amber-700'}`}
-            >
-              <p className="font-bold text-white">{a.name}</p>
-              {a.traits.map(t => (
-                <p key={t.name} className="text-xs text-zinc-400 mt-0.5">
-                  <span className="text-amber-400">{t.name}:</span> {t.description}
-                </p>
-              ))}
-            </button>
-          ))}
+        <label style={{
+          display: 'block',
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'var(--candle-amber)',
+          marginBottom: 10,
+        }}>
+          Ancestralidade
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {ancestries.map(a => {
+            const active = a.id === ancestryId
+            return (
+              <button
+                key={a.id}
+                onClick={() => onAncestryChange(a.id)}
+                style={{
+                  background: active ? 'rgba(139,112,48,0.14)' : 'rgba(20,14,6,0.5)',
+                  border: `1px solid ${active ? 'rgba(196,120,42,0.55)' : 'rgba(139,112,48,0.2)'}`,
+                  borderRadius: 2,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 250ms',
+                  boxShadow: active ? '0 0 14px rgba(196,120,42,0.12)' : 'none',
+                }}
+                onMouseEnter={e => {
+                  if (!active) e.currentTarget.style.borderColor = 'rgba(139,112,48,0.4)'
+                }}
+                onMouseLeave={e => {
+                  if (!active) e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 4,
+                }}>
+                  <span style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 14,
+                    color: active ? 'var(--parchment-pale)' : 'var(--parchment-light)',
+                    letterSpacing: '0.04em',
+                  }}>
+                    {a.name}
+                  </span>
+                  {a.pariahLevel && (
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 7,
+                      color: a.pariahLevel === '0/6' ? 'var(--verdigris-light)' : a.pariahLevel === '6/6' ? 'var(--blood-mid)' : 'var(--bone-muted)',
+                      letterSpacing: '0.06em',
+                      background: 'rgba(0,0,0,0.3)',
+                      padding: '2px 5px',
+                      borderRadius: 1,
+                    }}>
+                      PÁRIA {a.pariahLevel}
+                    </span>
+                  )}
+                </div>
+                {a.traits.map(t => (
+                  <p key={t.name} style={{
+                    fontFamily: 'var(--font-body)',
+                    fontStyle: 'italic',
+                    fontSize: 10,
+                    color: 'var(--bone-muted)',
+                    lineHeight: 1.4,
+                    marginTop: 2,
+                  }}>
+                    <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>{t.name}: </span>
+                    {t.description}
+                  </p>
+                ))}
+              </button>
+            )
+          })}
         </div>
       </div>
+
+      {/* Ancestry flavor */}
+      {selected && ANCESTRY_FLAVOR[selected.id] && (
+        <div style={{
+          borderLeft: '2px solid rgba(139,112,48,0.3)',
+          paddingLeft: 14,
+          marginTop: -8,
+        }}>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontStyle: 'italic',
+            fontSize: 11,
+            color: 'var(--bone-muted)',
+            lineHeight: 1.6,
+          }}>
+            {ANCESTRY_FLAVOR[selected.id]}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
