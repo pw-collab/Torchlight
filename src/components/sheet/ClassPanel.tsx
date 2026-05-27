@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { TechniqueState } from '@/types/technique.types'
-import { rollClassTalent } from '@/data/classes/index'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 
@@ -617,15 +616,7 @@ function TechniqueCard({
 // ─── Talent Table ─────────────────────────────────────────────────────────────
 
 function TalentTable({ classData }: { classData: Class }) {
-  const [result, setResult] = useState<{
-    roll: number; die1: number; die2: number; effect: string
-  } | null>(null)
   const [open, setOpen] = useState(false)
-
-  function handleRoll() {
-    const r = rollClassTalent(classData.id)
-    if (r) setResult({ roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect })
-  }
 
   return (
     <div>
@@ -636,37 +627,18 @@ function TalentTable({ classData }: { classData: Class }) {
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
           ✦ Tabela de Talentos
         </span>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(139,112,48,0.45)' }}>
+            Role no modal de edição
+          </span>
           <button
             onClick={() => setOpen(o => !o)}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: 0 }}
           >
-            {open ? '▲ ocultar' : '▼ ver tabela'}
-          </button>
-          <button onClick={handleRoll} style={btnStyle('amber')}>
-            ✦ Rolar 2d6
+            {open ? '▲ ocultar' : '▼ ver'}
           </button>
         </div>
       </div>
-
-      {result && (
-        <div className="worn-border animate-ink-spread" style={{
-          background: 'rgba(106,58,10,0.18)', border: '1px solid rgba(139,112,48,0.4)',
-          padding: '8px 12px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
-        }}>
-          <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--candle-amber)', lineHeight: 1 }}>
-              {result.roll}
-            </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', marginTop: 1 }}>
-              ({result.die1}+{result.die2})
-            </div>
-          </div>
-          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--parchment-light)', lineHeight: 1.5, flex: 1, marginTop: 2 }}>
-            {result.effect}
-          </p>
-        </div>
-      )}
 
       {open && (
         <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden' }}>
@@ -677,19 +649,16 @@ function TalentTable({ classData }: { classData: Class }) {
               </div>
             ))}
           </div>
-          {classData.talentTable.map((entry, i) => {
-            const hi = result !== null && result.roll >= entry.min && result.roll <= entry.max
-            return (
-              <div key={entry.roll} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: hi ? 'rgba(106,58,10,0.25)' : i % 2 === 0 ? 'rgba(42,34,16,0.2)' : 'rgba(42,34,16,0.08)', borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none', transition: 'background 200ms' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: hi ? 'var(--candle-amber)' : 'var(--bone-muted)', padding: '7px 10px', borderRight: '1px solid rgba(139,112,48,0.18)', display: 'flex', alignItems: 'center' }}>
-                  {entry.roll}
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: hi ? 'var(--parchment-light)' : 'var(--bone-muted)', padding: '7px 10px', lineHeight: 1.4 }}>
-                  {entry.effect}
-                </div>
+          {classData.talentTable.map((entry, i) => (
+            <div key={entry.roll} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: i % 2 === 0 ? 'rgba(42,34,16,0.2)' : 'rgba(42,34,16,0.08)', borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--bone-muted)', padding: '7px 10px', borderRight: '1px solid rgba(139,112,48,0.18)', display: 'flex', alignItems: 'center' }}>
+                {entry.roll}
               </div>
-            )
-          })}
+              <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', padding: '7px 10px', lineHeight: 1.4 }}>
+                {entry.effect}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

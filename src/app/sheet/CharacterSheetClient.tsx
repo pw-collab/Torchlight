@@ -332,6 +332,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       {showEdit && (
         <CharacterEditModal
           character={character}
+          classData={cls}
           onSave={handleCharacterEdit}
           onClose={() => setShowEdit(false)}
         />
