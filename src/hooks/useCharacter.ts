@@ -18,6 +18,7 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.gold !== undefined && { gold: updates.gold }),
     ...(updates.silver !== undefined && { silver: updates.silver }),
     ...(updates.copper !== undefined && { copper: updates.copper }),
+    ...(updates.technique_states !== undefined && { techniqueStates: updates.technique_states }),
   }
 }
 

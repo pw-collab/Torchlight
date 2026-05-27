@@ -18,9 +18,11 @@ export const wizard: Class = {
 
   techniques: [
     {
+      id: 'magic_missile',
       name: 'Magic Missile',
       description:
         'Você sempre conhece a magia Míssil Mágico. Ela não ocupa um espaço de magia aprendida e não requer rolamento de conjuração — automaticamente atinge um alvo à sua escolha causando 1d4 de dano por nível.',
+      // TODO: kind will be configured — 'passive' (always-known spell, no roll needed)
     },
     null,
     null,

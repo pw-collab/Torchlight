@@ -13,19 +13,43 @@ export const warrior: Class = {
 
   techniques: [
     {
+      id: 'hauler',
       name: 'Hauler',
       description:
         'Adicione seu modificador de Constituição, se positivo, aos seus slots de carga.',
+      kind: 'passive',
+      modifier: {
+        stat: 'con',
+        applyTo: 'gearSlots',
+        onlyIfPositive: true,
+      },
     },
     {
+      id: 'weapon_mastery',
       name: 'Weapon Mastery',
       description:
         'Escolha um tipo de arma (ex.: espadas longas). Você ganha +1 para ataque e dano com esse tipo. Além disso, adicione metade do seu nível (arredonde para baixo) a esses rolamentos.',
+      kind: 'choice',
+      choice: {
+        prompt: 'Escolha um tipo de arma',
+        kind: 'free_text',
+      },
     },
     {
+      id: 'grit',
       name: 'Grit',
       description:
         'Escolha Força ou Destreza. Você tem vantagem em testes desse atributo para superar uma força oposta, como arrombar uma porta travada (Força) ou se soltar de correntes enferrujadas (Destreza).',
+      kind: 'choice',
+      choice: {
+        prompt: 'Escolha um atributo',
+        kind: 'stat',
+        options: [
+          { value: 'str', label: 'Força' },
+          { value: 'dex', label: 'Destreza' },
+        ],
+        informativeOnly: true,
+      },
     },
     null,
   ],
