@@ -5,10 +5,14 @@ import { thief } from './thief'
 import { wizard } from './wizard'
 import { priest } from './priest'
 import { ranger } from './ranger'
+import { bard } from './bard'
+import { monk } from './monk'
+import { paladin } from './paladin'
+import { psionicist } from './psionicist'
 
 export type { ClassTechnique, TalentTableEntry } from '@/types/class.types'
 
-export const classes: Class[] = [warrior, thief, wizard, priest, ranger]
+export const classes: Class[] = [warrior, thief, wizard, priest, ranger, bard, monk, paladin, psionicist]
 
 const byId = new Map(classes.map(c => [c.id, c]))
 

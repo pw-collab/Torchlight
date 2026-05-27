@@ -74,6 +74,11 @@ export interface SpellLikeAbility {
   castingTime?: string
   /** Per-ability DC override. Falls back to TechniqueSpellLike.dc if absent. */
   dc?: number
+  /**
+   * Per-ability cast stat override. Falls back to TechniqueSpellLike.castStat if absent.
+   * Allows techniques like Monk's Mysticism to use different stats per ability (DEX / CON).
+   */
+  castStat?: Stat
 }
 
 export interface TechniqueSpellLike {

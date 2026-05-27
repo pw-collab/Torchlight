@@ -305,8 +305,12 @@ function SpellLikeSection({
   const cfg = technique.spellLike!
   const expended = state.expendedAbilities ?? []
 
-  function activate(abilityId: string, abilityName: string, dc: number) {
-    const statScore = stats[cfg.castStat] ?? 10
+  // Detect if any ability overrides the default cast stat (e.g. Monk's Mysticism)
+  const hasPerAbilityStat = cfg.abilities.some(a => a.castStat && a.castStat !== cfg.castStat)
+
+  function activate(abilityId: string, abilityName: string, dc: number, abilityCastStat?: Stat) {
+    const resolvedStat = abilityCastStat ?? cfg.castStat
+    const statScore = stats[resolvedStat] ?? 10
     const castMod = modifier(statScore)
     const result = rollDie('d20', abilityName, `DC ${dc}`, castMod)
     onRoll?.(result)
@@ -321,8 +325,7 @@ function SpellLikeSection({
     onChange({ ...state, expendedAbilities: [] })
   }
 
-  const statScore = stats[cfg.castStat] ?? 10
-  const castMod = modifier(statScore)
+  const defaultStatScore = stats[cfg.castStat] ?? 10
 
   return (
     <div style={{ marginTop: 8 }}>
@@ -333,7 +336,10 @@ function SpellLikeSection({
           fontSize: 8.5,
           color: 'var(--bone-muted)',
         }}>
-          Rolamento: d20 + {STAT_SHORT[cfg.castStat]} ({modifierStr(statScore)})
+          {hasPerAbilityStat
+            ? 'Rolamento: d20 + atributo (varia por habilidade)'
+            : `Rolamento: d20 + ${STAT_SHORT[cfg.castStat]} (${modifierStr(defaultStatScore)})`
+          }
         </span>
         <button
           onClick={resetAll}
@@ -354,6 +360,10 @@ function SpellLikeSection({
         {cfg.abilities.map(ability => {
           const isExpended = expended.includes(ability.id)
           const dc = ability.dc ?? cfg.dc
+          // Per-ability stat resolution (e.g. Monk Mysticism: DEX/CON per technique)
+          const abilityCastStat = ability.castStat ?? cfg.castStat
+          const abilityStatScore = stats[abilityCastStat] ?? 10
+          const abilityCastMod = modifier(abilityStatScore)
 
           return (
             <div
@@ -392,7 +402,8 @@ function SpellLikeSection({
                     {isExpended ? '✕ Usado' : '● Disponível'}
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)' }}>
-                    DC {dc} · d20{castMod >= 0 ? `+${castMod}` : castMod}
+                    DC {dc} · d20{abilityCastMod >= 0 ? `+${abilityCastMod}` : abilityCastMod}
+                    {hasPerAbilityStat && ` (${STAT_SHORT[abilityCastStat]})`}
                   </span>
                 </div>
                 {ability.description && (
@@ -422,7 +433,7 @@ function SpellLikeSection({
                 )}
               </div>
               <button
-                onClick={() => activate(ability.id, ability.name, dc)}
+                onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
                 disabled={isExpended}
                 style={{
                   ...btnStyle(isExpended ? 'dark' : 'amber'),
