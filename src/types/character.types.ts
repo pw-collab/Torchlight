@@ -4,6 +4,11 @@ import type { Talent } from './talent.types'
 import type { TechniqueState } from './technique.types'
 import { getItem } from '@/data/equipment/index'
 
+export interface KnowledgeArea {
+  name: string
+  bonus: number
+}
+
 export interface Character {
   id: string
   name: string
@@ -31,6 +36,9 @@ export interface Character {
   talents: Talent[]
   techniqueStates: TechniqueState[]
   languages: string[]
+  knowledgeAreas: KnowledgeArea[]
+  domainId: string
+  faith: string
   backgroundText: string
   backgroundDetails: {
     concept?: string
@@ -130,6 +138,9 @@ export interface CharacterRow {
   talents?: Talent[]
   technique_states?: TechniqueState[]
   languages?: string[]
+  knowledge_areas?: KnowledgeArea[]
+  domain_id?: string
+  faith?: string
   background_text?: string | null
   background_details?: Character['backgroundDetails']
   relations?: Character['relations']
@@ -175,6 +186,9 @@ export function rowToCharacter(row: CharacterRow): Character {
     talents: row.talents ?? [],
     techniqueStates: row.technique_states ?? [],
     languages: row.languages ?? [],
+    knowledgeAreas: row.knowledge_areas ?? [],
+    domainId: row.domain_id ?? '',
+    faith: row.faith ?? '',
     backgroundText: row.background_text ?? '',
     backgroundDetails: row.background_details ?? {},
     relations: row.relations ?? {},

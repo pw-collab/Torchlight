@@ -16,6 +16,7 @@ import { InventoryView } from '@/components/sheet/InventoryView'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
+import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { CharacterEditModal } from '@/components/sheet/CharacterEditModal'
 import { sendToDiscord } from '@/lib/discord'
 import type { RollResult } from '@/lib/dice'
@@ -25,12 +26,13 @@ import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
 
-type Tab = 'stats' | 'inventory' | 'spells'
+type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
 const TAB_LABELS: Record<Tab, string> = {
   stats: '✦ Atributos',
   inventory: '⚗ Inventário',
   spells: '☽ Magias',
+  backstory: '✎ História',
 }
 
 interface Props {
@@ -325,6 +327,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             onRoll={handleRoll}
             onUpdate={handleSpellcastingUpdate}
             onSpellsChange={handleSpellsChange}
+          />
+        )}
+
+        {/* Tab: Backstory */}
+        {tab === 'backstory' && (
+          <BackstoryView
+            character={character}
+            onUpdate={updateCharacter}
           />
         )}
       </div>
