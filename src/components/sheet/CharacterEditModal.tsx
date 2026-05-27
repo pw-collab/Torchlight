@@ -144,7 +144,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
 
   // Resolve ancestry domain pool for the picker (derived, not state)
   const ancestryData = getAncestry(character.ancestryId)
-  const domainId = ancestryData?.domainOptions?.[0]
+  const anyDomain = ancestryData?.domainOptions?.includes('*') ?? false
+  const domainId = anyDomain ? undefined : ancestryData?.domainOptions?.[0]
   const domain = domainId ? getDomain(domainId) : undefined
   const domainPool = domain?.languages ?? []
 
@@ -578,24 +579,40 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
         <div>
           <SectionDivider>✦ Idiomas</SectionDivider>
 
-          {/* INT modifier info */}
+          {/* Language rules info */}
           {(() => {
-            const intModVal = Math.floor((form.int - 10) / 2)
-            const domainLabel = domain ? ` de ${domain.name}` : ''
+            const rules = ancestryData?.languageRules
+            if (!rules) return null
+            const intVal = Math.floor((form.int - 10) / 2)
+            const resolve = (v: number | 'int_mod') =>
+              v === 'int_mod' ? Math.max(0, intVal) : v
+
+            const domainN = resolve(rules.domainPicks)
+            const freeN = rules.freePicks !== undefined ? resolve(rules.freePicks) : 0
+            const domainLabel = anyDomain
+              ? 'qualquer domínio'
+              : domain?.name ?? 'domínio de origem'
+
+            const parts: string[] = []
+            if (domainN > 0) {
+              parts.push(`${domainN} idioma${domainN !== 1 ? 's' : ''} de ${domainLabel}`)
+            }
+            if (freeN > 0) {
+              const freeTag = rules.freePicks === 'int_mod' ? ' (mod INT)' : ''
+              parts.push(`${freeN} idioma${freeN !== 1 ? 's' : ''} adicional${freeN !== 1 ? 'is' : ''}${freeTag}`)
+            }
+            if (ancestryData?.fixedLanguages?.length) {
+              parts.push(`fixos: ${ancestryData.fixedLanguages.join(', ')}`)
+            }
+
             return (
               <div style={{
                 fontFamily: 'var(--font-body)', fontStyle: 'italic',
                 fontSize: 9.5, color: 'var(--bone-muted)', marginBottom: 10,
               }}>
-                {intModVal > 0
-                  ? `Modificador INT: +${intModVal} idioma${intModVal !== 1 ? 's' : ''}${domainLabel} disponível${intModVal !== 1 ? 'is' : ''}.`
-                  : intModVal < 0
-                    ? `Modificador INT: ${intModVal} — sem idiomas de domínio adicionais.`
-                    : `Modificador INT: 0 — sem bônus de domínio.`
-                }
-                {ancestryData?.fixedLanguages?.length
-                  ? ` Idiomas fixos da ancestralidade: ${ancestryData.fixedLanguages.join(', ')}.`
-                  : ''
+                {parts.length > 0
+                  ? `Idiomas concedidos: ${parts.join(' · ')}.`
+                  : 'Adicione idiomas manualmente.'
                 }
               </div>
             )

@@ -12,4 +12,5 @@ export const dwarf: Ancestry = {
   domainOptions: ['darkon'],
   fixedLanguages: ['Anão'],
   pariahLevel: '3/6',
+  languageRules: { domainPicks: 'int_mod' },
 }
