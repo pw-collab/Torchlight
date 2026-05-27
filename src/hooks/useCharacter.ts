@@ -21,6 +21,12 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.technique_states !== undefined && { techniqueStates: updates.technique_states }),
     ...(updates.talents !== undefined && { talents: updates.talents }),
     ...(updates.languages !== undefined && { languages: updates.languages }),
+    ...(updates.knowledge_areas !== undefined && { knowledgeAreas: updates.knowledge_areas }),
+    ...(updates.domain_id !== undefined && { domainId: updates.domain_id }),
+    ...(updates.faith !== undefined && { faith: updates.faith }),
+    ...(updates.background_details !== undefined && { backgroundDetails: updates.background_details }),
+    ...(updates.relations !== undefined && { relations: updates.relations }),
+    ...(updates.impulses !== undefined && { impulses: updates.impulses }),
   }
 }
 
