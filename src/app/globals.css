@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911&family=Grenze+Gotisch:wght@100..900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911&family=Jacquard+12&family=Jersey+20&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
@@ -29,7 +29,7 @@
   --mist-purple:      #4A3068;
   --mist-bright:      #6B4E8A;
 
-  --font-heading: 'Grenze Gotisch', cursive;
+  --font-heading: 'Jacquard 12', sans-serif;
   --font-body:    'Goudy Bookletter 1911', serif;
   --font-mono:    'Courier Prime', monospace;
 
