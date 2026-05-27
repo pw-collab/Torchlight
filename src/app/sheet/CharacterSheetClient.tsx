@@ -14,6 +14,7 @@ import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
+import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
 import { CharacterEditModal } from '@/components/sheet/CharacterEditModal'
 import { sendToDiscord } from '@/lib/discord'
@@ -271,6 +272,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 onHpChange={handleHpChange}
               />
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
+              {cls && <ClassPanel classData={cls} />}
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>

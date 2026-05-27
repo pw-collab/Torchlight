@@ -40,7 +40,7 @@ export default function CharacterCreatorPage() {
 
   const cls = getClass(classId)
   const equipment = cls
-    ? cls.startingGear.map(id => {
+    ? (cls.startingGear ?? []).map(id => {
         const item = getItem(id)
         return { itemId: id, slots: item?.slots ?? 1 }
       })
