@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Character, CharacterRow } from '@/types/character.types'
 import type { Stat } from '@/types/class.types'
+import type { Class } from '@/types/class.types'
+import type { Talent } from '@/types/talent.types'
+import { rollClassTalent } from '@/data/classes/index'
+import { getAncestry } from '@/data/ancestries/index'
+import { getDomain } from '@/data/domains/index'
 
 const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -24,6 +29,7 @@ interface EditForm {
 
 interface Props {
   character: Character
+  classData?: Class
   onSave: (patch: Partial<CharacterRow>) => Promise<void>
   onClose: () => void
 }
@@ -90,7 +96,7 @@ function SectionDivider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function CharacterEditModal({ character, onSave, onClose }: Props) {
+export function CharacterEditModal({ character, classData, onSave, onClose }: Props) {
   const [form, setForm] = useState<EditForm>(() => ({
     name: character.name,
     level: character.level,
@@ -104,6 +110,61 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
   }))
   const [saving, setSaving] = useState(false)
 
+  // ── Talent state ────────────────────────────────────────────────────────────
+  const [localTalents, setLocalTalents] = useState<Talent[]>(() => character.talents)
+  const [lastRoll, setLastRoll] = useState<{
+    roll: number; die1: number; die2: number; effect: string
+  } | null>(null)
+  const [tableOpen, setTableOpen] = useState(false)
+
+  const classTalents = localTalents.filter(t => t.origin === 'class')
+
+  function rollAndAdd() {
+    if (!classData) return
+    const r = rollClassTalent(classData.id)
+    if (!r) return
+    const rollInfo = { roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect }
+    setLastRoll(rollInfo)
+    const newTalent: Talent = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: r.entry.effect,
+      origin: 'class',
+      description: `Talento de classe — 2d6: ${r.roll} (${r.die1}+${r.die2}) — ${classData.name}`,
+    }
+    setLocalTalents(prev => [...prev, newTalent])
+  }
+
+  function removeClassTalent(id: string) {
+    setLocalTalents(prev => prev.filter(t => t.id !== id))
+  }
+
+  // ── Language state ──────────────────────────────────────────────────────────
+  const [localLanguages, setLocalLanguages] = useState<string[]>(() => character.languages)
+  const [langInput, setLangInput] = useState('')
+
+  // Resolve ancestry domain pool for the picker (derived, not state)
+  const ancestryData = getAncestry(character.ancestryId)
+  const anyDomain = ancestryData?.domainOptions?.includes('*') ?? false
+  const domainId = anyDomain ? undefined : ancestryData?.domainOptions?.[0]
+  const domain = domainId ? getDomain(domainId) : undefined
+  const domainPool = domain?.languages ?? []
+
+  function addLang(lang: string) {
+    const trimmed = lang.trim()
+    if (!trimmed || localLanguages.includes(trimmed)) return
+    setLocalLanguages(prev => [...prev, trimmed])
+  }
+
+  function removeLang(lang: string) {
+    setLocalLanguages(prev => prev.filter(l => l !== lang))
+  }
+
+  function addLangFromInput() {
+    addLang(langInput)
+    setLangInput('')
+  }
+
+  // ── Form helpers ────────────────────────────────────────────────────────────
   const set = (patch: Partial<EditForm>) => setForm(f => ({ ...f, ...patch }))
 
   const numField = (key: keyof EditForm, min: number, max: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +196,8 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
       int: form.int,
       wis: form.wis,
       cha: form.cha,
+      talents: localTalents,
+      languages: localLanguages,
     } as Partial<CharacterRow>)
     setSaving(false)
   }
@@ -167,7 +230,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           minWidth: 460,
           maxWidth: 560,
           width: '100%',
-          maxHeight: '85vh',
+          maxHeight: '88vh',
           overflowY: 'auto',
           padding: '22px 24px',
           display: 'flex',
@@ -175,7 +238,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           gap: 14,
         }}
       >
-        {/* Header */}
+        {/* ── Header ─────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{
             fontFamily: 'var(--font-heading)',
@@ -189,14 +252,9 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           <button
             onClick={handleClose}
             style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--bone-muted)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 14,
-              cursor: 'pointer',
-              lineHeight: 1,
-              padding: '0 4px',
+              background: 'none', border: 'none',
+              color: 'var(--bone-muted)', fontFamily: 'var(--font-heading)',
+              fontSize: 14, cursor: 'pointer', lineHeight: 1, padding: '0 4px',
             }}
           >
             ✕
@@ -205,7 +263,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
 
         <div style={{ borderBottom: '1px solid rgba(139,112,48,0.22)' }} />
 
-        {/* Identity */}
+        {/* ── Identity ────────────────────────────────────────────────── */}
         <div>
           <SectionDivider>✦ Identidade</SectionDivider>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
@@ -224,8 +282,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
               <input
                 type="number"
                 value={form.level}
-                min={1}
-                max={10}
+                min={1} max={10}
                 onChange={numField('level', 1, 10)}
                 style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
               />
@@ -233,7 +290,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           </div>
         </div>
 
-        {/* Combat */}
+        {/* ── Combat ──────────────────────────────────────────────────── */}
         <div>
           <SectionDivider>⚔ Combate</SectionDivider>
           <div style={{ maxWidth: 180 }}>
@@ -241,18 +298,14 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
             <input
               type="number"
               value={form.hpMax}
-              min={1}
-              max={999}
+              min={1} max={999}
               onChange={numField('hpMax', 1, 999)}
               style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
             />
             {form.hpMax < character.hpCurrent && (
               <div style={{
-                fontFamily: 'var(--font-body)',
-                fontStyle: 'italic',
-                fontSize: 9.5,
-                color: 'var(--candle-amber)',
-                marginTop: 4,
+                fontFamily: 'var(--font-body)', fontStyle: 'italic',
+                fontSize: 9.5, color: 'var(--candle-amber)', marginTop: 4,
               }}>
                 ⚠ PV atual ({character.hpCurrent}) será reduzido para {form.hpMax}
               </div>
@@ -263,7 +316,7 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           </div>
         </div>
 
-        {/* Ability Scores */}
+        {/* ── Ability Scores ───────────────────────────────────────────── */}
         <div>
           <SectionDivider>✦ Atributos</SectionDivider>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
@@ -279,45 +332,32 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
                 }}
               >
                 <div style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 6.5,
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: 'var(--bone-muted)',
-                  marginBottom: 4,
+                  fontFamily: 'var(--font-heading)', fontSize: 6.5,
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: 'var(--bone-muted)', marginBottom: 4,
                 }}>
                   {STAT_LABELS[key]}
                 </div>
                 <input
                   type="number"
                   value={form[key]}
-                  min={1}
-                  max={20}
+                  min={1} max={20}
                   onChange={numField(key, 1, 20)}
                   style={{
-                    width: '100%',
-                    background: 'var(--ink-deep)',
+                    width: '100%', background: 'var(--ink-deep)',
                     border: '1px solid rgba(139,112,48,0.28)',
-                    color: 'var(--parchment-light)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    padding: '3px 2px',
-                    outline: 'none',
-                    borderRadius: 1,
-                    textAlign: 'center',
-                    boxSizing: 'border-box',
-                    MozAppearance: 'textfield',
+                    color: 'var(--parchment-light)', fontFamily: 'var(--font-mono)',
+                    fontSize: 13, fontWeight: 700, padding: '3px 2px',
+                    outline: 'none', borderRadius: 1, textAlign: 'center',
+                    boxSizing: 'border-box', MozAppearance: 'textfield',
                   } as React.CSSProperties}
                 />
                 <div style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 8.5,
+                  fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 3,
                   color: (() => {
                     const m = Math.floor((form[key] - 10) / 2)
                     return m > 0 ? 'var(--verdigris-light)' : m < 0 ? 'var(--blood-bright)' : 'var(--bone-muted)'
                   })(),
-                  marginTop: 3,
                 }}>
                   {statMod(form[key])}
                 </div>
@@ -326,7 +366,376 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* ── Class Talent Table ───────────────────────────────────────── */}
+        {classData && (
+          <div>
+            <SectionDivider>✦ Talentos de Classe — {classData.name}</SectionDivider>
+
+            {/* Roll row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+              <button
+                onClick={() => setTableOpen(o => !o)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'var(--font-heading)', fontSize: 7.5,
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: 'var(--bone-muted)', padding: 0,
+                }}
+              >
+                {tableOpen ? '▲ ocultar tabela' : '▼ ver tabela'}
+              </button>
+              <button
+                onClick={rollAndAdd}
+                style={{
+                  background: 'rgba(106,58,10,0.3)',
+                  border: '1px solid #6B3A0A',
+                  color: 'var(--bone-white)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 8,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  padding: '5px 12px',
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  transition: 'all 220ms',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.55)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.3)')}
+              >
+                ✦ Rolar 2d6
+              </button>
+            </div>
+
+            {/* Collapsible talent table */}
+            {tableOpen && (
+              <div
+                className="animate-ink-spread"
+                style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden', marginBottom: 10 }}
+              >
+                {/* Header row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.7)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+                  {['2D6', 'Efeito'].map((h, i) => (
+                    <div key={h} style={{
+                      fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em',
+                      textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px',
+                      borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none',
+                    }}>
+                      {h}
+                    </div>
+                  ))}
+                </div>
+                {/* Data rows */}
+                {classData.talentTable.map((entry, i) => {
+                  const isLastRoll = lastRoll !== null && lastRoll.roll >= entry.min && lastRoll.roll <= entry.max
+                  return (
+                    <div
+                      key={entry.roll}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '48px 1fr',
+                        background: isLastRoll
+                          ? 'rgba(106,58,10,0.28)'
+                          : i % 2 === 0 ? 'rgba(42,34,16,0.22)' : 'rgba(42,34,16,0.08)',
+                        borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none',
+                        transition: 'background 200ms',
+                      }}
+                    >
+                      <div style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
+                        color: isLastRoll ? 'var(--candle-amber)' : 'var(--bone-muted)',
+                        padding: '6px 10px', borderRight: '1px solid rgba(139,112,48,0.18)',
+                        display: 'flex', alignItems: 'center',
+                      }}>
+                        {entry.roll}
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5,
+                        color: isLastRoll ? 'var(--parchment-light)' : 'var(--bone-muted)',
+                        padding: '6px 10px', lineHeight: 1.4,
+                      }}>
+                        {entry.effect}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Last roll result */}
+            {lastRoll && (
+              <div
+                className="worn-border animate-ink-spread"
+                style={{
+                  background: 'rgba(106,58,10,0.15)',
+                  border: '1px solid rgba(139,112,48,0.35)',
+                  padding: '8px 12px',
+                  marginBottom: 10,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 10,
+                }}
+              >
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--candle-amber)', lineHeight: 1 }}>
+                    {lastRoll.roll}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                    ({lastRoll.die1}+{lastRoll.die2})
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--parchment-light)', lineHeight: 1.5, marginTop: 2 }}>
+                    {lastRoll.effect}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--verdigris-light)', marginTop: 4 }}>
+                    ✦ Adicionado aos talentos de classe
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Acquired class talents list */}
+            <div>
+              <div style={{
+                fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.14em',
+                textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 7,
+              }}>
+                Talentos adquiridos ({classTalents.length})
+              </div>
+
+              {classTalents.length === 0 ? (
+                <p style={{
+                  fontFamily: 'var(--font-body)', fontStyle: 'italic',
+                  fontSize: 11, color: 'var(--bone-muted)',
+                }}>
+                  Nenhum talento de classe ainda. Use "Rolar 2d6" em cada nível ímpar.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {classTalents.map(talent => (
+                    <div
+                      key={talent.id}
+                      className="worn-border"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 8,
+                        background: 'rgba(42,34,16,0.35)',
+                        border: '1px solid rgba(139,112,48,0.2)',
+                        padding: '7px 10px',
+                        borderRadius: 1,
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: 'var(--font-heading)', fontSize: 7,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: 'var(--candle-amber)',
+                        background: 'rgba(196,120,42,0.12)',
+                        border: '1px solid rgba(196,120,42,0.25)',
+                        padding: '1px 5px', borderRadius: 1, flexShrink: 0, marginTop: 1,
+                      }}>
+                        Classe
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontFamily: 'var(--font-heading)', fontSize: 10.5,
+                          color: 'var(--parchment-light)', lineHeight: 1.3,
+                        }}>
+                          {talent.name}
+                        </div>
+                        {talent.description && (
+                          <div style={{
+                            fontFamily: 'var(--font-mono)', fontSize: 8,
+                            color: 'rgba(139,112,48,0.5)', marginTop: 2,
+                          }}>
+                            {talent.description}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => removeClassTalent(talent.id)}
+                        title="Remover talento"
+                        style={{
+                          background: 'none', border: 'none',
+                          cursor: 'pointer', color: 'rgba(139,21,21,0.45)',
+                          fontSize: 11, padding: '0 2px', lineHeight: 1,
+                          transition: 'color 180ms', flexShrink: 0,
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Languages ───────────────────────────────────────────────── */}
+        <div>
+          <SectionDivider>✦ Idiomas</SectionDivider>
+
+          {/* Language rules info */}
+          {(() => {
+            const rules = ancestryData?.languageRules
+            if (!rules) return null
+            const intVal = Math.floor((form.int - 10) / 2)
+            const resolve = (v: number | 'int_mod') =>
+              v === 'int_mod' ? Math.max(0, intVal) : v
+
+            const domainN = resolve(rules.domainPicks)
+            const freeN = rules.freePicks !== undefined ? resolve(rules.freePicks) : 0
+            const domainLabel = anyDomain
+              ? 'qualquer domínio'
+              : domain?.name ?? 'domínio de origem'
+
+            const parts: string[] = []
+            if (domainN > 0) {
+              parts.push(`${domainN} idioma${domainN !== 1 ? 's' : ''} de ${domainLabel}`)
+            }
+            if (freeN > 0) {
+              const freeTag = rules.freePicks === 'int_mod' ? ' (mod INT)' : ''
+              parts.push(`${freeN} idioma${freeN !== 1 ? 's' : ''} adicional${freeN !== 1 ? 'is' : ''}${freeTag}`)
+            }
+            if (ancestryData?.fixedLanguages?.length) {
+              parts.push(`fixos: ${ancestryData.fixedLanguages.join(', ')}`)
+            }
+
+            return (
+              <div style={{
+                fontFamily: 'var(--font-body)', fontStyle: 'italic',
+                fontSize: 9.5, color: 'var(--bone-muted)', marginBottom: 10,
+              }}>
+                {parts.length > 0
+                  ? `Idiomas concedidos: ${parts.join(' · ')}.`
+                  : 'Adicione idiomas manualmente.'
+                }
+              </div>
+            )
+          })()}
+
+          {/* Current languages — chips with remove */}
+          {localLanguages.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 10 }}>
+              {localLanguages.map(lang => (
+                <span
+                  key={lang}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    background: 'rgba(42,34,16,0.5)',
+                    border: '1px solid rgba(139,112,48,0.35)',
+                    borderRadius: 2,
+                    padding: '3px 7px 3px 9px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 10.5,
+                    color: 'var(--parchment-light)',
+                  }}
+                >
+                  {lang}
+                  <button
+                    onClick={() => removeLang(lang)}
+                    title={`Remover ${lang}`}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'rgba(139,21,21,0.45)', fontSize: 10,
+                      padding: '0 1px', lineHeight: 1, transition: 'color 160ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p style={{
+              fontFamily: 'var(--font-body)', fontStyle: 'italic',
+              fontSize: 10.5, color: 'var(--bone-muted)', marginBottom: 10,
+            }}>
+              Nenhum idioma registrado.
+            </p>
+          )}
+
+          {/* Domain pool picker */}
+          {domainPool.length > 0 && (() => {
+            const available = domainPool.filter(l => !localLanguages.includes(l))
+            if (available.length === 0) return null
+            return (
+              <div style={{ marginBottom: 10 }}>
+                <div style={{
+                  fontFamily: 'var(--font-heading)', fontSize: 7,
+                  letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'var(--bone-muted)', marginBottom: 5,
+                }}>
+                  Idiomas do domínio {domain?.name}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {available.map(lang => (
+                    <button
+                      key={lang}
+                      onClick={() => addLang(lang)}
+                      style={{
+                        background: 'rgba(42,34,16,0.3)',
+                        border: '1px solid rgba(139,112,48,0.2)',
+                        color: 'var(--bone-muted)',
+                        fontFamily: 'var(--font-body)', fontSize: 10,
+                        padding: '2px 8px', borderRadius: 2, cursor: 'pointer',
+                        transition: 'all 160ms',
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(106,58,10,0.3)'
+                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
+                        e.currentTarget.style.color = 'var(--candle-amber)'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(42,34,16,0.3)'
+                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
+                        e.currentTarget.style.color = 'var(--bone-muted)'
+                      }}
+                    >
+                      + {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Free-text add */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              type="text"
+              value={langInput}
+              onChange={e => setLangInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLangFromInput() } }}
+              placeholder="Outro idioma…"
+              maxLength={40}
+              style={{ flex: 1, ...inp }}
+            />
+            <button
+              onClick={addLangFromInput}
+              disabled={!langInput.trim()}
+              style={{
+                background: langInput.trim() ? 'rgba(42,80,69,0.3)' : 'rgba(42,80,69,0.12)',
+                border: `1px solid ${langInput.trim() ? '#2A5045' : 'rgba(42,80,69,0.2)'}`,
+                color: langInput.trim() ? 'var(--bone-white)' : 'var(--bone-muted)',
+                fontFamily: 'var(--font-heading)', fontSize: 7.5,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                padding: '0 12px', cursor: langInput.trim() ? 'pointer' : 'not-allowed',
+                borderRadius: 1, transition: 'all 200ms', whiteSpace: 'nowrap',
+              }}
+            >
+              ✦ Adicionar
+            </button>
+          </div>
+        </div>
+
+        {/* ── Actions ──────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
           <button
             onClick={handleSave}
@@ -336,14 +745,11 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
               background: valid ? 'rgba(42,80,69,0.35)' : 'rgba(42,80,69,0.15)',
               border: `1px solid ${valid ? '#2A5045' : 'rgba(42,80,69,0.3)'}`,
               color: valid ? 'var(--bone-white)' : 'var(--bone-muted)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--font-heading)', fontSize: 9,
+              letterSpacing: '0.12em', textTransform: 'uppercase',
               padding: '9px 0',
               cursor: valid && !saving ? 'pointer' : 'not-allowed',
-              borderRadius: 1,
-              transition: 'all 300ms',
+              borderRadius: 1, transition: 'all 300ms',
               opacity: saving ? 0.6 : 1,
             }}
           >
@@ -357,14 +763,11 @@ export function CharacterEditModal({ character, onSave, onClose }: Props) {
               background: 'rgba(42,34,16,0.4)',
               border: '1px solid rgba(139,112,48,0.3)',
               color: 'var(--bone-muted)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--font-heading)', fontSize: 9,
+              letterSpacing: '0.12em', textTransform: 'uppercase',
               padding: '9px 0',
               cursor: saving ? 'not-allowed' : 'pointer',
-              borderRadius: 1,
-              transition: 'all 300ms',
+              borderRadius: 1, transition: 'all 300ms',
             }}
           >
             Cancelar

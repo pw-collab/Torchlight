@@ -1,6 +1,7 @@
 import type { Stat } from './class.types'
 import type { InventoryItem } from './inventory.types'
 import type { Talent } from './talent.types'
+import type { TechniqueState } from './technique.types'
 import { getItem } from '@/data/equipment/index'
 
 export interface Character {
@@ -28,6 +29,7 @@ export interface Character {
   spellcastingBonus: number
   castingAttr: string
   talents: Talent[]
+  techniqueStates: TechniqueState[]
   languages: string[]
   backgroundText: string
   backgroundDetails: {
@@ -126,6 +128,7 @@ export interface CharacterRow {
   spellcasting_bonus?: number
   casting_attr?: string
   talents?: Talent[]
+  technique_states?: TechniqueState[]
   languages?: string[]
   background_text?: string | null
   background_details?: Character['backgroundDetails']
@@ -170,6 +173,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     spellcastingBonus: row.spellcasting_bonus ?? 0,
     castingAttr: row.casting_attr ?? 'int',
     talents: row.talents ?? [],
+    techniqueStates: row.technique_states ?? [],
     languages: row.languages ?? [],
     backgroundText: row.background_text ?? '',
     backgroundDetails: row.background_details ?? {},

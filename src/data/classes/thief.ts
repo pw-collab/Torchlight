@@ -13,14 +13,18 @@ export const thief: Class = {
 
   techniques: [
     {
+      id: 'backstab',
       name: 'Backstab',
       description:
         'Se você atingir um inimigo que está desprevenido ou que não pode ver você, adicione seu nível ao dano causado.',
+      // TODO: kind will be configured — likely 'passive' (always active when condition met)
     },
     {
+      id: 'burglar',
       name: 'Burglar',
       description:
         'Você tem vantagem em testes de Destreza para escalar, abrir fechaduras, remover armadilhas e outros atos de ladinagem.',
+      // TODO: kind will be configured — 'passive' (always active)
     },
     null,
     null,

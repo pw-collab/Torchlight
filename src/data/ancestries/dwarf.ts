@@ -2,9 +2,15 @@ import type { Ancestry } from '@/types/ancestry.types'
 
 export const dwarf: Ancestry = {
   id: 'dwarf',
-  name: 'Dwarf',
+  name: 'Anão',
   traits: [
-    { name: 'Stout', description: '+2 HP at each level.' },
-    { name: 'Stonecunning', description: 'Notice stonework traps or unusual construction on a 1-in-2 chance.' },
+    {
+      name: 'Stout',
+      description: 'Comece com +2 HP. Role os ganhos de pontos de vida com vantagem.',
+    },
   ],
+  domainOptions: ['darkon'],
+  fixedLanguages: ['Anão'],
+  pariahLevel: '3/6',
+  languageRules: { domainPicks: 'int_mod' },
 }

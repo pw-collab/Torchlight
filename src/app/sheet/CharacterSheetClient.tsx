@@ -111,6 +111,10 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ talents: talents as any } as Partial<CharacterRow>)
   }
 
+  async function handleTechniqueStatesChange(states: import('@/types/technique.types').TechniqueState[]) {
+    await updateCharacter({ technique_states: states as any } as Partial<CharacterRow>)
+  }
+
   async function handleCurrencyUpdate(patch: { gold?: number; silver?: number; copper?: number }) {
     await updateCharacter(patch as Partial<CharacterRow>)
   }
@@ -272,7 +276,15 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 onHpChange={handleHpChange}
               />
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
-              {cls && <ClassPanel classData={cls} />}
+              {cls && (
+                <ClassPanel
+                  classData={cls}
+                  stats={character.stats}
+                  techniqueStates={character.techniqueStates}
+                  onStateChange={handleTechniqueStatesChange}
+                  onRoll={handleRoll}
+                />
+              )}
             </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
@@ -320,6 +332,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       {showEdit && (
         <CharacterEditModal
           character={character}
+          classData={cls}
           onSave={handleCharacterEdit}
           onClose={() => setShowEdit(false)}
         />
