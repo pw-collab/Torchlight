@@ -77,7 +77,7 @@ export function StatBlock({ stats, onRoll }: Props) {
               fontSize: 10,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: isOpen ? 'var(--parchment-light)' : 'var(--parchment-mid)',
+              color: isOpen ? 'var(--parchment-mid)' : 'var(--parchment-light)',
               marginBottom: 2,
               transition: 'color 300ms',
             }}>
@@ -101,7 +101,7 @@ export function StatBlock({ stats, onRoll }: Props) {
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
-              color: isOpen ? 'var(--gold-bright)' : 'var(--parchment-mid)',
+              color: isOpen ? 'var(--parchment-mid)' : 'var(--gold-bright)',
               marginTop: 2,
             }}>
               {stats[key]}
