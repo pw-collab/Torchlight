@@ -33,7 +33,7 @@ function btnStyle(variant: BtnVariant): React.CSSProperties {
   return {
     background: bg, border: `1px solid ${border}`, color,
     fontFamily: 'var(--font-body)', fontStyle: 'italic' as const, fontSize: 10, padding: '4px 10px',
-    cursor: 'pointer', borderRadius: 1, transition: 'all 220ms',
+    cursor: 'pointer', transition: 'all 220ms',
     whiteSpace: 'nowrap' as const,
   }
 }
@@ -68,17 +68,16 @@ function PassiveModifierLine({
   return (
     <div
       style={{
-        marginTop: 7,
-        padding: '5px 8px',
+        marginTop: 6,
+        padding: '6px 8px',
         background: 'rgba(42,34,16,0.4)',
         border: '1px solid rgba(139,112,48,0.18)',
-        borderRadius: 1,
         display: 'flex',
         alignItems: 'center',
         gap: 8,
       }}
     >
-      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)' }}>
         {label} {score}
       </span>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--bone-muted)' }}>→</span>
@@ -128,7 +127,7 @@ function ChoiceSection({
   }
 
   return (
-    <div style={{ marginTop: 7 }}>
+    <div style={{ marginTop: 6 }}>
       {!editing ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {currentLabel ? (
@@ -136,20 +135,19 @@ function ChoiceSection({
               <span style={{
                 fontFamily: 'var(--font-body)',
                 fontStyle: 'italic',
-                fontSize: 9,
+                fontSize: 12,
                 color: 'var(--bone-muted)',
               }}>
                 {cfg.informativeOnly ? 'Registrado' : 'Escolha'}
               </span>
               <span style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: 700,
                 color: 'var(--candle-amber)',
                 background: 'rgba(106,58,10,0.18)',
                 border: '1px solid rgba(196,120,42,0.3)',
                 padding: '2px 8px',
-                borderRadius: 1,
               }}>
                 {currentLabel}
               </span>
@@ -184,10 +182,9 @@ function ChoiceSection({
                 border: '1px solid rgba(139,112,48,0.4)',
                 color: 'var(--parchment-light)',
                 fontFamily: 'var(--font-body)',
-                fontSize: 11,
+                fontSize: 14,
                 padding: '4px 8px',
                 outline: 'none',
-                borderRadius: 1,
                 flex: 1,
                 minWidth: 120,
               }}
@@ -366,10 +363,9 @@ function SpellLikeSection({
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 8,
-                padding: '6px 9px',
+                padding: '6px 10px',
                 background: isExpended ? 'rgba(42,34,16,0.2)' : 'rgba(42,34,16,0.4)',
                 border: `1px solid ${isExpended ? 'rgba(139,112,48,0.12)' : 'rgba(139,112,48,0.22)'}`,
-                borderRadius: 1,
                 opacity: isExpended ? 0.6 : 1,
                 transition: 'all 300ms',
               }}
@@ -385,12 +381,11 @@ function SpellLikeSection({
                   </span>
                   <span style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: 7.5,
+                    fontSize: 12,
                     color: isExpended ? 'var(--blood-bright)' : 'var(--verdigris-light)',
                     background: isExpended ? 'rgba(139,21,21,0.12)' : 'rgba(42,80,69,0.15)',
                     border: `1px solid ${isExpended ? 'rgba(139,21,21,0.25)' : 'rgba(42,80,69,0.3)'}`,
-                    padding: '1px 5px',
-                    borderRadius: 1,
+                    padding: '2px 6px',
                   }}>
                     {isExpended ? '✕ Usado' : '● Disponível'}
                   </span>
@@ -485,7 +480,6 @@ function TechniqueCard({
           background: 'rgba(106,58,10,0.18)',
           border: '1px solid rgba(196,120,42,0.25)',
           padding: '1px 6px',
-          borderRadius: 1,
         }}>
           {label}
         </span>
@@ -513,9 +507,6 @@ function TechniqueCard({
     <div
       className="worn-border"
       style={{
-        background: 'rgba(42,34,16,0.35)',
-        border: '1px solid rgba(139,112,48,0.22)',
-        borderRadius: 1,
         overflow: 'hidden',
       }}
     >
@@ -553,7 +544,6 @@ function TechniqueCard({
             background: badge.bg,
             border: `1px solid ${badge.color}40`,
             padding: '1px 5px',
-            borderRadius: 1,
             flexShrink: 0,
           }}>
             {badge.label}
@@ -644,7 +634,7 @@ function TalentTable({ classData }: { classData: Class }) {
       </div>
 
       {open && (
-        <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden' }}>
+        <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.6)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
             {['2D6', 'Efeito'].map((h, i) => (
               <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none' }}>

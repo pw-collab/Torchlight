@@ -47,10 +47,9 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
     border: '1px solid rgba(139,112,48,0.28)',
     color: 'var(--parchment-light)',
     fontFamily: 'var(--font-body)',
-    fontSize: 11,
-    padding: '5px 7px',
+    fontSize: 12,
+    padding: '6px 8px',
     outline: 'none',
-    borderRadius: 1,
     boxSizing: 'border-box',
   }
 
@@ -59,11 +58,11 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
       className="worn-border"
       style={{
         border: '1px solid rgba(139,112,48,0.33)',
-        padding: 40,
+        padding: '40px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '0.2em', color: 'var(--bone-muted)' }}>
           Talentos & Habilidades
         </span>
         <button
@@ -73,11 +72,9 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
             border: '1px solid rgba(139,112,48,0.3)',
             color: 'var(--parchment-light)',
             fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 10,
-            padding: '4px 10px',
+            fontSize: 14,
+            padding: '6px 12px',
             cursor: 'pointer',
-            borderRadius: 1,
           }}
         >
           {adding ? '✕ Fechar' : '+ Adicionar'}
@@ -124,10 +121,9 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
               color: 'var(--bone-white)',
               fontFamily: 'var(--font-body)',
               fontStyle: 'italic',
-              fontSize: 11,
+              fontSize: 12,
               padding: '7px 0',
               cursor: 'pointer',
-              borderRadius: 1,
               opacity: !form.name.trim() || !form.description.trim() ? 0.45 : 1,
             }}
           >
@@ -138,7 +134,7 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
 
       {talents.length === 0 && !adding ? (
         <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--parchment-warm)' }}>
-          Nenhum talento registrado nos anais.
+          Nenhum talento registrado nos arquivos.
         </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -167,17 +163,17 @@ function TalentRow({ talent, last, onRemove }: { talent: Talent; last: boolean; 
       style={{
         padding: '8px 0',
         borderBottom: last ? 'none' : '1px solid rgba(139,112,48,0.1)',
+        minHeight: '36px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 7.5,
+          fontSize: 10,
           color: ORIGIN_COLOR[talent.origin],
           background: `${ORIGIN_COLOR[talent.origin]}18`,
           border: `1px solid ${ORIGIN_COLOR[talent.origin]}40`,
-          padding: '1px 5px',
-          borderRadius: 1,
+          padding: '2px 6px',
           flexShrink: 0,
         }}>
           {ORIGIN_LABEL[talent.origin]}

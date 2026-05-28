@@ -48,7 +48,7 @@ export function StatBlock({ stats, onRoll }: Props) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}>
       {statKeys.map(key => {
         const mod = modifier(stats[key])
         const isOpen = openStat === key
@@ -63,15 +63,10 @@ export function StatBlock({ stats, onRoll }: Props) {
             style={{
               position: 'relative',
               background: isOpen
-                ? 'linear-gradient(148deg, rgba(139,112,48,.18) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
-                : 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
-              border: isOpen ? '1px solid rgba(139,112,48,0.5)' : '1px solid rgba(139,112,48,0.22)',
+                ? 'var(--gold-oxidized)'
+                : 'var(--parchment-mid)',
               padding: '6px 2px 8px',
               textAlign: 'center',
-              borderRadius: 1,
-              boxShadow: isOpen
-                ? 'inset 0 1px 3px rgba(0,0,0,0.4), 0 0 6px rgba(139,112,48,0.15)'
-                : 'inset 0 1px 3px rgba(0,0,0,0.4)',
               cursor: isInteractive ? 'pointer' : 'default',
               transition: 'all 300ms',
               userSelect: 'none',
@@ -79,10 +74,10 @@ export function StatBlock({ stats, onRoll }: Props) {
           >
             <div style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: 7,
+              fontSize: 10,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: isOpen ? 'var(--parchment-light)' : 'var(--bone-muted)',
+              color: isOpen ? 'var(--parchment-mid)' : 'var(--parchment-light)',
               marginBottom: 2,
               transition: 'color 300ms',
             }}>
@@ -91,7 +86,7 @@ export function StatBlock({ stats, onRoll }: Props) {
 
             <div style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 700,
               lineHeight: 1,
               color: mod > 0
@@ -105,8 +100,8 @@ export function StatBlock({ stats, onRoll }: Props) {
 
             <div style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: 'var(--gold-bright)',
+              fontSize: 10,
+              color: isOpen ? 'var(--parchment-mid)' : 'var(--gold-bright)',
               marginTop: 2,
             }}>
               {stats[key]}
@@ -122,8 +117,8 @@ export function StatBlock({ stats, onRoll }: Props) {
                   transform: 'translateX(-50%)',
                   zIndex: 50,
                   background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-                  border: '1px solid rgba(139,112,48,0.42)',
-                  borderTop: '2px solid #7A6030',
+                  border: '1px solid var(--gold-oxidized)',
+                  borderTop: '4px solid var(--gold-oxidized)',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.8)',
                   minWidth: 120,
                   animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
@@ -141,7 +136,7 @@ export function StatBlock({ stats, onRoll }: Props) {
                     style={{
                       display: 'block',
                       width: '100%',
-                      padding: '7px 12px',
+                      padding: '8px 12px',
                       background: 'none',
                       border: 'none',
                       borderBottom: opt.id !== 'disadvantage' ? '1px solid rgba(139,112,48,0.15)' : 'none',
@@ -149,7 +144,7 @@ export function StatBlock({ stats, onRoll }: Props) {
                       textAlign: 'left',
                       fontFamily: 'var(--font-body)',
                       fontStyle: 'italic',
-                      fontSize: 11,
+                      fontSize: 12,
                       color: opt.id === 'advantage'
                         ? 'var(--verdigris-light)'
                         : opt.id === 'disadvantage'

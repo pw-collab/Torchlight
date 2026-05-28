@@ -193,9 +193,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 400, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
                   {character.name}
                 </h1>
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: '#6A5A3A' }}>
-                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-                </p>
               </div>
               <button
                 onClick={() => setShowEdit(true)}
@@ -254,13 +251,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
                 cursor: 'pointer',
                 fontFamily: 'var(--font-heading)',
-                fontSize: 9,
+                fontSize: 16,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
                 padding: '8px 18px 6px',
                 transition: 'all 300ms',
                 marginBottom: -1,
+                width: '100%',
               }}
             >
               {TAB_LABELS[t]}
