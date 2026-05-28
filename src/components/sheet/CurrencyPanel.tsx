@@ -18,11 +18,7 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
     <div
       className="worn-border"
       style={{
-        background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
-        border: '1px solid rgba(139,112,48,0.33)',
-        boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
-        padding: '12px 14px',
-        borderRadius: 1,
+        padding: '40px 40px',
       }}
     >
       <div style={{
