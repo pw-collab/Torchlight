@@ -15,7 +15,7 @@ const STAT_SHORT: Record<Stat, string> = {
 function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
   return {
     background: 'var(--parchment-mid)',
-    border: '2px solid var(--bone-dim)',
+    border: '1px solid var(--bone-dim)',
     ...extra,
   }
 }
