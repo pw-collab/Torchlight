@@ -19,7 +19,7 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
     <div
       className="worn-border"
       style={{
-        background: var(--parchment-mid),
+        background: 'var(--parchment-mid)',
         padding: '20px 20px',
       }}
     >
