@@ -14,7 +14,7 @@ export function LuckTokens({ luckTokens, onChange }: Props) {
         background: 'var(--parchment-mid)',
         border: '1px solid rgba(139,112,48,0.33)',
         borderTop: 'none',
-        padding: '12px 14px',
+        padding: 20,
         display: 'flex',
         alignItems: 'center',
         gap: 12,

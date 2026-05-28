@@ -88,7 +88,6 @@ const PANEL_BORDER_LIGHT = '1px solid rgba(139,112,48,0.18)'
 
 function panelBase(extra?: React.CSSProperties): React.CSSProperties {
   return {
-    background: 'var(--parchment-mid)',
     border: PANEL_BORDER,
     borderTop: 'none',
     ...extra,
@@ -183,7 +182,7 @@ function CapacityDashboard({ str, usedSlots }: { str: number; usedSlots: number 
   const percent = Math.min(100, maxSlots > 0 ? (usedSlots / maxSlots) * 100 : 0)
 
   return (
-    <div style={panelBase({ padding: '12px 14px', border: PANEL_BORDER, borderTop: PANEL_BORDER })}>
+    <div style={panelBase({ padding: 20, background: 'var(--parchment-mid)', border: PANEL_BORDER, borderTop: PANEL_BORDER })}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{
           fontFamily: 'var(--font-heading)',
@@ -261,7 +260,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
   ]
 
   return (
-    <div style={panelBase({ padding: '12px 14px' })}>
+    <div style={panelBase({ padding: 40 })}>
       {sectionHeader('Tesouro')}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {coins.map(({ key, label, color, value }) => (
@@ -820,7 +819,7 @@ export function InventoryView({
       <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: '1px solid rgba(139,112,48,0.22)' }}>
 
         {/* Equipped Slots */}
-        <div style={{ padding: '14px 15px', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ padding: 40, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           {sectionHeader('Itens Equipados')}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {(['mainHand', 'offHand', 'armor'] as EquipSlot[]).map(slot => {
@@ -934,7 +933,7 @@ export function InventoryView({
         </div>
 
         {/* Backpack */}
-        <div style={{ padding: '14px 15px', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ padding: 40, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
               Inventário
@@ -997,7 +996,7 @@ export function InventoryView({
         <CapacityDashboard str={str} usedSlots={usedSlots} />
 
         {/* Bonuses (vertical) */}
-        <div style={{ padding: '12px 14px', background: 'var(--parchment-mid)', border: PANEL_BORDER, borderTop: 'none' }}>
+        <div style={{ padding: 20, background: 'var(--parchment-mid)', border: PANEL_BORDER, borderTop: 'none' }}>
           {sectionHeader('Bônus de Combate')}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {([

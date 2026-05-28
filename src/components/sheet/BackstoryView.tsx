@@ -24,11 +24,8 @@ const FAITHS = [
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const card: React.CSSProperties = {
-  background:
-    'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
   border: '1px solid rgba(139,112,48,0.28)',
-  borderRadius: 2,
-  padding: '14px 18px',
+  padding: 40,
 }
 
 const sectionTitle: React.CSSProperties = {

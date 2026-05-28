@@ -17,7 +17,7 @@ export function SlotTracker({ str, equipment }: Props) {
         background: 'var(--parchment-mid)',
         border: '1px solid rgba(139,112,48,0.33)',
         borderTop: 'none',
-        padding: '12px 14px',
+        padding: 20,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>

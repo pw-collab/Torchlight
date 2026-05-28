@@ -295,7 +295,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 background: 'var(--parchment-mid)',
                 border: 'none',
                 borderBottom: '1px solid rgba(139,112,48,0.22)',
-                padding: '16px 14px',
+                padding: 20,
                 textAlign: 'center',
               }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 2 }}>

@@ -44,6 +44,8 @@
   --ease-ritual:   cubic-bezier(0.4, 0, 0.2, 1);
   --duration-base: 400ms;
   --duration-slow: 700ms;
+
+  --worn-border: rgba(139, 112, 48, 0.18);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,10 +66,10 @@ html, body {
 .worn-border {
   border-style: solid !important;
   border-width: 1px !important;
-  border-top-color:    rgba(168,132,52,0.36) !important;
-  border-right-color:  rgba(122,94,36,0.20) !important;
-  border-bottom-color: rgba(158,122,46,0.40) !important;
-  border-left-color:   rgba(116,90,34,0.26) !important;
+  border-top-color:    var(--worn-border) !important;
+  border-right-color:  var(--worn-border) !important;
+  border-bottom-color: var(--worn-border) !important;
+  border-left-color:   var(--worn-border) !important;
   border-radius: 2px 1px 3px 1px !important;
 }
 
