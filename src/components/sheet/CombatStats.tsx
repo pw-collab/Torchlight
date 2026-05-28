@@ -20,7 +20,9 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
       className="worn-border"
       style={{
         background: 'var(--parchment-mid)',
-        padding: '20px 20px',
+        border: '1px solid rgba(139,112,48,0.33)',
+        borderTop: 'none',
+        padding: '20px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>

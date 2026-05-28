@@ -44,6 +44,8 @@
   --ease-ritual:   cubic-bezier(0.4, 0, 0.2, 1);
   --duration-base: 400ms;
   --duration-slow: 700ms;
+
+  --worn-border: rgba(139, 112, 48, 0.18);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

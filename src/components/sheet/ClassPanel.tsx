@@ -14,6 +14,7 @@ const STAT_SHORT: Record<Stat, string> = {
 
 function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
   return {
+    border: '1px solid rgba(139,112,48,0.33)',
     ...extra,
   }
 }
@@ -677,7 +678,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
   }
 
   return (
-    <div className="worn-border" style={panelStyle({ padding: '40px 40px' })}>
+    <div className="worn-border" style={panelStyle({ padding: 40 })}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--parchment-pale)', letterSpacing: '0.03em' }}>

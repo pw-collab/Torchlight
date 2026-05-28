@@ -57,7 +57,8 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
     <div
       className="worn-border"
       style={{
-        padding: '20px 20px',
+        border: '1px solid rgba(139,112,48,0.33)',
+        padding: '40px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>

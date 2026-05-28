@@ -250,11 +250,8 @@ export function Spells({
     <div
       className="worn-border"
       style={{
-        background: 'linear-gradient(148deg, rgba(42,26,58,.22) 0%, rgba(30,18,40,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
         border: '1px solid rgba(107,78,138,0.3)',
-        boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
-        padding: '14px 15px',
-        borderRadius: 1,
+        padding: 40,
       }}
     >
       {/* ── Header ── */}
