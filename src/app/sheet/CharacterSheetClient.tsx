@@ -29,10 +29,11 @@ import { getAncestry } from '@/data/ancestries/index'
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
 const TAB_LABELS: Record<Tab, string> = {
-  stats: '✦ Habilidades',
-  inventory: '⚗ Inventário',
-  spells: '☽ Grimório',
-  backstory: '✎ História',
+  stats: 'Atributos',
+  inventory: 'Inventário',
+  spells: 'Grimório',
+  backstory: 'História',
+
 }
 
 interface Props {
@@ -172,9 +173,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             marginTop: 18,
             marginBottom: 4,
             fontFamily: 'var(--font-body)',
-            fontSize: 10,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
+            fontStyle: 'italic',
+            fontSize: 11,
             color: 'var(--bone-muted)',
             textDecoration: 'none',
             transition: 'color 200ms',
@@ -208,10 +208,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   fontSize: 14,
                   cursor: 'pointer',
                   borderRadius: 1,
-                  padding: '4px 8px',
+                  padding: '3px 8px',
                   lineHeight: 1,
                   transition: 'all 250ms',
-                  marginTop: 2,
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
@@ -224,21 +223,23 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               >
                 Editar
               </button>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
+              </span>
             </div>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)', letterSpacing: '0.08em', whiteSpace: 'nowrap', paddingTop: 4 }}>
-              FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
-            </span>
+          </div>
+          {/* Subtitle + inline XP bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+            </p>
+            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
           </div>
         </div>
 
-        {/* XP bar + Attribute row */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
-          <div style={{ flex: 1, minWidth: 124 }}>
-            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
-          </div>
-          <div style={{ flex: 2, minWidth: 0 }}>
-            <StatBlock stats={character.stats} onRoll={handleRoll} />
-          </div>
+        {/* Attribute row */}
+        <div style={{ marginBottom: 14 }}>
+          <StatBlock stats={character.stats} onRoll={handleRoll} />
         </div>
 
         {/* Tab navigation */}
@@ -252,12 +253,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 border: 'none',
                 borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
                 cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-                fontSize: 18,
-                letterSpacing: '0.16em',
+                fontFamily: 'var(--font-heading)',
+                fontSize: 9,
+                letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                padding: '8px 16px 6px',
+                padding: '8px 18px 6px',
                 transition: 'all 300ms',
                 marginBottom: -1,
               }}

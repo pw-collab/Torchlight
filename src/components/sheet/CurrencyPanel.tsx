@@ -35,7 +35,7 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
         paddingBottom: 7,
         borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
-        ✦ Tesouro
+        Tesouro
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -51,10 +51,9 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
             }}
           >
             <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 7,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 9,
               color: 'var(--bone-muted)',
               marginBottom: 4,
             }}>

@@ -36,8 +36,7 @@ function btnStyle(variant: BtnVariant): React.CSSProperties {
   const [bg, border, color] = map[variant]
   return {
     background: bg, border: `1px solid ${border}`, color,
-    fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const, padding: '4px 10px',
+    fontFamily: 'var(--font-body)', fontStyle: 'italic' as const, fontSize: 10, padding: '4px 10px',
     cursor: 'pointer', borderRadius: 1, transition: 'all 220ms',
     whiteSpace: 'nowrap' as const,
   }
@@ -83,7 +82,7 @@ function PassiveModifierLine({
         gap: 8,
       }}
     >
-      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)' }}>
         {label} {score}
       </span>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--bone-muted)' }}>→</span>
@@ -139,10 +138,9 @@ function ChoiceSection({
           {currentLabel ? (
             <>
               <span style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 7,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
+                fontFamily: 'var(--font-body)',
+                fontStyle: 'italic',
+                fontSize: 9,
                 color: 'var(--bone-muted)',
               }}>
                 {cfg.informativeOnly ? 'Registrado' : 'Escolha'}
@@ -383,10 +381,9 @@ function SpellLikeSection({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: 10,
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 12,
                     color: isExpended ? 'var(--bone-muted)' : 'var(--candle-amber)',
-                    letterSpacing: '0.04em',
                   }}>
                     {ability.name}
                   </span>
@@ -544,18 +541,17 @@ function TechniqueCard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
           <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 10,
-            letterSpacing: '0.06em',
+            fontFamily: 'var(--font-body)',
+            fontSize: 12,
             color: 'var(--candle-amber)',
           }}>
             {technique.name}
           </span>
           {/* Kind badge */}
           <span style={{
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)',
             fontSize: 6.5,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: badge.color,
             background: badge.bg,
@@ -636,7 +632,7 @@ function TalentTable({ classData }: { classData: Class }) {
         marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-          ✦ Tabela de Talentos
+          Tabela de Talentos
         </span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(139,112,48,0.45)' }}>
@@ -644,7 +640,7 @@ function TalentTable({ classData }: { classData: Class }) {
           </span>
           <button
             onClick={() => setOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: 0 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', padding: 0 }}
           >
             {open ? '▲ ocultar' : '▼ ver'}
           </button>
@@ -655,7 +651,7 @@ function TalentTable({ classData }: { classData: Class }) {
         <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.6)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
             {['2D6', 'Efeito'].map((h, i) => (
-              <div key={h} style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none' }}>
+              <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none' }}>
                 {h}
               </div>
             ))}
@@ -700,7 +696,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-          ⚔ Classe
+          Classe
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>
           Dado de Vida: d{classData.hitDie}
@@ -710,11 +706,11 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {/* Proficiencies */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
         {[
-          { label: '⚔ Armas',    value: classData.weaponProficiency },
-          { label: '🛡 Armaduras', value: classData.armorProficiency },
+          { label: 'Armas',     value: classData.weaponProficiency },
+          { label: 'Armaduras', value: classData.armorProficiency },
         ].map(({ label, value }) => (
           <div key={label}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 3 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 3 }}>
               {label}
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--parchment-warm)', lineHeight: 1.4 }}>
@@ -728,7 +724,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {activeTechniques.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-            ✦ Técnicas
+            Técnicas
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             {activeTechniques.map(t => (
