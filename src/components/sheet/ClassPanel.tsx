@@ -506,8 +506,7 @@ function TechniqueCard({
     <div
       className="worn-border"
       style={{
-        background: 'rgba(42,34,16,0.35)',
-        border: '1px solid rgba(139,112,48,0.22)',
+        padding: '40px 40px',
         overflow: 'hidden',
       }}
     >
