@@ -268,8 +268,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
         {/* Tab: Stats */}
         {tab === 'stats' && (
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+          <div style={{ display: 'flex', gap: 0, alignItems: 'flex-start' }}>
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 0, minWidth: 0 }}>
               <CombatStats
                 hpMax={character.hpMax}
                 hpCurrent={character.hpCurrent}
