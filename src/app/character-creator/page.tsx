@@ -137,7 +137,6 @@ export default function CharacterCreatorPage() {
 
     const { data, error } = await supabase.from('characters').insert({
       user_id: discordId,
-      player_name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
       name,
       class_id: classId,
       ancestry_id: ancestryId,

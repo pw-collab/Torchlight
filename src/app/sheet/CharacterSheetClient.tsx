@@ -243,7 +243,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
 
         {/* Tab navigation */}
-        <div style={{ display: 'flex', gap: 2, marginBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
             <button
               key={t}
@@ -268,16 +268,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           ))}
         </div>
 
+        {/* Tab content border */}
+        <div style={{ border: '1px solid rgba(139,112,48,0.22)', borderTop: 'none', marginBottom: 40 }}>
+
         {/* Tab: Stats */}
         {tab === 'stats' && (
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-              <CombatStats
-                hpMax={character.hpMax}
-                hpCurrent={character.hpCurrent}
-                ac={character.ac}
-                onHpChange={handleHpChange}
-              />
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            {/* Left column: Talentos + Classe */}
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: '1px solid rgba(139,112,48,0.22)' }}>
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
               {cls && (
                 <ClassPanel
@@ -290,9 +288,30 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               )}
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-              <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ itemId: i.id, slots: i.slots }))} />
+            {/* Right column: CA > PV > Fortuna > Carga */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              {/* CA */}
+              <div style={{
+                background: 'var(--parchment-mid)',
+                border: 'none',
+                borderBottom: '1px solid rgba(139,112,48,0.22)',
+                padding: '16px 14px',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 2 }}>
+                  CA
+                </div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 40, fontWeight: 700, color: 'var(--bone-white)', lineHeight: 1 }}>
+                  {character.ac}
+                </div>
+              </div>
+              <CombatStats
+                hpMax={character.hpMax}
+                hpCurrent={character.hpCurrent}
+                onHpChange={handleHpChange}
+              />
               <LuckTokens luckTokens={character.luckTokens} onChange={handleLuckChange} />
+              <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ slots: i.slots }))} />
             </div>
           </div>
         )}
@@ -338,6 +357,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             onUpdate={updateCharacter}
           />
         )}
+
+        </div>{/* end tab content border */}
       </div>
 
       {showEdit && (
