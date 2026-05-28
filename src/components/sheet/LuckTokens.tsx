@@ -21,10 +21,9 @@ export function LuckTokens({ luckTokens, onChange }: Props) {
       }}
     >
       <span style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 8.5,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
+        fontFamily: 'var(--font-body)',
+        fontStyle: 'italic',
+        fontSize: 10,
         color: 'var(--bone-muted)',
       }}>
         Fortuna

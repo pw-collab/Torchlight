@@ -67,7 +67,7 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-          ✦ Talentos & Habilidades
+          Talentos & Habilidades
         </span>
         <button
           onClick={() => setAdding(a => !a)}
@@ -75,10 +75,9 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
             background: 'rgba(42,34,16,0.5)',
             border: '1px solid rgba(139,112,48,0.3)',
             color: 'var(--parchment-light)',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 8,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
+            fontFamily: 'var(--font-body)',
+            fontStyle: 'italic',
+            fontSize: 10,
             padding: '4px 10px',
             cursor: 'pointer',
             borderRadius: 1,
@@ -103,11 +102,11 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 3 }}>Nome</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', marginBottom: 3 }}>Nome</div>
               <input type="text" value={form.name} placeholder="ex.: Visão nas Trevas" onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inp} />
             </div>
             <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 3 }}>Origem</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', marginBottom: 3 }}>Origem</div>
               <select value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value as TalentOrigin }))} style={inp}>
                 <option value="ancestry">Ancestralidade</option>
                 <option value="class">Classe</option>
@@ -116,7 +115,7 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
             </div>
           </div>
           <div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 3 }}>Descrição</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', marginBottom: 3 }}>Descrição</div>
             <input type="text" value={form.description} placeholder="O que este talento faz?" onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={inp} />
           </div>
           <button
@@ -126,10 +125,9 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
               background: 'var(--blood-mid)',
               border: '1px solid var(--blood-bright)',
               color: 'var(--bone-white)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 11,
               padding: '7px 0',
               cursor: 'pointer',
               borderRadius: 1,
@@ -192,8 +190,8 @@ function TalentRow({ talent, last, onRemove }: { talent: Talent; last: boolean; 
           onClick={() => setExpanded(e => !e)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-heading)', fontSize: 11,
-            color: 'var(--parchment-light)', fontWeight: 500,
+            fontFamily: 'var(--font-body)', fontSize: 12,
+            color: 'var(--parchment-light)',
             textAlign: 'left', flex: 1, padding: 0,
           }}
         >

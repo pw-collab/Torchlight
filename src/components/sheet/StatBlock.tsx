@@ -78,9 +78,9 @@ export function StatBlock({ stats, onRoll }: Props) {
             }}
           >
             <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 6.5,
-              letterSpacing: '0.15em',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 7,
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: isOpen ? 'var(--parchment-light)' : 'var(--bone-muted)',
               marginBottom: 2,
@@ -147,10 +147,9 @@ export function StatBlock({ stats, onRoll }: Props) {
                       borderBottom: opt.id !== 'disadvantage' ? '1px solid rgba(139,112,48,0.15)' : 'none',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: 9,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
+                      fontFamily: 'var(--font-body)',
+                      fontStyle: 'italic',
+                      fontSize: 11,
                       color: opt.id === 'advantage'
                         ? 'var(--verdigris-light)'
                         : opt.id === 'disadvantage'

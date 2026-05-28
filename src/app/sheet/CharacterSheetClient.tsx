@@ -29,10 +29,10 @@ import { getAncestry } from '@/data/ancestries/index'
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
 const TAB_LABELS: Record<Tab, string> = {
-  stats: '✦ Atributos',
-  inventory: '⚗ Inventário',
-  spells: '☽ Magias',
-  backstory: '✎ História',
+  stats: 'Atributos',
+  inventory: 'Inventário',
+  spells: 'Magias',
+  backstory: 'História',
 }
 
 interface Props {
@@ -171,10 +171,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             gap: 6,
             marginTop: 18,
             marginBottom: 4,
-            fontFamily: 'var(--font-heading)',
-            fontSize: 9,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
+            fontFamily: 'var(--font-body)',
+            fontStyle: 'italic',
+            fontSize: 11,
             color: 'var(--bone-muted)',
             textDecoration: 'none',
             transition: 'color 200ms',
@@ -186,17 +185,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </Link>
 
         {/* Character header */}
-        <div style={{ padding: '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div>
-                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
-                  {character.name}
-                </h1>
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A' }}>
-                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-                </p>
-              </div>
+        <div style={{ padding: '14px 0 14px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', lineHeight: 1.1 }}>
+              {character.name}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, paddingTop: 2 }}>
               <button
                 onClick={() => setShowEdit(true)}
                 title="Editar personagem"
@@ -204,14 +198,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   background: 'rgba(42,34,16,0.4)',
                   border: '1px solid rgba(139,112,48,0.28)',
                   color: 'var(--bone-muted)',
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 10,
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 11,
                   cursor: 'pointer',
                   borderRadius: 1,
-                  padding: '4px 8px',
+                  padding: '3px 8px',
                   lineHeight: 1,
                   transition: 'all 250ms',
-                  marginTop: 2,
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
@@ -224,21 +217,23 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               >
                 ✏
               </button>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
+              </span>
             </div>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap', paddingTop: 4 }}>
-              FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
-            </span>
+          </div>
+          {/* Subtitle + inline XP bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+            </p>
+            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
           </div>
         </div>
 
-        {/* XP bar + Attribute row */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
-          <div style={{ width: 220, flexShrink: 0 }}>
-            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <StatBlock stats={character.stats} onRoll={handleRoll} />
-          </div>
+        {/* Attribute row */}
+        <div style={{ marginBottom: 14 }}>
+          <StatBlock stats={character.stats} onRoll={handleRoll} />
         </div>
 
         {/* Tab navigation */}
@@ -254,10 +249,10 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 cursor: 'pointer',
                 fontFamily: 'var(--font-heading)',
                 fontSize: 9,
-                letterSpacing: '0.16em',
+                letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                padding: '8px 16px 6px',
+                padding: '8px 18px 6px',
                 transition: 'all 300ms',
                 marginBottom: -1,
               }}

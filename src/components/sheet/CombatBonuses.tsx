@@ -11,9 +11,9 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
   const panelBg = 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
 
   const items = [
-    { label: 'Corpo-a-Corpo', key: 'meleeBonus' as const, value: meleeBonus, icon: '⚔' },
-    { label: 'À Distância', key: 'rangedBonus' as const, value: rangedBonus, icon: '🏹' },
-    { label: 'Conjuração', key: 'spellcastingBonus' as const, value: spellcastingBonus, icon: '☽' },
+    { label: 'Corpo-a-Corpo', key: 'meleeBonus' as const, value: meleeBonus },
+    { label: 'À Distância', key: 'rangedBonus' as const, value: rangedBonus },
+    { label: 'Conjuração', key: 'spellcastingBonus' as const, value: spellcastingBonus },
   ]
 
   return (
@@ -37,11 +37,11 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
         paddingBottom: 7,
         borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
-        ✦ Bônus de Combate
+        Bônus de Combate
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-        {items.map(({ label, key, value, icon }) => (
+        {items.map(({ label, key, value }) => (
           <div
             key={key}
             className="worn-border"
@@ -53,14 +53,13 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
             }}
           >
             <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 7,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 9,
               color: 'var(--bone-muted)',
               marginBottom: 4,
             }}>
-              {icon} {label}
+              {label}
             </div>
             <input
               type="number"

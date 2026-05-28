@@ -30,10 +30,9 @@ export function CombatStats({ hpMax, hpCurrent, ac, onHpChange }: Props) {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 8.5,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
+            fontFamily: 'var(--font-body)',
+            fontStyle: 'italic',
+            fontSize: 10,
             color: 'var(--bone-muted)',
           }}>
             Pontos de Vida
@@ -66,9 +65,9 @@ export function CombatStats({ hpMax, hpCurrent, ac, onHpChange }: Props) {
               background: 'rgba(139,21,21,0.25)',
               border: '1px solid var(--blood-mid)',
               color: 'var(--bone-white)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 11,
               padding: '7px 0',
               cursor: 'pointer',
               borderRadius: 1,
@@ -84,9 +83,9 @@ export function CombatStats({ hpMax, hpCurrent, ac, onHpChange }: Props) {
               background: 'rgba(42,80,69,0.25)',
               border: '1px solid #2A5045',
               color: 'var(--bone-white)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 10,
-              letterSpacing: '0.1em',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 11,
               padding: '7px 0',
               cursor: 'pointer',
               borderRadius: 1,
@@ -110,17 +109,17 @@ export function CombatStats({ hpMax, hpCurrent, ac, onHpChange }: Props) {
         }}
       >
         <span style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
+          fontFamily: 'var(--font-body)',
+          fontStyle: 'italic',
+          fontSize: 9,
           color: 'var(--bone-muted)',
-          marginBottom: 4,
+          marginBottom: 2,
+          letterSpacing: '0.04em',
         }}>
           CA
         </span>
         <span style={{
-          fontFamily: 'var(--font-mono)',
+          fontFamily: 'var(--font-heading)',
           fontSize: 28,
           fontWeight: 700,
           color: 'var(--bone-white)',

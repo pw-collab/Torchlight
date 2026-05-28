@@ -22,10 +22,9 @@ export function SlotTracker({ str, equipment }: Props) {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8.5,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
+          fontFamily: 'var(--font-body)',
+          fontStyle: 'italic',
+          fontSize: 10,
           color: 'var(--bone-muted)',
         }}>
           Capacidade de Carga
