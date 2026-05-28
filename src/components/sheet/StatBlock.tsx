@@ -71,9 +71,6 @@ export function StatBlock({ stats, onRoll }: Props) {
               transition: 'all 300ms',
               userSelect: 'none',
             }}
-            onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(139,112,48,0.1)'
-                    }}
           >
             <div style={{
               fontFamily: 'var(--font-mono)',
