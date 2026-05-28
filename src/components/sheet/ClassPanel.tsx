@@ -506,7 +506,6 @@ function TechniqueCard({
     <div
       className="worn-border"
       style={{
-        padding: '40px 40px',
         overflow: 'hidden',
       }}
     >
@@ -678,7 +677,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
   }
 
   return (
-    <div className="worn-border" style={panelStyle({ padding: '14px 15px' })}>
+    <div className="worn-border" style={panelStyle({ padding: '40px 40px' })}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
         <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--parchment-pale)', letterSpacing: '0.03em' }}>
