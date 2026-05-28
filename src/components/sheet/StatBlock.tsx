@@ -63,12 +63,11 @@ export function StatBlock({ stats, onRoll }: Props) {
             style={{
               position: 'relative',
               background: isOpen
-                ? 'linear-gradient(148deg, rgba(139,112,48,.18) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)'
+                ? 'var(--parchment-mid)'
                 : 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
               border: isOpen ? '1px solid rgba(139,112,48,0.5)' : '1px solid rgba(139,112,48,0.22)',
               padding: '6px 2px 8px',
               textAlign: 'center',
-              borderRadius: 0,
               boxShadow: isOpen
                 ? 'inset 0 1px 3px rgba(0,0,0,0.4), 0 0 6px rgba(139,112,48,0.15)'
                 : 'inset 0 1px 3px rgba(0,0,0,0.4)',
