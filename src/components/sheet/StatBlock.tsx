@@ -48,7 +48,7 @@ export function StatBlock({ stats, onRoll }: Props) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}>
       {statKeys.map(key => {
         const mod = modifier(stats[key])
         const isOpen = openStat === key
@@ -68,7 +68,7 @@ export function StatBlock({ stats, onRoll }: Props) {
               border: isOpen ? '1px solid rgba(139,112,48,0.5)' : '1px solid rgba(139,112,48,0.22)',
               padding: '6px 2px 8px',
               textAlign: 'center',
-              borderRadius: 1,
+              borderRadius: 0,
               boxShadow: isOpen
                 ? 'inset 0 1px 3px rgba(0,0,0,0.4), 0 0 6px rgba(139,112,48,0.15)'
                 : 'inset 0 1px 3px rgba(0,0,0,0.4)',
@@ -79,7 +79,7 @@ export function StatBlock({ stats, onRoll }: Props) {
           >
             <div style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: 7,
+              fontSize: 8,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: isOpen ? 'var(--parchment-light)' : 'var(--bone-muted)',
@@ -91,7 +91,7 @@ export function StatBlock({ stats, onRoll }: Props) {
 
             <div style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 700,
               lineHeight: 1,
               color: mod > 0
