@@ -1,7 +1,8 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
-import { Sidebar } from './Sidebar'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { createClient } from '@/lib/supabase'
 
 export interface BreadcrumbItem {
   label: string
@@ -13,22 +14,21 @@ interface Props {
   playerName?: string
   playerRole?: string
   breadcrumbs?: BreadcrumbItem[]
-  topbarTitle?: string
 }
 
-export function AppShell({ children, playerName, playerRole, breadcrumbs = [], topbarTitle }: Props) {
+export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }: Props) {
   const router = useRouter()
-  const pathname = usePathname()
 
-  const currentPath = pathname.replace('/', '')
-
-  function handleNavigate(path: string) {
-    router.push(`/${path}`)
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
   }
 
   return (
     <div style={{
       display: 'flex',
+      flexDirection: 'column',
       height: '100vh',
       background: `
         radial-gradient(ellipse at 12% 85%, rgba(42,26,58,0.16) 0%, transparent 50%),
@@ -37,77 +37,175 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], t
         #0D0A05
       `,
     }}>
-      <Sidebar
-        currentPath={currentPath}
-        onNavigate={handleNavigate}
-        playerName={playerName}
-        playerRole={playerRole}
-      />
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        {/* Top bar */}
-        <div style={{
-          height: 50, flexShrink: 0,
-          background: '#1C1508',
-          borderBottom: '1px solid rgba(139,112,48,0.22)',
-          display: 'flex', alignItems: 'center',
-          padding: '0 24px', gap: 8,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-        }}>
-          <div style={{
+      {/* Top bar */}
+      <div style={{
+        height: 50,
+        flexShrink: 0,
+        background: '#0D0A05',
+        borderBottom: '1px solid rgba(139,112,48,0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 20px',
+        gap: 0,
+        boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+        zIndex: 20,
+      }}>
+        {/* Logo */}
+        <button
+          onClick={() => router.push('/home')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 9,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '0 16px 0 0',
+            flexShrink: 0,
+          }}
+        >
+          <Image
+            src="/skull-icon.png"
+            alt="Torchlight"
+            width={26}
+            height={26}
+            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(196,32,32,0.45))' }}
+          />
+          <span style={{
             fontFamily: 'var(--font-heading)',
-            fontSize: 9, letterSpacing: '0.18em',
-            textTransform: 'uppercase', color: '#4A3520',
-            display: 'flex', alignItems: 'center', gap: 6,
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#C4A96A',
+            letterSpacing: '0.04em',
+            lineHeight: 1,
           }}>
-            <span>Torchlight</span>
-            {breadcrumbs.map((crumb, i) => (
-              <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ color: '#3A2E18' }}>›</span>
-                {crumb.href ? (
-                  <button
-                    type="button"
-                    onClick={() => router.push(crumb.href!)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      font: 'inherit',
-                      fontSize: 'inherit',
-                      letterSpacing: 'inherit',
-                      textTransform: 'inherit',
-                      color: i === breadcrumbs.length - 1 ? '#8B7030' : '#6A5A3A',
-                    }}
-                  >
-                    {crumb.label}
-                  </button>
-                ) : (
-                  <span style={i === breadcrumbs.length - 1 ? { color: '#8B7030' } : {}}>{crumb.label}</span>
-                )}
-              </span>
-            ))}
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button style={{
-              background: 'transparent',
-              border: '1px solid rgba(139,112,48,0.28)',
-              color: '#7A6030',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 8.5, letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              padding: '5px 12px', cursor: 'pointer',
-              borderRadius: 1, transition: 'all 350ms',
-            }}>
-              ⚗ Dados
-            </button>
-          </div>
-        </div>
+            Torchlight
+          </span>
+        </button>
 
-        {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
-          {children}
+        {/* Separator + breadcrumbs */}
+        {breadcrumbs.length > 0 && (
+          <>
+            <span style={{ width: 1, height: 18, background: 'rgba(139,112,48,0.2)', flexShrink: 0, marginRight: 14 }} />
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontFamily: 'var(--font-heading)',
+              fontSize: 8.5,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+            }}>
+              {breadcrumbs.map((crumb, i) => (
+                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {i > 0 && <span style={{ color: '#3A2E18' }}>›</span>}
+                  {crumb.href ? (
+                    <button
+                      type="button"
+                      onClick={() => router.push(crumb.href!)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        font: 'inherit',
+                        fontSize: 'inherit',
+                        letterSpacing: 'inherit',
+                        textTransform: 'inherit',
+                        color: '#6A5A3A',
+                        transition: 'color 200ms',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#A89870' }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#6A5A3A' }}
+                    >
+                      {crumb.label}
+                    </button>
+                  ) : (
+                    <span style={{ color: i === breadcrumbs.length - 1 ? '#8B7030' : '#6A5A3A' }}>
+                      {crumb.label}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Right: user card + logout */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+          {playerName && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '4px 12px',
+              background: 'rgba(42,34,16,0.4)',
+              border: '1px solid rgba(139,112,48,0.18)',
+              borderRadius: 1,
+            }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 11,
+                  color: '#A89870',
+                  lineHeight: 1.2,
+                }}>
+                  {playerName}
+                </div>
+                {playerRole && (
+                  <div style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 7,
+                    color: '#4A3520',
+                    letterSpacing: '0.08em',
+                    marginTop: 1,
+                  }}>
+                    {playerRole}
+                  </div>
+                )}
+              </div>
+              <Image
+                src="/skull-icon.png"
+                alt=""
+                width={22}
+                height={22}
+                style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 3px rgba(196,32,32,0.2))', flexShrink: 0 }}
+              />
+            </div>
+          )}
+          <button
+            onClick={handleLogout}
+            title="Sair"
+            style={{
+              background: 'none',
+              border: '1px solid rgba(139,112,48,0.2)',
+              color: '#6A5A3A',
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 11,
+              padding: '5px 12px',
+              cursor: 'pointer',
+              borderRadius: 1,
+              transition: 'all 200ms',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = 'var(--blood-bright)'
+              e.currentTarget.style.borderColor = 'rgba(196,32,32,0.4)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = '#6A5A3A'
+              e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
+            }}
+          >
+            Sair
+          </button>
         </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
+        {children}
       </div>
     </div>
   )
