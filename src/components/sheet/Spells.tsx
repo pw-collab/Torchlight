@@ -230,8 +230,9 @@ export function Spells({
   stats, onUpdate, onRoll, onSpellsChange,
 }: Props) {
   const available  = getSpellsForClass(classId)
-  const [expanded,   setExpanded]   = useState<string | null>(null)
-  const [showPicker, setShowPicker] = useState(false)
+  const [expanded,     setExpanded]     = useState<string | null>(null)
+  const [showPicker,   setShowPicker]   = useState(false)
+  const [failedSpells, setFailedSpells] = useState<string[]>([])
 
   if (available.length === 0) return null
 
@@ -352,41 +353,80 @@ export function Spells({
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {equippedSpells.map(id => {
-            const spell  = getSpell(id) ?? available.find(s => s.id === id)
-            const isOpen = expanded === id
+            const spell   = getSpell(id) ?? available.find(s => s.id === id)
+            const isOpen  = expanded === id
+            const isFailed = failedSpells.includes(id)
 
             return (
               <div
                 key={id}
                 className="worn-border"
                 style={{
-                  background: 'rgba(42,26,58,0.2)',
-                  border: '1px solid rgba(107,78,138,0.25)',
+                  background: isFailed ? 'rgba(80,20,20,0.18)' : 'rgba(42,26,58,0.2)',
+                  border: `1px solid ${isFailed ? 'rgba(139,21,21,0.4)' : 'rgba(107,78,138,0.25)'}`,
                   borderRadius: 2,
                   overflow: 'hidden',
+                  opacity: isFailed ? 0.75 : 1,
+                  transition: 'all 250ms',
                 }}
               >
                 {/* Card header */}
                 <div
-                  onClick={() => spell && setExpanded(isOpen ? null : id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', cursor: spell ? 'pointer' : 'default', userSelect: 'none' }}
+                  onClick={() => spell && !isFailed && setExpanded(isOpen ? null : id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', cursor: spell && !isFailed ? 'pointer' : 'default', userSelect: 'none' }}
                 >
                   {spell && (
                     <span style={{
                       fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
-                      color: '#6B4E8A', background: 'rgba(107,78,138,0.15)',
-                      border: '1px solid rgba(107,78,138,0.3)', padding: '1px 5px',
-                      borderRadius: 1, flexShrink: 0,
+                      color: isFailed ? 'rgba(139,21,21,0.7)' : '#6B4E8A',
+                      background: isFailed ? 'rgba(139,21,21,0.12)' : 'rgba(107,78,138,0.15)',
+                      border: `1px solid ${isFailed ? 'rgba(139,21,21,0.3)' : 'rgba(107,78,138,0.3)'}`,
+                      padding: '1px 5px', borderRadius: 1, flexShrink: 0,
                     }}>
                       {TIER_LABEL[spell.tier - 1] ?? spell.tier}
                     </span>
                   )}
-                  <span style={{ flex: 1, fontFamily: 'var(--font-heading)', fontSize: 11, color: '#8B6AAA', letterSpacing: '0.04em' }}>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-heading)', fontSize: 11, color: isFailed ? 'rgba(139,21,21,0.7)' : '#8B6AAA', letterSpacing: '0.04em' }}>
                     {spell?.name ?? id}
                   </span>
 
+                  {/* Failed badge + recovery button */}
+                  {isFailed && (
+                    <>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: 7.5, fontWeight: 700,
+                        color: 'var(--blood-bright)', background: 'rgba(139,21,21,0.18)',
+                        border: '1px solid rgba(139,21,21,0.4)', padding: '1px 6px',
+                        borderRadius: 1, letterSpacing: '0.1em', flexShrink: 0,
+                      }}>
+                        FALHOU
+                      </span>
+                      <button
+                        onClick={e => { e.stopPropagation(); setFailedSpells(fs => fs.filter(s => s !== id)) }}
+                        title="Recuperar magia"
+                        style={{
+                          fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
+                          textTransform: 'uppercase', background: 'rgba(42,80,69,0.3)',
+                          border: '1px solid rgba(61,112,96,0.45)', color: 'var(--verdigris-light)',
+                          padding: '4px 8px', borderRadius: 2, cursor: 'pointer',
+                          whiteSpace: 'nowrap', transition: 'all 200ms', flexShrink: 0,
+                        }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,80,69,0.5)'
+                          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(61,112,96,0.7)'
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,80,69,0.3)'
+                          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(61,112,96,0.45)'
+                        }}
+                      >
+                        ↺ Recuperar
+                      </button>
+                    </>
+                  )}
+
                   {/* Cast button */}
-                  {spell && onRoll && stats && (
+                  {spell && onRoll && stats && !isFailed && (
                     <button
                       onClick={e => {
                         e.stopPropagation()
@@ -396,6 +436,9 @@ export function Spells({
                         result.isCritical = result.result === 20
                         result.isFumble   = result.result === 1
                         onRoll(result)
+                        if (result.total < spellDC) {
+                          setFailedSpells(fs => [...fs, id])
+                        }
                       }}
                       style={{
                         fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
@@ -435,7 +478,7 @@ export function Spells({
                     </button>
                   )}
 
-                  {spell && (
+                  {spell && !isFailed && (
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)', flexShrink: 0 }}>
                       {isOpen ? '▲' : '▼'}
                     </span>

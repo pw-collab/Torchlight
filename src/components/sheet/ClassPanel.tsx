@@ -14,11 +14,8 @@ const STAT_SHORT: Record<Stat, string> = {
 
 function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
   return {
-    background:
-      'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
+    background: 'var(--parchment-mid)',
     border: '1px solid rgba(139,112,48,0.33)',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
-    borderRadius: 1,
     ...extra,
   }
 }
@@ -695,11 +692,11 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
     <div className="worn-border" style={panelStyle({ padding: '14px 15px' })}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-          Classe
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--parchment-pale)', letterSpacing: '0.03em' }}>
+          {classData.name}
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>
-          Dado de Vida: d{classData.hitDie}
+          d{classData.hitDie}
         </span>
       </div>
 
@@ -713,7 +710,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 3 }}>
               {label}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--parchment-warm)', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--parchment-light)', lineHeight: 1.4 }}>
               {value}
             </div>
           </div>
