@@ -145,6 +145,7 @@ export interface CharacterRow {
   background_details?: Character['backgroundDetails']
   relations?: Character['relations']
   impulses?: Character['impulses']
+  player_name?: string
 }
 
 export function rowToCharacter(row: CharacterRow): Character {

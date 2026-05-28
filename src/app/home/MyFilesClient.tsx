@@ -19,21 +19,26 @@ export interface CharacterSummary {
   level: number
   hpCurrent: number
   hpMax: number
+  ownerName?: string
+  isOwnCharacter?: boolean
 }
 
 interface Props {
   characters: CharacterSummary[]
   playerName: string
+  isGm?: boolean
 }
 
 function CharacterCard({
   char,
   onEdit,
   onDelete,
+  isGm,
 }: {
   char: CharacterSummary
   onEdit: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
+  isGm?: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const cls = getClass(char.classId)
@@ -85,12 +90,29 @@ function CharacterCard({
             fontStyle: 'italic',
             fontSize: 12,
             color: '#6A5A3A',
-            marginBottom: 14,
+            marginBottom: isGm && char.ownerName ? 8 : 14,
             lineHeight: 1.5,
           }}
         >
           {cls?.name ?? char.classId} · {ancestry?.name ?? char.ancestryId}
         </p>
+        {isGm && char.ownerName && (
+          <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 7,
+              letterSpacing: '0.1em',
+              color: char.isOwnCharacter ? 'var(--verdigris-light)' : 'var(--candle-amber)',
+              background: char.isOwnCharacter ? 'rgba(42,80,69,0.18)' : 'rgba(106,80,10,0.18)',
+              border: `1px solid ${char.isOwnCharacter ? 'rgba(42,80,69,0.35)' : 'rgba(139,112,48,0.3)'}`,
+              padding: '2px 6px',
+              borderRadius: 1,
+              textTransform: 'uppercase' as const,
+            }}>
+              {char.isOwnCharacter ? '● você' : char.ownerName}
+            </span>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span
             style={{
@@ -256,7 +278,7 @@ function EditModalHost({
   )
 }
 
-export function MyFilesClient({ characters: initialCharacters, playerName }: Props) {
+export function MyFilesClient({ characters: initialCharacters, playerName, isGm = false }: Props) {
   const router = useRouter()
   const [characters, setCharacters] = useState(initialCharacters)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -298,26 +320,43 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
 
   return (
     <AppShell
-      breadcrumbs={[{ label: 'Meus arquivos' }]}
+      breadcrumbs={[{ label: isGm ? 'Arquivo Geral' : 'Meus arquivos' }]}
       playerName={playerName}
-      playerRole="ARQUIVISTA"
+      playerRole={isGm ? 'MESTRE' : 'ARQUIVISTA'}
     >
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '28px 24px 40px' }}>
         <header style={{ marginBottom: 28, paddingBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
             <div>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 26,
-                  fontWeight: 700,
-                  color: 'var(--parchment-pale)',
-                  letterSpacing: '0.05em',
-                  marginBottom: 6,
-                }}
-              >
-                Meus arquivos
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <h1
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 26,
+                    fontWeight: 700,
+                    color: 'var(--parchment-pale)',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {isGm ? 'Arquivo Geral' : 'Meus arquivos'}
+                </h1>
+                {isGm && (
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 7.5,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'var(--blood-bright)',
+                    background: 'rgba(139,21,21,0.18)',
+                    border: '1px solid rgba(196,32,32,0.35)',
+                    padding: '3px 8px',
+                    borderRadius: 1,
+                    alignSelf: 'center',
+                  }}>
+                    Vista do Mestre
+                  </span>
+                )}
+              </div>
               <p
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -326,7 +365,9 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
                   color: '#6A5A3A',
                 }}
               >
-                Selecione uma ficha para abrir o grimório do personagem.
+                {isGm
+                  ? 'Você está visualizando todas as fichas da campanha.'
+                  : 'Selecione uma ficha para abrir o grimório do personagem.'}
               </p>
             </div>
             <div style={{ display: 'flex', gap: 10, flexShrink: 0, paddingTop: 4 }}>
@@ -358,34 +399,36 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
               >
                 Painel do Mestre
               </button>
-              <button
-                onClick={() => router.push('/character-creator')}
-                style={{
-                  background: 'rgba(80,20,20,0.35)',
-                  border: '1px solid rgba(196,32,32,0.4)',
-                  color: 'var(--blood-bright)',
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 12,
-                  padding: '7px 16px',
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  transition: 'all 200ms',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'rgba(110,25,25,0.5)'
-                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.65)'
-                  e.currentTarget.style.color = '#E84040'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'rgba(80,20,20,0.35)'
-                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.4)'
-                  e.currentTarget.style.color = 'var(--blood-bright)'
-                }}
-              >
-                + Criar Personagem
-              </button>
+              {!isGm && (
+                <button
+                  onClick={() => router.push('/character-creator')}
+                  style={{
+                    background: 'rgba(80,20,20,0.35)',
+                    border: '1px solid rgba(196,32,32,0.4)',
+                    color: 'var(--blood-bright)',
+                    fontFamily: 'var(--font-body)',
+                    fontStyle: 'italic',
+                    fontSize: 12,
+                    padding: '7px 16px',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    transition: 'all 200ms',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(110,25,25,0.5)'
+                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.65)'
+                    e.currentTarget.style.color = '#E84040'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(80,20,20,0.35)'
+                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.4)'
+                    e.currentTarget.style.color = 'var(--blood-bright)'
+                  }}
+                >
+                  + Criar Personagem
+                </button>
+              )}
             </div>
           </div>
         </header>
@@ -401,6 +444,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
             <CharacterCard
               key={char.id}
               char={char}
+              isGm={isGm}
               onEdit={e => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -409,7 +453,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
               onDelete={e => handleDelete(e, char)}
             />
           ))}
-          <CreateCard />
+          {!isGm && <CreateCard />}
         </div>
       </div>
 

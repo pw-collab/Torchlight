@@ -10,11 +10,25 @@ export default async function HomePage() {
   if (!user) redirect('/login')
 
   const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
-  const { data: rows } = await supabase
+
+  // Check GM role
+  const { data: roleRow } = await supabase
+    .from('allowed_discord_ids')
+    .select('role')
+    .eq('discord_id', discordId)
+    .single()
+
+  const isGm = roleRow?.role === 'gm'
+
+  // GMs fetch all characters; players fetch only their own
+  const query = supabase
     .from('characters')
-    .select('id, name, class_id, ancestry_id, level, hp_current, hp_max')
-    .eq('user_id', discordId)
+    .select('id, name, class_id, ancestry_id, level, hp_current, hp_max, user_id, player_name')
     .order('created_at', { ascending: false })
+
+  if (!isGm) query.eq('user_id', discordId)
+
+  const { data: rows } = await query
 
   const characters: CharacterSummary[] = (rows ?? []).map(row => ({
     id: row.id,
@@ -24,12 +38,15 @@ export default async function HomePage() {
     level: row.level,
     hpCurrent: row.hp_current,
     hpMax: row.hp_max,
+    ownerName: isGm ? (row.player_name ?? row.user_id.slice(0, 8)) : undefined,
+    isOwnCharacter: isGm ? row.user_id === discordId : undefined,
   }))
 
   return (
     <MyFilesClient
       characters={characters}
       playerName={user.user_metadata?.full_name ?? 'Aventureiro'}
+      isGm={isGm}
     />
   )
 }
