@@ -31,8 +31,9 @@ type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 const TAB_LABELS: Record<Tab, string> = {
   stats: 'Atributos',
   inventory: 'Inventário',
-  spells: 'Magias',
+  spells: 'Grimório',
   backstory: 'História',
+
 }
 
 interface Props {
@@ -69,7 +70,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     return (
       <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <span className="animate-flicker" style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
+          <span className="animate-flicker" style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
             ✦ O arquivo está sendo consultado...
           </span>
         </div>
@@ -81,7 +82,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     return (
       <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--blood-bright)' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: 'var(--blood-bright)' }}>
             Personagem não encontrado no arquivo.
           </p>
         </div>
@@ -185,12 +186,17 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </Link>
 
         {/* Character header */}
-        <div style={{ padding: '14px 0 14px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, color: 'var(--parchment-pale)', letterSpacing: '0.05em', lineHeight: 1.1 }}>
-              {character.name}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, paddingTop: 2 }}>
+        <div style={{ padding: '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div>
+                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 400, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
+                  {character.name}
+                </h1>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: '#6A5A3A' }}>
+                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+                </p>
+              </div>
               <button
                 onClick={() => setShowEdit(true)}
                 title="Editar personagem"
@@ -199,7 +205,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   border: '1px solid rgba(139,112,48,0.28)',
                   color: 'var(--bone-muted)',
                   fontFamily: 'var(--font-body)',
-                  fontSize: 11,
+                  fontSize: 14,
                   cursor: 'pointer',
                   borderRadius: 1,
                   padding: '3px 8px',
@@ -215,7 +221,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,112,48,0.28)'
                 }}
               >
-                ✏
+                Editar
               </button>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
                 FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
