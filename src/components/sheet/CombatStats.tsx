@@ -19,32 +19,32 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
     <div
       className="worn-border"
       style={{
-        padding: '12px 14px',
+        background: var(--parchment-mid),
+        padding: '20px 20px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
-          fontSize: 10,
+          fontSize: 12,
           color: 'var(--bone-muted)',
         }}>
           Pontos de Vida
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--parchment-light)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--parchment-light)' }}>
           {hpCurrent} / {hpMax}
         </span>
       </div>
       <div style={{
-        height: 4,
+        height: 6,
         width: '100%',
         background: 'var(--ink-deep)',
-        borderRadius: 1,
-        marginBottom: 10,
+        marginBottom: 8,
         overflow: 'hidden',
       }}>
         <div style={{
-          height: 4,
+          height: 6,
           background: hpColor,
           width: `${hpPercent}%`,
           transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)',
@@ -61,10 +61,9 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
             color: 'var(--bone-white)',
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
-            fontSize: 11,
-            padding: '7px 0',
+            fontSize: 12,
+            padding: '8px 0',
             cursor: 'pointer',
-            borderRadius: 1,
             transition: 'all 350ms',
           }}
         >
@@ -79,10 +78,9 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
             color: 'var(--bone-white)',
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
-            fontSize: 11,
-            padding: '7px 0',
+            fontSize: 12,
+            padding: '8px 0',
             cursor: 'pointer',
-            borderRadius: 1,
             transition: 'all 350ms',
           }}
         >
