@@ -304,28 +304,90 @@ export function MyFilesClient({ characters: initialCharacters, playerName }: Pro
     >
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '28px 24px 40px' }}>
         <header style={{ marginBottom: 28, paddingBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-          <h1
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 26,
-              fontWeight: 700,
-              color: 'var(--parchment-pale)',
-              letterSpacing: '0.05em',
-              marginBottom: 6,
-            }}
-          >
-            Meus arquivos
-          </h1>
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 13,
-              color: '#6A5A3A',
-            }}
-          >
-            Selecione uma ficha para abrir o grimório do personagem.
-          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <h1
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 26,
+                  fontWeight: 700,
+                  color: 'var(--parchment-pale)',
+                  letterSpacing: '0.05em',
+                  marginBottom: 6,
+                }}
+              >
+                Meus arquivos
+              </h1>
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontStyle: 'italic',
+                  fontSize: 13,
+                  color: '#6A5A3A',
+                }}
+              >
+                Selecione uma ficha para abrir o grimório do personagem.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, flexShrink: 0, paddingTop: 4 }}>
+              <button
+                onClick={() => router.push('/gm')}
+                style={{
+                  background: 'rgba(42,34,16,0.4)',
+                  border: '1px solid rgba(139,112,48,0.3)',
+                  color: '#8B7030',
+                  fontFamily: 'var(--font-body)',
+                  fontStyle: 'italic',
+                  fontSize: 12,
+                  padding: '7px 16px',
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  transition: 'all 200ms',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'var(--candle-amber)'
+                  e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
+                  e.currentTarget.style.background = 'rgba(60,46,18,0.55)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = '#8B7030'
+                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)'
+                  e.currentTarget.style.background = 'rgba(42,34,16,0.4)'
+                }}
+              >
+                Painel do Mestre
+              </button>
+              <button
+                onClick={() => router.push('/character-creator')}
+                style={{
+                  background: 'rgba(80,20,20,0.35)',
+                  border: '1px solid rgba(196,32,32,0.4)',
+                  color: 'var(--blood-bright)',
+                  fontFamily: 'var(--font-body)',
+                  fontStyle: 'italic',
+                  fontSize: 12,
+                  padding: '7px 16px',
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  transition: 'all 200ms',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(110,25,25,0.5)'
+                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.65)'
+                  e.currentTarget.style.color = '#E84040'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(80,20,20,0.35)'
+                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.4)'
+                  e.currentTarget.style.color = 'var(--blood-bright)'
+                }}
+              >
+                + Criar Personagem
+              </button>
+            </div>
+          </div>
         </header>
 
         <div
