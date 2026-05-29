@@ -8,6 +8,7 @@ import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { NumInput } from '@/components/sheet/NumInput'
+import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ const ITEM_ICON: Record<string, string> = {
   shield: '🛡',
   gear: '⚗',
   treasure: '✦',
+  document: '📖',
 }
 
 const LIGHT_ICON: Record<string, string> = {
@@ -449,13 +451,14 @@ function CatalogPickerModal({ onAdd, onClose }: {
   )
 }
 
-function ItemRow({ item, last, onEdit, onRemove, onEquipToggle, onConsume }: {
+function ItemRow({ item, last, onEdit, onRemove, onEquipToggle, onConsume, onOpen }: {
   item: InventoryItem
   last: boolean
   onEdit: () => void
   onRemove: () => void
   onEquipToggle?: () => void
   onConsume?: () => void
+  onOpen?: () => void
 }) {
   const [hov, setHov] = useState(false)
   return (
@@ -507,6 +510,7 @@ function ItemRow({ item, last, onEdit, onRemove, onEquipToggle, onConsume }: {
 
       {hov && (
         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          {onOpen && <button onClick={onOpen} style={quickBtnStyle('dark')}>Ler</button>}
           {onConsume && <button onClick={onConsume} style={quickBtnStyle('green')}>Consumir</button>}
           <button onClick={onEdit} style={quickBtnStyle('dark')}>✎</button>
           {onEquipToggle && (
@@ -543,6 +547,7 @@ function ItemFormFields({ form, onChange }: {
             <option value="armor">Armadura</option>
             <option value="shield">Escudo</option>
             <option value="treasure">Tesouro</option>
+            <option value="document">Documento</option>
           </select>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -635,6 +640,7 @@ function AddItemForm({ onAdd, onCancel, initialForm }: {
       acBonus: form.acBonus,
       cost: form.cost,
       range: form.range,
+      content: form.content,
       isLight: autoLight || form.isLight,
       lightKind: autoLight ? 'torch' : form.lightKind,
       lightMaxMinutes: autoLight ? 60 : form.lightMaxMinutes,
@@ -731,6 +737,7 @@ export function InventoryView({
   const [showCatalog, setShowCatalog]     = useState(false)
   const [editingId, setEditingId]         = useState<string | null>(null)
   const [replaceFor, setReplaceFor]       = useState<string | null>(null)
+  const [bookViewItem, setBookViewItem]   = useState<InventoryItem | null>(null)
 
   const inventoryRef = useRef(inventory)
   const onUpdateRef  = useRef(onUpdate)
@@ -1028,6 +1035,7 @@ export function InventoryView({
                       onRemove={() => removeItem(item.id)}
                       onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
                       onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
+                      onOpen={item.type === 'document' ? () => setBookViewItem(item) : undefined}
                     />
                   )}
                 </li>
@@ -1200,6 +1208,17 @@ export function InventoryView({
         <CatalogPickerModal
           onAdd={addItem}
           onClose={() => setShowCatalog(false)}
+        />
+      )}
+
+      {bookViewItem && (
+        <BookViewerModal
+          item={bookViewItem}
+          onClose={() => setBookViewItem(null)}
+          onSaveContent={(content) => {
+            updateItem(bookViewItem.id, { content })
+            setBookViewItem({ ...bookViewItem, content })
+          }}
         />
       )}
     </div>
