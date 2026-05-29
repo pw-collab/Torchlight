@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 interface Props {
   hpMax: number
   hpCurrent: number
@@ -7,6 +9,7 @@ interface Props {
 }
 
 export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
+  const [step, setStep] = useState(1)
   const hpPercent = Math.max(0, (hpCurrent / hpMax) * 100)
   const hpColor = hpPercent > 50 ? '#3D7060' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-mid)'
 
@@ -53,9 +56,9 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
           boxShadow: `0 0 6px ${hpColor}60`,
         }} />
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
         <button
-          onClick={() => handleHpInput(-1)}
+          onClick={() => handleHpInput(-step)}
           style={{
             flex: 1,
             background: 'rgba(139,21,21,0.25)',
@@ -71,8 +74,33 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
         >
           − Dano
         </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={step}
+          onChange={e => {
+            const n = parseInt(e.target.value, 10)
+            setStep(isNaN(n) ? 0 : Math.max(0, n))
+          }}
+          onBlur={() => { if (step < 1) setStep(1) }}
+          title="Valor aplicado por clique"
+          style={{
+            width: 46,
+            flexShrink: 0,
+            background: 'var(--ink-deep)',
+            border: '1px solid rgba(139,112,48,0.35)',
+            color: 'var(--parchment-light)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 14,
+            fontWeight: 700,
+            textAlign: 'center',
+            outline: 'none',
+            borderRadius: 1,
+            boxSizing: 'border-box',
+          }}
+        />
         <button
-          onClick={() => handleHpInput(1)}
+          onClick={() => handleHpInput(step)}
           style={{
             flex: 1,
             background: 'rgba(42,80,69,0.25)',

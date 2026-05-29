@@ -122,6 +122,38 @@ export function DiceOverlay({ isRolling, lastResult }: Props) {
                 ? (lastResult.modifier > 0 ? ` +${lastResult.modifier}` : ` ${lastResult.modifier}`)
                 : ''}
             </span>
+
+            {lastResult.advantage && lastResult.rolls && lastResult.rolls.length > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                <span style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 7,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  color: lastResult.advantage === 'advantage' ? 'var(--verdigris-light)' : 'var(--blood-bright)',
+                }}>
+                  {lastResult.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
+                </span>
+                {lastResult.rolls.map((r, idx) => {
+                  const kept = r === lastResult.result
+                  return (
+                    <span
+                      key={idx}
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 14,
+                        fontWeight: kept ? 700 : 400,
+                        color: kept ? 'var(--parchment-pale)' : 'var(--bone-muted)',
+                        textDecoration: kept ? 'none' : 'line-through',
+                        opacity: kept ? 1 : 0.55,
+                      }}
+                    >
+                      {r}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
             {isCritical && (
               <span style={{
                 fontFamily: 'var(--font-heading)',

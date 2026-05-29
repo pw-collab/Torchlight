@@ -5,20 +5,20 @@ import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types
 import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
-import { rollDie, rollFormula } from '@/lib/dice'
+import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { NumInput } from '@/components/sheet/NumInput'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SLOT_LABELS: Record<EquipSlot, string> = {
-  mainHand: 'Mão Principal',
-  offHand: 'Mão Secundária',
+  mainHand: 'Mão',
+  offHand: 'Mão',
   armor: 'Armadura',
 }
 
 const SLOT_ALLOWED: Record<EquipSlot, ItemType[]> = {
-  mainHand: ['weapon', 'gear'],
+  mainHand: ['weapon', 'shield', 'gear'],
   offHand: ['weapon', 'shield', 'gear'],
   armor: ['armor'],
 }
@@ -449,13 +449,13 @@ function CatalogPickerModal({ onAdd, onClose }: {
   )
 }
 
-function ItemRow({ item, last, onEdit, onRemove, onRollAttack, onRollDamage }: {
+function ItemRow({ item, last, onEdit, onRemove, onEquipToggle, onConsume }: {
   item: InventoryItem
   last: boolean
   onEdit: () => void
   onRemove: () => void
-  onRollAttack?: () => void
-  onRollDamage?: () => void
+  onEquipToggle?: () => void
+  onConsume?: () => void
 }) {
   const [hov, setHov] = useState(false)
   return (
@@ -507,9 +507,13 @@ function ItemRow({ item, last, onEdit, onRemove, onRollAttack, onRollDamage }: {
 
       {hov && (
         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-          {onRollAttack && <button onClick={onRollAttack} style={quickBtnStyle('blood')}>Atk</button>}
-          {onRollDamage && <button onClick={onRollDamage} style={quickBtnStyle('mist')}>Dmg</button>}
+          {onConsume && <button onClick={onConsume} style={quickBtnStyle('green')}>Consumir</button>}
           <button onClick={onEdit} style={quickBtnStyle('dark')}>✎</button>
+          {onEquipToggle && (
+            <button onClick={onEquipToggle} style={quickBtnStyle(item.equipped ? 'amber' : 'mist')}>
+              {item.equipped ? 'Desequipar' : 'Equipar'}
+            </button>
+          )}
           <button onClick={onRemove} style={quickBtnStyle('danger')}>✕</button>
         </div>
       )}
@@ -726,6 +730,7 @@ export function InventoryView({
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
   const [showCatalog, setShowCatalog]     = useState(false)
   const [editingId, setEditingId]         = useState<string | null>(null)
+  const [replaceFor, setReplaceFor]       = useState<string | null>(null)
 
   const inventoryRef = useRef(inventory)
   const onUpdateRef  = useRef(onUpdate)
@@ -770,16 +775,33 @@ export function InventoryView({
     onAcChange(calculateAC(next, dex))
   }
 
+  function consumeItem(id: string) {
+    const item = inventory.find(i => i.id === id)
+    if (!item) return
+    const nextQty = (item.quantity ?? 1) - 1
+    const next = nextQty <= 0
+      ? inventory.filter(i => i.id !== id)
+      : inventory.map(i => i.id === id ? { ...i, quantity: nextQty } : i)
+    onUpdate(next)
+    if (nextQty <= 0 && item.equipped) onAcChange(calculateAC(next, dex))
+  }
+
   function addItem(item: InventoryItem) {
     onUpdate([...inventory, item])
     setAddingForm(null)
   }
 
   function equipItem(id: string, slot: EquipSlot) {
-    const next = inventory.map(i => i.id === id ? { ...i, equipped: true, slot } : i)
+    const next = inventory.map(i => {
+      if (i.id === id) return { ...i, equipped: true, slot }
+      // free the target slot if another item occupies it
+      if (i.equipped && i.slot === slot) return { ...i, equipped: false, slot: undefined as any, isLit: false }
+      return i
+    })
     onUpdate(next)
     onAcChange(calculateAC(next, dex))
     setSelectingSlot(null)
+    setReplaceFor(null)
   }
 
   function unequipItem(id: string) {
@@ -788,6 +810,28 @@ export function InventoryView({
     )
     onUpdate(next)
     onAcChange(calculateAC(next, dex))
+  }
+
+  // Equip/unequip triggered from the inventory list (auto slot resolution)
+  function toggleEquipFromList(item: InventoryItem) {
+    if (item.equipped) { unequipItem(item.id); return }
+    if (item.type === 'armor') { equipItem(item.id, 'armor'); return }
+    // hand item: fill first empty hand slot, else ask which to replace
+    const hands: EquipSlot[] = ['mainHand', 'offHand']
+    const emptyHand = hands.find(s => !inventory.some(i => i.equipped && i.slot === s))
+    if (emptyHand) { equipItem(item.id, emptyHand); return }
+    setReplaceFor(item.id)
+  }
+
+  function isEquippable(item: InventoryItem): boolean {
+    return item.type === 'weapon' || item.type === 'armor' || item.type === 'shield' || !!item.isLight
+  }
+
+  function rollParry(item: InventoryItem) {
+    if (!onRoll) return
+    const n = Math.max(1, modifier(dex))
+    const result = rollFormula(`${n}d6`, `Aparar: ${item.name}`, `Bloqueio (${n}d6)`)
+    onRoll(result)
   }
 
   function rollAttack(item: InventoryItem) {
@@ -861,7 +905,7 @@ export function InventoryView({
                         </div>
                       )}
 
-                      {slot === 'offHand' && item.type === 'shield' && item.acBonus && (
+                      {item.type === 'shield' && item.acBonus && (
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
                           +{item.acBonus} CA
                         </div>
@@ -871,6 +915,12 @@ export function InventoryView({
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button onClick={() => rollAttack(item)} style={quickBtnStyle('blood')}>Atk</button>
                           {item.damageDie && <button onClick={() => rollDamage(item)} style={quickBtnStyle('mist')}>Dmg</button>}
+                        </div>
+                      )}
+
+                      {item.type === 'shield' && onRoll && (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button onClick={() => rollParry(item)} style={quickBtnStyle('mist')}>Aparar</button>
                         </div>
                       )}
 
@@ -976,8 +1026,8 @@ export function InventoryView({
                       last={i === inventory.length - 1}
                       onEdit={() => setEditingId(item.id)}
                       onRemove={() => removeItem(item.id)}
-                      onRollAttack={onRoll ? () => rollAttack(item) : undefined}
-                      onRollDamage={onRoll && item.damageDie ? () => rollDamage(item) : undefined}
+                      onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
+                      onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
                     />
                   )}
                 </li>
@@ -1082,6 +1132,64 @@ export function InventoryView({
               ))
             )}
             <button onClick={() => setSelectingSlot(null)} style={{ ...quickBtnStyle('dark'), marginTop: 12, width: '100%' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {replaceFor && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setReplaceFor(null)}
+        >
+          <div
+            className="worn-border animate-ink-spread"
+            style={{
+              background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
+              border: '1px solid rgba(139,112,48,0.42)',
+              borderTop: '2px solid #7A6030',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+              padding: '20px 24px',
+              minWidth: 280,
+              maxWidth: 360,
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 4 }}>
+              Mãos Ocupadas
+            </div>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', marginBottom: 12 }}>
+              Qual item substituir?
+            </p>
+
+            {(['mainHand', 'offHand'] as EquipSlot[])
+              .map(slot => ({ slot, item: inventory.find(i => i.equipped && i.slot === slot) }))
+              .filter(({ item }) => item)
+              .map(({ slot, item }) => (
+                <button
+                  key={slot}
+                  onClick={() => equipItem(replaceFor, slot)}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    background: 'none', border: 'none',
+                    borderBottom: '1px solid rgba(139,112,48,0.12)',
+                    padding: '8px 0', cursor: 'pointer', transition: 'background 200ms',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                >
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
+                    {item!.isLight ? LIGHT_ICON[item!.lightKind ?? 'torch'] : ITEM_ICON[item!.type] ?? '⚗'} {item!.name}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                    {item!.damageDie ? `${item!.damageDie}` : ''}
+                    {item!.acBonus ? `+${item!.acBonus} CA` : ''}
+                  </div>
+                </button>
+              ))}
+
+            <button onClick={() => setReplaceFor(null)} style={{ ...quickBtnStyle('dark'), marginTop: 12, width: '100%' }}>
               Cancelar
             </button>
           </div>
