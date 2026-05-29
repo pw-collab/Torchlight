@@ -1,4 +1,4 @@
-export type ItemType = 'weapon' | 'armor' | 'gear' | 'treasure' | 'shield'
+export type ItemType = 'weapon' | 'armor' | 'gear' | 'treasure' | 'shield' | 'document'
 export type EquipSlot = 'mainHand' | 'offHand' | 'armor'
 export type WeaponKind = 'melee' | 'ranged'
 export type LightKind = 'torch' | 'candle' | 'lantern'
@@ -23,4 +23,5 @@ export interface InventoryItem {
   isLit?: boolean
   cost?: string
   range?: string
+  content?: string
 }
