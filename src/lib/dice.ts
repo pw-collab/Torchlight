@@ -10,6 +10,7 @@ export interface RollResult {
   isCritical?: boolean
   isFumble?: boolean
   rolls?: number[]
+  advantage?: 'advantage' | 'disadvantage'
 }
 
 export function modifier(stat: number): number {
@@ -36,17 +37,20 @@ export function rollDie(
   const sides = parseInt(die.substring(1))
   let result = rollSides(sides)
   let rolls: number[] | undefined
+  let advMode: 'advantage' | 'disadvantage' | undefined
 
   if (advantage && !disadvantage) {
     const r2 = rollSides(sides)
     rolls = [result, r2]
     result = Math.max(result, r2)
     subLabel = subLabel ? `${subLabel} (Vantagem)` : '(Vantagem)'
+    advMode = 'advantage'
   } else if (disadvantage && !advantage) {
     const r2 = rollSides(sides)
     rolls = [result, r2]
     result = Math.min(result, r2)
     subLabel = subLabel ? `${subLabel} (Desvantagem)` : '(Desvantagem)'
+    advMode = 'disadvantage'
   }
 
   return {
@@ -61,6 +65,7 @@ export function rollDie(
     isCritical: die === 'd20' && result === 20,
     isFumble: die === 'd20' && result === 1,
     rolls,
+    advantage: advMode,
   }
 }
 

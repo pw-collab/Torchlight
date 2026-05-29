@@ -135,6 +135,38 @@ export function RollToasts({ rolls }: Props) {
                 {roll.total}
               </span>
             </div>
+
+            {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(139,112,48,0.15)' }}>
+                <span style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 7,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: roll.advantage === 'advantage' ? 'var(--verdigris-light)' : 'var(--blood-bright)',
+                }}>
+                  {roll.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
+                </span>
+                {roll.rolls.map((r, idx) => {
+                  const kept = r === roll.result
+                  return (
+                    <span
+                      key={idx}
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 11,
+                        fontWeight: kept ? 700 : 400,
+                        color: kept ? 'var(--parchment-pale)' : 'var(--bone-muted)',
+                        textDecoration: kept ? 'none' : 'line-through',
+                        opacity: kept ? 1 : 0.55,
+                      }}
+                    >
+                      {r}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )
       })}
