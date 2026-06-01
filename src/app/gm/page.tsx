@@ -19,5 +19,5 @@ export default async function GMPage() {
     .limit(1)
     .single()
 
-  return <GMPageClient gmName={user.user_metadata?.full_name ?? 'GM'} session={session} />
+  return <GMPageClient gmName={user.user_metadata?.full_name ?? 'GM'} gmId={discordId} session={session} />
 }
