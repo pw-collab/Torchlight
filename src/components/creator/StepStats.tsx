@@ -19,9 +19,10 @@ const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 interface Props {
   stats: Record<Stat, number>
   onChange: (stats: Record<Stat, number>) => void
+  editMode?: boolean
 }
 
-export function StepStats({ stats, onChange }: Props) {
+export function StepStats({ stats, onChange, editMode }: Props) {
   const [rolling, setRolling] = useState(false)
   const statValues = STAT_KEYS.map(k => stats[k])
   const allSet = statValues.every(v => v > 0)
@@ -59,6 +60,51 @@ export function StepStats({ stats, onChange }: Props) {
       >
         {rolling ? '⟳ Rolando os dados...' : allSet ? '⟳ Rolar novamente' : '✦ Rolar 3d6 por atributo'}
       </button>
+
+      {editMode && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+          {STAT_KEYS.map(key => {
+            const val = stats[key]
+            const mod = Math.floor((val - 10) / 2)
+            return (
+              <div key={key} style={{
+                background: 'rgba(20,14,6,0.5)',
+                border: '1px solid rgba(139,112,48,0.2)',
+                borderRadius: 2,
+                padding: '10px 4px',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--candle-amber)', opacity: 0.7, marginBottom: 4 }}>
+                  {STAT_META[key].label}
+                </div>
+                <input
+                  type="number"
+                  value={val || ''}
+                  min={1}
+                  max={20}
+                  onChange={e => {
+                    const n = parseInt(e.target.value)
+                    onChange({ ...stats, [key]: isNaN(n) ? 1 : Math.min(20, Math.max(1, n)) })
+                  }}
+                  style={{
+                    width: '100%', background: 'var(--ink-deep)', border: '1px solid rgba(139,112,48,0.28)',
+                    color: 'var(--parchment-light)', fontFamily: 'var(--font-mono)', fontSize: 14,
+                    fontWeight: 700, padding: '3px 2px', outline: 'none', borderRadius: 1,
+                    textAlign: 'center', boxSizing: 'border-box',
+                    MozAppearance: 'textfield',
+                  } as React.CSSProperties}
+                />
+                <div style={{
+                  fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 4,
+                  color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--blood-bright)' : 'var(--bone-muted)',
+                }}>
+                  {mod >= 0 ? `+${mod}` : `${mod}`}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {eligible && (
         <div style={{

@@ -17,7 +17,6 @@ import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
-import { CharacterEditModal } from '@/components/sheet/CharacterEditModal'
 import { sendToDiscord } from '@/lib/discord'
 import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
@@ -47,7 +46,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const [isRolling, setIsRolling] = useState(false)
   const [lastResult, setLastResult] = useState<RollResult | null>(null)
-  const [showEdit, setShowEdit] = useState(false)
 
   const handleRoll = useCallback((result: RollResult) => {
     setIsRolling(true)
@@ -148,11 +146,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ xp } as Partial<CharacterRow>)
   }
 
-  async function handleCharacterEdit(patch: Partial<CharacterRow>) {
-    await updateCharacter(patch)
-    setShowEdit(false)
-  }
-
   return (
     <AppShell
       breadcrumbs={[
@@ -194,32 +187,33 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   {character.name}
                 </h1>
               </div>
-              <button
-                onClick={() => setShowEdit(true)}
+              <Link
+                href={`/sheet/${characterId}/edit`}
                 title="Editar personagem"
                 style={{
+                  display: 'inline-block',
                   background: 'rgba(42,34,16,0.4)',
                   border: '1px solid rgba(139,112,48,0.28)',
                   color: 'var(--bone-muted)',
                   fontFamily: 'var(--font-body)',
                   fontSize: 14,
-                  cursor: 'pointer',
                   borderRadius: 1,
                   padding: '3px 8px',
                   lineHeight: 1,
+                  textDecoration: 'none',
                   transition: 'all 250ms',
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
-                  ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,112,48,0.5)'
+                  e.currentTarget.style.color = 'var(--parchment-light)'
+                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--bone-muted)'
-                  ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(139,112,48,0.28)'
+                  e.currentTarget.style.color = 'var(--bone-muted)'
+                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
                 }}
               >
                 Editar
-              </button>
+              </Link>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
                 FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
               </span>
@@ -359,14 +353,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
-      {showEdit && (
-        <CharacterEditModal
-          character={character}
-          classData={cls}
-          onSave={handleCharacterEdit}
-          onClose={() => setShowEdit(false)}
-        />
-      )}
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />

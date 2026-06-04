@@ -9,9 +9,10 @@ interface Props {
   con: number
   hpMax: number
   onRoll: (hp: number) => void
+  editMode?: boolean
 }
 
-export function StepHP({ classId, con, hpMax, onRoll }: Props) {
+export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
   const cls = getClass(classId)
   const conMod = modifier(con)
   const [rolling, setRolling] = useState(false)
@@ -109,7 +110,40 @@ export function StepHP({ classId, con, hpMax, onRoll }: Props) {
         {rolling ? '⟳ Rolando...' : hpMax > 0 ? '⟳ Rolar novamente' : '✦ Rolar HP Inicial'}
       </button>
 
-      {hpMax > 0 && rawRoll !== null && (
+      {editMode && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--blood-mid)', opacity: 0.7 }}>
+            HP Máximo
+          </div>
+          <input
+            type="number"
+            value={hpMax || ''}
+            min={1}
+            max={999}
+            onChange={e => {
+              const n = parseInt(e.target.value)
+              onRoll(isNaN(n) ? 1 : Math.min(999, Math.max(1, n)))
+            }}
+            style={{
+              width: 120,
+              background: 'var(--ink-deep)',
+              border: '1px solid rgba(139,21,21,0.4)',
+              color: 'var(--parchment-pale)',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 48,
+              fontWeight: 700,
+              textAlign: 'center',
+              padding: '8px 12px',
+              outline: 'none',
+              borderRadius: 2,
+              boxSizing: 'border-box',
+              MozAppearance: 'textfield',
+            } as React.CSSProperties}
+          />
+        </div>
+      )}
+
+      {!editMode && hpMax > 0 && rawRoll !== null && (
         <div style={{
           width: '100%',
           display: 'flex',
