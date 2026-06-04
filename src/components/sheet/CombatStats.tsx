@@ -25,7 +25,7 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
         background: 'var(--parchment-mid)',
         border: '1px solid rgba(139,112,48,0.33)',
         borderTop: 'none',
-        padding: '20px',
+        padding: '16px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -45,8 +45,9 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
         height: 6,
         width: '100%',
         background: 'var(--ink-deep)',
-        marginBottom: 8,
+        marginBottom: 10,
         overflow: 'hidden',
+        borderRadius: 1,
       }}>
         <div style={{
           height: 6,
@@ -66,11 +67,15 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
             color: 'var(--bone-white)',
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
-            fontSize: 12,
-            padding: '8px 0',
+            fontSize: 13,
+            padding: '12px 0',
             cursor: 'pointer',
             transition: 'all 350ms',
+            minHeight: 44,
+            borderRadius: 1,
           }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,21,21,0.4)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,21,21,0.25)' }}
         >
           − Dano
         </button>
@@ -85,18 +90,19 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
           onBlur={() => { if (step < 1) setStep(1) }}
           title="Valor aplicado por clique"
           style={{
-            width: 46,
+            width: 54,
             flexShrink: 0,
             background: 'var(--ink-deep)',
             border: '1px solid rgba(139,112,48,0.35)',
             color: 'var(--parchment-light)',
             fontFamily: 'var(--font-mono)',
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: 700,
             textAlign: 'center',
             outline: 'none',
             borderRadius: 1,
             boxSizing: 'border-box',
+            minHeight: 44,
           }}
         />
         <button
@@ -108,11 +114,15 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
             color: 'var(--bone-white)',
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
-            fontSize: 12,
-            padding: '8px 0',
+            fontSize: 13,
+            padding: '12px 0',
             cursor: 'pointer',
             transition: 'all 350ms',
+            minHeight: 44,
+            borderRadius: 1,
           }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(42,80,69,0.4)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(42,80,69,0.25)' }}
         >
           + Cura
         </button>

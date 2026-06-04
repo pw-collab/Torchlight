@@ -81,16 +81,18 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     fontFamily: 'var(--font-heading)',
-    fontSize: 9,
-    letterSpacing: '0.16em',
+    fontSize: 11,
+    letterSpacing: '0.12em',
     textTransform: 'uppercase',
-    padding: '8px 18px',
+    padding: '12px 18px',
     cursor: 'pointer',
     background: active ? 'rgba(139,112,48,0.12)' : 'none',
     border: 'none',
     borderBottom: active ? '2px solid rgba(139,112,48,0.6)' : '2px solid transparent',
     color: active ? 'var(--parchment-light)' : 'var(--bone-muted)',
     transition: 'all 250ms',
+    minHeight: 44,
+    WebkitTapHighlightColor: 'transparent',
   })
 
   return (
@@ -329,12 +331,14 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   border: '1px solid var(--blood-mid)',
                   color: 'var(--bone-white)',
                   fontFamily: 'var(--font-heading)',
-                  fontSize: 9,
+                  fontSize: 10,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  padding: '8px 18px',
+                  padding: '12px 18px',
                   cursor: 'pointer',
                   transition: 'all 250ms',
+                  minHeight: 44,
+                  borderRadius: 1,
                 }}
               >
                 + Nova Ficha
@@ -350,7 +354,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 Nenhuma ficha registrada. Crie a primeira com "+ Nova Ficha".
               </p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: 20 }}>
+              <div className="grid-npcs">
                 {npcs.map(npc => (
                   <div key={npc.id} style={{ opacity: deletingId === npc.id ? 0.4 : 1, transition: 'opacity 300ms' }}>
                     <NPCCard

@@ -182,12 +182,16 @@ export default function CharacterCreatorPage() {
             href="/home"
             style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 8,
-              letterSpacing: '0.16em',
+              fontSize: 11,
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--bone-muted)',
               textDecoration: 'none',
               transition: 'color 200ms',
+              padding: '8px 0',
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--parchment-light)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--bone-muted)' }}
@@ -216,23 +220,35 @@ export default function CharacterCreatorPage() {
         </div>
 
         {/* Step dots */}
-        <div style={{ display: 'flex', gap: 5, marginTop: 9, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 2, marginTop: 9, justifyContent: 'center', alignItems: 'center' }}>
           {steps.map((s, i) => (
             <button
               key={s.id}
               onClick={() => { if (i < stepIdx) setStepIdx(i) }}
               style={{
-                width: i === stepIdx ? 20 : 6,
-                height: 6,
-                borderRadius: 3,
-                background: i < stepIdx ? 'var(--gold-oxidized)' : i === stepIdx ? 'var(--candle-amber)' : 'rgba(139,112,48,0.12)',
+                width: 24,
+                height: 28,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'none',
                 border: 'none',
                 cursor: i < stepIdx ? 'pointer' : 'default',
+                padding: 0,
+                flexShrink: 0,
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{
+                display: 'block',
+                width: i === stepIdx ? 20 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: i < stepIdx ? 'var(--gold-oxidized)' : i === stepIdx ? 'var(--candle-amber)' : 'rgba(139,112,48,0.12)',
                 transition: 'all 300ms cubic-bezier(0.4,0,0.2,1)',
                 boxShadow: i === stepIdx ? '0 0 8px rgba(196,120,42,0.5)' : 'none',
-                flexShrink: 0,
-              }}
-            />
+              }} />
+            </button>
           ))}
         </div>
       </div>
@@ -453,39 +469,49 @@ export default function CharacterCreatorPage() {
         right: 0,
         background: 'rgba(8,5,3,0.97)',
         borderTop: '1px solid rgba(139,112,48,0.15)',
-        padding: '8px 24px',
+        padding: `8px 20px calc(8px + var(--safe-bottom))`,
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
+        gap: 10,
         zIndex: 10,
         backdropFilter: 'blur(6px)',
+        overflow: 'hidden',
       }}>
         <span style={{
           fontFamily: 'var(--font-heading)',
           fontSize: 13,
           color: name ? 'var(--parchment-light)' : '#3A2E18',
           transition: 'color 300ms',
-          minWidth: 80,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: 140,
+          flexShrink: 0,
         }}>
           {name || 'Sem nome'}
         </span>
-        <span style={{ color: 'rgba(139,112,48,0.25)', fontSize: 10 }}>·</span>
+        <span style={{ color: 'rgba(139,112,48,0.25)', fontSize: 10, flexShrink: 0 }}>·</span>
         <span style={{
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
           fontSize: 10,
           color: 'var(--bone-muted)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          flex: 1,
+          minWidth: 0,
         }}>
           {ancestry?.name ?? ancestryId} · {cls?.name ?? classId}
           {hpMax > 0 && ` · ${hpMax} HP`}
           {domainId && ` · ${domainId}`}
         </span>
         <span style={{
-          marginLeft: 'auto',
           fontFamily: 'var(--font-mono)',
-          fontSize: 7,
+          fontSize: 8,
           color: '#3A2E18',
           letterSpacing: '0.1em',
+          flexShrink: 0,
         }}>
           NVL 1
         </span>

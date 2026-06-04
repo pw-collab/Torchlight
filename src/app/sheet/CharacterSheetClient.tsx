@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { CombatStats } from '@/components/sheet/CombatStats'
@@ -46,6 +47,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const [isRolling, setIsRolling] = useState(false)
   const [lastResult, setLastResult] = useState<RollResult | null>(null)
+  const isMobile = useIsMobile()
 
   const handleRoll = useCallback((result: RollResult) => {
     setIsRolling(true)
@@ -155,72 +157,62 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: '0 24px 80px' }}>
-
-        <Link
-          href="/home"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            marginTop: 18,
-            marginBottom: 4,
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            color: 'var(--bone-muted)',
-            textDecoration: 'none',
-            transition: 'color 200ms',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--parchment-light)' }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--bone-muted)' }}
-        >
-          ← Voltar aos arquivos
-        </Link>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px 80px' : '0 24px 80px' }}>
 
         {/* Character header */}
-        <div style={{ padding: '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <div>
-                <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 32, fontWeight: 400, color: 'var(--parchment-pale)', letterSpacing: '0.05em', marginBottom: 4, lineHeight: 1.1 }}>
-                  {character.name}
-                </h1>
-              </div>
-              <Link
-                href={`/sheet/${characterId}/edit`}
-                title="Editar personagem"
-                style={{
-                  display: 'inline-block',
-                  background: 'rgba(42,34,16,0.4)',
-                  border: '1px solid rgba(139,112,48,0.28)',
-                  color: 'var(--bone-muted)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 14,
-                  borderRadius: 1,
-                  padding: '3px 8px',
-                  lineHeight: 1,
-                  textDecoration: 'none',
-                  transition: 'all 250ms',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = 'var(--parchment-light)'
-                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = 'var(--bone-muted)'
-                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
-                }}
-              >
-                Editar
-              </Link>
+        <div style={{ padding: isMobile ? '12px 0 14px' : '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+            <h1 style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: isMobile ? 24 : 32,
+              fontWeight: 400,
+              color: 'var(--parchment-pale)',
+              letterSpacing: '0.05em',
+              lineHeight: 1.1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: isMobile ? 180 : 'none',
+            }}>
+              {character.name}
+            </h1>
+            <Link
+              href={`/sheet/${characterId}/edit`}
+              title="Editar personagem"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'rgba(42,34,16,0.4)',
+                border: '1px solid rgba(139,112,48,0.28)',
+                color: 'var(--bone-muted)',
+                fontFamily: 'var(--font-body)',
+                fontSize: 13,
+                borderRadius: 1,
+                padding: isMobile ? '10px 14px' : '5px 10px',
+                textDecoration: 'none',
+                transition: 'all 250ms',
+                minHeight: 44,
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = 'var(--parchment-light)'
+                e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = 'var(--bone-muted)'
+                e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
+              }}
+            >
+              ✎ Editar
+            </Link>
+            {!isMobile && (
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
                 FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
               </span>
-            </div>
+            )}
           </div>
           {/* Subtitle + inline XP bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0 }}>
               {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
             </p>
@@ -245,14 +237,16 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
                 cursor: 'pointer',
                 fontFamily: 'var(--font-heading)',
-                fontSize: 16,
-                letterSpacing: '0.18em',
+                fontSize: isMobile ? 11 : 16,
+                letterSpacing: isMobile ? '0.06em' : '0.18em',
                 textTransform: 'uppercase',
                 color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                padding: '8px 18px 6px',
+                padding: isMobile ? '10px 8px' : '8px 18px 6px',
                 transition: 'all 300ms',
                 marginBottom: -1,
                 width: '100%',
+                minHeight: 44,
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               {TAB_LABELS[t]}
@@ -265,9 +259,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
         {/* Tab: Stats */}
         {tab === 'stats' && (
-          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <div className="sheet-columns">
             {/* Left column: Talentos + Classe */}
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: '1px solid rgba(139,112,48,0.22)' }}>
+            <div className="sheet-col-main" style={{ display: 'flex', flexDirection: 'column' }}>
               <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
               {cls && (
                 <ClassPanel
@@ -281,7 +275,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             </div>
 
             {/* Right column: CA > PV > Fortuna > Carga */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <div className="sheet-col-side">
               {/* CA */}
               <div style={{
                 background: 'var(--parchment-mid)',
@@ -290,7 +284,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 padding: 20,
                 textAlign: 'center',
               }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 2 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', marginBottom: 2 }}>
                   CA
                 </div>
                 <div style={{ fontFamily: 'var(--font-heading)', fontSize: 40, fontWeight: 700, color: 'var(--bone-white)', lineHeight: 1 }}>

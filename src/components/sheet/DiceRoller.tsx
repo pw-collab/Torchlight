@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const SMALL_DICE = [4, 6, 8, 10, 12]
 
@@ -17,16 +18,21 @@ export function DiceRoller({ onRoll }: Props) {
   const [d20Open, setD20Open] = useState(false)
   const [dc, setDc] = useState(14)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (!d20Open) return
-    function onMouseDown(e: MouseEvent) {
+    function onOutside(e: MouseEvent | TouchEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setD20Open(false)
       }
     }
-    document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
+    document.addEventListener('mousedown', onOutside)
+    document.addEventListener('touchstart', onOutside)
+    return () => {
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('touchstart', onOutside)
+    }
   }, [d20Open])
 
   function roll(sides: number, mode: RollMode = 'normal') {
@@ -48,9 +54,9 @@ export function DiceRoller({ onRoll }: Props) {
 
   const btnBase: React.CSSProperties = {
     fontFamily: 'var(--font-mono)',
-    fontSize: 11,
+    fontSize: isMobile ? 12 : 11,
     fontWeight: 700,
-    padding: '6px 10px',
+    padding: isMobile ? '10px 12px' : '6px 10px',
     borderRadius: 2,
     cursor: 'pointer',
     border: '1px solid rgba(139,112,48,0.35)',
@@ -58,25 +64,30 @@ export function DiceRoller({ onRoll }: Props) {
     color: 'var(--bone-muted)',
     transition: 'all 200ms',
     lineHeight: 1,
+    minHeight: 44,
+    minWidth: 44,
+    WebkitTapHighlightColor: 'transparent' as React.CSSProperties['WebkitTapHighlightColor'],
   }
 
   return (
     <div
       style={{
         position: 'fixed',
-        bottom: 24,
+        bottom: 0,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
-        gap: 4,
+        gap: isMobile ? 6 : 4,
         background: 'linear-gradient(180deg, rgba(28,20,8,0.97) 0%, rgba(18,13,4,0.98) 100%)',
         border: '1px solid rgba(139,112,48,0.42)',
         borderTop: '1px solid rgba(139,112,48,0.6)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.75), 0 0 0 1px rgba(0,0,0,0.5)',
-        borderRadius: 4,
-        padding: '7px 10px',
+        borderBottom: 'none',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.7)',
+        borderRadius: '4px 4px 0 0',
+        padding: `${isMobile ? '8px' : '7px'} ${isMobile ? '12px' : '10px'} calc(${isMobile ? '8px' : '7px'} + var(--safe-bottom))`,
+        maxWidth: '100vw',
       }}
     >
       {/* Small dice */}
@@ -101,32 +112,34 @@ export function DiceRoller({ onRoll }: Props) {
       ))}
 
       {/* Divider */}
-      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 4px' }} />
+      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 2px', flexShrink: 0 }} />
 
       {/* Modifier */}
       <input
-        type="number"
+        type="text"
+        inputMode="numeric"
         value={mod}
         onChange={e => setMod(Number(e.target.value))}
         title="Modificador"
         style={{
-          width: 46,
+          width: isMobile ? 52 : 46,
           background: 'rgba(14,10,3,0.8)',
           border: '1px solid rgba(139,112,48,0.28)',
           color: 'var(--parchment-light)',
           fontFamily: 'var(--font-mono)',
-          fontSize: 11,
+          fontSize: isMobile ? 13 : 11,
           fontWeight: 700,
-          padding: '5px 6px',
+          padding: isMobile ? '10px 6px' : '5px 6px',
           outline: 'none',
           borderRadius: 2,
           textAlign: 'center',
           boxSizing: 'border-box',
+          minHeight: 44,
         }}
       />
 
       {/* Divider */}
-      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 4px' }} />
+      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 2px', flexShrink: 0 }} />
 
       {/* d20 with dropdown */}
       <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -157,17 +170,17 @@ export function DiceRoller({ onRoll }: Props) {
               boxShadow: '0 -4px 20px rgba(0,0,0,0.7)',
               borderRadius: 3,
               padding: '8px',
-              minWidth: 160,
+              minWidth: 170,
               display: 'flex',
               flexDirection: 'column',
               gap: 5,
             }}
           >
             {/* DC input */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
               <span style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: 7,
+                fontSize: 9,
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 color: 'var(--bone-muted)',
@@ -176,7 +189,8 @@ export function DiceRoller({ onRoll }: Props) {
                 DC Alvo
               </span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={dc}
                 onChange={e => setDc(Number(e.target.value))}
                 style={{
@@ -185,13 +199,14 @@ export function DiceRoller({ onRoll }: Props) {
                   border: '1px solid rgba(139,112,48,0.28)',
                   color: 'var(--parchment-light)',
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
-                  padding: '4px 6px',
+                  padding: '6px 6px',
                   outline: 'none',
                   borderRadius: 2,
                   textAlign: 'center',
                   boxSizing: 'border-box',
+                  minHeight: 40,
                 }}
               />
             </div>
@@ -210,8 +225,10 @@ export function DiceRoller({ onRoll }: Props) {
                   width: '100%',
                   textAlign: 'left',
                   color,
-                  padding: '7px 10px',
+                  padding: '11px 12px',
                   borderColor: 'rgba(139,112,48,0.22)',
+                  fontSize: 13,
+                  minHeight: 44,
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'rgba(74,54,28,0.4)'
