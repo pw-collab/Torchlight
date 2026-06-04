@@ -1,9 +1,16 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Torchlight — Shadowdark VTT',
   description: 'Ferramentas para Shadowdark RPG',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0D0A05',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

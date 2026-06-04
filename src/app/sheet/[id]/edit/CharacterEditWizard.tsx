@@ -170,26 +170,30 @@ export function CharacterEditWizard({ character }: Props) {
     }}>
 
       {/* Top bar */}
-      <div style={{ width: '100%', maxWidth: 640, marginBottom: 28 }}>
+      <div style={{ width: '100%', maxWidth: 640, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <Link
             href={`/sheet/${character.id}`}
             style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 8,
-              letterSpacing: '0.16em',
+              fontSize: 11,
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--bone-muted)',
               textDecoration: 'none',
               transition: 'color 200ms',
+              padding: '8px 0',
+              minHeight: 44,
+              display: 'flex',
+              alignItems: 'center',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--parchment-light)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--bone-muted)' }}
           >
             ← Voltar à ficha
           </Link>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: '#3A2E18', letterSpacing: '0.1em' }}>
-            EDITAR · CAP. {current.chapter}/{totalSteps}
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.1em' }}>
+            EDITAR · {current.chapter}/{totalSteps}
           </span>
         </div>
 
@@ -205,7 +209,7 @@ export function CharacterEditWizard({ character }: Props) {
         </div>
 
         {/* Step dots — all clickable */}
-        <div style={{ display: 'flex', gap: 5, marginTop: 9, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 2, marginTop: 9, justifyContent: 'center', alignItems: 'center' }}>
           {steps.map((s, i) => (
             <button
               key={s.id}
@@ -213,20 +217,33 @@ export function CharacterEditWizard({ character }: Props) {
               disabled={dotBusy}
               title={s.title}
               style={{
-                width: i === stepIdx ? 20 : 6,
-                height: 6,
-                borderRadius: 3,
+                /* Invisible hit area wrapping the visible pip */
+                width: 24,
+                height: 28,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'none',
+                border: 'none',
+                cursor: dotBusy ? 'wait' : 'pointer',
+                padding: 0,
+                flexShrink: 0,
+                opacity: dotBusy ? 0.5 : 1,
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{
+                display: 'block',
+                width: i === stepIdx ? 20 : 8,
+                height: 8,
+                borderRadius: 4,
                 background: i === stepIdx
                   ? 'var(--candle-amber)'
                   : 'var(--gold-oxidized)',
-                border: 'none',
-                cursor: dotBusy ? 'wait' : 'pointer',
                 transition: 'all 300ms cubic-bezier(0.4,0,0.2,1)',
                 boxShadow: i === stepIdx ? '0 0 8px rgba(196,120,42,0.5)' : 'none',
-                flexShrink: 0,
-                opacity: dotBusy ? 0.5 : 1,
-              }}
-            />
+              }} />
+            </button>
           ))}
         </div>
       </div>
@@ -443,38 +460,48 @@ export function CharacterEditWizard({ character }: Props) {
         bottom: 0, left: 0, right: 0,
         background: 'rgba(8,5,3,0.97)',
         borderTop: '1px solid rgba(139,112,48,0.15)',
-        padding: '8px 24px',
+        padding: `8px 20px calc(8px + var(--safe-bottom))`,
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
+        gap: 10,
         zIndex: 10,
         backdropFilter: 'blur(6px)',
+        overflow: 'hidden',
       }}>
         <span style={{
           fontFamily: 'var(--font-heading)',
           fontSize: 13,
           color: name ? 'var(--parchment-light)' : '#3A2E18',
           transition: 'color 300ms',
-          minWidth: 80,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: 140,
+          flexShrink: 0,
         }}>
           {name || 'Sem nome'}
         </span>
-        <span style={{ color: 'rgba(139,112,48,0.25)', fontSize: 10 }}>·</span>
+        <span style={{ color: 'rgba(139,112,48,0.25)', fontSize: 10, flexShrink: 0 }}>·</span>
         <span style={{
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
           fontSize: 10,
           color: 'var(--bone-muted)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          flex: 1,
+          minWidth: 0,
         }}>
           {ancestry?.name ?? ancestryId} · {cls?.name ?? classId}
           {hpMax > 0 && ` · ${hpMax} HP`}
         </span>
         <span style={{
-          marginLeft: 'auto',
           fontFamily: 'var(--font-mono)',
-          fontSize: 7,
+          fontSize: 8,
           color: '#3A2E18',
           letterSpacing: '0.1em',
+          flexShrink: 0,
         }}>
           NVL {character.level}
         </span>

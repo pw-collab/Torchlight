@@ -189,12 +189,17 @@ const cardActionStyle: React.CSSProperties = {
   border: '1px solid rgba(139,112,48,0.35)',
   color: 'var(--bone-muted)',
   fontFamily: 'var(--font-heading)',
-  fontSize: 11,
+  fontSize: 13,
   cursor: 'pointer',
   borderRadius: 1,
-  padding: '5px 9px',
+  padding: '10px 12px',
   lineHeight: 1,
   transition: 'all 200ms',
+  minHeight: 44,
+  minWidth: 44,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 }
 
 function CreateCard() {
@@ -324,11 +329,11 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
       playerName={playerName}
       playerRole={isGm ? 'MESTRE' : 'ARQUIVISTA'}
     >
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '28px 24px 40px' }}>
-        <header style={{ marginBottom: 28, paddingBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '20px 16px 40px' }}>
+        <header style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                 <h1
                   style={{
                     fontFamily: 'var(--font-heading)',
@@ -343,7 +348,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                 {isGm && (
                   <span style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: 7.5,
+                    fontSize: 8,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
                     color: 'var(--blood-bright)',
@@ -370,35 +375,38 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                   : 'Selecione uma ficha para abrir o grimório do personagem.'}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: 10, flexShrink: 0, paddingTop: 4 }}>
-              <button
-                onClick={() => router.push('/gm')}
-                style={{
-                  background: 'rgba(42,34,16,0.4)',
-                  border: '1px solid rgba(139,112,48,0.3)',
-                  color: '#8B7030',
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 12,
-                  padding: '7px 16px',
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  transition: 'all 200ms',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = 'var(--candle-amber)'
-                  e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
-                  e.currentTarget.style.background = 'rgba(60,46,18,0.55)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = '#8B7030'
-                  e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)'
-                  e.currentTarget.style.background = 'rgba(42,34,16,0.4)'
-                }}
-              >
-                Painel do Mestre
-              </button>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+              {isGm && (
+                <button
+                  onClick={() => router.push('/gm')}
+                  style={{
+                    background: 'rgba(42,34,16,0.4)',
+                    border: '1px solid rgba(139,112,48,0.3)',
+                    color: '#8B7030',
+                    fontFamily: 'var(--font-body)',
+                    fontStyle: 'italic',
+                    fontSize: 13,
+                    padding: '11px 16px',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    transition: 'all 200ms',
+                    whiteSpace: 'nowrap',
+                    minHeight: 44,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = 'var(--candle-amber)'
+                    e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
+                    e.currentTarget.style.background = 'rgba(60,46,18,0.55)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = '#8B7030'
+                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)'
+                    e.currentTarget.style.background = 'rgba(42,34,16,0.4)'
+                  }}
+                >
+                  Painel do Mestre
+                </button>
+              )}
               {!isGm && (
                 <button
                   onClick={() => router.push('/character-creator')}
@@ -408,12 +416,13 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                     color: 'var(--blood-bright)',
                     fontFamily: 'var(--font-body)',
                     fontStyle: 'italic',
-                    fontSize: 12,
-                    padding: '7px 16px',
+                    fontSize: 13,
+                    padding: '11px 18px',
                     cursor: 'pointer',
                     borderRadius: 1,
                     transition: 'all 200ms',
                     whiteSpace: 'nowrap',
+                    minHeight: 44,
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.background = 'rgba(110,25,25,0.5)'
@@ -433,13 +442,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
           </div>
         </header>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 18,
-          }}
-        >
+        <div className="grid-characters">
           {characters.map(char => (
             <CharacterCard
               key={char.id}

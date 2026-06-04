@@ -24,12 +24,16 @@ export function StatBlock({ stats, onRoll }: Props) {
 
   useEffect(() => {
     if (!openStat) return
-    function close(e: MouseEvent) {
+    function close(e: MouseEvent | TouchEvent) {
       const target = e.target as HTMLElement
       if (!target.closest('[data-stat-card]')) setOpenStat(null)
     }
     document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
+    document.addEventListener('touchstart', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('touchstart', close)
+    }
   }, [openStat])
 
   function handleRollType(stat: Stat, type: 'normal' | 'advantage' | 'disadvantage') {
@@ -48,11 +52,13 @@ export function StatBlock({ stats, onRoll }: Props) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 0 }}>
-      {statKeys.map(key => {
+    <div className="grid-stats">
+      {statKeys.map((key, idx) => {
         const mod = modifier(stats[key])
         const isOpen = openStat === key
         const isInteractive = !!onRoll
+        // Determine dropdown alignment: last 3 stats open to the left
+        const dropdownAlign = idx >= 3 ? { right: 0, left: 'auto', transform: 'none' } : { left: '50%', transform: 'translateX(-50%)' }
 
         return (
           <div
@@ -65,11 +71,12 @@ export function StatBlock({ stats, onRoll }: Props) {
               background: isOpen
                 ? 'var(--gold-oxidized)'
                 : 'var(--parchment-mid)',
-              padding: '6px 2px 8px',
+              padding: '8px 2px 10px',
               textAlign: 'center',
               cursor: isInteractive ? 'pointer' : 'default',
               transition: 'all 300ms',
               userSelect: 'none',
+              WebkitTapHighlightColor: 'transparent',
             }}
           >
             <div style={{
@@ -113,15 +120,14 @@ export function StatBlock({ stats, onRoll }: Props) {
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 4px)',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
                   zIndex: 50,
                   background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
                   border: '1px solid var(--gold-oxidized)',
                   borderTop: '4px solid var(--gold-oxidized)',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                  minWidth: 120,
+                  minWidth: 130,
                   animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
+                  ...dropdownAlign,
                 }}
                 onClick={e => e.stopPropagation()}
               >
@@ -136,7 +142,7 @@ export function StatBlock({ stats, onRoll }: Props) {
                     style={{
                       display: 'block',
                       width: '100%',
-                      padding: '8px 12px',
+                      padding: '11px 14px',
                       background: 'none',
                       border: 'none',
                       borderBottom: opt.id !== 'disadvantage' ? '1px solid rgba(139,112,48,0.15)' : 'none',
@@ -144,7 +150,7 @@ export function StatBlock({ stats, onRoll }: Props) {
                       textAlign: 'left',
                       fontFamily: 'var(--font-body)',
                       fontStyle: 'italic',
-                      fontSize: 12,
+                      fontSize: 13,
                       color: opt.id === 'advantage'
                         ? 'var(--verdigris-light)'
                         : opt.id === 'disadvantage'

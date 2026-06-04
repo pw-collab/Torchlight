@@ -48,6 +48,16 @@
   --worn-border: rgba(139, 112, 48, 0.18);
 }
 
+/* ============================================================
+   Safe-area insets (notched iOS/Android)
+   ============================================================ */
+:root {
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
@@ -108,3 +118,80 @@ html, body {
 .animate-ink-spread { animation: inkSpread 600ms cubic-bezier(0.4,0,0.2,1) both; }
 .animate-mist-rise  { animation: mistRise  500ms cubic-bezier(0.4,0,0.2,1) both; }
 .animate-flicker    { animation: candleFlicker 4s ease-in-out infinite; }
+
+/* ============================================================
+   Responsive layout utilities
+   ============================================================ */
+
+/* Stat block: 6 cols desktop → 3 cols mobile */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+
+/* Character cards grid: 3 cols → 2 → 1 */
+.grid-characters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* Sheet two-column layout */
+.sheet-columns {
+  display: flex;
+  align-items: flex-start;
+}
+.sheet-col-main {
+  flex: 2;
+  min-width: 0;
+  border-right: 1px solid rgba(139,112,48,0.22);
+}
+.sheet-col-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* NPC grid */
+.grid-npcs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .grid-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-characters {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .sheet-columns {
+    flex-direction: column;
+  }
+  .sheet-col-main {
+    border-right: none;
+    border-bottom: 1px solid rgba(139,112,48,0.22);
+    width: 100%;
+  }
+  .sheet-col-side {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grid-npcs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .grid-characters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export interface BreadcrumbItem {
   label: string
@@ -18,6 +19,7 @@ interface Props {
 
 export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }: Props) {
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   async function handleLogout() {
     const supabase = createClient()
@@ -25,11 +27,14 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
     router.push('/login')
   }
 
+  // On mobile show only the last breadcrumb
+  const visibleCrumbs = isMobile ? breadcrumbs.slice(-1) : breadcrumbs
+
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
+      height: '100dvh',
       background: `
         radial-gradient(ellipse at 12% 85%, rgba(42,26,58,0.16) 0%, transparent 50%),
         radial-gradient(ellipse at 88% 12%, rgba(139,21,21,0.09) 0%, transparent 40%),
@@ -45,7 +50,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
         borderBottom: '1px solid rgba(139,112,48,0.2)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 20px',
+        padding: isMobile ? '0 12px' : '0 20px',
         gap: 0,
         boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
         zIndex: 20,
@@ -60,8 +65,9 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            padding: '0 16px 0 0',
+            padding: isMobile ? '0 10px 0 0' : '0 16px 0 0',
             flexShrink: 0,
+            minHeight: 44,
           }}
         >
           <Image
@@ -71,34 +77,37 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
             height={26}
             style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 5px rgba(196,32,32,0.45))' }}
           />
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#C4A96A',
-            letterSpacing: '0.04em',
-            lineHeight: 1,
-          }}>
-            Torchlight
-          </span>
+          {!isMobile && (
+            <span style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#C4A96A',
+              letterSpacing: '0.04em',
+              lineHeight: 1,
+            }}>
+              Torchlight
+            </span>
+          )}
         </button>
 
         {/* Separator + breadcrumbs */}
-        {breadcrumbs.length > 0 && (
+        {visibleCrumbs.length > 0 && (
           <>
-            <span style={{ width: 1, height: 18, background: 'rgba(139,112,48,0.2)', flexShrink: 0, marginRight: 14 }} />
+            <span style={{ width: 1, height: 18, background: 'rgba(139,112,48,0.2)', flexShrink: 0, marginRight: isMobile ? 10 : 14 }} />
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               fontFamily: 'var(--font-heading)',
-              fontSize: 8.5,
-              letterSpacing: '0.16em',
+              fontSize: isMobile ? 10 : 8.5,
+              letterSpacing: isMobile ? '0.08em' : '0.16em',
               textTransform: 'uppercase',
+              overflow: 'hidden',
             }}>
-              {breadcrumbs.map((crumb, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {i > 0 && <span style={{ color: '#3A2E18' }}>›</span>}
+              {visibleCrumbs.map((crumb, i) => (
+                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                  {i > 0 && <span style={{ color: '#3A2E18', flexShrink: 0 }}>›</span>}
                   {crumb.href ? (
                     <button
                       type="button"
@@ -114,6 +123,11 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                         textTransform: 'inherit',
                         color: '#6A5A3A',
                         transition: 'color 200ms',
+                        minHeight: 44,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: isMobile ? 140 : 'none',
                       }}
                       onMouseEnter={e => { e.currentTarget.style.color = '#A89870' }}
                       onMouseLeave={e => { e.currentTarget.style.color = '#6A5A3A' }}
@@ -121,7 +135,13 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                       {crumb.label}
                     </button>
                   ) : (
-                    <span style={{ color: i === breadcrumbs.length - 1 ? '#8B7030' : '#6A5A3A' }}>
+                    <span style={{
+                      color: i === visibleCrumbs.length - 1 ? '#8B7030' : '#6A5A3A',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: isMobile ? 160 : 'none',
+                    }}>
                       {crumb.label}
                     </span>
                   )}
@@ -132,8 +152,8 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
         )}
 
         {/* Right: user card + logout */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-          {playerName && (
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {playerName && !isMobile && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -183,11 +203,12 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
               fontFamily: 'var(--font-body)',
               fontStyle: 'italic',
               fontSize: 11,
-              padding: '5px 12px',
+              padding: isMobile ? '10px 14px' : '5px 12px',
               cursor: 'pointer',
               borderRadius: 1,
               transition: 'all 200ms',
               whiteSpace: 'nowrap',
+              minHeight: 44,
             }}
             onMouseEnter={e => {
               e.currentTarget.style.color = 'var(--blood-bright)'

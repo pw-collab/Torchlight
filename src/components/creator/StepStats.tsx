@@ -62,7 +62,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
       </button>
 
       {editMode && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+        <div className="grid-stats" style={{ gap: 6 }}>
           {STAT_KEYS.map(key => {
             const val = stats[key]
             const mod = Math.floor((val - 10) / 2)

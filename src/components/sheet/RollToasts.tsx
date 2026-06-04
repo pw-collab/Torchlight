@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { RollResult } from '@/lib/dice'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
   rolls: RollResult[]
@@ -9,6 +10,7 @@ interface Props {
 
 export function RollToasts({ rolls }: Props) {
   const [now, setNow] = useState(Date.now())
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000)
@@ -17,16 +19,19 @@ export function RollToasts({ rolls }: Props) {
 
   const visible = rolls.filter(r => now - r.timestamp < 15000)
 
+  // On mobile: stack in the top-right so they don't overlap the dice bar
+  const positionStyle: React.CSSProperties = isMobile
+    ? { top: 58, right: 10, bottom: 'auto', flexDirection: 'column' }
+    : { bottom: 80, right: 24, top: 'auto', flexDirection: 'column-reverse' }
+
   return (
     <div style={{
       position: 'fixed',
-      bottom: 24,
-      right: 24,
       zIndex: 150,
       display: 'flex',
-      flexDirection: 'column-reverse',
       gap: 8,
       pointerEvents: 'none',
+      ...positionStyle,
     }}>
       {visible.map(roll => {
         const isCritical = roll.isCritical
@@ -69,8 +74,8 @@ export function RollToasts({ rolls }: Props) {
                 ? '0 4px 20px rgba(196,32,32,0.2), 0 2px 12px rgba(0,0,0,0.6)'
                 : '0 2px 12px rgba(0,0,0,0.6)',
               padding: '10px 14px',
-              minWidth: 160,
-              maxWidth: 220,
+              minWidth: isMobile ? 140 : 160,
+              maxWidth: isMobile ? 180 : 220,
             }}
           >
             <div style={{
@@ -81,7 +86,7 @@ export function RollToasts({ rolls }: Props) {
             }}>
               <span style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: 8,
+                fontSize: 9,
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
                 color: labelColor,
@@ -92,7 +97,7 @@ export function RollToasts({ rolls }: Props) {
               </span>
               <span style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: 7.5,
+                fontSize: 8,
                 color: 'var(--parchment-warm)',
               }}>
                 {new Date(roll.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -105,7 +110,7 @@ export function RollToasts({ rolls }: Props) {
                   <div style={{
                     fontFamily: 'var(--font-body)',
                     fontStyle: 'italic',
-                    fontSize: 10,
+                    fontSize: 11,
                     color: 'var(--bone-muted)',
                     marginBottom: 2,
                   }}>
@@ -114,7 +119,7 @@ export function RollToasts({ rolls }: Props) {
                 )}
                 <span style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 9,
+                  fontSize: 10,
                   color: 'var(--bone-muted)',
                 }}>
                   {roll.die}
@@ -140,7 +145,7 @@ export function RollToasts({ rolls }: Props) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(139,112,48,0.15)' }}>
                 <span style={{
                   fontFamily: 'var(--font-heading)',
-                  fontSize: 7,
+                  fontSize: 8,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
                   color: roll.advantage === 'advantage' ? 'var(--verdigris-light)' : 'var(--blood-bright)',
