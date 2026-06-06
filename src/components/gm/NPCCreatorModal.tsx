@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { NPC, NPCFeature } from '@/types/npc.types'
+import { npcToMarkdown } from '@/types/npc.types'
 import { NPCCard } from '@/components/gm/NPCCard'
 
 const TEMPLATE = `# Nome do NPC
@@ -131,12 +132,14 @@ const EMPTY_NPC: Partial<NPC> = {
 
 interface Props {
   gmId: string
+  editNpc?: NPC | null
   onSave: (npc: Omit<NPC, 'id' | 'createdAt'>) => Promise<void>
   onClose: () => void
 }
 
-export function NPCCreatorModal({ gmId, onSave, onClose }: Props) {
-  const [md, setMd] = useState(TEMPLATE)
+export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
+  const isEditing = !!editNpc
+  const [md, setMd] = useState(editNpc ? npcToMarkdown(editNpc) : TEMPLATE)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -166,7 +169,7 @@ export function NPCCreatorModal({ gmId, onSave, onClose }: Props) {
     setSaving(true)
     setError('')
     try {
-      await onSave({ ...previewNpc, gmId })
+      await onSave({ ...previewNpc, gmId, sessionId: editNpc?.sessionId })
       onClose()
     } catch {
       setError('Erro ao salvar. Tente novamente.')
@@ -198,7 +201,7 @@ export function NPCCreatorModal({ gmId, onSave, onClose }: Props) {
         {/* Modal header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)' }}>
-            ✦ Nova Ficha de NPC
+            {isEditing ? '✎ Editar Ficha de NPC' : '✦ Nova Ficha de NPC'}
           </span>
           <button
             onClick={onClose}
@@ -278,7 +281,7 @@ export function NPCCreatorModal({ gmId, onSave, onClose }: Props) {
               opacity: !parsed.name?.trim() ? 0.45 : 1,
             }}
           >
-            {saving ? '⧖ Salvando...' : '✦ Salvar Ficha'}
+            {saving ? '⧖ Salvando...' : isEditing ? '✎ Salvar Alterações' : '✦ Salvar Ficha'}
           </button>
         </div>
       </div>

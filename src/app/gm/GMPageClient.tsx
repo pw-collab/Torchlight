@@ -5,10 +5,13 @@ import { createClient } from '@/lib/supabase'
 import { sendToDiscord } from '@/lib/discord'
 import { SessionPanel } from '@/components/gm/SessionPanel'
 import { NPCCard } from '@/components/gm/NPCCard'
+import { NPCListItem } from '@/components/gm/NPCListItem'
 import { NPCCreatorModal } from '@/components/gm/NPCCreatorModal'
+import { RollToasts } from '@/components/sheet/RollToasts'
 import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
+import type { RollResult } from '@/lib/dice'
 
 interface Props {
   gmName: string
@@ -26,7 +29,10 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [npcs, setNpcs] = useState<NPC[]>([])
   const [loadingNpcs, setLoadingNpcs] = useState(false)
   const [showCreator, setShowCreator] = useState(false)
+  const [editingNpc, setEditingNpc] = useState<NPC | null>(null)
+  const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [gmRolls, setGmRolls] = useState<RollResult[]>([])
 
   useEffect(() => {
     if (tab === 'npcs') fetchNpcs()
@@ -40,7 +46,14 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       .select('*')
       .eq('gm_id', gmId)
       .order('created_at', { ascending: false })
-    if (data) setNpcs(data.map(rowToNPC))
+    if (data) {
+      const mapped = data.map(rowToNPC)
+      setNpcs(mapped)
+      // Auto-select the first NPC if none selected (or selection no longer exists)
+      setSelectedNpcId(prev =>
+        prev && mapped.some(n => n.id === prev) ? prev : (mapped[0]?.id ?? null)
+      )
+    }
     setLoadingNpcs(false)
   }
 
@@ -60,6 +73,14 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     setCreating(false)
   }
 
+  async function handleSaveNpc(npc: Omit<NPC, 'id' | 'createdAt'>) {
+    if (editingNpc) {
+      await updateNPC(editingNpc.id, npc)
+    } else {
+      await saveNPC(npc)
+    }
+  }
+
   async function saveNPC(npc: Omit<NPC, 'id' | 'createdAt'>) {
     const supabase = createClient()
     const { data, error } = await supabase
@@ -68,15 +89,56 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       .select('*')
       .single()
     if (error) throw error
-    if (data) setNpcs(prev => [rowToNPC(data), ...prev])
+    if (data) {
+      const created = rowToNPC(data)
+      setNpcs(prev => [created, ...prev])
+      setSelectedNpcId(created.id)
+    }
+  }
+
+  async function updateNPC(id: string, npc: Omit<NPC, 'id' | 'createdAt'>) {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('npcs')
+      .update(npcToRow(npc))
+      .eq('id', id)
+      .select('*')
+      .single()
+    if (error) throw error
+    if (data) {
+      const updated = rowToNPC(data)
+      setNpcs(prev => prev.map(n => (n.id === id ? updated : n)))
+      setSelectedNpcId(id)
+    }
   }
 
   async function deleteNPC(id: string) {
+    const ok = window.confirm('Excluir esta ficha de NPC? Esta ação não pode ser desfeita.')
+    if (!ok) return
     setDeletingId(id)
     const supabase = createClient()
     await supabase.from('npcs').delete().eq('id', id)
-    setNpcs(prev => prev.filter(n => n.id !== id))
+    setNpcs(prev => {
+      const remaining = prev.filter(n => n.id !== id)
+      setSelectedNpcId(cur => (cur === id ? (remaining[0]?.id ?? null) : cur))
+      return remaining
+    })
     setDeletingId(null)
+  }
+
+  function openCreator() {
+    setEditingNpc(null)
+    setShowCreator(true)
+  }
+
+  function openEditor(npc: NPC) {
+    setEditingNpc(npc)
+    setShowCreator(true)
+  }
+
+  function closeCreator() {
+    setShowCreator(false)
+    setEditingNpc(null)
   }
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -94,6 +156,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     minHeight: 44,
     WebkitTapHighlightColor: 'transparent',
   })
+
+  const selectedNpc = npcs.find(n => n.id === selectedNpcId) ?? null
 
   return (
     <AppShell
@@ -317,15 +381,13 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
         {/* Tab: NPCs */}
         {tab === 'npcs' && (
-          <div className="animate-ink-spread">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <div>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-                  {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
-                </span>
-              </div>
+          <div className="animate-ink-spread" style={{ paddingTop: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
+                {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
+              </span>
               <button
-                onClick={() => setShowCreator(true)}
+                onClick={openCreator}
                 style={{
                   background: 'rgba(139,21,21,0.25)',
                   border: '1px solid var(--blood-mid)',
@@ -350,19 +412,51 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 Consultando os arquivos...
               </p>
             ) : npcs.length === 0 ? (
-              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)' }}>
-                Nenhuma ficha registrada. Crie a primeira com "+ Nova Ficha".
-              </p>
+              <div
+                className="worn-border"
+                style={{
+                  padding: '40px 24px',
+                  textAlign: 'center',
+                  background: 'rgba(28,21,8,0.35)',
+                  border: '1px dashed rgba(139,112,48,0.3)',
+                  borderRadius: 1,
+                }}
+              >
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--bone-muted)' }}>
+                  Nenhuma ficha registrada. Crie a primeira com &quot;+ Nova Ficha&quot;.
+                </p>
+              </div>
             ) : (
-              <div className="grid-npcs">
-                {npcs.map(npc => (
-                  <div key={npc.id} style={{ opacity: deletingId === npc.id ? 0.4 : 1, transition: 'opacity 300ms' }}>
-                    <NPCCard
+              <div className="npc-master-detail">
+                {/* Master list */}
+                <div className="npc-master-list">
+                  {npcs.map(npc => (
+                    <NPCListItem
+                      key={npc.id}
                       npc={npc}
-                      onDelete={() => deleteNPC(npc.id)}
+                      selected={npc.id === selectedNpcId}
+                      onSelect={() => setSelectedNpcId(npc.id)}
                     />
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* Detail pane */}
+                <div className="npc-detail-pane">
+                  {selectedNpc ? (
+                    <div style={{ opacity: deletingId === selectedNpc.id ? 0.4 : 1, transition: 'opacity 300ms' }}>
+                      <NPCCard
+                        npc={selectedNpc}
+                        onEdit={() => openEditor(selectedNpc)}
+                        onDelete={() => deleteNPC(selectedNpc.id)}
+                        onRoll={r => setGmRolls(prev => [r, ...prev].slice(0, 10))}
+                      />
+                    </div>
+                  ) : (
+                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)', padding: '20px 0' }}>
+                      Selecione uma ficha à esquerda para visualizá-la.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -372,10 +466,12 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       {showCreator && (
         <NPCCreatorModal
           gmId={gmId}
-          onSave={saveNPC}
-          onClose={() => setShowCreator(false)}
+          editNpc={editingNpc}
+          onSave={handleSaveNpc}
+          onClose={closeCreator}
         />
       )}
+      <RollToasts rolls={gmRolls} />
     </AppShell>
   )
 }

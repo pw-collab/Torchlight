@@ -5,6 +5,7 @@ import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.t
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
+import { RollableText } from '@/components/shared/RollableText'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -569,7 +570,7 @@ function TechniqueCard({
             lineHeight: 1.6,
             marginTop: 8,
           }}>
-            {technique.description}
+            <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
           </p>
 
           {/* Kind-specific UI */}
