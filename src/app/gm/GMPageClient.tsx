@@ -7,9 +7,11 @@ import { SessionPanel } from '@/components/gm/SessionPanel'
 import { NPCCard } from '@/components/gm/NPCCard'
 import { NPCListItem } from '@/components/gm/NPCListItem'
 import { NPCCreatorModal } from '@/components/gm/NPCCreatorModal'
+import { RollToasts } from '@/components/sheet/RollToasts'
 import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
+import type { RollResult } from '@/lib/dice'
 
 interface Props {
   gmName: string
@@ -30,6 +32,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [editingNpc, setEditingNpc] = useState<NPC | null>(null)
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [gmRolls, setGmRolls] = useState<RollResult[]>([])
 
   useEffect(() => {
     if (tab === 'npcs') fetchNpcs()
@@ -445,6 +448,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                         npc={selectedNpc}
                         onEdit={() => openEditor(selectedNpc)}
                         onDelete={() => deleteNPC(selectedNpc.id)}
+                        onRoll={r => setGmRolls(prev => [r, ...prev].slice(0, 10))}
                       />
                     </div>
                   ) : (
@@ -467,6 +471,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
           onClose={closeCreator}
         />
       )}
+      <RollToasts rolls={gmRolls} />
     </AppShell>
   )
 }

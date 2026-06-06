@@ -196,6 +196,18 @@ html, body {
   }
 }
 
+/* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
+.dice-formula {
+  color: var(--candle-amber);
+  border-bottom: 1px dashed rgba(196,120,42,0.6);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dice-formula:hover {
+  color: var(--candle-glow);
+  border-bottom-color: var(--candle-amber);
+}
+
 /* NPC master-detail (Outlook-style) */
 .npc-master-detail {
   display: flex;

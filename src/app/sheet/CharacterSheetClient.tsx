@@ -262,7 +262,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <div className="sheet-columns">
             {/* Left column: Talentos + Classe */}
             <div className="sheet-col-main" style={{ display: 'flex', flexDirection: 'column' }}>
-              <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} />
+              <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
               {cls && (
                 <ClassPanel
                   classData={cls}

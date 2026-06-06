@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
+import type { RollResult } from '@/lib/dice'
+import { RollableText } from '@/components/shared/RollableText'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -18,9 +20,10 @@ const ORIGIN_COLOR: Record<TalentOrigin, string> = {
 interface Props {
   talents: Talent[]
   onUpdate: (talents: Talent[]) => void
+  onRoll?: (r: RollResult) => void
 }
 
-export function TalentsPanel({ talents, onUpdate }: Props) {
+export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ name: '', origin: 'general' as TalentOrigin, description: '' })
 
@@ -144,6 +147,7 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
               talent={t}
               last={i === talents.length - 1}
               onRemove={() => removeTalent(t.id)}
+              onRoll={onRoll}
             />
           ))}
         </ul>
@@ -152,7 +156,7 @@ export function TalentsPanel({ talents, onUpdate }: Props) {
   )
 }
 
-function TalentRow({ talent, last, onRemove }: { talent: Talent; last: boolean; onRemove: () => void }) {
+function TalentRow({ talent, last, onRemove, onRoll }: { talent: Talent; last: boolean; onRemove: () => void; onRoll?: (r: RollResult) => void }) {
   const [hov, setHov] = useState(false)
   const [expanded, setExpanded] = useState(false)
 
@@ -216,7 +220,7 @@ function TalentRow({ talent, last, onRemove }: { talent: Talent; last: boolean; 
           paddingLeft: 12,
           animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
         }}>
-          {talent.description}
+          <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
         </p>
       )}
     </li>

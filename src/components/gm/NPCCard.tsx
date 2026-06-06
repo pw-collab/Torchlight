@@ -1,11 +1,15 @@
 'use client'
 
 import type { NPC } from '@/types/npc.types'
+import { rollFormula, type RollResult } from '@/lib/dice'
+import { injectDiceSpans } from '@/lib/diceParser'
+import { RollableText } from '@/components/shared/RollableText'
 
 interface Props {
   npc: NPC
   onDelete?: () => void
   onEdit?: () => void
+  onRoll?: (r: RollResult) => void
 }
 
 const BORDER = '1px solid rgba(139,112,48,0.33)'
@@ -29,7 +33,7 @@ function formatMod(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
 
-export function NPCCard({ npc, onDelete, onEdit }: Props) {
+export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
   return (
     <div style={{
       fontFamily: 'var(--font-body)',
@@ -89,14 +93,14 @@ export function NPCCard({ npc, onDelete, onEdit }: Props) {
       <div style={{ padding: '10px 14px' }}>
         {npc.flavorText && (
           <p style={{ fontStyle: 'italic', fontSize: 12, color: '#5a4a2a', margin: '0 0 8px', lineHeight: 1.5 }}>
-            {npc.flavorText}
+            <RollableText text={npc.flavorText} label={npc.name} onRoll={onRoll} />
           </p>
         )}
 
         {npc.motives && (
           <p style={{ fontSize: 12, margin: '0 0 10px', lineHeight: 1.55 }}>
             <strong style={{ fontWeight: 500 }}>Motivos &amp; Táticas:</strong>{' '}
-            {npc.motives}
+            <RollableText text={npc.motives} label={npc.name} onRoll={onRoll} />
           </p>
         )}
 
@@ -164,19 +168,30 @@ export function NPCCard({ npc, onDelete, onEdit }: Props) {
               Features
             </div>
 
-            {npc.features.map((feat, i) => (
-              <div key={i} style={{ fontSize: 12, margin: '0 0 7px', lineHeight: 1.55 }}>
-                <span style={{ fontStyle: 'italic', fontWeight: 500, color: '#111' }}>
-                  {feat.title}
-                </span>
-                {feat.tag && (
-                  <span style={{ fontStyle: 'italic', color: '#555' }}>
-                    {' '}— {feat.tag}.
+            {npc.features.map((feat, i) => {
+              const html = feat.description
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+              return (
+                <div key={i} style={{ fontSize: 12, margin: '0 0 7px', lineHeight: 1.55 }}>
+                  <span style={{ fontStyle: 'italic', fontWeight: 500, color: '#111' }}>
+                    {feat.title}
                   </span>
-                )}{' '}
-                <span dangerouslySetInnerHTML={{ __html: feat.description.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>') }} />
-              </div>
-            ))}
+                  {feat.tag && (
+                    <span style={{ fontStyle: 'italic', color: '#555' }}>
+                      {' '}— {feat.tag}.
+                    </span>
+                  )}{' '}
+                  <span
+                    onClick={onRoll ? (e) => {
+                      const formula = (e.target as HTMLElement).dataset.formula
+                      if (formula) onRoll(rollFormula(formula, feat.title, formula))
+                    } : undefined}
+                    dangerouslySetInnerHTML={{ __html: onRoll ? injectDiceSpans(html) : html }}
+                  />
+                </div>
+              )
+            })}
           </>
         )}
       </div>
