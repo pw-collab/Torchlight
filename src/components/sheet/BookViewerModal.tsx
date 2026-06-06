@@ -160,7 +160,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
           <div style={{ width: 6, background: 'linear-gradient(to right, rgba(80,55,10,0.55), rgba(139,112,48,0.5), rgba(80,55,10,0.55))', flexShrink: 0 }} />
 
           {/* Right page */}
-          <div style={{ ...pageStyle, background: 'var(--parchment-mid, #e8d8b4)' }}>
+          <div style={pageStyle}>
             <div style={{ position: 'absolute', bottom: 10, right: 16, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(80,60,20,0.45)' }}>
               {rightPage !== null ? rightNum : ''}
             </div>

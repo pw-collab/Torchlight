@@ -41,14 +41,16 @@ export function NPCCard({ npc, onDelete, onEdit }: Props) {
     }}>
       {/* Action buttons */}
       {(onEdit || onDelete) && (
-        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 1 }}>
+        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 1 }}>
           {onEdit && (
             <button
               onClick={onEdit}
+              title="Editar ficha"
               style={{
-                background: 'rgba(42,34,16,0.55)', border: '1px solid rgba(139,112,48,0.4)',
-                color: 'var(--bone-muted)', fontFamily: 'var(--font-heading)', fontSize: 8,
-                letterSpacing: '0.1em', padding: '3px 8px', cursor: 'pointer', borderRadius: 1,
+                background: 'rgba(42,34,16,0.75)', border: '1px solid rgba(139,112,48,0.45)',
+                color: 'var(--bone-white)', fontFamily: 'var(--font-heading)', fontSize: 13,
+                letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', borderRadius: 1,
+                minWidth: 40, minHeight: 36, lineHeight: 1,
               }}
             >
               ✎
@@ -57,10 +59,12 @@ export function NPCCard({ npc, onDelete, onEdit }: Props) {
           {onDelete && (
             <button
               onClick={onDelete}
+              title="Excluir ficha"
               style={{
-                background: 'rgba(139,21,21,0.25)', border: '1px solid rgba(196,32,32,0.4)',
-                color: 'var(--blood-bright)', fontFamily: 'var(--font-heading)', fontSize: 8,
-                letterSpacing: '0.1em', padding: '3px 8px', cursor: 'pointer', borderRadius: 1,
+                background: 'rgba(139,21,21,0.4)', border: '1px solid rgba(196,32,32,0.45)',
+                color: 'var(--blood-bright)', fontFamily: 'var(--font-heading)', fontSize: 13,
+                letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', borderRadius: 1,
+                minWidth: 40, minHeight: 36, lineHeight: 1,
               }}
             >
               ✕

@@ -195,3 +195,37 @@ html, body {
     grid-template-columns: 1fr;
   }
 }
+
+/* NPC master-detail (Outlook-style) */
+.npc-master-detail {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.npc-master-list {
+  flex: 0 0 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100dvh - 240px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.npc-detail-pane {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .npc-master-detail {
+    flex-direction: column;
+  }
+  .npc-master-list {
+    flex: none;
+    width: 100%;
+    max-height: 260px;
+  }
+  .npc-detail-pane {
+    width: 100%;
+  }
+}

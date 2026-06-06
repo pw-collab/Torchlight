@@ -93,3 +93,58 @@ export function npcToRow(npc: Omit<NPC, 'id' | 'createdAt'>): Omit<NPCRow, 'id' 
     features: npc.features,
   }
 }
+
+/** Reconstroi o Markdown editável a partir de um NPC (inverso de parseNPCMarkdown). */
+export function npcToMarkdown(npc: NPC): string {
+  const fmt = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
+  const lines: string[] = []
+
+  lines.push(`# ${npc.name}`)
+  if (npc.npcType) lines.push(npc.npcType)
+  lines.push('')
+
+  if (npc.flavorText) {
+    lines.push(`*${npc.flavorText}*`)
+    lines.push('')
+  }
+
+  if (npc.motives) {
+    lines.push(`**Motivos & Táticas:** ${npc.motives}`)
+    lines.push('')
+  }
+
+  lines.push('## Stats')
+
+  const row1: string[] = []
+  if (npc.difficulty != null) row1.push(`Difficulty: ${npc.difficulty}`)
+  if (npc.hp != null) row1.push(`HP: ${npc.hp}`)
+  if (npc.ac != null) row1.push(`AC: ${npc.ac}`)
+  if (npc.atkDesc) row1.push(`ATK: ${npc.atkDesc}`)
+  if (npc.weaponDesc) row1.push(`Weapon: ${npc.weaponDesc}`)
+  if (row1.length) lines.push(row1.join(' | '))
+
+  const row2: string[] = []
+  if (npc.level != null) row2.push(`LV: ${npc.level}`)
+  if (npc.movement) row2.push(`MV: ${npc.movement}`)
+  if (npc.alignment) row2.push(`AL: ${npc.alignment}`)
+  if (row2.length) lines.push(row2.join(' | '))
+
+  lines.push(
+    `FOR: ${fmt(npc.stats.str)} | DES: ${fmt(npc.stats.dex)} | CON: ${fmt(npc.stats.con)} | INT: ${fmt(npc.stats.int)} | SAB: ${fmt(npc.stats.wis)} | CAR: ${fmt(npc.stats.cha)}`
+  )
+
+  if (npc.experience) lines.push(`Experience: ${npc.experience}`)
+
+  if (npc.features.length) {
+    lines.push('')
+    lines.push('## Features')
+    lines.push('')
+    for (const f of npc.features) {
+      const tag = f.tag ? `${f.tag}. ` : ''
+      lines.push(`**${f.title}** — ${tag}${f.description}`)
+      lines.push('')
+    }
+  }
+
+  return lines.join('\n').trim()
+}
