@@ -13,21 +13,23 @@ export function DiceOverlay({ isRolling, lastResult }: Props) {
   const [showResult, setShowResult] = useState(false)
 
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>
     if (isRolling) {
+      // Cycle random faces, decelerating like a die coming to rest.
       setShowResult(false)
-      interval = setInterval(() => {
+      let timeout: ReturnType<typeof setTimeout>
+      let delay = 45
+      const tick = () => {
         setDisplayValue(Math.floor(Math.random() * 20) + 1)
-      }, 50)
+        delay = Math.min(delay * 1.18, 160)
+        timeout = setTimeout(tick, delay)
+      }
+      tick()
+      return () => clearTimeout(timeout)
     } else if (lastResult) {
       setShowResult(true)
       const timer = setTimeout(() => setShowResult(false), 2000)
-      return () => {
-        clearInterval(interval)
-        clearTimeout(timer)
-      }
+      return () => clearTimeout(timer)
     }
-    return () => clearInterval(interval)
   }, [isRolling, lastResult])
 
   if (!isRolling && !showResult) return null
@@ -102,17 +104,26 @@ export function DiceOverlay({ isRolling, lastResult }: Props) {
           {isRolling ? 'Rolando...' : lastResult?.label ?? 'Resultado'}
         </span>
 
-        <span style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 80,
-          fontWeight: 700,
-          lineHeight: 1,
-          color: numberColor,
-          textShadow: numberShadow,
-          letterSpacing: '-0.02em',
-        }}>
-          {isRolling ? displayValue : lastResult?.total}
-        </span>
+        <div
+          key={showResult ? lastResult?.id : 'rolling'}
+          className={showResult && (isCritical || isFumble) ? 'animate-shake' : ''}
+        >
+          <span
+            className={showResult && isCritical ? 'animate-crit' : showResult && isFumble ? 'animate-fumble' : ''}
+            style={{
+              display: 'inline-block',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 80,
+              fontWeight: 700,
+              lineHeight: 1,
+              color: numberColor,
+              textShadow: numberShadow,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {isRolling ? displayValue : lastResult?.total}
+          </span>
+        </div>
 
         {showResult && lastResult && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 4 }}>

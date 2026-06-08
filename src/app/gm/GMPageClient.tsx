@@ -229,10 +229,10 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 22 }}>
-          <button style={tabStyle(tab === 'session')} onClick={() => setTab('session')}>
+          <button className="tactile" style={tabStyle(tab === 'session')} onClick={() => setTab('session')}>
             Sessão
           </button>
-          <button style={tabStyle(tab === 'npcs')} onClick={() => setTab('npcs')}>
+          <button className="tactile" style={tabStyle(tab === 'npcs')} onClick={() => setTab('npcs')}>
             NPCs &amp; Monstros
           </button>
         </div>
@@ -388,6 +388,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               </span>
               <button
                 onClick={openCreator}
+                className="tactile glow-hover-blood"
                 style={{
                   background: 'rgba(139,21,21,0.25)',
                   border: '1px solid var(--blood-mid)',

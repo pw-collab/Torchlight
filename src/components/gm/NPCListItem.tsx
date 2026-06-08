@@ -12,18 +12,21 @@ export function NPCListItem({ npc, selected, onSelect }: Props) {
   return (
     <button
       onClick={onSelect}
+      className="tactile"
       style={{
+        position: 'relative',
+        overflow: 'hidden',
         display: 'block',
         width: '100%',
         textAlign: 'left',
         background: selected ? 'rgba(139,112,48,0.18)' : 'rgba(42,34,16,0.3)',
         border: '1px solid',
         borderColor: selected ? 'rgba(196,120,42,0.5)' : 'rgba(139,112,48,0.2)',
-        borderLeft: `3px solid ${selected ? 'var(--candle-amber)' : 'transparent'}`,
+        borderLeft: '3px solid transparent',
         borderRadius: 1,
         padding: '10px 12px',
         cursor: 'pointer',
-        transition: 'all 200ms',
+        transition: 'background 200ms, border-color 200ms',
         WebkitTapHighlightColor: 'transparent',
       }}
       onMouseEnter={e => {
@@ -39,6 +42,22 @@ export function NPCListItem({ npc, selected, onSelect }: Props) {
         }
       }}
     >
+      {/* Selection bar — grows vertically when selected */}
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: -3,
+          top: 0,
+          bottom: 0,
+          width: 3,
+          background: 'var(--candle-amber)',
+          transformOrigin: 'center',
+          transform: `scaleY(${selected ? 1 : 0})`,
+          transition: 'transform 260ms var(--ease-ritual)',
+          boxShadow: selected ? '0 0 8px rgba(196,120,42,0.6)' : 'none',
+        }}
+      />
       <div style={{
         fontFamily: 'var(--font-heading)',
         fontSize: 14,

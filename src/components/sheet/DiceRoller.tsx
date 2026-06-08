@@ -95,6 +95,7 @@ export function DiceRoller({ onRoll }: Props) {
         <button
           key={d}
           onClick={() => roll(d)}
+          className="tactile glow-hover"
           style={btnBase}
           onMouseEnter={e => {
             (e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
@@ -145,6 +146,7 @@ export function DiceRoller({ onRoll }: Props) {
       <div ref={dropdownRef} style={{ position: 'relative' }}>
         <button
           onClick={() => setD20Open(v => !v)}
+          className="tactile glow-hover-blood"
           style={{
             ...btnBase,
             color: d20Open ? 'var(--parchment-light)' : 'var(--bone-muted)',
@@ -161,10 +163,12 @@ export function DiceRoller({ onRoll }: Props) {
 
         {d20Open && (
           <div
+            className="animate-drop-in"
             style={{
               position: 'absolute',
               bottom: 'calc(100% + 8px)',
               right: 0,
+              transformOrigin: 'bottom center',
               background: 'linear-gradient(180deg, rgba(28,20,8,0.99) 0%, rgba(18,13,4,1) 100%)',
               border: '1px solid rgba(139,112,48,0.45)',
               boxShadow: '0 -4px 20px rgba(0,0,0,0.7)',
@@ -220,6 +224,7 @@ export function DiceRoller({ onRoll }: Props) {
               <button
                 key={mode}
                 onClick={() => roll(20, mode)}
+                className="tactile"
                 style={{
                   ...btnBase,
                   width: '100%',

@@ -33,6 +33,7 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
 export function useCharacter(characterId: string) {
   const [character, setCharacter] = useState<Character | null>(null)
   const [loading, setLoading] = useState(true)
+  const [savedAt, setSavedAt] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
@@ -86,7 +87,8 @@ export function useCharacter(characterId: string) {
     }
 
     if (data) setCharacter(rowToCharacter(data as CharacterRow))
+    setSavedAt(Date.now())
   }
 
-  return { character, loading, updateCharacter }
+  return { character, loading, updateCharacter, savedAt }
 }

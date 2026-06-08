@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Props {
   hpMax: number
@@ -10,8 +10,18 @@ interface Props {
 
 export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
   const [step, setStep] = useState(1)
+  const [flash, setFlash] = useState<'damage' | 'heal' | null>(null)
+  const prevHp = useRef(hpCurrent)
   const hpPercent = Math.max(0, (hpCurrent / hpMax) * 100)
   const hpColor = hpPercent > 50 ? '#3D7060' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-mid)'
+
+  useEffect(() => {
+    if (hpCurrent < prevHp.current) setFlash('damage')
+    else if (hpCurrent > prevHp.current) setFlash('heal')
+    prevHp.current = hpCurrent
+    const t = setTimeout(() => setFlash(null), 520)
+    return () => clearTimeout(t)
+  }, [hpCurrent])
 
   function handleHpInput(delta: number) {
     const next = Math.min(hpMax, Math.max(0, hpCurrent + delta))
@@ -38,7 +48,14 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
           Pontos de Vida
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--parchment-light)' }}>
-          {hpCurrent} / {hpMax}
+          <span
+            key={flash ?? 'idle'}
+            className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
+            style={{ display: 'inline-block' }}
+          >
+            {hpCurrent}
+          </span>
+          {' / '}{hpMax}
         </span>
       </div>
       <div style={{
@@ -60,6 +77,7 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
       <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
         <button
           onClick={() => handleHpInput(-step)}
+          className="tactile"
           style={{
             flex: 1,
             background: 'rgba(139,21,21,0.25)',
@@ -107,6 +125,7 @@ export function CombatStats({ hpMax, hpCurrent, onHpChange }: Props) {
         />
         <button
           onClick={() => handleHpInput(step)}
+          className="tactile"
           style={{
             flex: 1,
             background: 'rgba(42,80,69,0.25)',

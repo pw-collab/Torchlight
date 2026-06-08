@@ -20,6 +20,7 @@ interface Props {
 
 export function StatBlock({ stats, onRoll }: Props) {
   const [openStat, setOpenStat] = useState<Stat | null>(null)
+  const [pulsedStat, setPulsedStat] = useState<Stat | null>(null)
   const statKeys: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 
   useEffect(() => {
@@ -49,6 +50,8 @@ export function StatBlock({ stats, onRoll }: Props) {
     )
     onRoll(result)
     setOpenStat(null)
+    setPulsedStat(stat)
+    setTimeout(() => setPulsedStat(s => (s === stat ? null : s)), 450)
   }
 
   return (
@@ -91,17 +94,21 @@ export function StatBlock({ stats, onRoll }: Props) {
               {STAT_LABELS[key]}
             </div>
 
-            <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 24,
-              fontWeight: 700,
-              lineHeight: 1,
-              color: mod > 0
-                ? 'var(--verdigris-light)'
-                : mod < 0
-                ? 'var(--blood-bright)'
-                : 'var(--bone-white)',
-            }}>
+            <div
+              key={pulsedStat === key ? 'pulse' : 'idle'}
+              className={pulsedStat === key ? 'animate-value-pulse' : ''}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: 24,
+                fontWeight: 700,
+                lineHeight: 1,
+                color: mod > 0
+                  ? 'var(--verdigris-light)'
+                  : mod < 0
+                  ? 'var(--blood-bright)'
+                  : 'var(--bone-white)',
+              }}
+            >
               {mod > 0 ? `+${mod}` : mod}
             </div>
 

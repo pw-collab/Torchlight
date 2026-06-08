@@ -34,11 +34,13 @@ function CharacterCard({
   onEdit,
   onDelete,
   isGm,
+  index = 0,
 }: {
   char: CharacterSummary
   onEdit: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
   isGm?: boolean
+  index?: number
 }) {
   const [hovered, setHovered] = useState(false)
   const cls = getClass(char.classId)
@@ -46,8 +48,8 @@ function CharacterCard({
 
   return (
     <div
-      className="worn-border card-surface"
-      style={{ position: 'relative', minHeight: 160 }}
+      className="worn-border card-surface card-lift stagger-item"
+      style={{ position: 'relative', minHeight: 160, animationDelay: `${Math.min(index * 45, 400)}ms` }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -152,6 +154,7 @@ function CharacterCard({
             type="button"
             title="Editar ficha"
             onClick={onEdit}
+            className="tactile"
             style={cardActionStyle}
             onMouseEnter={e => {
               e.currentTarget.style.color = 'var(--parchment-light)'
@@ -168,6 +171,7 @@ function CharacterCard({
             type="button"
             title="Excluir ficha"
             onClick={onDelete}
+            className="tactile"
             style={{ ...cardActionStyle, color: 'var(--blood-bright)' }}
             onMouseEnter={e => {
               e.currentTarget.style.borderColor = 'rgba(196,32,32,0.55)'
@@ -443,10 +447,11 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
         </header>
 
         <div className="grid-characters">
-          {characters.map(char => (
+          {characters.map((char, i) => (
             <CharacterCard
               key={char.id}
               char={char}
+              index={i}
               isGm={isGm}
               onEdit={e => {
                 e.preventDefault()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -42,7 +42,7 @@ interface Props {
 }
 
 export function CharacterSheetClient({ characterId, playerName }: Props) {
-  const { character, loading, updateCharacter } = useCharacter(characterId)
+  const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const [isRolling, setIsRolling] = useState(false)
@@ -226,15 +226,16 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
 
         {/* Tab navigation */}
-        <div style={{ display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ position: 'relative', display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
+              className="tactile"
               style={{
                 background: tab === t ? 'rgba(139,112,48,0.15)' : 'none',
                 border: 'none',
-                borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
+                borderBottom: '2px solid transparent',
                 cursor: 'pointer',
                 fontFamily: 'var(--font-heading)',
                 fontSize: isMobile ? 11 : 16,
@@ -242,7 +243,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 textTransform: 'uppercase',
                 color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
                 padding: isMobile ? '10px 8px' : '8px 18px 6px',
-                transition: 'all 300ms',
+                transition: 'color 300ms, background 300ms',
                 marginBottom: -1,
                 width: '100%',
                 minHeight: 44,
@@ -252,6 +253,20 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               {TAB_LABELS[t]}
             </button>
           ))}
+          {/* Sliding active-tab indicator */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              bottom: -1,
+              height: 2,
+              width: `${100 / Object.keys(TAB_LABELS).length}%`,
+              left: `${(Object.keys(TAB_LABELS) as Tab[]).indexOf(tab) * (100 / Object.keys(TAB_LABELS).length)}%`,
+              background: 'var(--gold-oxidized)',
+              boxShadow: '0 0 6px rgba(139,112,48,0.5)',
+              transition: 'left 320ms var(--ease-ritual)',
+            }}
+          />
         </div>
 
         {/* Tab content border */}
@@ -350,6 +365,45 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />
+      <SaveSeal savedAt={savedAt} />
     </AppShell>
+  )
+}
+
+// Wax-seal flourish confirming an auto-save patch landed.
+function SaveSeal({ savedAt }: { savedAt: number }) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (!savedAt) return
+    setVisible(true)
+    const t = setTimeout(() => setVisible(false), 1800)
+    return () => clearTimeout(t)
+  }, [savedAt])
+
+  if (!visible) return null
+  return (
+    <div
+      key={savedAt}
+      className="animate-seal"
+      style={{
+        position: 'fixed',
+        bottom: 'calc(72px + var(--safe-bottom))',
+        left: 16,
+        zIndex: 120,
+        fontFamily: 'var(--font-heading)',
+        fontSize: 10,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        color: 'var(--candle-glow)',
+        background: 'rgba(28,20,8,0.92)',
+        border: '1px solid rgba(196,120,42,0.4)',
+        borderRadius: 2,
+        padding: '6px 12px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
+        pointerEvents: 'none',
+      }}
+    >
+      ✦ Selado
+    </div>
   )
 }
