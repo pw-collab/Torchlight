@@ -13,12 +13,12 @@ export default async function SheetByIdPage({ params }: Props) {
 
   if (!user) redirect('/login')
 
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  // RLS handles access control: players see own chars (characters_select_own),
+  // GMs see all (characters_select_gm_all). No app-layer user_id filter needed.
   const { data: character } = await supabase
     .from('characters')
-    .select('id')
+    .select('id, player_name')
     .eq('id', id)
-    .eq('user_id', discordId)
     .single()
 
   if (!character) notFound()
@@ -26,7 +26,7 @@ export default async function SheetByIdPage({ params }: Props) {
   return (
     <CharacterSheetClient
       characterId={character.id}
-      playerName={user.user_metadata?.full_name ?? 'Player'}
+      playerName={character.player_name ?? user.user_metadata?.full_name ?? 'Player'}
     />
   )
 }
