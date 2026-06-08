@@ -50,6 +50,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
             <button
               onClick={onEdit}
               title="Editar ficha"
+              className="tactile"
               style={{
                 background: 'rgba(42,34,16,0.75)', border: '1px solid rgba(139,112,48,0.45)',
                 color: 'var(--bone-white)', fontFamily: 'var(--font-heading)', fontSize: 13,
@@ -64,6 +65,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
             <button
               onClick={onDelete}
               title="Excluir ficha"
+              className="tactile"
               style={{
                 background: 'rgba(139,21,21,0.4)', border: '1px solid rgba(196,32,32,0.45)',
                 color: 'var(--blood-bright)', fontFamily: 'var(--font-heading)', fontSize: 13,

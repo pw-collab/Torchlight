@@ -64,7 +64,7 @@ export function RollToasts({ rolls }: Props) {
         return (
           <div
             key={roll.id}
-            className="worn-border animate-mist-rise"
+            className="worn-border animate-slide-in-right"
             style={{
               background: bg,
               border: `1px solid ${borderColor}`,

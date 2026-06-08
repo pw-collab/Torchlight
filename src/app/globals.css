@@ -120,6 +120,134 @@ html, body {
 .animate-flicker    { animation: candleFlicker 4s ease-in-out infinite; }
 
 /* ============================================================
+   Micro-interactions — tactile feedback layer
+   ============================================================ */
+
+/* Universal press: a subtle physical sink on click/tap. */
+.tactile {
+  transition:
+    transform 90ms ease-out,
+    box-shadow 200ms var(--ease-ritual),
+    background 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+.tactile:active { transform: scale(0.96); }
+.tactile-deep:active { transform: scale(0.93); }
+
+/* Candle-glow that "lights up" on hover for primary actions. */
+.glow-hover:hover { box-shadow: var(--glow-candle); }
+.glow-hover-blood:hover { box-shadow: var(--glow-blood); }
+
+/* Card lift — rising off the table on hover. */
+.card-lift { transition: transform 250ms var(--ease-ritual), box-shadow 250ms var(--ease-ritual); }
+.card-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.55); }
+
+/* Value pulse — confirms a stat/attribute roll. */
+@keyframes valuePulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.animate-value-pulse { animation: valuePulse 420ms var(--ease-ritual) both; }
+
+/* Amber flash — momentary emphasis on text. */
+@keyframes amberFlash {
+  0%   { color: var(--candle-glow); text-shadow: 0 0 10px rgba(224,160,64,0.7); }
+  100% { color: inherit; text-shadow: none; }
+}
+.animate-amber-flash { animation: amberFlash 600ms ease-out both; }
+
+/* Luck token: ignites when gained, snuffs like a candle when spent. */
+@keyframes tokenIgnite {
+  0%   { transform: scale(0.2); opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes tokenSnuff {
+  0%   { transform: scale(1); filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+  35%  { transform: scale(1.18); }
+  100% { transform: scale(0.7); filter: blur(1.5px); opacity: 0.4; }
+}
+.animate-token-ignite { animation: tokenIgnite 360ms var(--ease-ritual) both; }
+.animate-token-snuff  { animation: tokenSnuff 320ms ease-in both; }
+
+/* Critical (gold radiate) / fumble (dying ember). */
+@keyframes critFlash {
+  0%, 100% { text-shadow: 0 0 24px rgba(201,168,76,0.7); }
+  50%      { text-shadow: 0 0 42px rgba(201,168,76,1), 0 0 64px rgba(224,160,64,0.55); }
+}
+@keyframes fumblePulse {
+  0%   { text-shadow: 0 0 26px rgba(196,32,32,0.85); opacity: 1; }
+  100% { text-shadow: 0 0 8px rgba(196,32,32,0.2); opacity: 0.82; }
+}
+.animate-crit   { animation: critFlash 700ms ease-in-out 2; }
+.animate-fumble { animation: fumblePulse 900ms ease-out both; }
+
+/* Tremor — pairs with crit/fumble for impact. */
+@keyframes shakeX {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.animate-shake { animation: shakeX 420ms ease-in-out both; }
+
+/* HP damage / heal flash. */
+@keyframes damageFlash {
+  0%   { color: var(--blood-bright); transform: scale(1.14); }
+  100% { color: var(--parchment-light); transform: scale(1); }
+}
+@keyframes healFlash {
+  0%   { color: var(--verdigris-light); transform: scale(1.14); }
+  100% { color: var(--parchment-light); transform: scale(1); }
+}
+.animate-damage { animation: damageFlash 520ms ease-out both; }
+.animate-heal   { animation: healFlash 520ms ease-out both; }
+
+/* Toast slide-in from the right; dissolve handled on exit. */
+@keyframes slideInRight {
+  0%   { opacity: 0; transform: translateX(26px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-right { animation: slideInRight 320ms var(--ease-ritual) both; }
+
+/* Dropdown that unfurls from its top edge. */
+@keyframes dropIn {
+  0%   { opacity: 0; transform: scaleY(0.72) translateY(-6px); }
+  100% { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+.animate-drop-in { animation: dropIn 180ms var(--ease-ritual) both; transform-origin: top center; }
+
+/* Wax-seal stamp — auto-save confirmation. */
+@keyframes sealStamp {
+  0%   { opacity: 0; transform: scale(1.5) rotate(-7deg); }
+  35%  { opacity: 1; transform: scale(0.94) rotate(-7deg); }
+  55%  { transform: scale(1.02) rotate(-7deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-7deg); }
+}
+@keyframes sealFade {
+  to { opacity: 0; transform: scale(0.96) rotate(-7deg); }
+}
+.animate-seal { animation: sealStamp 380ms var(--ease-ritual) both, sealFade 400ms ease-in 1400ms forwards; }
+
+/* Staggered list/grid entry — inkSpread with per-item delay (set inline).
+   Uses `backwards` (not `both`) so the final transform is released,
+   leaving :hover transforms (e.g. .card-lift) free to apply afterwards. */
+.stagger-item { animation: inkSpread 520ms var(--ease-ritual) backwards; }
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
    Responsive layout utilities
    ============================================================ */
 
@@ -203,9 +331,17 @@ html, body {
   cursor: pointer;
   white-space: nowrap;
 }
+.dice-formula {
+  transition: color 160ms ease, border-bottom-color 160ms ease, text-shadow 160ms ease;
+}
 .dice-formula:hover {
   color: var(--candle-glow);
   border-bottom-color: var(--candle-amber);
+  text-shadow: 0 0 6px rgba(224,160,64,0.45);
+}
+.dice-formula:active {
+  color: var(--gold-bright);
+  text-shadow: 0 0 10px rgba(201,168,76,0.7);
 }
 
 /* NPC master-detail (Outlook-style) */
