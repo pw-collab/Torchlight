@@ -300,13 +300,13 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
 
+      // RLS enforces ownership: players can only delete own chars,
+      // GMs can delete any char (characters_delete_gm_all policy).
       const { error } = await supabase
         .from('characters')
         .delete()
         .eq('id', char.id)
-        .eq('user_id', discordId)
 
       if (!error) {
         setCharacters(prev => prev.filter(c => c.id !== char.id))
