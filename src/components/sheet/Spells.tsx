@@ -6,6 +6,7 @@ import type { Spell } from '@/data/spells/index'
 import { rollDie, modifier } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
+import { TarotCard } from '@/components/shared/TarotCard'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -348,147 +349,106 @@ export function Spells({
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="tarot-grid">
           {equippedSpells.map(id => {
             const spell   = getSpell(id) ?? available.find(s => s.id === id)
             const isOpen  = expanded === id
             const isFailed = failedSpells.includes(id)
 
-            return (
-              <div
-                key={id}
-                className="worn-border"
-                style={{
-                  background: isFailed ? 'rgba(80,20,20,0.18)' : 'rgba(42,26,58,0.2)',
-                  border: `1px solid ${isFailed ? 'rgba(139,21,21,0.4)' : 'rgba(107,78,138,0.25)'}`,
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  opacity: isFailed ? 0.75 : 1,
-                  transition: 'all 250ms',
-                }}
-              >
-                {/* Card header */}
-                <div
-                  onClick={() => spell && !isFailed && setExpanded(isOpen ? null : id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', cursor: spell && !isFailed ? 'pointer' : 'default', userSelect: 'none' }}
-                >
-                  {spell && (
-                    <span style={{
-                      fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700,
-                      color: isFailed ? 'rgba(139,21,21,0.7)' : '#6B4E8A',
-                      background: isFailed ? 'rgba(139,21,21,0.12)' : 'rgba(107,78,138,0.15)',
-                      border: `1px solid ${isFailed ? 'rgba(139,21,21,0.3)' : 'rgba(107,78,138,0.3)'}`,
-                      padding: '1px 5px', borderRadius: 1, flexShrink: 0,
-                    }}>
-                      {TIER_LABEL[spell.tier - 1] ?? spell.tier}
-                    </span>
-                  )}
-                  <span style={{ flex: 1, fontFamily: 'var(--font-heading)', fontSize: 11, color: isFailed ? 'rgba(139,21,21,0.7)' : '#8B6AAA', letterSpacing: '0.04em' }}>
-                    {spell?.name ?? id}
-                  </span>
+            const accent     = isFailed ? 'var(--blood-bright)' : '#8B6AAA'
+            const accentSoft = isFailed ? 'rgba(139,21,21,0.35)' : 'rgba(107,78,138,0.38)'
 
-                  {/* Failed badge + recovery button */}
-                  {isFailed && (
-                    <>
-                      <span style={{
-                        fontFamily: 'var(--font-mono)', fontSize: 7.5, fontWeight: 700,
-                        color: 'var(--blood-bright)', background: 'rgba(139,21,21,0.18)',
-                        border: '1px solid rgba(139,21,21,0.4)', padding: '1px 6px',
-                        borderRadius: 1, letterSpacing: '0.1em', flexShrink: 0,
-                      }}>
-                        FALHOU
-                      </span>
+            const smallBtn = (variant: 'mist' | 'green'): React.CSSProperties => ({
+              fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              background: variant === 'mist' ? 'rgba(42,26,58,0.6)' : 'rgba(42,80,69,0.3)',
+              border: `1px solid ${variant === 'mist' ? 'rgba(107,78,138,0.4)' : 'rgba(61,112,96,0.45)'}`,
+              color: variant === 'mist' ? '#8B6AAA' : 'var(--verdigris-light)',
+              padding: '4px 8px', borderRadius: 2, cursor: 'pointer',
+              whiteSpace: 'nowrap', transition: 'all 200ms',
+            })
+
+            return (
+              <TarotCard
+                key={id}
+                numeral={spell ? (TIER_LABEL[spell.tier - 1] ?? String(spell.tier)) : '·'}
+                glyph="☽"
+                title={spell?.name ?? id}
+                subtitle={spell ? `${spell.school ?? 'Arcano'} · DC ${10 + spell.tier}` : 'Arcano'}
+                accent={accent}
+                accentSoft={accentSoft}
+                dimmed={isFailed}
+                expanded={isOpen}
+                onToggle={spell ? () => setExpanded(isOpen ? null : id) : undefined}
+                corner={onSpellsChange ? (
+                  <button
+                    onClick={() => forgetSpell(id)}
+                    title="Esquecer magia"
+                    style={{
+                      background: 'none', border: 'none',
+                      color: 'rgba(139,21,21,0.45)', fontSize: 10,
+                      cursor: 'pointer', lineHeight: 1, padding: 2,
+                      transition: 'color 180ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                  >
+                    ✕
+                  </button>
+                ) : undefined}
+                badges={
+                  <>
+                    {isFailed && (
+                      <>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)', fontSize: 7.5, fontWeight: 700,
+                          color: 'var(--blood-bright)', background: 'rgba(139,21,21,0.18)',
+                          border: '1px solid rgba(139,21,21,0.4)', padding: '1px 6px',
+                          borderRadius: 1, letterSpacing: '0.1em',
+                        }}>
+                          FALHOU
+                        </span>
+                        <button
+                          onClick={() => setFailedSpells(fs => fs.filter(s => s !== id))}
+                          title="Recuperar magia"
+                          style={smallBtn('green')}
+                        >
+                          ↺ Recuperar
+                        </button>
+                      </>
+                    )}
+                    {spell && onRoll && stats && !isFailed && (
                       <button
-                        onClick={e => { e.stopPropagation(); setFailedSpells(fs => fs.filter(s => s !== id)) }}
-                        title="Recuperar magia"
-                        style={{
-                          fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
-                          textTransform: 'uppercase', background: 'rgba(42,80,69,0.3)',
-                          border: '1px solid rgba(61,112,96,0.45)', color: 'var(--verdigris-light)',
-                          padding: '4px 8px', borderRadius: 2, cursor: 'pointer',
-                          whiteSpace: 'nowrap', transition: 'all 200ms', flexShrink: 0,
+                        onClick={() => {
+                          const castMod = modifier(stats[castingAttr] ?? 10) + spellcastingBonus
+                          const spellDC = 10 + spell.tier
+                          const result  = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
+                          result.isCritical = result.result === 20
+                          result.isFumble   = result.result === 1
+                          onRoll(result)
+                          if (result.total < spellDC) {
+                            setFailedSpells(fs => [...fs, id])
+                          }
                         }}
+                        style={smallBtn('mist')}
                         onMouseEnter={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,80,69,0.5)'
-                          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(61,112,96,0.7)'
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,78,138,0.3)'
+                          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
                         }}
                         onMouseLeave={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,80,69,0.3)'
-                          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(61,112,96,0.45)'
+                          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,26,58,0.6)'
+                          ;(e.currentTarget as HTMLButtonElement).style.color = '#8B6AAA'
                         }}
                       >
-                        ↺ Recuperar
+                        ☽ Conjurar
                       </button>
-                    </>
-                  )}
-
-                  {/* Cast button */}
-                  {spell && onRoll && stats && !isFailed && (
-                    <button
-                      onClick={e => {
-                        e.stopPropagation()
-                        const castMod = modifier(stats[castingAttr] ?? 10) + spellcastingBonus
-                        const spellDC = 10 + spell.tier
-                        const result  = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
-                        result.isCritical = result.result === 20
-                        result.isFumble   = result.result === 1
-                        onRoll(result)
-                        if (result.total < spellDC) {
-                          setFailedSpells(fs => [...fs, id])
-                        }
-                      }}
-                      style={{
-                        fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
-                        textTransform: 'uppercase', background: 'rgba(42,26,58,0.6)',
-                        border: '1px solid rgba(107,78,138,0.4)', color: '#8B6AAA',
-                        padding: '4px 8px', borderRadius: 2, cursor: 'pointer',
-                        whiteSpace: 'nowrap', transition: 'all 200ms',
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,78,138,0.3)'
-                        ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,26,58,0.6)'
-                        ;(e.currentTarget as HTMLButtonElement).style.color = '#8B6AAA'
-                      }}
-                    >
-                      ☽ Conjurar
-                    </button>
-                  )}
-
-                  {/* Forget button */}
-                  {onSpellsChange && (
-                    <button
-                      onClick={e => { e.stopPropagation(); forgetSpell(id) }}
-                      title="Esquecer magia"
-                      style={{
-                        background: 'none', border: 'none',
-                        color: 'rgba(139,21,21,0.45)', fontSize: 11,
-                        cursor: 'pointer', lineHeight: 1, padding: '0 2px',
-                        transition: 'color 180ms', flexShrink: 0,
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-                      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
-                    >
-                      ✕
-                    </button>
-                  )}
-
-                  {spell && !isFailed && (
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)', flexShrink: 0 }}>
-                      {isOpen ? '▲' : '▼'}
-                    </span>
-                  )}
-                </div>
-
-                {/* Expanded details */}
-                {spell && isOpen && (
-                  <div
-                    style={{ padding: '0 12px 10px', borderTop: '1px solid rgba(107,78,138,0.15)', animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both' }}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', gap: 14, marginTop: 8, marginBottom: 7, flexWrap: 'wrap' }}>
+                    )}
+                  </>
+                }
+              >
+                {spell && (
+                  <>
+                    <div style={{ display: 'flex', gap: 14, marginBottom: 7, flexWrap: 'wrap' }}>
                       {([
                         { label: 'Alcance',    value: spell.range },
                         { label: 'Duração',    value: spell.duration },
@@ -506,12 +466,12 @@ export function Spells({
                         </div>
                       ) : null)}
                     </div>
-                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, whiteSpace: 'pre-line', margin: 0 }}>
                       {spell.description}
                     </p>
-                  </div>
+                  </>
                 )}
-              </div>
+              </TarotCard>
             )
           })}
         </div>

@@ -7,6 +7,7 @@ import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
+import { TarotCard, roman } from '@/components/shared/TarotCard'
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -451,77 +452,101 @@ function CatalogPickerModal({ onAdd, onClose }: {
   )
 }
 
-function ItemRow({ item, last, onEdit, onRemove, onEquipToggle, onConsume, onOpen }: {
+const TYPE_LABEL: Record<ItemType, string> = {
+  weapon: 'Arma', armor: 'Armadura', shield: 'Escudo',
+  gear: 'Equipamento', treasure: 'Tesouro', document: 'Documento',
+}
+
+const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
+  weapon:   { color: 'var(--blood-bright)',    soft: 'rgba(139,21,21,0.38)' },
+  armor:    { color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)' },
+  shield:   { color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)' },
+  gear:     { color: 'var(--bone-muted)',      soft: 'rgba(139,112,48,0.35)' },
+  treasure: { color: 'var(--gold-bright)',     soft: 'rgba(201,168,76,0.35)' },
+  document: { color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)' },
+}
+
+function ItemRow({ item, index, onEdit, onRemove, onEquipToggle, onConsume, onOpen }: {
   item: InventoryItem
-  last: boolean
+  index: number
   onEdit: () => void
   onRemove: () => void
   onEquipToggle?: () => void
   onConsume?: () => void
   onOpen?: () => void
 }) {
-  const [hov, setHov] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const accent = TYPE_ACCENT[item.type] ?? TYPE_ACCENT.gear
+
+  const meta = [
+    `${item.slots} slot${item.slots !== 1 ? 's' : ''}`,
+    item.quantity > 1 ? `×${item.quantity}` : null,
+    item.damageDie || null,
+    item.acBonus ? `CA ${item.acBonus}` : null,
+    item.isLight && item.lightMinutesLeft != null ? `${item.lightMinutesLeft}min` : null,
+    item.cost || null,
+  ].filter(Boolean).join(' · ')
+
+  const tag = (label: string, color: string, bg: string, border: string) => (
+    <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, background: bg, border: `1px solid ${border}`, padding: '1px 5px', borderRadius: 1 }}>
+      {label}
+    </span>
+  )
+
   return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '8px 0',
-        borderBottom: last ? 'none' : '1px solid rgba(139,112,48,0.1)',
-        background: hov ? 'rgba(139,112,48,0.04)' : 'none',
-        borderRadius: 1,
-        transition: 'background 200ms',
-      }}
-    >
-      <span style={{ fontSize: 12, flexShrink: 0 }}>
-        {item.isLight
-          ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
-          : ITEM_ICON[item.type] ?? '⚗'}
-      </span>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', fontWeight: 500 }}>
-            {item.name}
+    <TarotCard
+      numeral={roman(index + 1)}
+      glyph={item.isLight
+        ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
+        : ITEM_ICON[item.type] ?? '⚗'}
+      title={item.name}
+      subtitle={TYPE_LABEL[item.type] ?? item.type}
+      accent={accent.color}
+      accentSoft={accent.soft}
+      expanded={expanded}
+      onToggle={() => setExpanded(e => !e)}
+      corner={
+        <button
+          onClick={onRemove}
+          title="Remover item"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(139,21,21,0.5)', fontSize: 10, padding: 2, lineHeight: 1,
+            transition: 'color 180ms',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.5)')}
+        >
+          ✕
+        </button>
+      }
+      badges={
+        <>
+          {item.equipped && tag('Equipado', 'var(--verdigris-light)', 'rgba(42,80,69,0.2)', 'rgba(42,80,69,0.35)')}
+          {item.isLit && tag('Acesa', 'var(--candle-amber)', 'rgba(196,120,42,0.12)', 'rgba(196,120,42,0.3)')}
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', textAlign: 'center' }}>
+            {meta}
           </span>
-          {item.equipped && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'rgba(42,80,69,0.2)', border: '1px solid rgba(42,80,69,0.35)', padding: '1px 5px', borderRadius: 1 }}>
-              Equipado
-            </span>
-          )}
-          {item.isLit && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'rgba(196,120,42,0.12)', border: '1px solid rgba(196,120,42,0.3)', padding: '1px 5px', borderRadius: 1 }}>
-              Acesa
-            </span>
-          )}
-        </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', marginTop: 2 }}>
-          {item.slots} slot{item.slots !== 1 ? 's' : ''}
-          {item.quantity > 1 ? ` · ×${item.quantity}` : ''}
-          {item.damageDie ? ` · ${item.damageDie}` : ''}
-          {item.acBonus ? ` · CA ${item.acBonus}` : ''}
-          {item.isLight && item.lightMinutesLeft != null ? ` · ${item.lightMinutesLeft}min` : ''}
-          {item.cost ? ` · ${item.cost}` : ''}
-        </div>
-      </div>
-
-      {hov && (
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-          {onOpen && <button onClick={onOpen} style={quickBtnStyle('dark')}>Ler</button>}
-          {onConsume && <button onClick={onConsume} style={quickBtnStyle('green')}>Consumir</button>}
-          <button onClick={onEdit} style={quickBtnStyle('dark')}>✎</button>
-          {onEquipToggle && (
-            <button onClick={onEquipToggle} style={quickBtnStyle(item.equipped ? 'amber' : 'mist')}>
-              {item.equipped ? 'Desequipar' : 'Equipar'}
-            </button>
-          )}
-          <button onClick={onRemove} style={quickBtnStyle('danger')}>✕</button>
-        </div>
+        </>
+      }
+    >
+      {item.description && item.description !== '-' && (
+        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, margin: '0 0 8px' }}>
+          {item.description}
+        </p>
       )}
-    </div>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        {onOpen && <button onClick={onOpen} style={quickBtnStyle('dark')}>Ler</button>}
+        {onConsume && <button onClick={onConsume} style={quickBtnStyle('green')}>Consumir</button>}
+        <button onClick={onEdit} style={quickBtnStyle('dark')}>✎ Editar</button>
+        {onEquipToggle && (
+          <button onClick={onEquipToggle} style={quickBtnStyle(item.equipped ? 'amber' : 'mist')}>
+            {item.equipped ? 'Desequipar' : 'Equipar'}
+          </button>
+        )}
+        <button onClick={onRemove} style={quickBtnStyle('danger')}>✕ Remover</button>
+      </div>
+    </TarotCard>
   )
 }
 
@@ -995,29 +1020,30 @@ export function InventoryView({
               Nenhum item registrado no arquivo.
             </p>
           ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <div className="tarot-grid">
               {inventory.map((item, i) => (
-                <li key={item.id}>
-                  {editingId === item.id ? (
+                editingId === item.id ? (
+                  <div key={item.id} style={{ gridColumn: '1 / -1' }}>
                     <EditItemForm
                       item={item}
                       onSave={updated => { updateItem(item.id, updated); setEditingId(null) }}
                       onCancel={() => setEditingId(null)}
                     />
-                  ) : (
-                    <ItemRow
-                      item={item}
-                      last={i === inventory.length - 1}
-                      onEdit={() => setEditingId(item.id)}
-                      onRemove={() => removeItem(item.id)}
-                      onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
-                      onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
-                      onOpen={item.type === 'document' ? () => setBookViewItem(item) : undefined}
-                    />
-                  )}
-                </li>
+                  </div>
+                ) : (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    index={i}
+                    onEdit={() => setEditingId(item.id)}
+                    onRemove={() => removeItem(item.id)}
+                    onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
+                    onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
+                    onOpen={item.type === 'document' ? () => setBookViewItem(item) : undefined}
+                  />
+                )
               ))}
-            </ul>
+            </div>
           )}
         </div>
 

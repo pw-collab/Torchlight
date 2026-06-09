@@ -246,6 +246,20 @@ html, body {
 .animate-flame      { animation: flameDance 1.6s ease-in-out infinite; display: inline-block; }
 .animate-torch-halo { animation: torchHalo 2.2s ease-in-out infinite; }
 
+/* Tarot card grid — talents, techniques, inventory and spells. */
+.tarot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+.tarot-card {
+  transition: transform 260ms var(--ease-ritual), box-shadow 260ms var(--ease-ritual), opacity 260ms;
+}
+.tarot-card:hover { transform: translateY(-3px); }
+.tarot-card--expanded { grid-column: 1 / -1; }
+.tarot-card--expanded:hover { transform: none; }
+
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
    leaving :hover transforms (e.g. .card-lift) free to apply afterwards. */
