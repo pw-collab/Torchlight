@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -14,6 +14,7 @@ import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
+import { FloatingTorch } from '@/components/sheet/FloatingTorch'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
@@ -25,6 +26,7 @@ import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
+import { AvatarUpload } from '@/components/sheet/AvatarUpload'
 
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
@@ -65,6 +67,38 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       total: result.total,
     })
   }, [playerName])
+
+  // Light-source burn-down: lives here (not in InventoryView) so lit torches
+  // keep counting down regardless of which tab is open.
+  const inventoryRef = useRef<InventoryItem[]>([])
+  const updateRef = useRef(updateCharacter)
+  const playerRef = useRef(playerName)
+  useEffect(() => { inventoryRef.current = character?.inventory ?? [] }, [character?.inventory])
+  useEffect(() => { updateRef.current = updateCharacter }, [updateCharacter])
+  useEffect(() => { playerRef.current = playerName }, [playerName])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const inv = inventoryRef.current
+      if (!inv.some(i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0)) return
+
+      let burnedOut = false
+      const updated = inv.map(item => {
+        if (!item.equipped || !item.isLight || !item.isLit) return item
+        const mins = (item.lightMinutesLeft ?? 0) - 1
+        if (mins <= 0) {
+          burnedOut = true
+          return { ...item, isLit: false, lightMinutesLeft: 0 }
+        }
+        return { ...item, lightMinutesLeft: mins }
+      })
+
+      updateRef.current({ equipment: updated as any } as Partial<CharacterRow>)
+      if (burnedOut) sendToDiscord({ type: 'torch_out', player: playerRef.current })
+    }, 60_000)
+
+    return () => clearInterval(id)
+  }, [])
 
   if (loading) {
     return (
@@ -161,62 +195,76 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
         {/* Character header */}
         <div style={{ padding: isMobile ? '12px 0 14px' : '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-            <h1 style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: isMobile ? 24 : 32,
-              fontWeight: 400,
-              color: 'var(--parchment-pale)',
-              letterSpacing: '0.05em',
-              lineHeight: 1.1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: isMobile ? 180 : 'none',
-            }}>
-              {character.name}
-            </h1>
-            <Link
-              href={`/sheet/${characterId}/edit`}
-              title="Editar personagem"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                background: 'rgba(42,34,16,0.4)',
-                border: '1px solid rgba(139,112,48,0.28)',
-                color: 'var(--bone-muted)',
-                fontFamily: 'var(--font-body)',
-                fontSize: 13,
-                borderRadius: 1,
-                padding: isMobile ? '10px 14px' : '5px 10px',
-                textDecoration: 'none',
-                transition: 'all 250ms',
-                minHeight: 44,
-                flexShrink: 0,
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = 'var(--parchment-light)'
-                e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = 'var(--bone-muted)'
-                e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
-              }}
-            >
-              ✎ Editar
-            </Link>
-            {!isMobile && (
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
-                FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
-              </span>
-            )}
-          </div>
-          {/* Subtitle + inline XP bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-            </p>
-            <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 14 }}>
+            {/* Avatar frame */}
+            <AvatarUpload
+              characterId={characterId}
+              portraitUrl={character.portraitUrl}
+              size={isMobile ? 72 : 96}
+              onUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
+            />
+
+            {/* Name + meta */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                <h1 style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: isMobile ? 22 : 30,
+                  fontWeight: 400,
+                  color: 'var(--parchment-pale)',
+                  letterSpacing: '0.05em',
+                  lineHeight: 1.1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: isMobile ? 160 : 'none',
+                  margin: 0,
+                }}>
+                  {character.name}
+                </h1>
+                <Link
+                  href={`/sheet/${characterId}/edit`}
+                  title="Editar personagem"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    background: 'rgba(42,34,16,0.4)',
+                    border: '1px solid rgba(139,112,48,0.28)',
+                    color: 'var(--bone-muted)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 13,
+                    borderRadius: 1,
+                    padding: isMobile ? '10px 14px' : '5px 10px',
+                    textDecoration: 'none',
+                    transition: 'all 250ms',
+                    minHeight: 44,
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = 'var(--parchment-light)'
+                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = 'var(--bone-muted)'
+                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
+                  }}
+                >
+                  ✎ Editar
+                </Link>
+                {!isMobile && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                    FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {/* Subtitle + inline XP bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0, margin: 0 }}>
+                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+                </p>
+                <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -362,6 +410,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
+      <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />

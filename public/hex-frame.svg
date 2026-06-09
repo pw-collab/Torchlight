@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <!-- Per-face gradients for realistic metallic bevel (light from upper-right) -->
+    <linearGradient id="f1" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#D4AA3C"/>
+      <stop offset="100%" stop-color="#B08828"/>
+    </linearGradient>
+    <linearGradient id="f2" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%"   stop-color="#B89030"/>
+      <stop offset="100%" stop-color="#9A7420"/>
+    </linearGradient>
+    <linearGradient id="f3" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#9A7020"/>
+      <stop offset="100%" stop-color="#7A5415"/>
+    </linearGradient>
+    <linearGradient id="f4" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#7A5215"/>
+      <stop offset="100%" stop-color="#9A6C1C"/>
+    </linearGradient>
+    <linearGradient id="f5" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#9A6C1C"/>
+      <stop offset="100%" stop-color="#C49028"/>
+    </linearGradient>
+    <linearGradient id="f6" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#D4AA3C"/>
+      <stop offset="45%"  stop-color="#F0D060"/>
+      <stop offset="100%" stop-color="#DEB840"/>
+    </linearGradient>
+    <!-- Drop shadow -->
+    <filter id="sh" x="-14%" y="-14%" width="128%" height="142%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="5"/>
+      <feOffset dx="0" dy="5" result="b"/>
+      <feFlood flood-color="#000" flood-opacity="0.48" result="c"/>
+      <feComposite in="c" in2="b" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#sh)">
+    <!-- Outer hex ring: 6 trapezoidal faces -->
+    <!-- Outer vertices: top(100,8) ur(180,54) lr(180,146) bt(100,192) ll(20,146) ul(20,54)  -->
+    <!-- Inner vertices: top(100,30) ur(161,65) lr(161,135) bt(100,170) ll(39,135) ul(39,65) -->
+
+    <!-- Face 1: upper-left — medium gold -->
+    <polygon points="100,8 20,54 39,65 100,30"  fill="url(#f1)"/>
+    <!-- Face 2: left — dim gold -->
+    <polygon points="20,54 20,146 39,135 39,65"  fill="url(#f2)"/>
+    <!-- Face 3: lower-left — dark -->
+    <polygon points="20,146 100,192 100,170 39,135" fill="url(#f3)"/>
+    <!-- Face 4: lower-right — darkest -->
+    <polygon points="100,192 180,146 161,135 100,170" fill="url(#f4)"/>
+    <!-- Face 5: right — medium-dark -->
+    <polygon points="180,146 180,54 161,65 161,135" fill="url(#f5)"/>
+    <!-- Face 6: upper-right — bright (closest to light source) -->
+    <polygon points="180,54 100,8 100,30 161,65"  fill="url(#f6)"/>
+
+    <!-- Outer edge rim — thin bright line on lit faces -->
+    <polyline points="100,8 180,54" stroke="#F8E498" stroke-width="1.2" stroke-opacity="0.55" fill="none"/>
+    <!-- Outer edge rim — thin dark line on shadow faces -->
+    <polyline points="100,192 20,146 20,54" stroke="#4A3008" stroke-width="1" stroke-opacity="0.4" fill="none"/>
+
+    <!-- Inner edge: bright rim on lit faces -->
+    <polyline points="100,30 161,65"  stroke="#F8E498" stroke-width="1.5" stroke-opacity="0.65" fill="none"/>
+    <polyline points="100,30 39,65"   stroke="#D4A840" stroke-width="1"   stroke-opacity="0.45" fill="none"/>
+    <!-- Inner edge: shadow rim on dark faces -->
+    <polyline points="39,135 100,170" stroke="#2A1A05" stroke-width="1.5" stroke-opacity="0.55" fill="none"/>
+    <polyline points="161,135 100,170" stroke="#1A0E02" stroke-width="1"  stroke-opacity="0.5"  fill="none"/>
+
+    <!-- Specular highlight (top-right corner bright spot) -->
+    <ellipse cx="156" cy="36" rx="18" ry="8" fill="white" opacity="0.14" transform="rotate(-30 156 36)"/>
+
+    <!-- Thin inner-face rim (extra depth) -->
+    <polygon points="100,30 161,65 161,135 100,170 39,135 39,65"
+      fill="none" stroke="#5A3C10" stroke-width="0.8" stroke-opacity="0.4"/>
+    <!-- Thin outer-face rim -->
+    <polygon points="100,8 180,54 180,146 100,192 20,146 20,54"
+      fill="none" stroke="#F0D060" stroke-width="0.8" stroke-opacity="0.2"/>
+  </g>
+</svg>
