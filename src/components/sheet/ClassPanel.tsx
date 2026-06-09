@@ -6,6 +6,7 @@ import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
+import { TarotCard, roman } from '@/components/shared/TarotCard'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -444,21 +445,23 @@ function SpellLikeSection({
 
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
-const KIND_BADGE: Record<TechniqueKind, { label: string; color: string; bg: string }> = {
-  passive:      { label: 'Passivo',     color: 'rgba(107,78,138,0.8)',  bg: 'rgba(42,26,58,0.3)' },
-  choice:       { label: 'Escolha',     color: 'var(--candle-amber)',   bg: 'rgba(106,58,10,0.2)' },
-  limited_use:  { label: 'Usos',        color: 'var(--blood-bright)',   bg: 'rgba(139,21,21,0.15)' },
-  spell_like:   { label: 'Ativação',    color: 'var(--verdigris-light)', bg: 'rgba(42,80,69,0.2)' },
+const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
+  passive:      { label: 'Passivo',  color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)', glyph: '☿' },
+  choice:       { label: 'Escolha',  color: 'var(--candle-amber)',    soft: 'rgba(196,120,42,0.35)', glyph: '⚖' },
+  limited_use:  { label: 'Usos',     color: 'var(--blood-bright)',    soft: 'rgba(139,21,21,0.38)',  glyph: '⌛' },
+  spell_like:   { label: 'Ativação', color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)',   glyph: '☽' },
 }
 
 function TechniqueCard({
   technique,
+  index,
   state,
   stats,
   onStateChange,
   onRoll,
 }: {
   technique: ClassTechnique
+  index: number
   state: TechniqueState
   stats: Record<string, number>
   onStateChange: (s: TechniqueState) => void
@@ -466,17 +469,17 @@ function TechniqueCard({
 }) {
   const [open, setOpen] = useState(false)
   const kind: TechniqueKind = technique.kind ?? 'passive'
-  const badge = KIND_BADGE[kind]
+  const style = KIND_STYLE[kind]
 
-  // Inline summary shown in the collapsed header for some kinds
-  const headerExtra = (() => {
+  // Always-visible status pinned to the card bottom
+  const badges = (() => {
     if (kind === 'choice' && state.choice) {
       const cfg = technique.choice!
       const label = cfg.options?.find(o => o.value === state.choice)?.label ?? state.choice
       return (
         <span style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 9,
+          fontSize: 8,
           color: 'var(--candle-amber)',
           background: 'rgba(106,58,10,0.18)',
           border: '1px solid rgba(196,120,42,0.25)',
@@ -501,109 +504,70 @@ function TechniqueCard({
         </span>
       )
     }
+    if (kind === 'spell_like' && technique.spellLike) {
+      const expended = state.expendedAbilities?.length ?? 0
+      const total = technique.spellLike.abilities.length
+      return (
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: expended > 0 ? 'var(--blood-bright)' : 'var(--verdigris-light)' }}>
+          {total - expended}/{total} disponíveis
+        </span>
+      )
+    }
     return null
   })()
 
   return (
-    <div
-      className="worn-border"
-      style={{
-        overflow: 'hidden',
-      }}
+    <TarotCard
+      numeral={roman(index + 1)}
+      glyph={style.glyph}
+      title={technique.name}
+      subtitle={style.label}
+      accent={style.color}
+      accentSoft={style.soft}
+      expanded={open}
+      onToggle={() => setOpen(o => !o)}
+      badges={badges}
     >
-      {/* Header */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          background: 'none',
-          border: 'none',
-          padding: '8px 10px',
-          cursor: 'pointer',
-          textAlign: 'left',
-          gap: 8,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, flex: 1, minWidth: 0 }}>
-          <span style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 12,
-            color: 'var(--candle-amber)',
-          }}>
-            {technique.name}
-          </span>
-          {/* Kind badge */}
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 6.5,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: badge.color,
-            background: badge.bg,
-            border: `1px solid ${badge.color}40`,
-            padding: '1px 5px',
-            flexShrink: 0,
-          }}>
-            {badge.label}
-          </span>
-          {headerExtra}
-        </div>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)', flexShrink: 0 }}>
-          {open ? '▲' : '▼'}
-        </span>
-      </button>
+      <p style={{
+        fontFamily: 'var(--font-body)',
+        fontStyle: 'italic',
+        fontSize: 11,
+        color: 'var(--bone-muted)',
+        lineHeight: 1.6,
+        margin: 0,
+      }}>
+        <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
+      </p>
 
-      {/* Body */}
-      {open && (
-        <div
-          style={{ padding: '0 10px 10px', borderTop: '1px solid rgba(139,112,48,0.12)' }}
-          onClick={e => e.stopPropagation()}
-        >
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            color: 'var(--bone-muted)',
-            lineHeight: 1.6,
-            marginTop: 8,
-          }}>
-            <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
-          </p>
-
-          {/* Kind-specific UI */}
-          {kind === 'passive' && technique.modifier && (
-            <PassiveModifierLine technique={technique} stats={stats} />
-          )}
-          {kind === 'choice' && technique.choice && (
-            <ChoiceSection technique={technique} state={state} onChange={onStateChange} />
-          )}
-          {kind === 'limited_use' && technique.uses && (
-            <UsePips
-              max={technique.uses.max}
-              remaining={state.usesRemaining ?? technique.uses.max}
-              perLabel={technique.uses.perLabel}
-              onUse={() => {
-                const cur = state.usesRemaining ?? technique.uses!.max
-                if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
-              }}
-              onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
-            />
-          )}
-          {kind === 'spell_like' && technique.spellLike && (
-            <SpellLikeSection
-              technique={technique}
-              state={state}
-              stats={stats}
-              onChange={onStateChange}
-              onRoll={onRoll}
-            />
-          )}
-        </div>
+      {/* Kind-specific UI */}
+      {kind === 'passive' && technique.modifier && (
+        <PassiveModifierLine technique={technique} stats={stats} />
       )}
-    </div>
+      {kind === 'choice' && technique.choice && (
+        <ChoiceSection technique={technique} state={state} onChange={onStateChange} />
+      )}
+      {kind === 'limited_use' && technique.uses && (
+        <UsePips
+          max={technique.uses.max}
+          remaining={state.usesRemaining ?? technique.uses.max}
+          perLabel={technique.uses.perLabel}
+          onUse={() => {
+            const cur = state.usesRemaining ?? technique.uses!.max
+            if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
+          }}
+          onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
+        />
+      )}
+      {kind === 'spell_like' && technique.spellLike && (
+        <SpellLikeSection
+          technique={technique}
+          state={state}
+          stats={stats}
+          onChange={onStateChange}
+          onRoll={onRoll}
+        />
+      )}
+    </TarotCard>
   )
 }
 
@@ -713,11 +677,12 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
           <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
             Técnicas
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            {activeTechniques.map(t => (
+          <div className="tarot-grid">
+            {activeTechniques.map((t, i) => (
               <TechniqueCard
                 key={t.id}
                 technique={t}
+                index={i}
                 state={getState(techniqueStates, t.id)}
                 stats={stats}
                 onStateChange={handleTechniqueState}

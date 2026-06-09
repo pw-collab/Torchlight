@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
+import { TarotCard, roman } from '@/components/shared/TarotCard'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -11,10 +12,16 @@ const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   general: 'Geral',
 }
 
-const ORIGIN_COLOR: Record<TalentOrigin, string> = {
-  ancestry: 'var(--verdigris-light)',
-  class: 'var(--candle-amber)',
-  general: 'var(--bone-muted)',
+const ORIGIN_ACCENT: Record<TalentOrigin, { color: string; soft: string }> = {
+  ancestry: { color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)' },
+  class:    { color: 'var(--candle-amber)',    soft: 'rgba(196,120,42,0.35)' },
+  general:  { color: 'var(--bone-muted)',      soft: 'rgba(139,112,48,0.35)' },
+}
+
+const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
+  ancestry: '⚘',
+  class: '⚔',
+  general: '✦',
 }
 
 interface Props {
@@ -25,6 +32,7 @@ interface Props {
 
 export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   const [adding, setAdding] = useState(false)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', origin: 'general' as TalentOrigin, description: '' })
 
   function addTalent() {
@@ -140,89 +148,70 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
           Nenhum talento registrado nos arquivos.
         </p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <div className="tarot-grid">
           {talents.map((t, i) => (
-            <TalentRow
+            <TalentCard
               key={t.id}
               talent={t}
-              last={i === talents.length - 1}
+              index={i}
+              expanded={expandedId === t.id}
+              onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
               onRemove={() => removeTalent(t.id)}
               onRoll={onRoll}
             />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
 }
 
-function TalentRow({ talent, last, onRemove, onRoll }: { talent: Talent; last: boolean; onRemove: () => void; onRoll?: (r: RollResult) => void }) {
-  const [hov, setHov] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+function TalentCard({ talent, index, expanded, onToggle, onRemove, onRoll }: {
+  talent: Talent
+  index: number
+  expanded: boolean
+  onToggle: () => void
+  onRemove: () => void
+  onRoll?: (r: RollResult) => void
+}) {
+  const accent = ORIGIN_ACCENT[talent.origin]
 
   return (
-    <li
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        padding: '8px 0',
-        borderBottom: last ? 'none' : '1px solid rgba(139,112,48,0.1)',
-        minHeight: '36px',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          color: ORIGIN_COLOR[talent.origin],
-          background: `${ORIGIN_COLOR[talent.origin]}18`,
-          border: `1px solid ${ORIGIN_COLOR[talent.origin]}40`,
-          padding: '2px 6px',
-          flexShrink: 0,
-        }}>
-          {ORIGIN_LABEL[talent.origin]}
-        </span>
-
+    <TarotCard
+      numeral={roman(index + 1)}
+      glyph={ORIGIN_GLYPH[talent.origin]}
+      title={talent.name}
+      subtitle={ORIGIN_LABEL[talent.origin]}
+      accent={accent.color}
+      accentSoft={accent.soft}
+      expanded={expanded}
+      onToggle={onToggle}
+      corner={
         <button
-          onClick={() => setExpanded(e => !e)}
+          onClick={onRemove}
+          title="Remover talento"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-body)', fontSize: 12,
-            color: 'var(--parchment-light)',
-            textAlign: 'left', flex: 1, padding: 0,
+            color: 'rgba(139,21,21,0.5)', fontSize: 10, padding: 2, lineHeight: 1,
+            transition: 'color 180ms',
           }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.5)')}
         >
-          {talent.name}
+          ✕
         </button>
-
-        {hov && (
-          <button
-            onClick={onRemove}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--blood-mid)', fontSize: 10, padding: 2,
-              flexShrink: 0,
-            }}
-          >
-            ✕
-          </button>
-        )}
-      </div>
-
-      {expanded && (
-        <p style={{
-          fontFamily: 'var(--font-body)',
-          fontStyle: 'italic',
-          fontSize: 11,
-          color: 'var(--bone-muted)',
-          lineHeight: 1.6,
-          marginTop: 4,
-          paddingLeft: 12,
-          animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
-        }}>
-          <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
-        </p>
-      )}
-    </li>
+      }
+    >
+      <p style={{
+        fontFamily: 'var(--font-body)',
+        fontStyle: 'italic',
+        fontSize: 11,
+        color: 'var(--bone-muted)',
+        lineHeight: 1.6,
+        margin: 0,
+      }}>
+        <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
+      </p>
+    </TarotCard>
   )
 }
