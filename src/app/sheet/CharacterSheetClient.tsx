@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -14,6 +14,7 @@ import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
+import { FloatingTorch } from '@/components/sheet/FloatingTorch'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
@@ -66,6 +67,38 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       total: result.total,
     })
   }, [playerName])
+
+  // Light-source burn-down: lives here (not in InventoryView) so lit torches
+  // keep counting down regardless of which tab is open.
+  const inventoryRef = useRef<InventoryItem[]>([])
+  const updateRef = useRef(updateCharacter)
+  const playerRef = useRef(playerName)
+  useEffect(() => { inventoryRef.current = character?.inventory ?? [] }, [character?.inventory])
+  useEffect(() => { updateRef.current = updateCharacter }, [updateCharacter])
+  useEffect(() => { playerRef.current = playerName }, [playerName])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const inv = inventoryRef.current
+      if (!inv.some(i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0)) return
+
+      let burnedOut = false
+      const updated = inv.map(item => {
+        if (!item.equipped || !item.isLight || !item.isLit) return item
+        const mins = (item.lightMinutesLeft ?? 0) - 1
+        if (mins <= 0) {
+          burnedOut = true
+          return { ...item, isLit: false, lightMinutesLeft: 0 }
+        }
+        return { ...item, lightMinutesLeft: mins }
+      })
+
+      updateRef.current({ equipment: updated as any } as Partial<CharacterRow>)
+      if (burnedOut) sendToDiscord({ type: 'torch_out', player: playerRef.current })
+    }, 60_000)
+
+    return () => clearInterval(id)
+  }, [])
 
   if (loading) {
     return (
@@ -377,6 +410,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
+      <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />

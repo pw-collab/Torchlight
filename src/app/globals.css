@@ -232,6 +232,20 @@ html, body {
 }
 .animate-seal { animation: sealStamp 380ms var(--ease-ritual) both, sealFade 400ms ease-in 1400ms forwards; }
 
+/* Floating torch indicator — flame sways and the halo breathes. */
+@keyframes flameDance {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  25%      { transform: scale(1.08) rotate(2.5deg); }
+  50%      { transform: scale(0.95) rotate(-1deg); }
+  75%      { transform: scale(1.05) rotate(1.5deg); }
+}
+@keyframes torchHalo {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.18); }
+}
+.animate-flame      { animation: flameDance 1.6s ease-in-out infinite; display: inline-block; }
+.animate-torch-halo { animation: torchHalo 2.2s ease-in-out infinite; }
+
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
    leaving :hover transforms (e.g. .card-lift) free to apply afterwards. */

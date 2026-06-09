@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types'
 import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
@@ -739,35 +739,8 @@ export function InventoryView({
   const [replaceFor, setReplaceFor]       = useState<string | null>(null)
   const [bookViewItem, setBookViewItem]   = useState<InventoryItem | null>(null)
 
-  const inventoryRef = useRef(inventory)
-  const onUpdateRef  = useRef(onUpdate)
-  const playerRef    = useRef(playerName)
-  useEffect(() => { inventoryRef.current = inventory }, [inventory])
-  useEffect(() => { onUpdateRef.current  = onUpdate   }, [onUpdate])
-  useEffect(() => { playerRef.current    = playerName  }, [playerName])
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      const inv = inventoryRef.current
-      if (!inv.some(i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0)) return
-
-      let burnedOut = false
-      const updated = inv.map(item => {
-        if (!item.equipped || !item.isLight || !item.isLit) return item
-        const mins = (item.lightMinutesLeft ?? 0) - 1
-        if (mins <= 0) {
-          burnedOut = true
-          return { ...item, isLit: false, lightMinutesLeft: 0 }
-        }
-        return { ...item, lightMinutesLeft: mins }
-      })
-
-      onUpdateRef.current(updated)
-      if (burnedOut) sendToDiscord({ type: 'torch_out', player: playerRef.current })
-    }, 60_000)
-
-    return () => clearInterval(id)
-  }, [])
+  // NOTE: light-source burn-down now lives in CharacterSheetClient so it
+  // keeps ticking on every tab, not only while the inventory is open.
 
   const usedSlots = inventory.reduce((acc, i) => acc + i.slots * i.quantity, 0)
   const equipped  = (slot: EquipSlot) => inventory.find(i => i.equipped && i.slot === slot)
@@ -934,7 +907,11 @@ export function InventoryView({
                       {item.isLight && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <button
-                            onClick={() => updateItem(item.id, { isLit: !item.isLit })}
+                            onClick={() => {
+                              const igniting = !item.isLit
+                              updateItem(item.id, { isLit: igniting })
+                              if (igniting) sendToDiscord({ type: 'torch_lit', player: playerName, minutesLeft: item.lightMinutesLeft ?? item.lightMaxMinutes ?? 60 })
+                            }}
                             style={quickBtnStyle(item.isLit ? 'amber' : 'dark')}
                           >
                             {item.isLit ? 'Apagar' : 'Acender'}
