@@ -35,6 +35,12 @@ interface Props {
   corner?: ReactNode
   children?: ReactNode
   /**
+   * Content rendered on the card face itself, below the caption — for cards
+   * that show their information inline instead of (or in addition to) the
+   * popover. Receives the cream/dark ink treatment from the parent.
+   */
+  body?: ReactNode
+  /**
    * Visual face variant.
    * - 'cream' — parchment-coloured card face with dark ink text (like a real tarot card).
    *   Use for talents, spells, techniques.
@@ -46,7 +52,7 @@ interface Props {
 
 export function TarotCard({
   numeral, glyph, title, subtitle, accent, accentSoft,
-  dimmed, expanded, onToggle, badges, corner, children,
+  dimmed, expanded, onToggle, badges, corner, children, body,
   face = 'cream',
 }: Props) {
   const isCream = face === 'cream'
@@ -297,6 +303,13 @@ export function TarotCard({
           }}>
             {subtitle}
           </span>
+
+          {/* Inline body — card-face content (e.g. talent description) */}
+          {body && (
+            <div style={{ width: '100%', boxSizing: 'border-box' }}>
+              {body}
+            </div>
+          )}
 
           {/* Always-visible badges */}
           {badges && (

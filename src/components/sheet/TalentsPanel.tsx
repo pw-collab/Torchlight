@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
@@ -25,6 +25,9 @@ const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
   general: '✦',
 }
 
+/** Lines of description shown on the card face before the "…" expander kicks in */
+const CLAMP_LINES = 4
+
 interface Props {
   talents: Talent[]
   onUpdate: (talents: Talent[]) => void
@@ -32,24 +35,45 @@ interface Props {
 }
 
 export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
-  const [adding, setAdding] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', origin: 'general' as TalentOrigin, description: '' })
 
-  function addTalent() {
-    if (!form.name.trim() || !form.description.trim()) return
-    const talent: Talent = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: form.name,
-      origin: form.origin,
-      description: form.description,
-    }
-    onUpdate([...talents, talent])
+  function closeForm() {
     setForm({ name: '', origin: 'general', description: '' })
-    setAdding(false)
+    setEditingId(null)
+    setFormOpen(false)
+  }
+
+  function submitForm() {
+    if (!form.name.trim() || !form.description.trim()) return
+    if (editingId) {
+      onUpdate(talents.map(t => t.id === editingId
+        ? { ...t, name: form.name, origin: form.origin, description: form.description }
+        : t,
+      ))
+    } else {
+      onUpdate([...talents, {
+        id: Math.random().toString(36).substring(2, 9),
+        name: form.name,
+        origin: form.origin,
+        description: form.description,
+      }])
+    }
+    closeForm()
+  }
+
+  function startEdit(t: Talent) {
+    setForm({ name: t.name, origin: t.origin, description: t.description })
+    setEditingId(t.id)
+    setFormOpen(true)
+    setExpandedId(null)
   }
 
   function removeTalent(id: string) {
+    if (id === editingId) closeForm()
+    if (id === expandedId) setExpandedId(null)
     onUpdate(talents.filter(t => t.id !== id))
   }
 
@@ -76,7 +100,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
         <OrnateTitle fontSize={11}>Talentos & Habilidades</OrnateTitle>
         <button
-          onClick={() => setAdding(a => !a)}
+          onClick={() => formOpen ? closeForm() : setFormOpen(true)}
           style={{
             background: 'rgba(42,34,16,0.5)',
             border: '1px solid rgba(139,112,48,0.3)',
@@ -87,11 +111,11 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             cursor: 'pointer',
           }}
         >
-          {adding ? '✕ Fechar' : '+ Adicionar'}
+          {formOpen ? '✕ Fechar' : '+ Adicionar'}
         </button>
       </div>
 
-      {adding && (
+      {formOpen && (
         <div
           className="worn-border animate-ink-spread"
           style={{
@@ -123,7 +147,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             <input type="text" value={form.description} placeholder="O que este talento faz?" onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={inp} />
           </div>
           <button
-            onClick={addTalent}
+            onClick={submitForm}
             disabled={!form.name.trim() || !form.description.trim()}
             style={{
               background: 'var(--blood-mid)',
@@ -137,17 +161,17 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
               opacity: !form.name.trim() || !form.description.trim() ? 0.45 : 1,
             }}
           >
-            ✦ Registrar Talento
+            {editingId ? '✦ Salvar Alterações' : '✦ Registrar Talento'}
           </button>
         </div>
       )}
 
-      {talents.length === 0 && !adding ? (
+      {talents.length === 0 && !formOpen ? (
         <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--parchment-warm)' }}>
           Nenhum talento registrado nos arquivos.
         </p>
       ) : (
-        <div className="tarot-grid">
+        <div className="tarot-grid" style={{ alignItems: 'start' }}>
           {talents.map((t, i) => (
             <TalentCard
               key={t.id}
@@ -156,6 +180,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
               expanded={expandedId === t.id}
               onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
               onRemove={() => removeTalent(t.id)}
+              onEdit={() => startEdit(t)}
               onRoll={onRoll}
             />
           ))}
@@ -165,15 +190,41 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   )
 }
 
-function TalentCard({ talent, index, expanded, onToggle, onRemove, onRoll }: {
+function TalentCard({ talent, index, expanded, onToggle, onRemove, onEdit, onRoll }: {
   talent: Talent
   index: number
   expanded: boolean
   onToggle: () => void
   onRemove: () => void
+  onEdit: () => void
   onRoll?: (r: RollResult) => void
 }) {
   const accent = ORIGIN_ACCENT[talent.origin]
+  const descRef = useRef<HTMLParagraphElement>(null)
+  const [showFull, setShowFull] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+
+  // Measure only while clamped — once expanded, scrollHeight === clientHeight.
+  useEffect(() => {
+    if (showFull) return
+    const el = descRef.current
+    if (el) setOverflows(el.scrollHeight > el.clientHeight + 1)
+  }, [talent.description, showFull])
+
+  const actionBtn = (kind: 'edit' | 'remove'): React.CSSProperties => ({
+    flex: 1,
+    fontFamily: 'var(--font-heading)',
+    fontSize: 8,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    background: kind === 'edit' ? 'rgba(42,34,16,0.6)' : 'rgba(60,12,12,0.5)',
+    border: `1px solid ${kind === 'edit' ? 'rgba(139,112,48,0.45)' : 'rgba(139,21,21,0.5)'}`,
+    color: kind === 'edit' ? 'var(--candle-amber)' : 'var(--blood-bright)',
+    padding: '7px 0',
+    borderRadius: 2,
+    cursor: 'pointer',
+    transition: 'all 180ms',
+  })
 
   return (
     <TarotCard
@@ -186,32 +237,75 @@ function TalentCard({ talent, index, expanded, onToggle, onRemove, onRoll }: {
       accentSoft={accent.soft}
       expanded={expanded}
       onToggle={onToggle}
-      corner={
-        <button
-          onClick={onRemove}
-          title="Remover talento"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(139,21,21,0.5)', fontSize: 10, padding: 2, lineHeight: 1,
-            transition: 'color 180ms',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.5)')}
+      body={
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'default' }}
         >
-          ✕
-        </button>
+          <p
+            ref={descRef}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontStyle: 'italic',
+              fontSize: 10.5,
+              color: 'rgba(42,30,10,0.78)',
+              lineHeight: 1.55,
+              margin: 0,
+              textAlign: 'center',
+              width: '100%',
+              ...(showFull ? {} : {
+                display: '-webkit-box',
+                WebkitLineClamp: CLAMP_LINES,
+                WebkitBoxOrient: 'vertical' as const,
+                overflow: 'hidden',
+              }),
+            }}
+          >
+            <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
+          </p>
+          {(overflows || showFull) && (
+            <button
+              onClick={() => setShowFull(s => !s)}
+              title={showFull ? 'Recolher' : 'Mostrar texto completo'}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-heading)',
+                fontSize: showFull ? 8 : 13,
+                letterSpacing: '0.12em',
+                lineHeight: 1,
+                color: 'rgba(42,30,10,0.55)',
+                padding: '2px 10px',
+                transition: 'color 180ms',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(42,30,10,0.9)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(42,30,10,0.55)')}
+            >
+              {showFull ? '▴ recolher' : '…'}
+            </button>
+          )}
+        </div>
       }
     >
-      <p style={{
-        fontFamily: 'var(--font-body)',
-        fontStyle: 'italic',
-        fontSize: 11,
-        color: 'var(--bone-muted)',
-        lineHeight: 1.6,
-        margin: 0,
-      }}>
-        <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
-      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          onClick={onEdit}
+          style={actionBtn('edit')}
+          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(139,112,48,0.3)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,34,16,0.6)')}
+        >
+          ✎ Editar
+        </button>
+        <button
+          onClick={onRemove}
+          style={actionBtn('remove')}
+          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(139,21,21,0.35)')}
+          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(60,12,12,0.5)')}
+        >
+          ✕ Excluir
+        </button>
+      </div>
     </TarotCard>
   )
 }
