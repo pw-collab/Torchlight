@@ -1,12 +1,10 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
-import { XPBar } from '@/components/sheet/XPBar'
 import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
@@ -25,7 +23,6 @@ import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
-import { AvatarUpload } from '@/components/sheet/AvatarUpload'
 
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
@@ -192,82 +189,25 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     >
       <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px 80px' : '0 24px 80px' }}>
 
-        {/* Character header */}
-        <div style={{ padding: isMobile ? '12px 0 14px' : '14px 0 18px', borderBottom: '1px solid rgba(196,32,32,0.18)', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 14 }}>
-            {/* Avatar frame */}
-            <AvatarUpload
-              characterId={characterId}
-              portraitUrl={character.portraitUrl}
-              size={isMobile ? 72 : 96}
-              onUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
-            />
-
-            {/* Name + meta — three stable rows: name/edit, subtitle/seal, XP */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <h1 style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: isMobile ? 22 : 30,
-                  fontWeight: 400,
-                  color: 'var(--parchment-pale)',
-                  letterSpacing: '0.05em',
-                  lineHeight: 1.1,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  minWidth: 0,
-                  margin: 0,
-                }}>
-                  {character.name}
-                </h1>
-                <Link
-                  href={`/sheet/${characterId}/edit`}
-                  title="Editar personagem"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    background: 'rgba(196,32,32,0.08)',
-                    border: '1px solid rgba(196,32,32,0.28)',
-                    color: 'rgba(200,184,136,0.7)',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: isMobile ? 13 : 12,
-                    borderRadius: 1,
-                    padding: isMobile ? '10px 14px' : '4px 10px',
-                    textDecoration: 'none',
-                    transition: 'all 250ms',
-                    minHeight: isMobile ? 44 : 0,
-                    flexShrink: 0,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.color = 'var(--bone-white)'
-                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.5)'
-                    e.currentTarget.style.background = 'rgba(196,32,32,0.15)'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.color = 'rgba(200,184,136,0.7)'
-                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.28)'
-                    e.currentTarget.style.background = 'rgba(196,32,32,0.08)'
-                  }}
-                >
-                  ✎ Editar
-                </Link>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
-                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-                </p>
-                {!isMobile && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(196,32,32,0.38)', letterSpacing: '0.08em', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                    FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
-            </div>
-          </div>
-        </div>
+        {/* HUD — inline on mobile, fixed bottom-left on desktop */}
+        <FloatingVitals
+          ac={character.ac}
+          hpMax={character.hpMax}
+          hpCurrent={character.hpCurrent}
+          luckTokens={character.luckTokens}
+          onHpChange={handleHpChange}
+          onLuckChange={handleLuckChange}
+          characterId={characterId}
+          portraitUrl={character.portraitUrl}
+          characterName={character.name}
+          level={character.level}
+          xp={character.xp}
+          onXpUpdate={handleXpUpdate}
+          className={cls?.name ?? character.classId}
+          ancestryName={ancestry?.name ?? character.ancestryId}
+          onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
+          editHref={`/sheet/${characterId}/edit`}
+        />
 
         {/* Attribute row */}
         <div style={{ marginBottom: 14 }}>
@@ -396,14 +336,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
-      <FloatingVitals
-        ac={character.ac}
-        hpMax={character.hpMax}
-        hpCurrent={character.hpCurrent}
-        luckTokens={character.luckTokens}
-        onHpChange={handleHpChange}
-        onLuckChange={handleLuckChange}
-      />
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
@@ -431,7 +363,7 @@ function SaveSeal({ savedAt }: { savedAt: number }) {
       style={{
         position: 'fixed',
         bottom: 'calc(72px + var(--safe-bottom))',
-        left: 16,
+        right: 16,
         zIndex: 120,
         fontFamily: 'var(--font-heading)',
         fontSize: 10,
