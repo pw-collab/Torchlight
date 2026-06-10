@@ -16,13 +16,10 @@ export function roman(n: number): string {
 
 const POPOVER_WIDTH = 300
 
-/** Pointy-top hexagon, same family as the avatar frame */
+/** Pointy-top hexagon — echoes the avatar frame */
 const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
 
-interface PopoverPos {
-  top: number
-  left: number
-}
+interface PopoverPos { top: number; left: number }
 
 interface Props {
   numeral: string
@@ -37,28 +34,37 @@ interface Props {
   badges?: ReactNode
   corner?: ReactNode
   children?: ReactNode
+  /**
+   * Visual face variant.
+   * - 'cream' — parchment-coloured card face with dark ink text (like a real tarot card).
+   *   Use for talents, spells, techniques.
+   * - 'dark' — the original dark gradient face (legacy / kept for backward compat).
+   *   Default is now 'cream'.
+   */
+  face?: 'cream' | 'dark'
 }
 
 export function TarotCard({
   numeral, glyph, title, subtitle, accent, accentSoft,
   dimmed, expanded, onToggle, badges, corner, children,
+  face = 'cream',
 }: Props) {
-  const frame = dimmed ? 'rgba(139,112,48,0.18)' : accentSoft
+  const isCream = face === 'cream'
   const cardRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<PopoverPos | null>(null)
 
-  // Compute popover position anchored to the card rect
   useEffect(() => {
     if (!expanded || !cardRef.current) { setPos(null); return }
     const r = cardRef.current.getBoundingClientRect()
     let left = r.left + r.width / 2 - POPOVER_WIDTH / 2
     left = Math.max(8, Math.min(left, window.innerWidth - POPOVER_WIDTH - 8))
     const spaceBelow = window.innerHeight - r.bottom - 8
-    const top = spaceBelow >= 80 ? r.bottom + 8 : Math.max(8, r.top - 8 - Math.min(spaceBelow < 80 ? 380 : 280, window.innerHeight - 16))
+    const top = spaceBelow >= 80
+      ? r.bottom + 8
+      : Math.max(8, r.top - 8 - Math.min(spaceBelow < 80 ? 380 : 280, window.innerHeight - 16))
     setPos({ top, left })
   }, [expanded])
 
-  // Dismiss on Escape
   useEffect(() => {
     if (!expanded) return
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onToggle?.() }
@@ -66,16 +72,52 @@ export function TarotCard({
     return () => window.removeEventListener('keydown', handler)
   }, [expanded, onToggle])
 
+  // ── Cream-face derived values ────────────────────────────────────────────
+  const cardBg = isCream
+    ? 'linear-gradient(168deg, #E2D4AC 0%, #C8B880 100%)'
+    : 'linear-gradient(168deg, rgba(74,54,28,0.28) 0%, rgba(24,17,7,0.96) 52%, rgba(12,8,2,0.99) 100%), #1C1305'
+
+  const cardBorder = isCream
+    ? (expanded ? `2px solid var(--blood-bright)` : `1px solid rgba(42,30,10,0.32)`)
+    : (expanded ? `1px solid ${accent}` : `1px solid ${dimmed ? 'rgba(139,112,48,0.18)' : accentSoft}`)
+
+  const cardShadow = isCream
+    ? (expanded
+        ? '0 6px 22px rgba(0,0,0,0.7), 0 0 14px rgba(196,32,32,0.3)'
+        : `0 4px 14px rgba(0,0,0,0.65)`)
+    : (expanded
+        ? `0 6px 22px rgba(0,0,0,0.6), 0 0 16px ${accentSoft}`
+        : `0 3px 10px rgba(0,0,0,0.55)${dimmed ? '' : `, 0 0 8px ${accentSoft}`}`)
+
+  const innerBorder = isCream
+    ? 'rgba(42,30,10,0.18)'
+    : (dimmed ? 'rgba(139,112,48,0.18)' : accentSoft)
+
+  const starColor   = isCream ? 'rgba(42,30,10,0.35)'    : accent
+  const numeralColor = isCream ? 'rgba(42,30,10,0.50)'    : accent
+  const titleColor  = isCream ? 'var(--ink-on-cream)'     : (dimmed ? 'var(--bone-muted)' : 'var(--parchment-pale)')
+  const dividerColor = isCream ? 'rgba(42,30,10,0.30)'    : accent
+  const captionColor = isCream ? 'rgba(42,30,10,0.45)'    : accent
+
+  // Hex window: cream → ink ring + light interior; dark → accent-glow + near-black
+  const hexOuter   = isCream ? 'rgba(42,30,10,0.25)' : (dimmed ? 'rgba(139,112,48,0.18)' : accentSoft)
+  const hexInnerBg = isCream
+    ? `radial-gradient(circle at 50% 60%, rgba(42,30,10,0.08) 0%, transparent 72%), #D8C9A0`
+    : `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), #150F06`
+  const hexGlyphShadow = isCream ? 'none' : (dimmed ? 'none' : `0 0 12px ${accentSoft}`)
+
+  // Dimmed: cream → ash-gray card; dark → darkened
+  const dimFilter = isCream
+    ? 'grayscale(1) brightness(0.65) sepia(0.15)'
+    : 'grayscale(0.75) brightness(0.62)'
+
   const popover = expanded && pos && children
     ? createPortal(
         <>
-          {/* Backdrop — click to close */}
           <div
             onClick={onToggle}
-            style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.42)' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.55)' }}
           />
-
-          {/* Floating detail panel */}
           <div
             className="animate-ink-spread"
             onClick={e => e.stopPropagation()}
@@ -85,11 +127,11 @@ export function TarotCard({
               left: pos.left,
               width: POPOVER_WIDTH,
               zIndex: 141,
-              background: 'linear-gradient(168deg, rgba(74,54,28,0.18) 0%, rgba(20,14,4,0.98) 100%)',
-              border: `1px solid ${accentSoft}`,
-              borderRadius: 8,
-              boxShadow: `0 8px 32px rgba(0,0,0,0.72), 0 0 20px ${accentSoft}`,
-              padding: 0,
+              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
+              border: `1px solid ${isCream ? 'rgba(196,32,32,0.45)' : accentSoft}`,
+              borderTop: `2px solid ${isCream ? 'var(--blood-bright)' : accent}`,
+              borderRadius: 6,
+              boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${isCream ? 'rgba(196,32,32,0.18)' : accentSoft}`,
               overflow: 'hidden',
               maxHeight: 'calc(100vh - 32px)',
               overflowY: 'auto',
@@ -101,15 +143,17 @@ export function TarotCard({
               alignItems: 'center',
               gap: 8,
               padding: '10px 14px 8px',
-              borderBottom: `1px solid ${accentSoft}`,
-              background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
+              borderBottom: `1px solid ${isCream ? 'rgba(196,32,32,0.2)' : accentSoft}`,
+              background: isCream
+                ? 'linear-gradient(90deg, rgba(196,32,32,0.06) 0%, rgba(196,32,32,0.12) 100%)'
+                : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
             }}>
-              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontFamily: 'var(--font-heading)',
-                  fontSize: 12,
-                  color: 'var(--parchment-pale)',
+                  fontSize: 13,
+                  color: 'var(--bone-white)',
                   letterSpacing: '0.06em',
                   lineHeight: 1.3,
                   overflow: 'hidden',
@@ -123,8 +167,8 @@ export function TarotCard({
                   fontSize: 7,
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
-                  color: accent,
-                  opacity: 0.8,
+                  color: isCream ? 'var(--blood-bright)' : accent,
+                  opacity: 0.85,
                   marginTop: 2,
                 }}>
                   {numeral} · {subtitle}
@@ -132,26 +176,15 @@ export function TarotCard({
               </div>
               <button
                 onClick={onToggle}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--bone-muted)',
-                  fontSize: 12,
-                  lineHeight: 1,
-                  padding: '2px 4px',
-                  flexShrink: 0,
-                  opacity: 0.7,
-                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 13, lineHeight: 1, padding: '2px 4px', flexShrink: 0, opacity: 0.6 }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '0.7')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
               >
                 ✕
               </button>
             </div>
 
-            {/* Detail content */}
-            <div style={{ padding: '12px 14px 14px' }}>
+            <div style={{ padding: '12px 14px 16px' }}>
               {children}
             </div>
           </div>
@@ -169,17 +202,14 @@ export function TarotCard({
         role={onToggle ? 'button' : undefined}
         style={{
           position: 'relative',
-          background: 'linear-gradient(168deg, rgba(74,54,28,0.28) 0%, rgba(24,17,7,0.96) 52%, rgba(12,8,2,0.99) 100%), #1C1305',
-          border: `1px solid ${expanded ? accent : frame}`,
+          background: cardBg,
+          border: cardBorder,
           borderRadius: 7,
-          boxShadow: expanded
-            ? `0 6px 22px rgba(0,0,0,0.6), 0 0 16px ${accentSoft}`
-            : `0 3px 10px rgba(0,0,0,0.55)${dimmed ? '' : `, 0 0 8px ${accentSoft}`}`,
+          boxShadow: cardShadow,
           padding: 5,
           cursor: onToggle ? 'pointer' : 'default',
-          // Expended/failed cards go dark and desaturated, like locked cards in a collection
-          opacity: dimmed ? 0.78 : 1,
-          filter: dimmed ? 'grayscale(0.75) brightness(0.62)' : 'none',
+          opacity: dimmed ? 0.82 : 1,
+          filter: dimmed ? dimFilter : 'none',
           minHeight: 176,
           boxSizing: 'border-box',
           WebkitTapHighlightColor: 'transparent',
@@ -188,7 +218,7 @@ export function TarotCard({
         {/* Inner frame line */}
         <div style={{
           position: 'relative',
-          border: `1px solid ${frame}`,
+          border: `1px solid ${innerBorder}`,
           borderRadius: 4,
           padding: '9px 8px 11px',
           height: '100%',
@@ -203,38 +233,29 @@ export function TarotCard({
             { top: 2, left: 4 }, { top: 2, right: 4 },
             { bottom: 2, left: 4 }, { bottom: 2, right: 4 },
           ] as React.CSSProperties[]).map((p, i) => (
-            <span key={i} aria-hidden style={{ position: 'absolute', fontSize: 6, color: accent, opacity: 0.5, lineHeight: 1, ...p }}>
+            <span key={i} aria-hidden style={{ position: 'absolute', fontSize: 6, color: starColor, opacity: 0.55, lineHeight: 1, ...p }}>
               ✦
             </span>
           ))}
 
           {/* Arcana numeral */}
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '0.3em', color: accent, opacity: 0.85, lineHeight: 1, marginLeft: '0.3em' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '0.3em', color: numeralColor, opacity: 0.9, lineHeight: 1, marginLeft: '0.3em' }}>
             {numeral}
           </span>
 
-          {/* Hexagonal art window (echoes the avatar's hex frame) */}
-          <span style={{
-            width: 58,
-            height: 52,
-            clipPath: HEX_CLIP,
-            background: frame,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
+          {/* Hexagonal art window */}
+          <span style={{ width: 58, height: 52, clipPath: HEX_CLIP, background: hexOuter, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{
               width: 56,
               height: 50,
               clipPath: HEX_CLIP,
-              background: `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), #150F06`,
+              background: hexInnerBg,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 22,
               lineHeight: 1,
-              textShadow: dimmed ? 'none' : `0 0 12px ${accentSoft}`,
+              textShadow: hexGlyphShadow,
               userSelect: 'none',
             }}>
               {glyph}
@@ -246,7 +267,7 @@ export function TarotCard({
             fontFamily: 'var(--font-heading)',
             fontSize: 11,
             letterSpacing: '0.06em',
-            color: dimmed ? 'var(--bone-muted)' : 'var(--parchment-pale)',
+            color: titleColor,
             textAlign: 'center',
             lineHeight: 1.3,
             display: '-webkit-box',
@@ -258,27 +279,26 @@ export function TarotCard({
           </span>
 
           {/* Ornamental divider */}
-          <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 5, width: '72%', opacity: 0.55 }}>
-            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${accent})` }} />
-            <span style={{ fontSize: 6, lineHeight: 1, color: accent }}>✦</span>
-            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${accent}, transparent)` }} />
+          <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 5, width: '72%', opacity: 0.5 }}>
+            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${dividerColor})` }} />
+            <span style={{ fontSize: 6, lineHeight: 1, color: dividerColor }}>✦</span>
+            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${dividerColor}, transparent)` }} />
           </span>
 
-          {/* Caption */}
+          {/* Caption / subtitle */}
           <span style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 6.5,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: accent,
-            opacity: 0.8,
+            color: captionColor,
             textAlign: 'center',
             marginLeft: '0.22em',
           }}>
             {subtitle}
           </span>
 
-          {/* Always-visible status / quick actions */}
+          {/* Always-visible badges */}
           {badges && (
             <span
               onClick={e => e.stopPropagation()}
@@ -289,7 +309,7 @@ export function TarotCard({
           )}
         </div>
 
-        {/* Top-right corner action */}
+        {/* Corner action */}
         {corner && (
           <span onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 4, right: 5, zIndex: 2 }}>
             {corner}

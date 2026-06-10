@@ -177,6 +177,7 @@ function TalentCard({ talent, index, expanded, onToggle, onRemove, onRoll }: {
 
   return (
     <TarotCard
+      face="cream"
       numeral={roman(index + 1)}
       glyph={ORIGIN_GLYPH[talent.origin]}
       title={talent.name}

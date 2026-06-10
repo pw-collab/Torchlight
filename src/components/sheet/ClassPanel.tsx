@@ -519,6 +519,7 @@ function TechniqueCard({
 
   return (
     <TarotCard
+      face="cream"
       numeral={roman(index + 1)}
       glyph={style.glyph}
       title={technique.name}

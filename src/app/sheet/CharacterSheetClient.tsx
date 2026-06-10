@@ -193,7 +193,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px 80px' : '0 24px 80px' }}>
 
         {/* Character header */}
-        <div style={{ padding: isMobile ? '12px 0 14px' : '14px 0 18px', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 14 }}>
+        <div style={{ padding: isMobile ? '12px 0 14px' : '14px 0 18px', borderBottom: '1px solid rgba(196,32,32,0.18)', marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 14 }}>
             {/* Avatar frame */}
             <AvatarUpload
@@ -228,9 +228,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    background: 'rgba(42,34,16,0.4)',
-                    border: '1px solid rgba(139,112,48,0.28)',
-                    color: 'var(--bone-muted)',
+                    background: 'rgba(196,32,32,0.08)',
+                    border: '1px solid rgba(196,32,32,0.28)',
+                    color: 'rgba(200,184,136,0.7)',
                     fontFamily: 'var(--font-body)',
                     fontSize: isMobile ? 13 : 12,
                     borderRadius: 1,
@@ -241,23 +241,25 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                     flexShrink: 0,
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.color = 'var(--parchment-light)'
-                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
+                    e.currentTarget.style.color = 'var(--bone-white)'
+                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.5)'
+                    e.currentTarget.style.background = 'rgba(196,32,32,0.15)'
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.color = 'var(--bone-muted)'
-                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.28)'
+                    e.currentTarget.style.color = 'rgba(200,184,136,0.7)'
+                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.28)'
+                    e.currentTarget.style.background = 'rgba(196,32,32,0.08)'
                   }}
                 >
                   ✎ Editar
                 </Link>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                   {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
                 </p>
                 {!isMobile && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(196,32,32,0.38)', letterSpacing: '0.08em', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
                   </span>
                 )}
@@ -273,7 +275,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
 
         {/* Tab navigation */}
-        <div style={{ position: 'relative', display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ position: 'relative', display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(196,32,32,0.20)' }}>
           {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
             <button
               key={t}
@@ -290,7 +292,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 fontSize: isMobile ? 11 : 16,
                 letterSpacing: isMobile ? '0.06em' : '0.18em',
                 textTransform: 'uppercase',
-                color: tab === t ? 'var(--bone-white)' : 'var(--bone-muted)',
+                color: tab === t ? 'var(--bone-white)' : 'rgba(200,184,136,0.55)',
                 textShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
                 padding: isMobile ? '10px 8px' : '8px 18px 6px',
                 transition: 'color 300ms, background 300ms',
@@ -320,7 +322,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
 
         {/* Tab content border */}
-        <div style={{ border: '1px solid rgba(139,112,48,0.22)', borderTop: 'none', marginBottom: 40 }}>
+        <div style={{ border: '1px solid rgba(196,32,32,0.18)', borderTop: 'none', marginBottom: 40 }}>
 
         {/* Tab: Stats */}
         {tab === 'stats' && (

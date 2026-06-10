@@ -491,6 +491,7 @@ function ItemRow({ item, index, onEdit, onRemove, onEquipToggle, onConsume, onOp
 
   return (
     <TarotCard
+      face="cream"
       numeral={roman(index + 1)}
       glyph={item.isLight
         ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
