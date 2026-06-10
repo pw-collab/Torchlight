@@ -147,7 +147,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
           Nenhum talento registrado nos arquivos.
         </p>
       ) : (
-        <div className="tarot-grid" style={{ alignItems: 'start' }}>
+        <div className="tarot-grid">
           {talents.map((t, i) => (
             <TalentCard
               key={t.id}
@@ -186,7 +186,6 @@ function TalentCard({ talent, index, expanded, onToggle, onRemove, onRoll }: {
       accentSoft={accent.soft}
       expanded={expanded}
       onToggle={onToggle}
-      inlineExpand
       corner={
         <button
           onClick={onRemove}
