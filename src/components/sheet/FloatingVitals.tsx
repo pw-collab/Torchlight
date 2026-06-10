@@ -26,6 +26,15 @@ interface Props {
   editHref: string
 }
 
+/** Red ring drawn behind the AvatarUpload hex (its clip scaled ~13% out from center) */
+const HEX_RING_CLIP = 'polygon(50% 10.5%, 84.5% 30.2%, 84.5% 69.8%, 50% 89.5%, 15.5% 69.8%, 15.5% 30.2%)'
+
+/** Downward-pointing shield badge for the AC value */
+const SHIELD_CLIP = 'polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%)'
+
+/** Faded mirror under text, echoing the mock's glossy-floor look (webkit only, decorative) */
+const TEXT_REFLECT = 'below -4px linear-gradient(transparent 62%, rgba(0,0,0,0.3))'
+
 export function FloatingVitals({
   ac, hpMax, hpCurrent, luckTokens, onHpChange, onLuckChange,
   characterId, portraitUrl, characterName, level, xp, onXpUpdate,
@@ -61,44 +70,83 @@ export function FloatingVitals({
     onHpChange(Math.min(hpMax, Math.max(0, hpCurrent + delta)))
   }
 
-  // ── Shared expanded controls (damage/heal + luck pips) ────────────────
+  // Mobile uses the same design at slightly reduced scale
+  const sz = isMobile
+    ? { avatar: 104, badge: 32, badgeFont: 14, name: 22, bar: 30, barNum: 16, shieldW: 44, shieldH: 52, acFont: 19, star: 17, meta: 14 }
+    : { avatar: 132, badge: 40, badgeFont: 18, name: 26, bar: 36, barNum: 20, shieldW: 52, shieldH: 62, acFont: 23, star: 21, meta: 16 }
+
+  // ── Expanded panel: XP + damage/heal controls (dark, red-bordered) ──────
   const expandedPanel = open && (
     <div
       className="animate-ink-spread"
       onClick={e => e.stopPropagation()}
       style={{
-        padding: '10px 14px 12px',
-        borderBottom: '1px solid rgba(196,32,32,0.20)',
+        background: '#1F1B16',
+        border: '2px solid rgba(196,32,32,0.85)',
+        borderRadius: 2,
+        boxShadow: '0 8px 30px rgba(0,0,0,0.65)',
+        padding: '16px 16px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 14,
         cursor: 'default',
       }}
     >
-      <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
+      {/* XP bar + labels */}
+      <div>
+        <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${xpPct}%`,
+            background: xpReady ? 'var(--gold-bright)' : 'var(--verdigris-bright)',
+            boxShadow: xpReady ? '0 0 6px var(--gold-bright)' : 'none',
+            transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)',
+          }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 7 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.18em', color: 'var(--bone-muted)' }}>
+            XP
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <input
+              type="number"
+              value={xp}
+              min={0}
+              onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))}
+              style={{
+                background: 'transparent', border: 'none', outline: 'none',
+                fontFamily: 'var(--font-mono)', fontSize: 12,
+                color: xpReady ? 'var(--gold-bright)' : 'var(--bone-muted)',
+                textAlign: 'right', width: 36, padding: 0, cursor: 'text',
+              }}
+            />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em', color: 'var(--bone-muted)' }}>
+              / {nextXp}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* ↓ dano · valor · cura ↑ */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
         <button
           onClick={() => applyHp(-step)}
           className="tactile"
+          title="Aplicar dano"
           style={{
-            flex: 1,
-            background: 'rgba(139,21,21,0.25)',
-            border: '1px solid var(--blood-mid)',
-            color: 'var(--bone-white)',
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 12,
-            padding: '8px 0',
-            cursor: 'pointer',
-            minHeight: 40,
-            borderRadius: 1,
+            width: 64, minHeight: 52, flexShrink: 0,
+            background: 'var(--blood-bright)',
+            border: 'none', borderRadius: 2, cursor: 'pointer',
+            color: '#F5F0E8', fontSize: 24, lineHeight: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          − Dano
+          ↓
         </button>
         <input
           type="text"
           inputMode="numeric"
-          value={step}
+          value={String(step).padStart(2, '0')}
           onChange={e => {
             const n = parseInt(e.target.value, 10)
             setStep(isNaN(n) ? 0 : Math.max(0, n))
@@ -106,65 +154,201 @@ export function FloatingVitals({
           onBlur={() => { if (step < 1) setStep(1) }}
           title="Valor aplicado por clique"
           style={{
-            width: 46,
-            flexShrink: 0,
-            background: 'rgba(8,6,4,0.8)',
-            border: '1px solid rgba(196,32,32,0.25)',
-            color: 'var(--parchment-light)',
+            flex: 1, minWidth: 0, minHeight: 52,
+            background: 'rgba(16,11,5,0.9)',
+            border: '1px solid var(--gold-oxidized)',
+            borderRadius: 2,
+            color: 'var(--parchment-pale)',
             fontFamily: 'var(--font-mono)',
-            fontSize: 14,
-            fontWeight: 700,
+            fontSize: 22, fontWeight: 700,
             textAlign: 'center',
+            letterSpacing: '0.12em',
             outline: 'none',
-            borderRadius: 1,
             boxSizing: 'border-box',
-            minHeight: 40,
           }}
         />
         <button
           onClick={() => applyHp(step)}
           className="tactile"
+          title="Curar"
           style={{
-            flex: 1,
-            background: 'rgba(42,80,69,0.25)',
-            border: '1px solid #2A5045',
-            color: 'var(--bone-white)',
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 12,
-            padding: '8px 0',
-            cursor: 'pointer',
-            minHeight: 40,
-            borderRadius: 1,
+            width: 64, minHeight: 52, flexShrink: 0,
+            background: 'var(--verdigris-bright)',
+            border: 'none', borderRadius: 2, cursor: 'pointer',
+            color: '#F5F0E8', fontSize: 24, lineHeight: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          + Cura
+          ↑
         </button>
       </div>
+    </div>
+  )
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+  // ── Main HUD block (transparent — elements float, action-RPG style) ─────
+  const mainBlock = (
+    <div style={{ display: 'flex', gap: isMobile ? 12 : 16, alignItems: 'center' }}>
+      {/* Hex portrait, red ring + level badge */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ position: 'relative', width: sz.avatar, height: sz.avatar, flexShrink: 0, cursor: 'default' }}
+      >
+        <div aria-hidden style={{
+          position: 'absolute',
+          inset: 0,
+          clipPath: HEX_RING_CLIP,
+          background: 'linear-gradient(140deg, #E04848 0%, var(--blood-bright) 35%, #6E1010 100%)',
+          filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.55))',
+        }} />
+        <div style={{ position: 'absolute', inset: 0 }}>
+          <AvatarUpload
+            characterId={characterId}
+            portraitUrl={portraitUrl}
+            size={sz.avatar}
+            onUpload={onAvatarUpload}
+          />
+        </div>
+        {/* Level badge */}
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          bottom: sz.avatar * 0.06,
+          width: sz.badge,
+          height: sz.badge,
+          borderRadius: '50%',
+          background: '#140E08',
+          border: '3px solid var(--blood-bright)',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
+        }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: sz.badgeFont, fontWeight: 700, color: 'var(--blood-bright)', lineHeight: 1 }}>
+            {level}
+          </span>
+        </div>
+      </div>
+
+      {/* Right column */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: isMobile ? 6 : 8 }}>
+        {/* Name */}
         <span style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: 7,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--bone-muted)',
-          flexShrink: 0,
+          fontSize: sz.name,
+          color: 'var(--gold-bright)',
+          letterSpacing: '0.04em',
+          lineHeight: 1.05,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          textShadow: '0 2px 4px rgba(0,0,0,0.6)',
+          WebkitBoxReflect: TEXT_REFLECT,
         }}>
-          Fortuna
+          {characterName}
         </span>
-        <div style={{ display: 'flex', gap: 5 }}>
+
+        {/* PV bar + AC shield */}
+        <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'flex-start' }}>
+          <div style={{
+            position: 'relative',
+            flex: 1,
+            minWidth: 0,
+            height: sz.bar,
+            background: 'rgba(8,6,4,0.8)',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 8px rgba(0,0,0,0.5)',
+          }}>
+            {/* Fill */}
+            <div aria-hidden style={{
+              position: 'absolute',
+              inset: 0,
+              width: `${hpPercent}%`,
+              background: hpColor,
+              transition: 'width 400ms cubic-bezier(0.4,0,0.2,1), background 400ms',
+            }} />
+            {/* Overlay: label · value · expand */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 10px',
+              gap: 8,
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: isMobile ? 8 : 9,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'rgba(16,12,4,0.85)',
+                flexShrink: 0,
+              }}>
+                PV
+              </span>
+              <span style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: sz.barNum, fontWeight: 700, lineHeight: 1 }}>
+                <span
+                  key={flash ?? 'idle'}
+                  className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
+                  style={{ display: 'inline-block', color: '#2E2407' }}
+                >
+                  {hpCurrent}
+                </span>
+                <span style={{ fontWeight: 400, color: 'rgba(16,12,4,0.7)' }}>/{hpMax}</span>
+              </span>
+              <button
+                onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
+                title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
+                aria-label={open ? 'Recolher controles de combate' : 'Expandir controles de combate'}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(16,12,4,0.85)', fontSize: sz.barNum * 0.8,
+                  lineHeight: 1, padding: '2px 2px', flexShrink: 0,
+                  transform: open ? 'rotate(45deg)' : 'none',
+                  transition: 'transform 200ms',
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* AC shield badge */}
+          <div title={`Classe de Armadura ${ac}`} style={{
+            width: sz.shieldW,
+            height: sz.shieldH,
+            clipPath: SHIELD_CLIP,
+            background: 'linear-gradient(160deg, #D43838 0%, var(--blood-bright) 45%, #8B1515 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: sz.shieldH * 0.2,
+            boxSizing: 'border-box',
+            flexShrink: 0,
+            filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.55))',
+          }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: sz.acFont, fontWeight: 700, color: '#10100C', lineHeight: 1 }}>
+              {ac}
+            </span>
+          </div>
+        </div>
+
+        {/* Luck stars */}
+        <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: isMobile ? 7 : 10, cursor: 'default' }}>
           {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
             <button
               key={i}
               onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
               className="tactile"
-              title={i < luckTokens ? 'Remover token' : 'Adicionar token'}
+              title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontSize: 14, lineHeight: 1,
-                color: i < luckTokens ? 'var(--gold-bright)' : 'var(--parchment-deep)',
-                filter: i < luckTokens ? 'drop-shadow(0 0 3px rgba(201,168,76,0.5))' : 'none',
+                fontSize: sz.star, lineHeight: 1,
+                color: i < luckTokens ? 'var(--gold-bright)' : '#1A1410',
+                filter: i < luckTokens
+                  ? 'drop-shadow(0 0 4px rgba(201,168,76,0.55))'
+                  : 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))',
                 transition: 'color 300ms, filter 300ms',
               }}
             >
@@ -172,368 +356,85 @@ export function FloatingVitals({
             </button>
           ))}
         </div>
+
+        {/* Class · Ancestry + Editar */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: isMobile ? 2 : 4 }}>
+          <span style={{
+            fontFamily: 'var(--font-body)',
+            fontStyle: 'italic',
+            fontSize: sz.meta,
+            color: 'var(--gold-oxidized)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
+            minWidth: 0,
+            lineHeight: 1.2,
+            WebkitBoxReflect: TEXT_REFLECT,
+          }}>
+            {className} · {ancestryName}
+          </span>
+          <Link
+            href={editHref}
+            onClick={e => e.stopPropagation()}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: isMobile ? 13 : 14,
+              color: 'var(--parchment-warm)',
+              background: 'rgba(226,212,172,0.12)',
+              border: '1px solid var(--blood-bright)',
+              borderRadius: 1,
+              padding: isMobile ? '6px 14px' : '5px 18px',
+              textDecoration: 'none',
+              flexShrink: 0,
+              transition: 'all 200ms',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(226,212,172,0.22)'
+              e.currentTarget.style.color = 'var(--bone-white)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(226,212,172,0.12)'
+              e.currentTarget.style.color = 'var(--parchment-warm)'
+            }}
+          >
+            Editar
+          </Link>
+        </div>
       </div>
     </div>
   )
 
-  // ── Reusable sub-elements ─────────────────────────────────────────────
-
-  const hpFlashNum = (fontSize: number) => (
-    <span style={{ fontFamily: 'var(--font-mono)', fontSize, fontWeight: 700, lineHeight: 1 }}>
-      <span
-        key={flash ?? 'idle'}
-        className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
-        style={{ display: 'inline-block', color: hpColor, transition: 'color 400ms' }}
-      >
-        {hpCurrent}
-      </span>
-      <span style={{ fontSize: fontSize * 0.75, fontWeight: 400, color: 'var(--bone-muted)' }}>/{hpMax}</span>
-    </span>
-  )
-
-  const hpBarEl = (h: number) => (
-    <div aria-hidden style={{ height: h, background: 'rgba(0,0,0,0.45)', borderRadius: 1, overflow: 'hidden' }}>
-      <div style={{
-        height: '100%',
-        width: `${hpPercent}%`,
-        background: hpColor,
-        boxShadow: `0 0 8px ${hpColor}70`,
-        transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)',
-      }} />
-    </div>
-  )
-
-  const xpBarEl = (
-    <div aria-hidden style={{ height: 2, background: 'rgba(0,0,0,0.35)', borderRadius: 1, overflow: 'hidden' }}>
-      <div style={{
-        height: '100%',
-        width: `${xpPct}%`,
-        background: xpReady ? 'var(--gold-bright)' : 'var(--verdigris-light)',
-        boxShadow: xpReady ? '0 0 5px var(--gold-bright)' : 'none',
-        transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)',
-      }} />
-    </div>
-  )
-
-  const caLuck = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)', lineHeight: 1 }}>CA</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 15, fontWeight: 700, color: 'var(--parchment-light)', lineHeight: 1 }}>{ac}</span>
-      </span>
-      <span aria-hidden style={{ width: 1, height: 11, background: 'rgba(196,32,32,0.22)', flexShrink: 0 }} />
-      <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-        <span aria-hidden style={{ fontSize: 10, color: 'var(--gold-bright)', filter: 'drop-shadow(0 0 3px rgba(201,168,76,0.45))' }}>✦</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--gold-bright)', lineHeight: 1 }}>{luckTokens}</span>
-      </span>
-    </div>
-  )
-
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — fixed bottom-left HUD (expands upward)
+  // DESKTOP — fixed bottom-left HUD (panel expands upward)
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
       <div
         style={{
           position: 'fixed',
-          left: 0,
-          bottom: 0,
-          width: 290,
+          left: 16,
+          bottom: 16,
+          width: 480,
           zIndex: 85,
-          // Atmospheric vignette: fully transparent at top → opaque at bottom
-          background: 'linear-gradient(180deg, rgba(8,6,4,0) 0%, rgba(8,6,4,0.88) 20%), #080604',
-          borderTop: '1px solid rgba(196,32,32,0.22)',
-          borderRight: '1px solid rgba(196,32,32,0.16)',
-          boxShadow: '6px -2px 28px rgba(0,0,0,0.6), inset 0 1px 0 rgba(196,32,32,0.10)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
         }}
       >
-        {/* Controls expand upward */}
         {expandedPanel}
-
-        {/* Always-visible HUD strip */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label={open ? 'Recolher controles de combate' : 'Expandir controles de combate'}
-          onClick={() => setOpen(o => !o)}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setOpen(o => !o) }}
-          style={{
-            display: 'flex',
-            gap: 12,
-            padding: '10px 14px 12px',
-            cursor: 'pointer',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          {/* Portrait */}
-          <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0, alignSelf: 'center' }}>
-            <AvatarUpload
-              characterId={characterId}
-              portraitUrl={portraitUrl}
-              size={60}
-              onUpload={onAvatarUpload}
-            />
-          </div>
-
-          {/* Info column */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Name + edit */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 14,
-                color: 'var(--parchment-pale)',
-                letterSpacing: '0.04em',
-                lineHeight: 1.1,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                flex: 1,
-                minWidth: 0,
-              }}>
-                {characterName}
-              </span>
-              <Link
-                href={editHref}
-                onClick={e => e.stopPropagation()}
-                title="Editar personagem"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  background: 'rgba(196,32,32,0.08)',
-                  border: '1px solid rgba(196,32,32,0.25)',
-                  color: 'rgba(200,184,136,0.55)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 9,
-                  borderRadius: 1,
-                  padding: '3px 8px',
-                  textDecoration: 'none',
-                  flexShrink: 0,
-                  transition: 'all 200ms',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = 'var(--bone-white)'
-                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.5)'
-                  e.currentTarget.style.background = 'rgba(196,32,32,0.14)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = 'rgba(200,184,136,0.55)'
-                  e.currentTarget.style.borderColor = 'rgba(196,32,32,0.25)'
-                  e.currentTarget.style.background = 'rgba(196,32,32,0.08)'
-                }}
-              >
-                ✎
-              </Link>
-            </div>
-
-            {/* Class · Ancestry · Level */}
-            <span style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 9,
-              color: 'var(--bone-muted)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              lineHeight: 1,
-            }}>
-              {className} · {ancestryName} · Nv {level}
-            </span>
-
-            {/* HP label + number */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 3 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-                PV
-              </span>
-              {hpFlashNum(11)}
-            </div>
-
-            {/* HP bar */}
-            {hpBarEl(5)}
-
-            {/* XP + input */}
-            <div style={{ marginTop: 2 }}>
-              {xpBarEl}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: 'var(--bone-muted)' }}>XP</span>
-                <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <input
-                    type="number"
-                    value={xp}
-                    min={0}
-                    onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{
-                      background: 'transparent', border: 'none', outline: 'none',
-                      fontFamily: 'var(--font-mono)', fontSize: 7,
-                      color: xpReady ? 'var(--gold-bright)' : 'var(--bone-muted)',
-                      textAlign: 'right', width: 28, padding: 0, cursor: 'text',
-                    }}
-                  />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: 'var(--bone-muted)' }}>/ {nextXp}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* CA + Luck + expand chevron */}
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 1 }}>
-              {caLuck}
-              <div style={{ flex: 1 }} />
-              <span aria-hidden style={{
-                fontSize: 7, color: 'var(--bone-muted)', opacity: 0.6,
-                transform: open ? 'scaleY(-1)' : 'none',
-                transition: 'transform 200ms',
-                marginLeft: 6,
-              }}>▼</span>
-            </div>
-          </div>
-        </div>
+        {mainBlock}
       </div>
     )
   }
 
   // ════════════════════════════════════════════════════════════════════════
-  // MOBILE — inline at top of sheet content (replaces old header)
+  // MOBILE — inline at top of sheet content (panel expands downward)
   // ════════════════════════════════════════════════════════════════════════
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 10,
-        paddingBottom: 12,
-        borderBottom: '1px solid rgba(196,32,32,0.18)',
-      }}>
-        {/* Hex portrait */}
-        <AvatarUpload
-          characterId={characterId}
-          portraitUrl={portraitUrl}
-          size={72}
-          onUpload={onAvatarUpload}
-        />
-
-        {/* Right info column */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {/* Name + edit */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 22,
-              color: 'var(--parchment-pale)',
-              letterSpacing: '0.04em',
-              lineHeight: 1.1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              minWidth: 0,
-            }}>
-              {characterName}
-            </span>
-            <Link
-              href={editHref}
-              title="Editar personagem"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(196,32,32,0.08)',
-                border: '1px solid rgba(196,32,32,0.28)',
-                color: 'rgba(200,184,136,0.7)',
-                fontFamily: 'var(--font-body)',
-                fontSize: 13,
-                borderRadius: 1,
-                padding: '10px 14px',
-                textDecoration: 'none',
-                minHeight: 44,
-                flexShrink: 0,
-              }}
-            >
-              ✎
-            </Link>
-          </div>
-
-          {/* Class · Ancestry · Level */}
-          <span style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            color: 'var(--bone-dim)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {className} · {ancestryName} · Nível {level}
-          </span>
-
-          {/* HP label + number */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>PV</span>
-            {hpFlashNum(12)}
-          </div>
-
-          {/* HP bar (slightly thicker on mobile) */}
-          {hpBarEl(6)}
-
-          {/* XP bar + input */}
-          <div>
-            {xpBarEl}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3, marginTop: 2 }}>
-              <input
-                type="number"
-                value={xp}
-                min={0}
-                onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))}
-                style={{
-                  background: 'transparent', border: 'none', outline: 'none',
-                  fontFamily: 'var(--font-mono)', fontSize: 9,
-                  color: xpReady ? 'var(--gold-bright)' : 'var(--bone-muted)',
-                  textAlign: 'right', width: 30, padding: 0,
-                }}
-              />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--bone-muted)' }}>/ {nextXp} XP</span>
-            </div>
-          </div>
-
-          {/* CA + Luck + expand toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
-            {caLuck}
-            <div style={{ flex: 1 }} />
-            <button
-              onClick={() => setOpen(o => !o)}
-              title={open ? 'Recolher controles' : 'Dano / Cura / Fortuna'}
-              style={{
-                background: open ? 'rgba(196,32,32,0.14)' : 'rgba(196,32,32,0.06)',
-                border: '1px solid rgba(196,32,32,0.28)',
-                borderRadius: 1,
-                padding: '8px 12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 7,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: open ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                minHeight: 36,
-                transition: 'all 200ms',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              ⚔
-              <span aria-hidden style={{ fontSize: 7, transform: open ? 'scaleY(-1)' : 'none', transition: 'transform 200ms' }}>▼</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Expanded controls open downward on mobile */}
-      {open && (
-        <div style={{ background: 'rgba(8,6,4,0.6)', borderBottom: '1px solid rgba(196,32,32,0.18)', marginBottom: 4 }}>
-          {expandedPanel}
-        </div>
-      )}
+    <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {mainBlock}
+      {expandedPanel}
     </div>
   )
 }
