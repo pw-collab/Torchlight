@@ -5,7 +5,6 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
-import { SlotTracker } from '@/components/sheet/SlotTracker'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
@@ -279,14 +278,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   onRoll={handleRoll}
                 />
               )}
-            </div>
-
-            {/* Right column: Carga (CA/PV/Fortuna live in the floating vitals card) */}
-            <div className="sheet-col-side">
-              {/* SlotTracker assumes a panel above it; restore its top border */}
-              <div style={{ borderTop: '1px solid rgba(139,112,48,0.33)' }}>
-                <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ slots: i.slots }))} />
-              </div>
             </div>
           </div>
         )}
