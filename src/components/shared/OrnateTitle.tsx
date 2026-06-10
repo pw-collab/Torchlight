@@ -14,7 +14,7 @@ interface Props {
  * Section title flanked by mirrored floral flourishes — the ornamental
  * framing used across the sheet's panel headers.
  */
-export function OrnateTitle({ children, color = 'var(--bone-muted)', fontSize = 8.5, style }: Props) {
+export function OrnateTitle({ children, color = 'var(--bone-dim)', fontSize = 8.5, style }: Props) {
   const flourish: CSSProperties = {
     fontSize: fontSize + 3,
     lineHeight: 1,

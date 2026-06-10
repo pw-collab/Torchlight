@@ -59,15 +59,15 @@ export function FloatingVitals({ ac, hpMax, hpCurrent, luckTokens, onHpChange, o
     color: 'var(--parchment-light)',
   }
 
-  const divider = <span aria-hidden style={{ width: 1, alignSelf: 'stretch', background: 'rgba(139,112,48,0.25)', flexShrink: 0 }} />
+  const divider = <span aria-hidden style={{ width: 1, alignSelf: 'stretch', background: 'rgba(196,32,32,0.20)', flexShrink: 0 }} />
 
   const expandedPanel = open && (
     <div
       className="animate-ink-spread"
       onClick={e => e.stopPropagation()}
       style={{
-        borderTop: isMobile ? 'none' : '1px solid rgba(139,112,48,0.25)',
-        borderBottom: isMobile ? '1px solid rgba(139,112,48,0.25)' : 'none',
+        borderTop: isMobile ? 'none' : '1px solid rgba(196,32,32,0.20)',
+        borderBottom: isMobile ? '1px solid rgba(196,32,32,0.20)' : 'none',
         padding: '10px 12px',
         display: 'flex',
         flexDirection: 'column',
@@ -110,7 +110,7 @@ export function FloatingVitals({ ac, hpMax, hpCurrent, luckTokens, onHpChange, o
             width: 46,
             flexShrink: 0,
             background: 'var(--ink-deep)',
-            border: '1px solid rgba(139,112,48,0.35)',
+            border: '1px solid rgba(196,32,32,0.25)',
             color: 'var(--parchment-light)',
             fontFamily: 'var(--font-mono)',
             fontSize: 14,
@@ -184,10 +184,10 @@ export function FloatingVitals({ ac, hpMax, hpCurrent, luckTokens, onHpChange, o
           ? { left: 10, right: 10, bottom: 'calc(68px + var(--safe-bottom))' }
           : { left: 24, top: 70, width: 218 }),
         zIndex: 85,
-        background: 'linear-gradient(148deg, rgba(74,54,28,0.25) 0%, rgba(14,10,3,0.97) 100%), #2E2210',
-        border: '1px solid rgba(139,112,48,0.4)',
+        background: 'linear-gradient(148deg, rgba(196,32,32,0.07) 0%, rgba(8,6,4,0.98) 100%), #0D0A05',
+        border: '1px solid rgba(196,32,32,0.35)',
         borderRadius: 2,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.6), 0 0 10px rgba(139,112,48,0.2)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.7), 0 0 12px rgba(196,32,32,0.15)',
         cursor: 'pointer',
         WebkitTapHighlightColor: 'transparent',
         display: 'flex',

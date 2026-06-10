@@ -370,6 +370,7 @@ export function Spells({
             return (
               <TarotCard
                 key={id}
+                face="cream"
                 numeral={spell ? (TIER_LABEL[spell.tier - 1] ?? String(spell.tier)) : '·'}
                 glyph="☽"
                 title={spell?.name ?? id}
