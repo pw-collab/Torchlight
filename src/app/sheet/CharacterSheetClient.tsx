@@ -280,7 +280,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               onClick={() => setTab(t)}
               className="tactile"
               style={{
-                background: tab === t ? 'rgba(139,112,48,0.15)' : 'none',
+                background: tab === t
+                  ? 'linear-gradient(180deg, var(--blood-mid) 0%, #6B0F0F 100%)'
+                  : 'none',
                 border: 'none',
                 borderBottom: '2px solid transparent',
                 cursor: 'pointer',
@@ -288,7 +290,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 fontSize: isMobile ? 11 : 16,
                 letterSpacing: isMobile ? '0.06em' : '0.18em',
                 textTransform: 'uppercase',
-                color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
+                color: tab === t ? 'var(--bone-white)' : 'var(--bone-muted)',
+                textShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
                 padding: isMobile ? '10px 8px' : '8px 18px 6px',
                 transition: 'color 300ms, background 300ms',
                 marginBottom: -1,
@@ -309,8 +312,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               height: 2,
               width: `${100 / Object.keys(TAB_LABELS).length}%`,
               left: `${(Object.keys(TAB_LABELS) as Tab[]).indexOf(tab) * (100 / Object.keys(TAB_LABELS).length)}%`,
-              background: 'var(--gold-oxidized)',
-              boxShadow: '0 0 6px rgba(139,112,48,0.5)',
+              background: 'var(--blood-bright)',
+              boxShadow: '0 0 6px rgba(196,32,32,0.55)',
               transition: 'left 320ms var(--ease-ritual)',
             }}
           />

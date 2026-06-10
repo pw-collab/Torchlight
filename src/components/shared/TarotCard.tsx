@@ -16,6 +16,9 @@ export function roman(n: number): string {
 
 const POPOVER_WIDTH = 300
 
+/** Pointy-top hexagon, same family as the avatar frame */
+const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+
 interface PopoverPos {
   top: number
   left: number
@@ -174,7 +177,9 @@ export function TarotCard({
             : `0 3px 10px rgba(0,0,0,0.55)${dimmed ? '' : `, 0 0 8px ${accentSoft}`}`,
           padding: 5,
           cursor: onToggle ? 'pointer' : 'default',
-          opacity: dimmed ? 0.62 : 1,
+          // Expended/failed cards go dark and desaturated, like locked cards in a collection
+          opacity: dimmed ? 0.78 : 1,
+          filter: dimmed ? 'grayscale(0.75) brightness(0.62)' : 'none',
           minHeight: 176,
           boxSizing: 'border-box',
           WebkitTapHighlightColor: 'transparent',
@@ -208,23 +213,32 @@ export function TarotCard({
             {numeral}
           </span>
 
-          {/* Arched art window */}
+          {/* Hexagonal art window (echoes the avatar's hex frame) */}
           <span style={{
-            width: 54,
-            height: 50,
-            border: `1px solid ${frame}`,
-            borderRadius: '50% 50% 6px 6px / 62% 62% 6px 6px',
-            background: `radial-gradient(circle at 50% 64%, ${accentSoft} 0%, transparent 72%)`,
+            width: 58,
+            height: 52,
+            clipPath: HEX_CLIP,
+            background: frame,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 22,
-            lineHeight: 1,
             flexShrink: 0,
-            textShadow: `0 0 12px ${accentSoft}`,
-            userSelect: 'none',
           }}>
-            {glyph}
+            <span style={{
+              width: 56,
+              height: 50,
+              clipPath: HEX_CLIP,
+              background: `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), #150F06`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              lineHeight: 1,
+              textShadow: dimmed ? 'none' : `0 0 12px ${accentSoft}`,
+              userSelect: 'none',
+            }}>
+              {glyph}
+            </span>
           </span>
 
           {/* Name banner */}
