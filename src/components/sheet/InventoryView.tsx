@@ -7,7 +7,6 @@ import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
-import { TarotCard, roman } from '@/components/shared/TarotCard'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
@@ -87,8 +86,8 @@ function calculateAC(inv: InventoryItem[], dex: number): number {
 
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
-const PANEL_BORDER = '1px solid rgba(139,112,48,0.33)'
-const PANEL_BORDER_LIGHT = '1px solid rgba(139,112,48,0.18)'
+const PANEL_BORDER = '1px solid rgba(196,32,32,0.25)'
+const PANEL_BORDER_LIGHT = '1px solid rgba(196,32,32,0.15)'
 
 function panelBase(extra?: React.CSSProperties): React.CSSProperties {
   return {
@@ -462,88 +461,182 @@ const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
   document: { color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)' },
 }
 
-function ItemRow({ item, index, onEdit, onRemove, onEquipToggle, onConsume, onOpen }: {
+function ItemIconSlot({ item, selected, onSelect }: {
   item: InventoryItem
-  index: number
+  selected: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      title={item.name}
+      style={{
+        width: 72,
+        height: 72,
+        background: selected ? 'rgba(196,32,32,0.08)' : 'rgba(8,6,4,0.85)',
+        border: selected ? '2px solid var(--blood-bright)' : '1px solid rgba(196,32,32,0.18)',
+        borderRadius: 2,
+        cursor: 'pointer',
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 3,
+        position: 'relative',
+        flexShrink: 0,
+        transition: 'border-color 200ms, background 200ms',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      {item.equipped && (
+        <span aria-hidden style={{
+          position: 'absolute', top: 4, left: 4,
+          width: 5, height: 5, borderRadius: '50%',
+          background: 'var(--verdigris-light)',
+        }} />
+      )}
+      <span style={{ fontSize: 22, lineHeight: 1, userSelect: 'none' }}>
+        {item.isLight
+          ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
+          : ITEM_ICON[item.type] ?? '⚗'}
+      </span>
+      <span style={{
+        fontFamily: 'var(--font-heading)',
+        fontSize: 6.5,
+        letterSpacing: '0.06em',
+        color: selected ? 'var(--parchment-light)' : 'var(--bone-muted)',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        lineHeight: 1.2,
+        maxWidth: 62,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        padding: '0 3px',
+        transition: 'color 200ms',
+      }}>
+        {item.name}
+      </span>
+      {item.quantity > 1 && (
+        <span style={{
+          position: 'absolute', bottom: 3, right: 4,
+          fontFamily: 'var(--font-mono)', fontSize: 7.5, fontWeight: 700,
+          color: 'var(--bone-muted)', lineHeight: 1,
+        }}>
+          ×{item.quantity}
+        </span>
+      )}
+    </button>
+  )
+}
+
+function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onConsume, onOpen, onRollAttack, onRollDamage, onRollParry }: {
+  item: InventoryItem
+  onClose: () => void
   onEdit: () => void
   onRemove: () => void
   onEquipToggle?: () => void
   onConsume?: () => void
   onOpen?: () => void
+  onRollAttack?: () => void
+  onRollDamage?: () => void
+  onRollParry?: () => void
 }) {
-  const [expanded, setExpanded] = useState(false)
   const accent = TYPE_ACCENT[item.type] ?? TYPE_ACCENT.gear
 
-  const meta = [
-    `${item.slots} slot${item.slots !== 1 ? 's' : ''}`,
-    item.quantity > 1 ? `×${item.quantity}` : null,
-    item.damageDie || null,
-    item.acBonus ? `CA ${item.acBonus}` : null,
-    item.isLight && item.lightMinutesLeft != null ? `${item.lightMinutesLeft}min` : null,
-    item.cost || null,
-  ].filter(Boolean).join(' · ')
-
-  const tag = (label: string, color: string, bg: string, border: string) => (
-    <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, background: bg, border: `1px solid ${border}`, padding: '1px 5px', borderRadius: 1 }}>
-      {label}
-    </span>
-  )
-
   return (
-    <TarotCard
-      face="cream"
-      numeral={roman(index + 1)}
-      glyph={item.isLight
-        ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
-        : ITEM_ICON[item.type] ?? '⚗'}
-      title={item.name}
-      subtitle={TYPE_LABEL[item.type] ?? item.type}
-      accent={accent.color}
-      accentSoft={accent.soft}
-      expanded={expanded}
-      onToggle={() => setExpanded(e => !e)}
-      corner={
+    <div className="animate-ink-spread" style={{
+      width: 200,
+      flexShrink: 0,
+      background: 'rgba(8,6,4,0.95)',
+      border: '1px solid rgba(196,32,32,0.25)',
+      borderTop: '2px solid var(--blood-bright)',
+      padding: '12px 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 13,
+            color: 'var(--parchment-light)',
+            lineHeight: 1.2,
+            letterSpacing: '0.02em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {item.name}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 7,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: accent.color,
+            marginTop: 3,
+          }}>
+            {TYPE_LABEL[item.type] ?? item.type}
+          </div>
+        </div>
         <button
-          onClick={onRemove}
-          title="Remover item"
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(139,21,21,0.5)', fontSize: 10, padding: 2, lineHeight: 1,
-            transition: 'color 180ms',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.5)')}
+          onClick={onClose}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 11, padding: 2, lineHeight: 1, flexShrink: 0 }}
         >
           ✕
         </button>
-      }
-      badges={
-        <>
-          {item.equipped && tag('Equipado', 'var(--verdigris-light)', 'rgba(42,80,69,0.2)', 'rgba(42,80,69,0.35)')}
-          {item.isLit && tag('Acesa', 'var(--candle-amber)', 'rgba(196,120,42,0.12)', 'rgba(196,120,42,0.3)')}
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', textAlign: 'center' }}>
-            {meta}
-          </span>
-        </>
-      }
-    >
+      </div>
+
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', lineHeight: 1.7 }}>
+        {[
+          `${item.slots} slot${item.slots !== 1 ? 's' : ''}`,
+          item.quantity > 1 ? `×${item.quantity}` : null,
+          item.damageDie || null,
+          item.acBonus ? `CA ${item.acBonus}` : null,
+          item.isLight && item.lightMinutesLeft != null ? `${item.lightMinutesLeft}min` : null,
+          item.cost || null,
+        ].filter(Boolean).join(' · ')}
+      </div>
+
+      {(item.equipped || item.isLit) && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {item.equipped && (
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'rgba(42,80,69,0.2)', border: '1px solid rgba(42,80,69,0.35)', padding: '1px 5px' }}>
+              Equipado
+            </span>
+          )}
+          {item.isLit && (
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'rgba(196,120,42,0.12)', border: '1px solid rgba(196,120,42,0.3)', padding: '1px 5px' }}>
+              Acesa
+            </span>
+          )}
+        </div>
+      )}
+
       {item.description && item.description !== '-' && (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, margin: '0 0 8px' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', lineHeight: 1.55, margin: 0 }}>
           {item.description}
         </p>
       )}
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        {onOpen && <button onClick={onOpen} style={quickBtnStyle('dark')}>Ler</button>}
-        {onConsume && <button onClick={onConsume} style={quickBtnStyle('green')}>Consumir</button>}
-        <button onClick={onEdit} style={quickBtnStyle('dark')}>✎ Editar</button>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 2 }}>
+        {onRollAttack && <button onClick={onRollAttack} style={{ ...quickBtnStyle('blood'), textAlign: 'center' }}>⚔ Atacar</button>}
+        {onRollDamage && <button onClick={onRollDamage} style={{ ...quickBtnStyle('mist'), textAlign: 'center' }}>Dano</button>}
+        {onRollParry && <button onClick={onRollParry} style={{ ...quickBtnStyle('mist'), textAlign: 'center' }}>Aparar</button>}
+        {onOpen && <button onClick={onOpen} style={{ ...quickBtnStyle('dark'), textAlign: 'center' }}>📖 Ler</button>}
+        {onConsume && <button onClick={onConsume} style={{ ...quickBtnStyle('green'), textAlign: 'center' }}>Consumir</button>}
         {onEquipToggle && (
-          <button onClick={onEquipToggle} style={quickBtnStyle(item.equipped ? 'amber' : 'mist')}>
+          <button onClick={onEquipToggle} style={{ ...quickBtnStyle(item.equipped ? 'amber' : 'dark'), textAlign: 'center' }}>
             {item.equipped ? 'Desequipar' : 'Equipar'}
           </button>
         )}
-        <button onClick={onRemove} style={quickBtnStyle('danger')}>✕ Remover</button>
+        <button onClick={onEdit} style={{ ...quickBtnStyle('dark'), textAlign: 'center' }}>✎ Editar</button>
+        <button onClick={onRemove} style={{ ...quickBtnStyle('danger'), textAlign: 'center' }}>✕ Remover</button>
       </div>
-    </TarotCard>
+    </div>
   )
 }
 
@@ -758,8 +851,16 @@ export function InventoryView({
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
   const [showCatalog, setShowCatalog]     = useState(false)
   const [editingId, setEditingId]         = useState<string | null>(null)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [replaceFor, setReplaceFor]       = useState<string | null>(null)
   const [bookViewItem, setBookViewItem]   = useState<InventoryItem | null>(null)
+
+  const selectedItem = (!editingId && selectedItemId)
+    ? inventory.find(i => i.id === selectedItemId) ?? null
+    : null
+  const editingItem = editingId
+    ? inventory.find(i => i.id === editingId) ?? null
+    : null
 
   // NOTE: light-source burn-down now lives in CharacterSheetClient so it
   // keeps ticking on every tab, not only while the inventory is open.
@@ -772,6 +873,8 @@ export function InventoryView({
   }
 
   function removeItem(id: string) {
+    if (id === selectedItemId) setSelectedItemId(null)
+    if (id === editingId) setEditingId(null)
     const next = inventory.filter(i => i.id !== id)
     onUpdate(next)
     onAcChange(calculateAC(next, dex))
@@ -862,10 +965,10 @@ export function InventoryView({
     <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
       {/* ── Left column: Equipped + Backpack + Treasure ── */}
-      <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: '1px solid rgba(139,112,48,0.22)' }}>
+      <div style={{ flex: 3, display: 'flex', flexDirection: 'column', minWidth: 0, borderRight: '1px solid rgba(196,32,32,0.15)' }}>
 
         {/* Equipped Slots */}
-        <div style={{ padding: 40, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div style={{ padding: 40, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
           {sectionHeader('Itens Equipados')}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {(['mainHand', 'offHand', 'armor'] as EquipSlot[]).map(slot => {
@@ -875,8 +978,8 @@ export function InventoryView({
                   key={slot}
                   className="worn-border"
                   style={{
-                    background: item ? 'rgba(42,34,16,0.5)' : 'rgba(42,34,16,0.3)',
-                    border: `1px solid ${item ? 'rgba(139,112,48,0.4)' : 'rgba(139,112,48,0.18)'}`,
+                    background: item ? 'rgba(12,8,4,0.7)' : 'rgba(8,6,4,0.5)',
+                    border: `1px solid ${item ? 'rgba(196,32,32,0.30)' : 'rgba(196,32,32,0.14)'}`,
                     padding: '10px 10px',
                     minHeight: 90,
                     display: 'flex',
@@ -964,7 +1067,7 @@ export function InventoryView({
                       onClick={() => setSelectingSlot(slot)}
                       style={{
                         background: 'none',
-                        border: '1px dashed rgba(139,112,48,0.3)',
+                        border: '1px dashed rgba(196,32,32,0.25)',
                         cursor: 'pointer',
                         flex: 1,
                         display: 'flex',
@@ -989,8 +1092,8 @@ export function InventoryView({
         </div>
 
         {/* Backpack */}
-        <div style={{ padding: 40, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
+        <div style={{ padding: 40, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
             <OrnateTitle>Inventário</OrnateTitle>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingForm({})} style={quickBtnStyle('dark')}>
@@ -1015,29 +1118,49 @@ export function InventoryView({
               Nenhum item registrado no arquivo.
             </p>
           ) : (
-            <div className="tarot-grid">
-              {inventory.map((item, i) => (
-                editingId === item.id ? (
-                  <div key={item.id} style={{ gridColumn: '1 / -1' }}>
-                    <EditItemForm
-                      item={item}
-                      onSave={updated => { updateItem(item.id, updated); setEditingId(null) }}
-                      onCancel={() => setEditingId(null)}
-                    />
-                  </div>
-                ) : (
-                  <ItemRow
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              {/* Icon slot grid */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: 1, minWidth: 0, alignContent: 'flex-start' }}>
+                {inventory.map(item => (
+                  <ItemIconSlot
                     key={item.id}
                     item={item}
-                    index={i}
-                    onEdit={() => setEditingId(item.id)}
-                    onRemove={() => removeItem(item.id)}
-                    onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
-                    onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
-                    onOpen={item.type === 'document' ? () => setBookViewItem(item) : undefined}
+                    selected={selectedItemId === item.id || editingId === item.id}
+                    onSelect={() => {
+                      if (editingId === item.id) return
+                      setSelectedItemId(selectedItemId === item.id ? null : item.id)
+                      setEditingId(null)
+                    }}
                   />
-                )
-              ))}
+                ))}
+              </div>
+
+              {/* Edit form in side pane */}
+              {editingItem && (
+                <div style={{ width: 220, flexShrink: 0 }}>
+                  <EditItemForm
+                    item={editingItem}
+                    onSave={updated => { updateItem(editingItem.id, updated); setEditingId(null) }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                </div>
+              )}
+
+              {/* Detail pane */}
+              {selectedItem && (
+                <ItemDetailPane
+                  item={selectedItem}
+                  onClose={() => setSelectedItemId(null)}
+                  onEdit={() => setEditingId(selectedItem.id)}
+                  onRemove={() => removeItem(selectedItem.id)}
+                  onEquipToggle={isEquippable(selectedItem) ? () => toggleEquipFromList(selectedItem) : undefined}
+                  onConsume={selectedItem.type === 'gear' ? () => consumeItem(selectedItem.id) : undefined}
+                  onOpen={selectedItem.type === 'document' ? () => setBookViewItem(selectedItem) : undefined}
+                  onRollAttack={selectedItem.type === 'weapon' && onRoll ? () => rollAttack(selectedItem) : undefined}
+                  onRollDamage={selectedItem.damageDie && onRoll ? () => rollDamage(selectedItem) : undefined}
+                  onRollParry={selectedItem.type === 'shield' && onRoll ? () => rollParry(selectedItem) : undefined}
+                />
+              )}
             </div>
           )}
         </div>

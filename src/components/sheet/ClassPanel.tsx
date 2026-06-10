@@ -1,15 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
-import { TarotCard, roman } from '@/components/shared/TarotCard'
+import { roman } from '@/components/shared/TarotCard'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
+
+const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+const POPOVER_W = 300
 
 const STAT_SHORT: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -468,108 +472,207 @@ function TechniqueCard({
   onStateChange: (s: TechniqueState) => void
   onRoll?: (r: RollResult) => void
 }) {
-  const [open, setOpen] = useState(false)
   const kind: TechniqueKind = technique.kind ?? 'passive'
   const style = KIND_STYLE[kind]
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
-  // Always-visible status pinned to the card bottom
-  const badges = (() => {
-    if (kind === 'choice' && state.choice) {
-      const cfg = technique.choice!
-      const label = cfg.options?.find(o => o.value === state.choice)?.label ?? state.choice
-      return (
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 8,
-          color: 'var(--candle-amber)',
-          background: 'rgba(106,58,10,0.18)',
-          border: '1px solid rgba(196,120,42,0.25)',
-          padding: '1px 6px',
-        }}>
-          {label}
-        </span>
-      )
-    }
+  useEffect(() => {
+    if (!open || !btnRef.current) { setPos(null); return }
+    const r = btnRef.current.getBoundingClientRect()
+    let left = r.left + r.width / 2 - POPOVER_W / 2
+    left = Math.max(8, Math.min(left, window.innerWidth - POPOVER_W - 8))
+    const spaceBelow = window.innerHeight - r.bottom - 8
+    const top = spaceBelow >= 80 ? r.bottom + 8 : Math.max(8, r.top - 8 - 380)
+    setPos({ top, left })
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open])
+
+  // Compact status indicator shown inside the hex
+  const statusLine = (() => {
     if (kind === 'limited_use' && technique.uses) {
-      const max = technique.uses.max
-      const remaining = state.usesRemaining ?? max
-      return (
-        <span style={{ display: 'flex', gap: 3 }}>
-          {Array.from({ length: max }).map((_, i) => (
-            <span key={i} style={{
-              fontSize: 10,
-              color: i < remaining ? 'var(--candle-amber)' : 'rgba(139,112,48,0.2)',
-              lineHeight: 1,
-            }}>✦</span>
-          ))}
-        </span>
-      )
+      const remaining = state.usesRemaining ?? technique.uses.max
+      return { text: `${remaining}/${technique.uses.max}`, color: remaining > 0 ? 'var(--candle-amber)' : 'var(--blood-bright)' }
     }
     if (kind === 'spell_like' && technique.spellLike) {
       const expended = state.expendedAbilities?.length ?? 0
       const total = technique.spellLike.abilities.length
-      return (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: expended > 0 ? 'var(--blood-bright)' : 'var(--verdigris-light)' }}>
-          {total - expended}/{total} disponíveis
-        </span>
-      )
+      return { text: `${total - expended}/${total}`, color: expended > 0 ? 'var(--blood-bright)' : 'var(--verdigris-light)' }
+    }
+    if (kind === 'choice' && state.choice) {
+      const cfg = technique.choice!
+      const label = cfg.options?.find(o => o.value === state.choice)?.label ?? state.choice
+      return { text: label.length > 8 ? label.slice(0, 7) + '…' : label, color: 'var(--candle-amber)' }
     }
     return null
   })()
 
-  return (
-    <TarotCard
-      face="cream"
-      numeral={roman(index + 1)}
-      glyph={style.glyph}
-      title={technique.name}
-      subtitle={style.label}
-      accent={style.color}
-      accentSoft={style.soft}
-      expanded={open}
-      onToggle={() => setOpen(o => !o)}
-      badges={badges}
-    >
-      <p style={{
-        fontFamily: 'var(--font-body)',
-        fontStyle: 'italic',
-        fontSize: 11,
-        color: 'var(--bone-muted)',
-        lineHeight: 1.6,
-        margin: 0,
-      }}>
-        <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
-      </p>
+  const popover = open && pos
+    ? createPortal(
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.55)' }} />
+          <div
+            className="animate-ink-spread"
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              top: pos.top,
+              left: pos.left,
+              width: POPOVER_W,
+              zIndex: 141,
+              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
+              border: `1px solid ${style.soft}`,
+              borderTop: `2px solid ${style.color}`,
+              borderRadius: 6,
+              boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${style.soft}`,
+              overflow: 'hidden',
+              maxHeight: 'calc(100vh - 32px)',
+              overflowY: 'auto',
+            }}
+          >
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 8px',
+              borderBottom: `1px solid ${style.soft}`,
+              background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${style.soft} 100%)`,
+            }}>
+              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{style.glyph}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--bone-white)', letterSpacing: '0.06em', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {technique.name}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.2em', textTransform: 'uppercase', color: style.color, opacity: 0.85, marginTop: 2 }}>
+                  {roman(index + 1)} · {style.label}
+                </div>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 13, lineHeight: 1, padding: '2px 4px', flexShrink: 0, opacity: 0.6 }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ padding: '12px 14px 16px' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, margin: 0 }}>
+                <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
+              </p>
+              {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
+              {kind === 'choice' && technique.choice && <ChoiceSection technique={technique} state={state} onChange={onStateChange} />}
+              {kind === 'limited_use' && technique.uses && (
+                <UsePips
+                  max={technique.uses.max}
+                  remaining={state.usesRemaining ?? technique.uses.max}
+                  perLabel={technique.uses.perLabel}
+                  onUse={() => {
+                    const cur = state.usesRemaining ?? technique.uses!.max
+                    if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
+                  }}
+                  onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
+                />
+              )}
+              {kind === 'spell_like' && technique.spellLike && (
+                <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
+              )}
+            </div>
+          </div>
+        </>,
+        document.body,
+      )
+    : null
 
-      {/* Kind-specific UI */}
-      {kind === 'passive' && technique.modifier && (
-        <PassiveModifierLine technique={technique} stats={stats} />
-      )}
-      {kind === 'choice' && technique.choice && (
-        <ChoiceSection technique={technique} state={state} onChange={onStateChange} />
-      )}
-      {kind === 'limited_use' && technique.uses && (
-        <UsePips
-          max={technique.uses.max}
-          remaining={state.usesRemaining ?? technique.uses.max}
-          perLabel={technique.uses.perLabel}
-          onUse={() => {
-            const cur = state.usesRemaining ?? technique.uses!.max
-            if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
-          }}
-          onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
-        />
-      )}
-      {kind === 'spell_like' && technique.spellLike && (
-        <SpellLikeSection
-          technique={technique}
-          state={state}
-          stats={stats}
-          onChange={onStateChange}
-          onRoll={onRoll}
-        />
-      )}
-    </TarotCard>
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={() => setOpen(o => !o)}
+        title={technique.name}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          WebkitTapHighlightColor: 'transparent',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        {/* Hex border (outer) + fill (inner) */}
+        <div style={{
+          width: 80,
+          height: 88,
+          clipPath: HEX_CLIP,
+          background: style.color,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          filter: open ? `drop-shadow(0 0 10px ${style.color})` : `drop-shadow(0 0 4px ${style.soft})`,
+          transition: 'filter 250ms',
+        }}>
+          <div style={{
+            width: 76,
+            height: 84,
+            clipPath: HEX_CLIP,
+            background: open
+              ? `linear-gradient(180deg, rgba(30,10,4,0.98) 0%, #0D0A05 100%)`
+              : `linear-gradient(180deg, rgba(18,8,2,0.97) 0%, #080604 100%)`,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            transition: 'background 250ms',
+          }}>
+            <span style={{
+              fontSize: 20,
+              lineHeight: 1,
+              userSelect: 'none',
+              filter: `drop-shadow(0 0 5px ${style.soft})`,
+            }}>
+              {style.glyph}
+            </span>
+            {statusLine && (
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 7,
+                color: statusLine.color,
+                lineHeight: 1,
+                letterSpacing: '0.04em',
+              }}>
+                {statusLine.text}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Name label below hex */}
+        <span style={{
+          fontFamily: 'var(--font-heading)',
+          fontSize: 8,
+          letterSpacing: '0.05em',
+          color: open ? 'var(--parchment-light)' : 'var(--bone-muted)',
+          textAlign: 'center',
+          lineHeight: 1.3,
+          maxWidth: 90,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          transition: 'color 250ms',
+        }}>
+          {technique.name}
+        </span>
+      </button>
+      {popover}
+    </>
   )
 }
 
@@ -677,7 +780,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
           <div style={{ marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
             <OrnateTitle>Técnicas</OrnateTitle>
           </div>
-          <div className="tarot-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 12, justifyItems: 'center' }}>
             {activeTechniques.map((t, i) => (
               <TechniqueCard
                 key={t.id}
