@@ -42,18 +42,25 @@ interface Props {
    *   Default is now 'cream'.
    */
   face?: 'cream' | 'dark'
+  /**
+   * When true, children render inline inside the card (scrollable if long)
+   * instead of opening a floating popover. Useful for grid layouts where
+   * the card should expand in place.
+   */
+  inlineExpand?: boolean
 }
 
 export function TarotCard({
   numeral, glyph, title, subtitle, accent, accentSoft,
   dimmed, expanded, onToggle, badges, corner, children,
-  face = 'cream',
+  face = 'cream', inlineExpand = false,
 }: Props) {
   const isCream = face === 'cream'
   const cardRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<PopoverPos | null>(null)
 
   useEffect(() => {
+    if (inlineExpand) return
     if (!expanded || !cardRef.current) { setPos(null); return }
     const r = cardRef.current.getBoundingClientRect()
     let left = r.left + r.width / 2 - POPOVER_WIDTH / 2
@@ -111,7 +118,7 @@ export function TarotCard({
     ? 'grayscale(1) brightness(0.65) sepia(0.15)'
     : 'grayscale(0.75) brightness(0.62)'
 
-  const popover = expanded && pos && children
+  const popover = !inlineExpand && expanded && pos && children
     ? createPortal(
         <>
           <div
@@ -212,6 +219,8 @@ export function TarotCard({
           filter: dimmed ? dimFilter : 'none',
           minHeight: 176,
           boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
@@ -221,7 +230,7 @@ export function TarotCard({
           border: `1px solid ${innerBorder}`,
           borderRadius: 4,
           padding: '9px 8px 11px',
-          height: '100%',
+          flex: inlineExpand && expanded ? 'none' : '1 1 auto',
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
@@ -308,6 +317,25 @@ export function TarotCard({
             </span>
           )}
         </div>
+
+        {/* Inline expanded body */}
+        {inlineExpand && expanded && children && (
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              marginTop: 5,
+              borderRadius: 4,
+              borderTop: `2px solid ${isCream ? 'var(--blood-bright)' : accent}`,
+              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
+              padding: '10px 12px 12px',
+              maxHeight: 160,
+              overflowY: 'auto',
+              boxSizing: 'border-box',
+            }}
+          >
+            {children}
+          </div>
+        )}
 
         {/* Corner action */}
         {corner && (

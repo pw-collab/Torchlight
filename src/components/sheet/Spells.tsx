@@ -348,7 +348,7 @@ export function Spells({
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div className="tarot-grid">
+        <div className="tarot-grid" style={{ alignItems: 'start' }}>
           {equippedSpells.map(id => {
             const spell   = getSpell(id) ?? available.find(s => s.id === id)
             const isOpen  = expanded === id
@@ -380,6 +380,7 @@ export function Spells({
                 dimmed={isFailed}
                 expanded={isOpen}
                 onToggle={spell ? () => setExpanded(isOpen ? null : id) : undefined}
+                inlineExpand
                 corner={onSpellsChange ? (
                   <button
                     onClick={() => forgetSpell(id)}
