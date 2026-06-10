@@ -6,10 +6,9 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
-import { CombatStats } from '@/components/sheet/CombatStats'
 import { XPBar } from '@/components/sheet/XPBar'
 import { SlotTracker } from '@/components/sheet/SlotTracker'
-import { LuckTokens } from '@/components/sheet/LuckTokens'
+import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
@@ -204,9 +203,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               onUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
             />
 
-            {/* Name + meta */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+            {/* Name + meta — three stable rows: name/edit, subtitle/seal, XP */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <h1 style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: isMobile ? 22 : 30,
@@ -217,7 +216,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  maxWidth: isMobile ? 160 : 'none',
+                  flex: 1,
+                  minWidth: 0,
                   margin: 0,
                 }}>
                   {character.name}
@@ -232,12 +232,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                     border: '1px solid rgba(139,112,48,0.28)',
                     color: 'var(--bone-muted)',
                     fontFamily: 'var(--font-body)',
-                    fontSize: 13,
+                    fontSize: isMobile ? 13 : 12,
                     borderRadius: 1,
-                    padding: isMobile ? '10px 14px' : '5px 10px',
+                    padding: isMobile ? '10px 14px' : '4px 10px',
                     textDecoration: 'none',
                     transition: 'all 250ms',
-                    minHeight: 44,
+                    minHeight: isMobile ? 44 : 0,
                     flexShrink: 0,
                   }}
                   onMouseEnter={e => {
@@ -251,19 +251,18 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
                 >
                   ✎ Editar
                 </Link>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
+                </p>
                 {!isMobile && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.08em', whiteSpace: 'nowrap', flexShrink: 0 }}>
                     FICHA N&#186; {character.id.slice(0, 8).toUpperCase()}
                   </span>
                 )}
               </div>
-              {/* Subtitle + inline XP bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#6A5A3A', whiteSpace: 'nowrap', flexShrink: 0, margin: 0 }}>
-                  {cls?.name ?? character.classId} · {ancestry?.name ?? character.ancestryId} · Nível {character.level}
-                </p>
-                <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
-              </div>
+              <XPBar level={character.level} xp={character.xp} onUpdate={handleXpUpdate} />
             </div>
           </div>
         </div>
@@ -337,30 +336,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               )}
             </div>
 
-            {/* Right column: CA > PV > Fortuna > Carga */}
+            {/* Right column: Carga (CA/PV/Fortuna live in the floating vitals card) */}
             <div className="sheet-col-side">
-              {/* CA */}
-              <div style={{
-                background: 'var(--parchment-mid)',
-                border: 'none',
-                borderBottom: '1px solid rgba(139,112,48,0.22)',
-                padding: 20,
-                textAlign: 'center',
-              }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', marginBottom: 2 }}>
-                  CA
-                </div>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 40, fontWeight: 700, color: 'var(--bone-white)', lineHeight: 1 }}>
-                  {character.ac}
-                </div>
+              {/* SlotTracker assumes a panel above it; restore its top border */}
+              <div style={{ borderTop: '1px solid rgba(139,112,48,0.33)' }}>
+                <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ slots: i.slots }))} />
               </div>
-              <CombatStats
-                hpMax={character.hpMax}
-                hpCurrent={character.hpCurrent}
-                onHpChange={handleHpChange}
-              />
-              <LuckTokens luckTokens={character.luckTokens} onChange={handleLuckChange} />
-              <SlotTracker str={character.stats.str} equipment={character.inventory.map(i => ({ slots: i.slots }))} />
             </div>
           </div>
         )}
@@ -410,6 +391,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
+      <FloatingVitals
+        ac={character.ac}
+        hpMax={character.hpMax}
+        hpCurrent={character.hpCurrent}
+        luckTokens={character.luckTokens}
+        onHpChange={handleHpChange}
+        onLuckChange={handleLuckChange}
+      />
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
