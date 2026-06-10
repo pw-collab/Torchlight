@@ -7,6 +7,7 @@ import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
 import { TarotCard, roman } from '@/components/shared/TarotCard'
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -582,9 +583,7 @@ function TalentTable({ classData }: { classData: Class }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-          Tabela de Talentos
-        </span>
+        <OrnateTitle>Tabela de Talentos</OrnateTitle>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(139,112,48,0.45)' }}>
             Role no modal de edição
@@ -674,8 +673,8 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {/* Techniques */}
       {activeTechniques.length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-            Técnicas
+          <div style={{ marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
+            <OrnateTitle>Técnicas</OrnateTitle>
           </div>
           <div className="tarot-grid">
             {activeTechniques.map((t, i) => (

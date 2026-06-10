@@ -1,6 +1,7 @@
 'use client'
 
 import { getItem } from '@/data/equipment/index'
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 interface Props {
   equipment: { itemId: string; slots: number }[]
@@ -19,16 +20,11 @@ export function Equipment({ equipment }: Props) {
       }}
     >
       <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 8.5,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: 'var(--bone-muted)',
         marginBottom: 10,
         paddingBottom: 7,
         borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
-        ⚗ Equipamento
+        <OrnateTitle>⚗ Equipamento</OrnateTitle>
       </div>
       {equipment.length === 0 ? (
         <p style={{

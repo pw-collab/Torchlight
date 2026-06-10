@@ -8,6 +8,7 @@ import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { TarotCard, roman } from '@/components/shared/TarotCard'
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -100,16 +101,11 @@ function panelBase(extra?: React.CSSProperties): React.CSSProperties {
 function sectionHeader(text: string) {
   return (
     <div style={{
-      fontFamily: 'var(--font-heading)',
-      fontSize: 8.5,
-      letterSpacing: '0.2em',
-      textTransform: 'uppercase' as const,
-      color: 'var(--bone-muted)',
       paddingBottom: 7,
       borderBottom: PANEL_BORDER_LIGHT,
       marginBottom: 10,
     }}>
-      {text}
+      <OrnateTitle>{text}</OrnateTitle>
     </div>
   )
 }
@@ -351,8 +347,8 @@ function CatalogPickerModal({ onAdd, onClose }: {
           maxHeight: '78vh',
         }}
       >
-        <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 10 }}>
-          Adicionar do Catálogo
+        <div style={{ marginBottom: 10 }}>
+          <OrnateTitle color="var(--parchment-light)" fontSize={10}>Adicionar do Catálogo</OrnateTitle>
         </div>
 
         <input
@@ -994,9 +990,7 @@ export function InventoryView({
         {/* Backpack */}
         <div style={{ padding: 40, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
-              Inventário
-            </span>
+            <OrnateTitle>Inventário</OrnateTitle>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => setAddingForm({})} style={quickBtnStyle('dark')}>
                 + Manual
@@ -1109,8 +1103,8 @@ export function InventoryView({
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 12 }}>
-              Equipar em {SLOT_LABELS[selectingSlot]}
+            <div style={{ marginBottom: 12 }}>
+              <OrnateTitle color="var(--parchment-light)" fontSize={10}>Equipar em {SLOT_LABELS[selectingSlot]}</OrnateTitle>
             </div>
 
             {unequippedCompatible(selectingSlot).length === 0 ? (
@@ -1167,8 +1161,8 @@ export function InventoryView({
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)', marginBottom: 4 }}>
-              Mãos Ocupadas
+            <div style={{ marginBottom: 4 }}>
+              <OrnateTitle color="var(--parchment-light)" fontSize={10}>Mãos Ocupadas</OrnateTitle>
             </div>
             <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', marginBottom: 12 }}>
               Qual item substituir?

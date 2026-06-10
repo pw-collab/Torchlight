@@ -1,5 +1,7 @@
 'use client'
 
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
+
 interface Props {
   gold: number
   silver: number
@@ -22,16 +24,11 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
       }}
     >
       <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 8.5,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: 'var(--bone-muted)',
         marginBottom: 10,
         paddingBottom: 7,
         borderBottom: '1px solid rgba(139,112,48,0.18)',
       }}>
-        Tesouro
+        <OrnateTitle>Tesouro</OrnateTitle>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>

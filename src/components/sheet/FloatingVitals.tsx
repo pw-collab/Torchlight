@@ -35,7 +35,8 @@ export function FloatingVitals({ ac, hpMax, hpCurrent, luckTokens, onHpChange, o
   }, [hpCurrent])
 
   const hpPercent = hpMax > 0 ? Math.max(0, (hpCurrent / hpMax) * 100) : 0
-  const hpColor = hpPercent > 50 ? '#3D7060' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-mid)'
+  // Semantic accents: teal = healthy, amber = hurt, red = danger
+  const hpColor = hpPercent > 50 ? 'var(--verdigris-bright)' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-bright)'
 
   function applyHp(delta: number) {
     onHpChange(Math.min(hpMax, Math.max(0, hpCurrent + delta)))
@@ -214,7 +215,7 @@ export function FloatingVitals({ ac, hpMax, hpCurrent, luckTokens, onHpChange, o
               <span
                 key={flash ?? 'idle'}
                 className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
-                style={{ display: 'inline-block', color: hpCurrent <= 0 ? 'var(--blood-bright)' : undefined }}
+                style={{ display: 'inline-block', color: hpColor, transition: 'color 400ms' }}
               >
                 {hpCurrent}
               </span>

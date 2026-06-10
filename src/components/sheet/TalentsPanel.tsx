@@ -5,6 +5,7 @@ import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
 import { TarotCard, roman } from '@/components/shared/TarotCard'
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -73,9 +74,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '0.2em', color: 'var(--bone-muted)' }}>
-          Talentos & Habilidades
-        </span>
+        <OrnateTitle fontSize={11}>Talentos & Habilidades</OrnateTitle>
         <button
           onClick={() => setAdding(a => !a)}
           style={{

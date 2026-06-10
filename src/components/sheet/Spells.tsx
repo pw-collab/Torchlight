@@ -7,6 +7,7 @@ import { rollDie, modifier } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
 import { TarotCard } from '@/components/shared/TarotCard'
+import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -86,8 +87,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         }}
       >
         {/* Header */}
-        <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8B6AAA' }}>
-          ☽ Aprender Magia
+        <div>
+          <OrnateTitle color="#8B6AAA" fontSize={10}>☽ Aprender Magia</OrnateTitle>
         </div>
 
         {/* Search */}
@@ -257,9 +258,7 @@ export function Spells({
     >
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(107,78,138,0.2)', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#6B4E8A', flex: 1 }}>
-          ☽ Magias
-        </span>
+        <OrnateTitle color="#6B4E8A" style={{ flex: 1 }}>☽ Magias</OrnateTitle>
 
         {/* Learn button */}
         {onSpellsChange && (
