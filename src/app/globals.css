@@ -257,8 +257,6 @@ html, body {
   transition: transform 260ms var(--ease-ritual), box-shadow 260ms var(--ease-ritual), opacity 260ms;
 }
 .tarot-card:hover { transform: translateY(-3px); }
-.tarot-card--expanded { grid-column: 1 / -1; }
-.tarot-card--expanded:hover { transform: none; }
 
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
