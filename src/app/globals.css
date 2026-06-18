@@ -287,6 +287,27 @@ html, body {
 }
 .tarot-card:hover { transform: translateY(-3px); }
 
+/* Flip variant — cards reveal their detail on a 3D-rotated back face.
+   The grid must not stretch siblings to match an opened (taller) card,
+   and the lift-on-hover is dropped because the card owns its own
+   rotateY transform. */
+.tarot-grid--flip { align-items: start; }
+.tarot-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 560ms var(--ease-ritual), height 380ms var(--ease-ritual);
+}
+.tarot-flip.is-flipped { transform: rotateY(180deg); }
+.tarot-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.tarot-flip-face--back { transform: rotateY(180deg); }
+.tarot-flip:hover { transform: translateY(-3px); }
+.tarot-flip.is-flipped:hover { transform: rotateY(180deg) translateY(-3px); }
+
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
    leaving :hover transforms (e.g. .card-lift) free to apply afterwards. */

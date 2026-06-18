@@ -48,19 +48,31 @@ interface Props {
    *   Default is now 'cream'.
    */
   face?: 'cream' | 'dark'
+  /**
+   * Opt-in 3D flip interaction. When enabled, toggling `expanded` rotates the
+   * card horizontally to reveal a back face that carries the detail content
+   * (`children`) — instead of opening the floating popover. The action buttons
+   * (`badges`) float just outside the card so they stay reachable on both
+   * faces. Used by the spell cards.
+   */
+  flip?: boolean
 }
+
+/** Card face heights for the flip variant (front art vs. revealed detail). */
+const FLIP_FRONT_H = 176
+const FLIP_BACK_H  = 264
 
 export function TarotCard({
   numeral, glyph, title, subtitle, accent, accentSoft,
   dimmed, expanded, onToggle, badges, corner, children, body,
-  face = 'cream',
+  face = 'cream', flip = false,
 }: Props) {
   const isCream = face === 'cream'
   const cardRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<PopoverPos | null>(null)
 
   useEffect(() => {
-    if (!expanded || !cardRef.current) { setPos(null); return }
+    if (flip || !expanded || !cardRef.current) { setPos(null); return }
     const r = cardRef.current.getBoundingClientRect()
     let left = r.left + r.width / 2 - POPOVER_WIDTH / 2
     left = Math.max(8, Math.min(left, window.innerWidth - POPOVER_WIDTH - 8))
@@ -69,7 +81,7 @@ export function TarotCard({
       ? r.bottom + 8
       : Math.max(8, r.top - 8 - Math.min(spaceBelow < 80 ? 380 : 280, window.innerHeight - 16))
     setPos({ top, left })
-  }, [expanded])
+  }, [expanded, flip])
 
   useEffect(() => {
     if (!expanded) return
@@ -199,6 +211,242 @@ export function TarotCard({
       )
     : null
 
+  // ── Front-face art — shared by the classic card and the flip front ─────────
+  const cornerStars = ([
+    { top: 2, left: 4 }, { top: 2, right: 4 },
+    { bottom: 2, left: 4 }, { bottom: 2, right: 4 },
+  ] as React.CSSProperties[]).map((p, i) => (
+    <span key={i} aria-hidden style={{ position: 'absolute', fontSize: 6, color: starColor, opacity: 0.55, lineHeight: 1, ...p }}>
+      ✦
+    </span>
+  ))
+
+  const innerFrameStyle: React.CSSProperties = {
+    position: 'relative',
+    border: `1px solid ${innerBorder}`,
+    borderRadius: 4,
+    padding: '9px 8px 11px',
+    height: '100%',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
+  }
+
+  const frontArt = (
+    <>
+      {cornerStars}
+
+      {/* Arcana numeral */}
+      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '0.3em', color: numeralColor, opacity: 0.9, lineHeight: 1, marginLeft: '0.3em' }}>
+        {numeral}
+      </span>
+
+      {/* Hexagonal art window */}
+      <span style={{ width: 58, height: 52, clipPath: HEX_CLIP, background: hexOuter, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{
+          width: 56,
+          height: 50,
+          clipPath: HEX_CLIP,
+          background: hexInnerBg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 22,
+          lineHeight: 1,
+          textShadow: hexGlyphShadow,
+          userSelect: 'none',
+        }}>
+          {glyph}
+        </span>
+      </span>
+
+      {/* Name banner */}
+      <span style={{
+        fontFamily: 'var(--font-heading)',
+        fontSize: 11,
+        letterSpacing: '0.06em',
+        color: titleColor,
+        textAlign: 'center',
+        lineHeight: 1.3,
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+      }}>
+        {title}
+      </span>
+
+      {/* Ornamental divider */}
+      <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 5, width: '72%', opacity: 0.5 }}>
+        <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${dividerColor})` }} />
+        <span style={{ fontSize: 6, lineHeight: 1, color: dividerColor }}>✦</span>
+        <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${dividerColor}, transparent)` }} />
+      </span>
+
+      {/* Caption / subtitle */}
+      <span style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 6.5,
+        letterSpacing: '0.22em',
+        textTransform: 'uppercase',
+        color: captionColor,
+        textAlign: 'center',
+        marginLeft: '0.22em',
+      }}>
+        {subtitle}
+      </span>
+
+      {/* Inline body — card-face content (e.g. talent description) */}
+      {body && (
+        <div style={{ width: '100%', boxSizing: 'border-box' }}>
+          {body}
+        </div>
+      )}
+    </>
+  )
+
+  const cornerAction = corner ? (
+    <span onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 4, right: 5, zIndex: 2 }}>
+      {corner}
+    </span>
+  ) : null
+
+  // ── Flip variant — the card rotates to reveal its detail on the back ───────
+  if (flip) {
+    return (
+      <div
+        className="tarot-flip-wrap"
+        style={{ perspective: 1200, WebkitTapHighlightColor: 'transparent' }}
+      >
+        <div
+          ref={cardRef}
+          className={`tarot-flip${expanded ? ' is-flipped' : ''}`}
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: expanded ? FLIP_BACK_H : FLIP_FRONT_H,
+            opacity: dimmed ? 0.82 : 1,
+            filter: dimmed ? dimFilter : 'none',
+          }}
+        >
+          {/* Front face — the tarot art */}
+          <div
+            className="tarot-flip-face tarot-flip-face--front"
+            onClick={onToggle}
+            role={onToggle ? 'button' : undefined}
+            style={{
+              background: cardBg,
+              border: isCream ? `1px solid rgba(42,30,10,0.32)` : `1px solid ${dimmed ? 'rgba(139,112,48,0.18)' : accentSoft}`,
+              borderRadius: 7,
+              boxShadow: cardShadow,
+              padding: 5,
+              cursor: onToggle ? 'pointer' : 'default',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={innerFrameStyle}>{frontArt}</div>
+            {cornerAction}
+          </div>
+
+          {/* Back face — the detail that used to live in the popover */}
+          <div
+            className="tarot-flip-face tarot-flip-face--back"
+            onClick={onToggle}
+            style={{
+              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
+              border: `1px solid ${isCream ? 'rgba(196,32,32,0.45)' : accentSoft}`,
+              borderTop: `2px solid ${isCream ? 'var(--blood-bright)' : accent}`,
+              borderRadius: 7,
+              boxShadow: `0 6px 22px rgba(0,0,0,0.7), 0 0 14px ${isCream ? 'rgba(196,32,32,0.22)' : accentSoft}`,
+              cursor: onToggle ? 'pointer' : 'default',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '8px 10px 7px',
+              flexShrink: 0,
+              borderBottom: `1px solid ${isCream ? 'rgba(196,32,32,0.2)' : accentSoft}`,
+              background: isCream
+                ? 'linear-gradient(90deg, rgba(196,32,32,0.06) 0%, rgba(196,32,32,0.12) 100%)'
+                : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
+            }}>
+              <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 11,
+                  color: 'var(--bone-white)',
+                  letterSpacing: '0.05em',
+                  lineHeight: 1.25,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {title}
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 6.5,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: isCream ? 'var(--blood-bright)' : accent,
+                  opacity: 0.85,
+                  marginTop: 2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {numeral} · {subtitle}
+                </div>
+              </div>
+              <span
+                aria-hidden
+                title="Virar carta"
+                style={{ color: 'var(--bone-muted)', fontSize: 12, lineHeight: 1, flexShrink: 0, opacity: 0.6 }}
+              >
+                ↺
+              </span>
+            </div>
+
+            {/* Detail — formerly the popover body */}
+            <div style={{ padding: '10px 12px 12px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
+              {children}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons — float just outside the card, on both faces */}
+        {badges && (
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginTop: 8,
+              cursor: 'default',
+              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))',
+            }}
+          >
+            {badges}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Classic variant — static card with floating popover on expand ──────────
   return (
     <>
       <div
@@ -222,94 +470,8 @@ export function TarotCard({
         }}
       >
         {/* Inner frame line */}
-        <div style={{
-          position: 'relative',
-          border: `1px solid ${innerBorder}`,
-          borderRadius: 4,
-          padding: '9px 8px 11px',
-          height: '100%',
-          boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 6,
-        }}>
-          {/* Corner stars */}
-          {([
-            { top: 2, left: 4 }, { top: 2, right: 4 },
-            { bottom: 2, left: 4 }, { bottom: 2, right: 4 },
-          ] as React.CSSProperties[]).map((p, i) => (
-            <span key={i} aria-hidden style={{ position: 'absolute', fontSize: 6, color: starColor, opacity: 0.55, lineHeight: 1, ...p }}>
-              ✦
-            </span>
-          ))}
-
-          {/* Arcana numeral */}
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '0.3em', color: numeralColor, opacity: 0.9, lineHeight: 1, marginLeft: '0.3em' }}>
-            {numeral}
-          </span>
-
-          {/* Hexagonal art window */}
-          <span style={{ width: 58, height: 52, clipPath: HEX_CLIP, background: hexOuter, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span style={{
-              width: 56,
-              height: 50,
-              clipPath: HEX_CLIP,
-              background: hexInnerBg,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 22,
-              lineHeight: 1,
-              textShadow: hexGlyphShadow,
-              userSelect: 'none',
-            }}>
-              {glyph}
-            </span>
-          </span>
-
-          {/* Name banner */}
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 11,
-            letterSpacing: '0.06em',
-            color: titleColor,
-            textAlign: 'center',
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}>
-            {title}
-          </span>
-
-          {/* Ornamental divider */}
-          <span aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 5, width: '72%', opacity: 0.5 }}>
-            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, transparent, ${dividerColor})` }} />
-            <span style={{ fontSize: 6, lineHeight: 1, color: dividerColor }}>✦</span>
-            <span style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${dividerColor}, transparent)` }} />
-          </span>
-
-          {/* Caption / subtitle */}
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 6.5,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: captionColor,
-            textAlign: 'center',
-            marginLeft: '0.22em',
-          }}>
-            {subtitle}
-          </span>
-
-          {/* Inline body — card-face content (e.g. talent description) */}
-          {body && (
-            <div style={{ width: '100%', boxSizing: 'border-box' }}>
-              {body}
-            </div>
-          )}
+        <div style={innerFrameStyle}>
+          {frontArt}
 
           {/* Always-visible badges */}
           {badges && (
@@ -322,12 +484,7 @@ export function TarotCard({
           )}
         </div>
 
-        {/* Corner action */}
-        {corner && (
-          <span onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 4, right: 5, zIndex: 2 }}>
-            {corner}
-          </span>
-        )}
+        {cornerAction}
       </div>
 
       {popover}
