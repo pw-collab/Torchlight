@@ -348,7 +348,7 @@ export function Spells({
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div className="tarot-grid">
+        <div className="tarot-grid tarot-grid--flip">
           {equippedSpells.map(id => {
             const spell   = getSpell(id) ?? available.find(s => s.id === id)
             const isOpen  = expanded === id
@@ -371,6 +371,7 @@ export function Spells({
               <TarotCard
                 key={id}
                 face="cream"
+                flip
                 numeral={spell ? (TIER_LABEL[spell.tier - 1] ?? String(spell.tier)) : '·'}
                 glyph="☽"
                 title={spell?.name ?? id}
