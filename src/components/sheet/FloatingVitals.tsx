@@ -26,8 +26,7 @@ interface Props {
   editHref: string
 }
 
-/** Red ring drawn behind the AvatarUpload hex (its clip scaled ~13% out from center) */
-const HEX_RING_CLIP = 'polygon(50% 10.5%, 84.5% 30.2%, 84.5% 69.8%, 50% 89.5%, 15.5% 69.8%, 15.5% 30.2%)'
+const PORTRAIT_RING_RADIUS = 12
 
 /** Downward-pointing shield badge for the AC value */
 const SHIELD_CLIP = 'polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%)'
@@ -193,10 +192,11 @@ export function FloatingVitals({
         onClick={e => e.stopPropagation()}
         style={{ position: 'relative', width: sz.avatar, height: sz.avatar, flexShrink: 0, cursor: 'default' }}
       >
+        {/* Red square ring behind the portrait */}
         <div aria-hidden style={{
           position: 'absolute',
-          inset: 0,
-          clipPath: HEX_RING_CLIP,
+          inset: -4,
+          borderRadius: PORTRAIT_RING_RADIUS,
           background: 'linear-gradient(140deg, #E04848 0%, var(--blood-bright) 35%, #6E1010 100%)',
           filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.55))',
         }} />
@@ -208,7 +208,7 @@ export function FloatingVitals({
             onUpload={onAvatarUpload}
           />
         </div>
-        {/* Level badge */}
+        {/* Level badge — zIndex above the portrait frame */}
         <div style={{
           position: 'absolute',
           left: 0,
@@ -223,6 +223,7 @@ export function FloatingVitals({
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
+          zIndex: 6,
         }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: sz.badgeFont, fontWeight: 700, color: 'var(--blood-bright)', lineHeight: 1 }}>
             {level}
