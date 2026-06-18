@@ -11,7 +11,7 @@ interface Props {
   size?: number
 }
 
-const HEX_CLIP = 'polygon(50% 15%, 80.5% 32.5%, 80.5% 67.5%, 50% 85%, 19.5% 67.5%, 19.5% 32.5%)'
+const PORTRAIT_RADIUS = 8
 
 async function resizeImage(file: File, maxDim: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -141,12 +141,12 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           flexShrink: 0,
         }}
       >
-        {/* Image or placeholder, clipped to hex */}
+        {/* Image or placeholder */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            clipPath: HEX_CLIP,
+            borderRadius: PORTRAIT_RADIUS,
             background: displayUrl ? 'transparent' : 'rgba(26,20,8,0.85)',
             overflow: 'hidden',
             transition: 'filter 200ms',
@@ -183,7 +183,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              clipPath: HEX_CLIP,
+              borderRadius: PORTRAIT_RADIUS,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -211,14 +211,14 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           </div>
         )}
 
-        {/* Loading spinner ring */}
+        {/* Loading spinner */}
         {uploading && (
           <div
             aria-hidden
             style={{
               position: 'absolute',
               inset: 0,
-              clipPath: HEX_CLIP,
+              borderRadius: PORTRAIT_RADIUS,
               background: 'rgba(0,0,0,0.45)',
               display: 'flex',
               alignItems: 'center',
@@ -230,18 +230,16 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           </div>
         )}
 
-        {/* Gold hex frame overlay */}
-        <img
-          src="/hex-frame.svg"
+        {/* Square portrait frame */}
+        <div
           aria-hidden
-          draggable={false}
           style={{
             position: 'absolute',
             inset: 0,
-            width: '100%',
-            height: '100%',
+            borderRadius: PORTRAIT_RADIUS,
+            border: '1px solid rgba(139,112,48,0.45)',
+            boxShadow: 'inset 0 0 0 1px rgba(212,170,60,0.12)',
             pointerEvents: 'none',
-            userSelect: 'none',
             zIndex: 4,
           }}
         />
@@ -253,7 +251,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: -2,
-              clipPath: HEX_CLIP,
+              borderRadius: PORTRAIT_RADIUS + 2,
               border: '2px solid var(--candle-amber)',
               boxShadow: '0 0 12px rgba(212,170,60,0.5)',
               zIndex: 5,
