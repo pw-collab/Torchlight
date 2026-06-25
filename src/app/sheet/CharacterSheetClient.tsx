@@ -7,6 +7,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
+import { TabBar } from '@/components/sheet/TabBar'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
@@ -186,7 +187,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px 80px' : '0 24px 80px' }}>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px calc(140px + var(--safe-bottom))' : '74px 24px 80px' }}>
 
         {/* HUD — inline on mobile, fixed bottom-left on desktop */}
         <FloatingVitals
@@ -213,55 +214,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <StatBlock stats={character.stats} onRoll={handleRoll} />
         </div>
 
-        {/* Tab navigation */}
-        <div style={{ position: 'relative', display: 'flex', gap: 2, marginBottom: 0, borderBottom: '1px solid rgba(196,32,32,0.20)' }}>
-          {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="tactile"
-              style={{
-                background: tab === t
-                  ? 'linear-gradient(180deg, var(--blood-mid) 0%, #6B0F0F 100%)'
-                  : 'none',
-                border: 'none',
-                borderBottom: '2px solid transparent',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-heading)',
-                fontSize: isMobile ? 11 : 16,
-                letterSpacing: isMobile ? '0.06em' : '0.18em',
-                textTransform: 'uppercase',
-                color: tab === t ? 'var(--bone-white)' : 'rgba(200,184,136,0.55)',
-                textShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
-                padding: isMobile ? '10px 8px' : '8px 18px 6px',
-                transition: 'color 300ms, background 300ms',
-                marginBottom: -1,
-                width: '100%',
-                minHeight: 44,
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              {TAB_LABELS[t]}
-            </button>
-          ))}
-          {/* Sliding active-tab indicator */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              bottom: -1,
-              height: 2,
-              width: `${100 / Object.keys(TAB_LABELS).length}%`,
-              left: `${(Object.keys(TAB_LABELS) as Tab[]).indexOf(tab) * (100 / Object.keys(TAB_LABELS).length)}%`,
-              background: 'var(--blood-bright)',
-              boxShadow: '0 0 6px rgba(196,32,32,0.55)',
-              transition: 'left 320ms var(--ease-ritual)',
-            }}
-          />
-        </div>
-
-        {/* Tab content border */}
-        <div style={{ border: '1px solid rgba(196,32,32,0.18)', borderTop: 'none', marginBottom: 40 }}>
+        {/* Tab content border (tab nav now floats — see <TabBar /> below) */}
+        <div style={{ border: '1px solid rgba(196,32,32,0.18)', marginBottom: 40 }}>
 
         {/* Tab: Stats */}
         {tab === 'stats' && (
@@ -327,6 +281,11 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>{/* end tab content border */}
       </div>
 
+      <TabBar
+        tabs={(Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))}
+        active={tab}
+        onChange={setTab}
+      />
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
