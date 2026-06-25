@@ -50,12 +50,11 @@ export function TabBar<K extends string>({ tabs, active, onChange }: Props<K>) {
           display: 'flex',
           alignItems: 'stretch',
           gap: 4,
-          background: 'linear-gradient(180deg, rgba(28,20,8,0.97) 0%, rgba(18,13,4,0.98) 100%)',
-          border: '1px solid rgba(196,32,32,0.42)',
-          borderTop: '1px solid rgba(196,32,32,0.55)',
+          background: '#0a0805',
+          border: '2px solid rgba(200,184,144,0.25)',
           borderBottom: 'none',
-          borderRadius: '6px 6px 0 0',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
+          borderRadius: '12px 12px 0 0',
+          boxShadow: '0 -4px 24px rgba(0,0,0,0.7)',
           WebkitTapHighlightColor: 'transparent',
         }}
         aria-label="Navegação da ficha"
