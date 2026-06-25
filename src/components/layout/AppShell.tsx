@@ -60,44 +60,50 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
 
   const visibleCrumbs = isMobile ? breadcrumbs.slice(-1) : breadcrumbs
 
-  // ── Mobile: simple top bar (unchanged style) ──────────────────────────────
+  // ── Mobile: 2-pill header ─────────────────────────────────────────────────
   if (isMobile) {
+    const lastCrumb = visibleCrumbs[visibleCrumbs.length - 1]
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604' }}>
         <div style={{
-          height: 50,
+          height: 64,
           flexShrink: 0,
-          background: '#060402',
-          borderBottom: '1px solid rgba(196,32,32,0.18)',
+          background: '#18140c',
           display: 'flex',
           alignItems: 'center',
           padding: '0 12px',
-          gap: 0,
-          boxShadow: '0 2px 16px rgba(0,0,0,0.7)',
+          gap: 8,
           zIndex: 20,
         }}>
-          <button onClick={() => router.push('/home')} style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', flexShrink: 0, minHeight: 44 }}>
-            <Image src="/skull-icon.png" alt="Torchlight" width={26} height={26} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(196,32,32,0.55))' }} />
-          </button>
-          {visibleCrumbs.length > 0 && (
-            <>
-              <span style={{ width: 1, height: 18, background: 'rgba(196,32,32,0.22)', flexShrink: 0, marginRight: 10 }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', overflow: 'hidden' }}>
-                {visibleCrumbs.map((crumb, i) => (
-                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                    {i > 0 && <span style={{ color: 'rgba(196,32,32,0.4)', flexShrink: 0 }}>›</span>}
-                    {crumb.href ? (
-                      <button type="button" onClick={() => router.push(crumb.href!)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', color: 'rgba(200,184,136,0.5)', minHeight: 44, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{crumb.label}</button>
-                    ) : (
-                      <span style={{ color: i === visibleCrumbs.length - 1 ? 'var(--bone-dim)' : 'rgba(200,184,136,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{crumb.label}</span>
-                    )}
+          {/* Left pill: logo + breadcrumb */}
+          <div style={{ flex: '1 0 0', display: 'flex', minWidth: 0 }}>
+            <div style={{ ...PILL_BASE, gap: 4, padding: 6, minWidth: 0, overflow: 'hidden' }}>
+              <button
+                onClick={() => router.push('/home')}
+                style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 999, flexShrink: 0, minHeight: 44 }}
+              >
+                <Image src="/skull-icon.png" alt="Torchlight" width={26} height={26} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(196,32,32,0.55))' }} />
+              </button>
+              {lastCrumb && (
+                <>
+                  <span style={{ color: '#ff444c', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>›</span>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c8b890', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 6 }}>
+                    {lastCrumb.label}
                   </span>
-                ))}
-              </div>
-            </>
-          )}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button onClick={handleLogout} title="Sair" style={{ background: 'none', border: '1px solid rgba(196,32,32,0.2)', color: 'rgba(200,184,136,0.55)', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, padding: '10px 14px', cursor: 'pointer', borderRadius: 1, transition: 'all 200ms', whiteSpace: 'nowrap', minHeight: 44 }}>Sair</button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right pill: SAIR */}
+          <div style={{ background: '#150a07', border: '2px solid rgba(255,68,76,0.25)', borderRadius: 80, padding: '6px 14px', display: 'flex', alignItems: 'center', flexShrink: 0, boxShadow: '0 4px 3px rgba(0,0,0,0.2)' }}>
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 13, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
+            >
+              Sair
+            </button>
           </div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>

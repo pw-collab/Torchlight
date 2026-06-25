@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
-import { StatBlock } from '@/components/sheet/StatBlock'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { TabBar } from '@/components/sheet/TabBar'
@@ -190,7 +189,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       <div style={{
         paddingLeft: isMobile ? 12 : 316,
         paddingRight: isMobile ? 12 : 24,
-        paddingTop: isMobile ? 0 : 24,
+        paddingTop: isMobile ? 12 : 24,
         paddingBottom: isMobile ? 'calc(76px + var(--safe-bottom))' : 80,
         maxWidth: isMobile ? undefined : 'calc(316px + 692px)',
       }}>
@@ -213,16 +212,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           ancestryName={ancestry?.name ?? character.ancestryId}
           onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
           editHref={`/sheet/${characterId}/edit`}
-          stats={!isMobile ? character.stats : undefined}
-          onRoll={!isMobile ? handleRoll : undefined}
+          stats={character.stats}
+          onRoll={handleRoll}
         />
-
-        {/* StatBlock: only shown on mobile (desktop stats are in sidebar) */}
-        {isMobile && (
-          <div style={{ marginBottom: 14 }}>
-            <StatBlock stats={character.stats} onRoll={handleRoll} />
-          </div>
-        )}
 
         {/* Tab content */}
         <div style={{ border: '1px solid rgba(196,32,32,0.18)', marginBottom: 40 }}>
