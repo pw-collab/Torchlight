@@ -204,27 +204,29 @@ export function DiceRoller({ onRoll }: Props) {
         </button>
 
         {mobileOpen && typeof document !== 'undefined' && createPortal(
-          <>
-            {/* Backdrop */}
-            <div
-              onClick={() => setMobileOpen(false)}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 95,
-                background: 'rgba(0,0,0,0.72)',
-                backdropFilter: 'blur(3px)',
-                WebkitBackdropFilter: 'blur(3px)',
-              }}
-            />
-
+          /* Backdrop doubles as the flex centering container — panel never clips off-screen */
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 95,
+              background: 'rgba(0,0,0,0.72)',
+              backdropFilter: 'blur(3px)',
+              WebkitBackdropFilter: 'blur(3px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+            }}
+          >
             {/* Panel */}
             <div
+              onClick={e => e.stopPropagation()}
               className="animate-ink-spread"
               style={{
-                position: 'fixed',
-                top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 96,
-                width: 'min(360px, calc(100vw - 32px))',
+                width: 'min(360px, 100%)',
+                maxHeight: 'calc(100dvh - 32px)',
+                overflowY: 'auto',
+                flexShrink: 0,
                 background: 'linear-gradient(180deg, rgba(28,20,8,0.99) 0%, rgba(14,10,3,1) 100%)',
                 border: '1px solid rgba(139,112,48,0.5)',
                 borderTop: '2px solid rgba(139,112,48,0.75)',
@@ -326,7 +328,7 @@ export function DiceRoller({ onRoll }: Props) {
                 </div>
               </div>
             </div>
-          </>,
+          </div>,
           document.body,
         )}
       </>
