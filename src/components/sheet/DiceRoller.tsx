@@ -340,21 +340,16 @@ export function DiceRoller({ onRoll }: Props) {
     <div
       style={{
         position: 'fixed',
-        bottom: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        bottom: 24,
+        right: 24,
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
         gap: 4,
-        background: 'linear-gradient(180deg, rgba(28,20,8,0.97) 0%, rgba(18,13,4,0.98) 100%)',
+        background: '#c8b890',
         border: '1px solid rgba(139,112,48,0.42)',
-        borderTop: '1px solid rgba(139,112,48,0.6)',
         borderBottom: 'none',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.7)',
-        borderRadius: '4px 4px 0 0',
-        padding: '7px 10px calc(7px + var(--safe-bottom))',
-        maxWidth: '100vw',
+        boxShadow: '0 -4px 12px rgba(0,0,0,0.7)',
       }}
     >
       {SMALL_DICE.map(d => {
@@ -364,25 +359,23 @@ export function DiceRoller({ onRoll }: Props) {
             key={d} onClick={() => roll(d)}
             className="tactile glow-hover"
             title={`d${d}`} aria-label={`Rolar d${d}`}
-            style={{ ...btnBase, padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            onMouseEnter={hoverOn}
-            onMouseLeave={hoverOff}
+            style={{ ...btnBase, background: '#0a0805', border: '1px solid #ff444c', color: '#c8b890', width: 48, height: 48, minHeight: 48, minWidth: 48, padding: '5px 9px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
+            onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
           >
             <Icon size={22} />
           </button>
         )
       })}
 
-      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 2px', flexShrink: 0 }} />
+      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#0a0805', fontWeight: 700, lineHeight: 1, padding: '0 2px', userSelect: 'none' }}>+</p>
 
       <input
         type="text" inputMode="numeric" value={mod}
         onChange={e => setMod(Number(e.target.value))}
         title="Modificador"
-        style={{ ...inputStyle(false), width: 46 }}
+        style={{ ...inputStyle(false), background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', color: '#c8b890', width: 64, height: 40, minHeight: 40 }}
       />
-
-      <div style={{ width: 1, height: 22, background: 'rgba(139,112,48,0.25)', margin: '0 2px', flexShrink: 0 }} />
 
       <div ref={dropdownRef} style={{ position: 'relative' }}>
         <button
@@ -391,14 +384,18 @@ export function DiceRoller({ onRoll }: Props) {
           title="Rolar d20" aria-label="Rolar d20"
           style={{
             ...btnBase,
-            color: d20Open ? 'var(--parchment-light)' : 'var(--bone-muted)',
-            border: `1px solid ${d20Open ? 'var(--blood-mid)' : 'rgba(139,112,48,0.35)'}`,
-            background: d20Open ? 'rgba(139,21,21,0.25)' : 'rgba(42,34,16,0.7)',
-            display: 'flex', alignItems: 'center', gap: 5, padding: '6px 8px',
+            background: '#ff444c',
+            border: '1px solid rgba(139,112,48,0.35)',
+            color: '#0a0805',
+            width: 48,
+            height: 48,
+            minHeight: 48,
+            minWidth: 48,
+            display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px',
           }}
         >
           <D20 size={22} />
-          <span style={{ fontSize: 7, opacity: 0.7, transform: d20Open ? 'scaleY(-1)' : 'none', display: 'inline-block', transition: 'transform 200ms' }}>▲</span>
+          <span style={{ fontSize: 7, opacity: 0.85, transform: d20Open ? 'scaleY(-1)' : 'none', display: 'inline-block', transition: 'transform 200ms', fontWeight: 700 }}>▲</span>
         </button>
 
         {d20Open && (
