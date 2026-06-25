@@ -64,11 +64,13 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
   if (isMobile) {
     const lastCrumb = visibleCrumbs[visibleCrumbs.length - 1]
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604' }}>
+      <div style={{ height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604' }}>
         <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
           height: 64,
-          flexShrink: 0,
-          background: '#18140c',
           display: 'flex',
           alignItems: 'center',
           padding: '0 12px',
@@ -106,7 +108,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
             </button>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
+        <div style={{ height: '100dvh', overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
           {children}
         </div>
       </div>
@@ -116,16 +118,16 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
   // ── Desktop: 3-pill header ────────────────────────────────────────────────
   return (
     <div style={{
-      display: 'flex',
-      flexDirection: 'column',
       height: '100dvh',
       background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604',
     }}>
       {/* Header area — 80px, 3 floating pills */}
       <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
         height: 80,
-        flexShrink: 0,
-        background: '#18140c',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -196,7 +198,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
+      <div style={{ height: '100dvh', overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
         {children}
       </div>
     </div>
