@@ -61,7 +61,6 @@ export function FloatingVitals({
   }, [hpCurrent])
 
   const hpPercent = hpMax > 0 ? Math.max(0, (hpCurrent / hpMax) * 100) : 0
-  const hpColor = hpPercent > 50 ? 'var(--verdigris-bright)' : hpPercent > 25 ? 'var(--candle-amber)' : 'var(--blood-bright)'
 
   const nextXp = level * 10
   const xpPct = nextXp > 0 ? Math.min(100, Math.round((xp / nextXp) * 100)) : 100
@@ -250,11 +249,11 @@ export function FloatingVitals({
         </p>
       </div>
 
-      {/* Portrait row: portrait (with AC + HP overlays) + LV/EDITAR column */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      {/* Portrait + stats row: portrait (with AC + HP overlays) | stats grid filling the rest */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
 
         {/* Portrait */}
-        <div style={{ position: 'relative', width: 160, flexShrink: 0, background: '#18140c', border: '1px solid rgba(200,184,144,0.25)' }}>
+        <div style={{ position: 'relative', width: 160, height: 213, flexShrink: 0, background: '#18140c', border: '1px solid rgba(200,184,144,0.25)' }}>
           <AvatarUpload
             characterId={characterId}
             portraitUrl={portraitUrl}
@@ -288,44 +287,42 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Right column: LV + EDITAR */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 3 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 22, color: '#ff444c', lineHeight: 1 }}>{level}</span>
-            </div>
-            <Link
-              href={editHref}
-              onClick={e => e.stopPropagation()}
-              style={{ fontFamily: 'var(--font-heading)', fontSize: 13, letterSpacing: '2.5px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
-            >
-              Editar
-            </Link>
+        {/* Stats 2×3 grid — fills the space beside the portrait, matching its height */}
+        {stats && (
+          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)' }}>
+            {STAT_KEYS.map(key => (
+              <button
+                key={key}
+                type="button"
+                title={`Rolar ${STAT_FULL[key]}`}
+                onClick={() => rollStat(key)}
+                style={{ background: '#0a0805', border: '1px solid #c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 3px', cursor: onRoll ? 'pointer' : 'default', transition: 'background 150ms', WebkitTapHighlightColor: 'transparent' }}
+                onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
+              >
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
+              </button>
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Stats 2×3 grid */}
-      {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', height: 192 }}>
-          {STAT_KEYS.map(key => (
-            <button
-              key={key}
-              type="button"
-              title={`Rolar ${STAT_FULL[key]}`}
-              onClick={() => rollStat(key)}
-              style={{ background: '#0a0805', border: '1px solid #c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '7px 3px 9px', cursor: onRoll ? 'pointer' : 'default', transition: 'background 150ms', WebkitTapHighlightColor: 'transparent' }}
-              onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
-            >
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: '#c8b890', lineHeight: '24px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
-            </button>
-          ))}
+      {/* LV + EDITAR — full-width row, mirroring the desktop control row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: '#ff444c', lineHeight: 1 }}>{level}</span>
         </div>
-      )}
+        <Link
+          href={editHref}
+          onClick={e => e.stopPropagation()}
+          style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
+        >
+          Editar
+        </Link>
+      </div>
 
       {/* Luck bar */}
       <div style={{ background: '#c8b890', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
