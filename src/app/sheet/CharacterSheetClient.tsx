@@ -187,11 +187,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       navSlot={navSlot}
     >
       <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isMobile ? 'stretch' : 'center',
         paddingLeft: isMobile ? 12 : 316,
-        paddingRight: isMobile ? 12 : 24,
-        paddingTop: isMobile ? 12 : 24,
+        paddingRight: isMobile ? 12 : 316,
+        paddingTop: isMobile ? 12 : 80,
         paddingBottom: isMobile ? 'calc(76px + var(--safe-bottom))' : 80,
-        maxWidth: isMobile ? undefined : 'calc(316px + 692px)',
       }}>
 
         {/* FloatingVitals: fixed left sidebar on desktop, inline on mobile */}
@@ -216,8 +218,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onRoll={handleRoll}
         />
 
-        {/* Tab content */}
-        <div style={{ border: '1px solid rgba(196,32,32,0.18)', marginBottom: 40 }}>
+        {/* Tab content — page-centered column, panels carry their own gold borders */}
+        <div style={{ width: '100%', maxWidth: isMobile ? undefined : 692, marginBottom: 40 }}>
 
           {tab === 'stats' && (
             <div className="sheet-columns">

@@ -42,10 +42,10 @@ const PILL_BASE: React.CSSProperties = {
   background: '#0a0805',
   border: '2px solid rgba(200,184,144,0.25)',
   borderRadius: 80,
-  padding: 8,
+  padding: 6,
   display: 'flex',
   alignItems: 'center',
-  boxShadow: '0 6px 3px rgba(0,0,0,0.2)',
+  boxShadow: '0 6px 6px rgba(0,0,0,0.2)',
 }
 
 export function AppShell({ children, playerName, playerRole, breadcrumbs = [], navSlot }: Props) {
@@ -175,7 +175,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
 
         {/* Right pill — auth */}
         <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ background: '#150a07', border: '2px solid rgba(255,68,76,0.25)', borderRadius: 80, padding: '8px 8px 8px 26px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 3px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#150a07', border: '2px solid rgba(255,68,76,0.25)', borderRadius: 80, padding: '6px 24px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 6px rgba(0,0,0,0.2)' }}>
             {playerName && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: 80 }}>
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', lineHeight: 1 }}>{playerName}</span>
