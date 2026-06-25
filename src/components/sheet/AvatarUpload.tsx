@@ -9,6 +9,7 @@ interface Props {
   onUpload: (url: string) => void
   editable?: boolean
   size?: number
+  height?: number
 }
 
 const PORTRAIT_RADIUS = 8
@@ -37,7 +38,7 @@ async function resizeImage(file: File, maxDim: number): Promise<Blob> {
   })
 }
 
-export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96 }: Props) {
+export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -135,7 +136,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
         style={{
           position: 'relative',
           width: size,
-          height: size,
+          height: height ?? size,
           cursor: editable ? 'pointer' : 'default',
           outline: 'none',
           flexShrink: 0,

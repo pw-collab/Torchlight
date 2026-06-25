@@ -31,7 +31,6 @@ const TAB_LABELS: Record<Tab, string> = {
   inventory: 'Inventário',
   spells: 'Grimório',
   backstory: 'História',
-
 }
 
 interface Props {
@@ -64,8 +63,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     })
   }, [playerName])
 
-  // Light-source burn-down: lives here (not in InventoryView) so lit torches
-  // keep counting down regardless of which tab is open.
+  // Light-source burn-down
   const inventoryRef = useRef<InventoryItem[]>([])
   const updateRef = useRef(updateCharacter)
   const playerRef = useRef(playerName)
@@ -77,22 +75,16 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     const id = setInterval(() => {
       const inv = inventoryRef.current
       if (!inv.some(i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0)) return
-
       let burnedOut = false
       const updated = inv.map(item => {
         if (!item.equipped || !item.isLight || !item.isLit) return item
         const mins = (item.lightMinutesLeft ?? 0) - 1
-        if (mins <= 0) {
-          burnedOut = true
-          return { ...item, isLit: false, lightMinutesLeft: 0 }
-        }
+        if (mins <= 0) { burnedOut = true; return { ...item, isLit: false, lightMinutesLeft: 0 } }
         return { ...item, lightMinutesLeft: mins }
       })
-
       updateRef.current({ equipment: updated as any } as Partial<CharacterRow>)
       if (burnedOut) sendToDiscord({ type: 'torch_out', player: playerRef.current })
     }, 60_000)
-
     return () => clearInterval(id)
   }, [])
 
@@ -178,6 +170,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ xp } as Partial<CharacterRow>)
   }
 
+  const tabItems = (Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))
+
+  // Desktop tabs are passed as navSlot to AppShell; mobile tabs render as fixed bottom bar
+  const navSlot = !isMobile ? (
+    <TabBar tabs={tabItems} active={tab} onChange={setTab} />
+  ) : undefined
+
   return (
     <AppShell
       breadcrumbs={[
@@ -186,10 +185,17 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       ]}
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
+      navSlot={navSlot}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px calc(76px + var(--safe-bottom))' : '74px 24px 80px' }}>
+      <div style={{
+        paddingLeft: isMobile ? 12 : 316,
+        paddingRight: isMobile ? 12 : 24,
+        paddingTop: isMobile ? 0 : 24,
+        paddingBottom: isMobile ? 'calc(76px + var(--safe-bottom))' : 80,
+        maxWidth: isMobile ? undefined : 'calc(316px + 692px)',
+      }}>
 
-        {/* HUD — inline on mobile, fixed bottom-left on desktop */}
+        {/* FloatingVitals: fixed left sidebar on desktop, inline on mobile */}
         <FloatingVitals
           ac={character.ac}
           hpMax={character.hpMax}
@@ -207,85 +213,81 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           ancestryName={ancestry?.name ?? character.ancestryId}
           onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
           editHref={`/sheet/${characterId}/edit`}
+          stats={!isMobile ? character.stats : undefined}
+          onRoll={!isMobile ? handleRoll : undefined}
         />
 
-        {/* Attribute row */}
-        <div style={{ marginBottom: 14 }}>
-          <StatBlock stats={character.stats} onRoll={handleRoll} />
-        </div>
-
-        {/* Tab content border (tab nav now floats — see <TabBar /> below) */}
-        <div style={{ border: '1px solid rgba(196,32,32,0.18)', marginBottom: 40 }}>
-
-        {/* Tab: Stats */}
-        {tab === 'stats' && (
-          <div className="sheet-columns">
-            {/* Left column: Talentos + Classe */}
-            <div className="sheet-col-main" style={{ display: 'flex', flexDirection: 'column' }}>
-              <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
-              {cls && (
-                <ClassPanel
-                  classData={cls}
-                  stats={character.stats}
-                  techniqueStates={character.techniqueStates}
-                  onStateChange={handleTechniqueStatesChange}
-                  onRoll={handleRoll}
-                />
-              )}
-            </div>
+        {/* StatBlock: only shown on mobile (desktop stats are in sidebar) */}
+        {isMobile && (
+          <div style={{ marginBottom: 14 }}>
+            <StatBlock stats={character.stats} onRoll={handleRoll} />
           </div>
         )}
 
-        {/* Tab: Inventory */}
-        {tab === 'inventory' && (
-          <InventoryView
-            inventory={character.inventory}
-            str={character.stats.str}
-            dex={character.stats.dex}
-            gold={character.gold}
-            silver={character.silver}
-            copper={character.copper}
-            onUpdate={handleInventoryUpdate}
-            onAcChange={handleAcChange}
-            onCurrencyUpdate={handleCurrencyUpdate}
-            onMeleeRangedUpdate={handleMeleeRangedUpdate}
-            onRoll={handleRoll}
-            meleeBonus={character.meleeBonus}
-            rangedBonus={character.rangedBonus}
-            playerName={playerName}
-          />
-        )}
+        {/* Tab content */}
+        <div style={{ border: '1px solid rgba(196,32,32,0.18)', marginBottom: 40 }}>
 
-        {/* Tab: Spells */}
-        {tab === 'spells' && (
-          <Spells
-            classId={character.classId}
-            equippedSpells={character.spells}
-            spellcastingBonus={character.spellcastingBonus}
-            castingAttr={character.castingAttr}
-            stats={character.stats}
-            onRoll={handleRoll}
-            onUpdate={handleSpellcastingUpdate}
-            onSpellsChange={handleSpellsChange}
-          />
-        )}
+          {tab === 'stats' && (
+            <div className="sheet-columns">
+              <div className="sheet-col-main" style={{ display: 'flex', flexDirection: 'column' }}>
+                <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+                {cls && (
+                  <ClassPanel
+                    classData={cls}
+                    stats={character.stats}
+                    techniqueStates={character.techniqueStates}
+                    onStateChange={handleTechniqueStatesChange}
+                    onRoll={handleRoll}
+                  />
+                )}
+              </div>
+            </div>
+          )}
 
-        {/* Tab: Backstory */}
-        {tab === 'backstory' && (
-          <BackstoryView
-            character={character}
-            onUpdate={updateCharacter}
-          />
-        )}
+          {tab === 'inventory' && (
+            <InventoryView
+              inventory={character.inventory}
+              str={character.stats.str}
+              dex={character.stats.dex}
+              gold={character.gold}
+              silver={character.silver}
+              copper={character.copper}
+              onUpdate={handleInventoryUpdate}
+              onAcChange={handleAcChange}
+              onCurrencyUpdate={handleCurrencyUpdate}
+              onMeleeRangedUpdate={handleMeleeRangedUpdate}
+              onRoll={handleRoll}
+              meleeBonus={character.meleeBonus}
+              rangedBonus={character.rangedBonus}
+              playerName={playerName}
+            />
+          )}
 
-        </div>{/* end tab content border */}
+          {tab === 'spells' && (
+            <Spells
+              classId={character.classId}
+              equippedSpells={character.spells}
+              spellcastingBonus={character.spellcastingBonus}
+              castingAttr={character.castingAttr}
+              stats={character.stats}
+              onRoll={handleRoll}
+              onUpdate={handleSpellcastingUpdate}
+              onSpellsChange={handleSpellsChange}
+            />
+          )}
+
+          {tab === 'backstory' && (
+            <BackstoryView character={character} onUpdate={updateCharacter} />
+          )}
+
+        </div>
       </div>
 
-      <TabBar
-        tabs={(Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))}
-        active={tab}
-        onChange={setTab}
-      />
+      {/* Mobile tab bar */}
+      {isMobile && (
+        <TabBar tabs={tabItems} active={tab} onChange={setTab} />
+      )}
+
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
@@ -295,7 +297,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   )
 }
 
-// Wax-seal flourish confirming an auto-save patch landed.
 function SaveSeal({ savedAt }: { savedAt: number }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {

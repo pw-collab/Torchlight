@@ -15,9 +15,40 @@ interface Props {
   playerName?: string
   playerRole?: string
   breadcrumbs?: BreadcrumbItem[]
+  navSlot?: React.ReactNode
 }
 
-export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }: Props) {
+// Simple decorative ornament SVGs for the nav pill flanks
+function OrnamentLeft() {
+  return (
+    <svg width="37" height="42" viewBox="0 0 37 42" fill="none" aria-hidden style={{ flexShrink: 0 }}>
+      <path d="M30 21 L10 7 L10 35 Z" fill="rgba(196,32,32,0.55)" />
+      <path d="M22 21 L6 10 L6 32 Z" fill="rgba(196,32,32,0.3)" />
+      <line x1="34" y1="6" x2="34" y2="36" stroke="rgba(200,184,144,0.3)" strokeWidth="1" />
+    </svg>
+  )
+}
+function OrnamentRight() {
+  return (
+    <svg width="37" height="42" viewBox="0 0 37 42" fill="none" aria-hidden style={{ flexShrink: 0 }}>
+      <path d="M7 21 L27 7 L27 35 Z" fill="rgba(196,32,32,0.55)" />
+      <path d="M15 21 L31 10 L31 32 Z" fill="rgba(196,32,32,0.3)" />
+      <line x1="3" y1="6" x2="3" y2="36" stroke="rgba(200,184,144,0.3)" strokeWidth="1" />
+    </svg>
+  )
+}
+
+const PILL_BASE: React.CSSProperties = {
+  background: '#0a0805',
+  border: '2px solid rgba(200,184,144,0.25)',
+  borderRadius: 80,
+  padding: 8,
+  display: 'flex',
+  alignItems: 'center',
+  boxShadow: '0 6px 3px rgba(0,0,0,0.2)',
+}
+
+export function AppShell({ children, playerName, playerRole, breadcrumbs = [], navSlot }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -29,196 +60,132 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
 
   const visibleCrumbs = isMobile ? breadcrumbs.slice(-1) : breadcrumbs
 
+  // ── Mobile: simple top bar (unchanged style) ──────────────────────────────
+  if (isMobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604' }}>
+        <div style={{
+          height: 50,
+          flexShrink: 0,
+          background: '#060402',
+          borderBottom: '1px solid rgba(196,32,32,0.18)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 12px',
+          gap: 0,
+          boxShadow: '0 2px 16px rgba(0,0,0,0.7)',
+          zIndex: 20,
+        }}>
+          <button onClick={() => router.push('/home')} style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', flexShrink: 0, minHeight: 44 }}>
+            <Image src="/skull-icon.png" alt="Torchlight" width={26} height={26} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(196,32,32,0.55))' }} />
+          </button>
+          {visibleCrumbs.length > 0 && (
+            <>
+              <span style={{ width: 1, height: 18, background: 'rgba(196,32,32,0.22)', flexShrink: 0, marginRight: 10 }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', overflow: 'hidden' }}>
+                {visibleCrumbs.map((crumb, i) => (
+                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    {i > 0 && <span style={{ color: 'rgba(196,32,32,0.4)', flexShrink: 0 }}>›</span>}
+                    {crumb.href ? (
+                      <button type="button" onClick={() => router.push(crumb.href!)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', color: 'rgba(200,184,136,0.5)', minHeight: 44, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 140 }}>{crumb.label}</button>
+                    ) : (
+                      <span style={{ color: i === visibleCrumbs.length - 1 ? 'var(--bone-dim)' : 'rgba(200,184,136,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{crumb.label}</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <button onClick={handleLogout} title="Sair" style={{ background: 'none', border: '1px solid rgba(196,32,32,0.2)', color: 'rgba(200,184,136,0.55)', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, padding: '10px 14px', cursor: 'pointer', borderRadius: 1, transition: 'all 200ms', whiteSpace: 'nowrap', minHeight: 44 }}>Sair</button>
+          </div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Desktop: 3-pill header ────────────────────────────────────────────────
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100dvh',
-      // True black canvas — the CotL palette contrast foundation
-      background: `
-        radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%),
-        #080604
-      `,
+      background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604',
     }}>
-      {/* Top bar */}
+      {/* Header area — 80px, 3 floating pills */}
       <div style={{
-        height: 50,
+        height: 80,
         flexShrink: 0,
-        background: '#060402',
-        borderBottom: '1px solid rgba(196,32,32,0.18)',
+        background: '#18140c',
         display: 'flex',
         alignItems: 'center',
-        padding: isMobile ? '0 12px' : '0 20px',
-        gap: 0,
-        boxShadow: '0 2px 16px rgba(0,0,0,0.7)',
-        zIndex: 20,
+        gap: 8,
+        padding: '0 24px',
+        zIndex: 60,
       }}>
-        {/* Logo */}
-        <button
-          onClick={() => router.push('/home')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 9,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: isMobile ? '0 10px 0 0' : '0 16px 0 0',
-            flexShrink: 0,
-            minHeight: 44,
-          }}
-        >
-          <Image
-            src="/skull-icon.png"
-            alt="Torchlight"
-            width={26}
-            height={26}
-            style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(196,32,32,0.55))' }}
-          />
-          {!isMobile && (
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--parchment-pale)',
-              letterSpacing: '0.04em',
-              lineHeight: 1,
-            }}>
-              Torchlight
-            </span>
-          )}
-        </button>
+        {/* Left pill — breadcrumb */}
+        <div style={{ flex: '1 0 0', display: 'flex', alignItems: 'center' }}>
+          <div style={{ ...PILL_BASE, gap: 9 }}>
+            {/* Logo */}
+            <button
+              onClick={() => router.push('/home')}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: '0 6px', minHeight: 44, borderRadius: 999 }}
+            >
+              <Image src="/skull-icon.png" alt="Torchlight" width={30} height={30} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 12px rgba(196,32,32,0.55))' }} />
+            </button>
 
-        {/* Separator + breadcrumbs */}
-        {visibleCrumbs.length > 0 && (
-          <>
-            <span style={{ width: 1, height: 18, background: 'rgba(196,32,32,0.22)', flexShrink: 0, marginRight: isMobile ? 10 : 14 }} />
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontFamily: 'var(--font-heading)',
-              fontSize: isMobile ? 10 : 8.5,
-              letterSpacing: isMobile ? '0.08em' : '0.16em',
-              textTransform: 'uppercase',
-              overflow: 'hidden',
-            }}>
-              {visibleCrumbs.map((crumb, i) => (
-                <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
-                  {i > 0 && <span style={{ color: 'rgba(196,32,32,0.4)', flexShrink: 0 }}>›</span>}
-                  {crumb.href ? (
-                    <button
-                      type="button"
-                      onClick={() => router.push(crumb.href!)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        font: 'inherit',
-                        fontSize: 'inherit',
-                        letterSpacing: 'inherit',
-                        textTransform: 'inherit',
-                        color: 'rgba(200,184,136,0.5)',
-                        transition: 'color 200ms',
-                        minHeight: 44,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        maxWidth: isMobile ? 140 : 'none',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.color = 'var(--bone-dim)' }}
-                      onMouseLeave={e => { e.currentTarget.style.color = 'rgba(200,184,136,0.5)' }}
-                    >
-                      {crumb.label}
-                    </button>
-                  ) : (
-                    <span style={{
-                      color: i === visibleCrumbs.length - 1 ? 'var(--bone-dim)' : 'rgba(200,184,136,0.5)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      maxWidth: isMobile ? 160 : 'none',
-                    }}>
-                      {crumb.label}
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </>
+            {/* Breadcrumbs */}
+            {visibleCrumbs.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 12, letterSpacing: '0.11em', textTransform: 'uppercase', overflow: 'hidden', paddingRight: 8, height: 44 }}>
+                {visibleCrumbs.map((crumb, i) => (
+                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
+                    {i > 0 && <span style={{ color: '#ff444c', flexShrink: 0, fontWeight: 700 }}>›</span>}
+                    {crumb.href ? (
+                      <button type="button" onClick={() => router.push(crumb.href!)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', textTransform: 'inherit', color: 'rgba(200,184,144,0.5)', textDecoration: 'underline', textUnderlineOffset: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180, minHeight: 44, display: 'flex', alignItems: 'center' }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--bone-dim)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'rgba(200,184,144,0.5)' }}
+                      >{crumb.label}</button>
+                    ) : (
+                      <span style={{ color: i === visibleCrumbs.length - 1 ? '#c8b890' : 'rgba(200,184,144,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{crumb.label}</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Center pill — nav / tabs */}
+        {navSlot && (
+          <div style={{ ...PILL_BASE, gap: 4, flexShrink: 0 }}>
+            <OrnamentLeft />
+            {navSlot}
+            <OrnamentRight />
+          </div>
         )}
 
-        {/* Right: user card + logout */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          {playerName && !isMobile && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '4px 12px',
-              background: 'rgba(196,32,32,0.06)',
-              border: '1px solid rgba(196,32,32,0.18)',
-              borderRadius: 1,
-            }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 11,
-                  color: 'var(--bone-white)',
-                  lineHeight: 1.2,
-                }}>
-                  {playerName}
-                </div>
-                {playerRole && (
-                  <div style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 7,
-                    color: 'rgba(196,32,32,0.55)',
-                    letterSpacing: '0.08em',
-                    marginTop: 1,
-                  }}>
-                    {playerRole}
-                  </div>
-                )}
+        {/* Right pill — auth */}
+        <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ background: '#150a07', border: '2px solid rgba(255,68,76,0.25)', borderRadius: 80, padding: '8px 8px 8px 26px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 6px 3px rgba(0,0,0,0.2)' }}>
+            {playerName && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: 80 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', lineHeight: 1 }}>{playerName}</span>
+                {playerRole && <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: '#ff444c', letterSpacing: '0.06em', lineHeight: 1 }}>{playerRole.split('·')[1]?.trim() ?? playerRole}</span>}
               </div>
-              <Image
-                src="/skull-icon.png"
-                alt=""
-                width={22}
-                height={22}
-                style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 3px rgba(196,32,32,0.3))', flexShrink: 0 }}
-              />
-            </div>
-          )}
-          <button
-            onClick={handleLogout}
-            title="Sair"
-            style={{
-              background: 'none',
-              border: '1px solid rgba(196,32,32,0.2)',
-              color: 'rgba(200,184,136,0.55)',
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 11,
-              padding: isMobile ? '10px 14px' : '5px 12px',
-              cursor: 'pointer',
-              borderRadius: 1,
-              transition: 'all 200ms',
-              whiteSpace: 'nowrap',
-              minHeight: 44,
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = 'var(--blood-bright)'
-              e.currentTarget.style.borderColor = 'rgba(196,32,32,0.5)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = 'rgba(200,184,136,0.55)'
-              e.currentTarget.style.borderColor = 'rgba(196,32,32,0.2)'
-            }}
-          >
-            Sair
-          </button>
+            )}
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              style={{ background: 'none', border: 'none', padding: '9px 19px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, transition: 'opacity 200ms', whiteSpace: 'nowrap' }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </div>
 
