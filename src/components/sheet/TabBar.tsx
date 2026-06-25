@@ -22,13 +22,14 @@ export function TabBar<K extends string>({ tabs, active, onChange }: Props<K>) {
 
   const tabBtn = (isActive: boolean): React.CSSProperties => ({
     fontFamily: 'var(--font-heading)',
+    fontWeight: 800,
     fontSize: isMobile ? 11 : 16,
     letterSpacing: isMobile ? '0.04em' : '0.14em',
     color: isActive ? '#c8b890' : 'rgba(200,184,144,0.5)',
     background: isActive ? '#ff444c' : 'none',
     border: `1px solid ${isActive ? '#c8b890' : 'rgba(200,184,144,0)'}`,
     cursor: 'pointer',
-    padding: isMobile ? '10px 6px' : '9px 19px',
+    padding: isMobile ? '10px 6px' : '8px 18px',
     height: 44,
     minHeight: 44,
     whiteSpace: 'nowrap',

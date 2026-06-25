@@ -374,7 +374,7 @@ export function DiceRoller({ onRoll }: Props) {
         type="text" inputMode="numeric" value={mod}
         onChange={e => setMod(Number(e.target.value))}
         title="Modificador"
-        style={{ ...inputStyle(false), background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', color: '#c8b890', width: 64, height: 40, minHeight: 40 }}
+        style={{ ...inputStyle(false), background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', color: '#c8b890', width: 64, height: 40, minHeight: 40, fontFamily: 'var(--font-numeral)', fontSize: 16, fontWeight: 400 }}
       />
 
       <div ref={dropdownRef} style={{ position: 'relative' }}>

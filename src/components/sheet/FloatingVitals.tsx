@@ -136,7 +136,7 @@ export function FloatingVitals({
           {/* AC badge — top-right overlay */}
           <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: '#c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom overlay */}
@@ -155,7 +155,7 @@ export function FloatingVitals({
             {/* Text */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>
                 <span
                   key={`flash-${flash ?? 'idle'}`}
                   className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
@@ -197,9 +197,9 @@ export function FloatingVitals({
                 onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
               >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
               </button>
             ))}
           </div>
@@ -265,7 +265,7 @@ export function FloatingVitals({
           {/* AC badge — top-right */}
           <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: '#c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 18, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom */}
@@ -278,7 +278,7 @@ export function FloatingVitals({
             <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: '#ff444c', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 6px', gap: 3 }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 17, color: '#0a0805', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: '#0a0805', lineHeight: 1 }}>
                 <span key={`f-${flash ?? 'idle'}`} className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''} style={{ display: 'inline' }}>{hpCurrent}</span>
                 <span style={{ color: 'rgba(10,9,5,0.7)' }}>/{hpMax}</span>
               </span>
@@ -300,9 +300,9 @@ export function FloatingVitals({
                 onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
               >
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
               </button>
             ))}
           </div>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Goudy+Bookletter+1911&family=Jacquard+12&family=Jersey+20&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Goudy+Bookletter+1911&family=Grenze:wght@400;500;600;700;800;900&family=Jacquard+12&family=Jersey+20&family=Sedgwick+Ave&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
@@ -37,9 +37,11 @@
   --mist-purple:      #4A3068;
   --mist-bright:      #6B4E8A;
 
-  --font-heading: 'Jersey 20', sans-serif;
+  --font-heading: 'Grenze', serif;
   --font-body:    'Goudy Bookletter 1911', serif;
   --font-mono:    'Courier Prime', monospace;
+  --font-stat:    'Jersey 20', sans-serif;   /* stat-grid labels & raw scores */
+  --font-numeral: 'Sedgwick Ave', cursive;   /* inked numerals: modifiers, HP, AC */
 
   --shadow-sm:    0 2px 6px rgba(0,0,0,0.55);
   --shadow-md:    0 4px 14px rgba(0,0,0,0.70);
@@ -94,11 +96,11 @@ html, body {
 ::-webkit-scrollbar-thumb { background: #1A0808; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(196,32,32,0.5); }
 
-/* Worn border — now a deep red hairline */
+/* Worn border — now a gold panel rule (Figma redesign) */
 .worn-border {
   border-style: solid !important;
-  border-width: 1px !important;
-  border-color: rgba(196,32,32,0.25) !important;
+  border-width: 2px !important;
+  border-color: rgba(200,184,144,0.25) !important;
 }
 
 /* Dark panel background (sections, sidebars) */
