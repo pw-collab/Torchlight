@@ -187,7 +187,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px calc(140px + var(--safe-bottom))' : '74px 24px 80px' }}>
+      <div style={{ maxWidth: 740, margin: '0 auto', padding: isMobile ? '0 12px calc(76px + var(--safe-bottom))' : '74px 24px 80px' }}>
 
         {/* HUD — inline on mobile, fixed bottom-left on desktop */}
         <FloatingVitals

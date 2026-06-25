@@ -37,8 +37,8 @@ export function TabBar<K extends string>({ tabs, active, onChange }: Props<K>) {
       ? {
           left: 8,
           right: 8,
-          bottom: 'calc(66px + var(--safe-bottom))',
-          padding: 5,
+          bottom: 0,
+          padding: '5px 5px calc(5px + var(--safe-bottom))',
           boxShadow: '0 4px 24px rgba(0,0,0,0.7)',
         }
       : {
