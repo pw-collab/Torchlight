@@ -64,7 +64,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
   if (isMobile) {
     const lastCrumb = visibleCrumbs[visibleCrumbs.length - 1]
     return (
-      <div style={{ height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604' }}>
+      <div style={{ height: '100dvh', background: '#18140C' }}>
         <div style={{
           position: 'fixed',
           top: 0,
@@ -119,7 +119,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [], n
   return (
     <div style={{
       height: '100dvh',
-      background: 'radial-gradient(ellipse at 50% 0%, rgba(196,32,32,0.07) 0%, transparent 55%), #080604',
+      background: '#18140C',
     }}>
       {/* Header area — 80px, 3 floating pills */}
       <div style={{

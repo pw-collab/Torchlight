@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AvatarUpload } from '@/components/sheet/AvatarUpload'
@@ -60,6 +61,13 @@ export function FloatingVitals({
     return () => clearTimeout(t)
   }, [hpCurrent])
 
+  // Lock background scroll while the HP/XP overlay is open
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   const hpPercent = hpMax > 0 ? Math.max(0, (hpCurrent / hpMax) * 100) : 0
 
   const nextXp = level * 10
@@ -77,33 +85,72 @@ export function FloatingVitals({
     onRoll(result)
   }
 
-  // ── Expanded panel: XP + HP controls ─────────────────────────────────────
-  const expandedPanel = open && (
+  // ── HP / XP controls — centered overlay (portal) ─────────────────────────
+  const hpOverlay = open && typeof document !== 'undefined' && createPortal(
     <div
-      className="animate-ink-spread"
-      onClick={e => e.stopPropagation()}
-      style={{ background: '#1F1B16', border: '2px solid rgba(196,32,32,0.85)', borderRadius: 2, boxShadow: '0 8px 30px rgba(0,0,0,0.65)', padding: '16px 16px 14px', display: 'flex', flexDirection: 'column', gap: 14, cursor: 'default' }}
+      onClick={() => setOpen(false)}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.72)',
+        backdropFilter: 'blur(3px)',
+        WebkitBackdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+      }}
     >
-      {/* XP bar */}
-      <div>
-        <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 4, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${xpPct}%`, background: xpReady ? 'var(--gold-bright)' : 'var(--verdigris-bright)', boxShadow: xpReady ? '0 0 6px var(--gold-bright)' : 'none', transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)' }} />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 7 }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.18em', color: 'var(--bone-muted)' }}>XP</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <input type="number" value={xp} min={0} onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))} style={{ background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-mono)', fontSize: 12, color: xpReady ? 'var(--gold-bright)' : 'var(--bone-muted)', textAlign: 'right', width: 36, padding: 0, cursor: 'text' }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.1em', color: 'var(--bone-muted)' }}>/ {nextXp}</span>
+      <div
+        className="animate-ink-spread"
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: 'min(360px, 100%)',
+          background: '#18140C',
+          border: '2px solid rgba(200,184,144,0.25)',
+          borderRadius: 4,
+          boxShadow: '0 12px 48px rgba(0,0,0,0.9)',
+          padding: '18px 18px 20px',
+          display: 'flex', flexDirection: 'column', gap: 16,
+          cursor: 'default',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c8b890' }}>
+            Pontos de Vida
           </span>
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Fechar"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(200,184,144,0.6)', fontSize: 15, lineHeight: 1, padding: '4px 6px' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#c8b890')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(200,184,144,0.6)')}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* XP bar */}
+        <div>
+          <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 4, overflow: 'hidden', border: '1px solid rgba(200,184,144,0.18)' }}>
+            <div style={{ height: '100%', width: `${xpPct}%`, background: xpReady ? '#c8b890' : '#4FA98C', boxShadow: xpReady ? '0 0 6px #c8b890' : 'none', transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)' }}>XP</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <input type="number" value={xp} min={0} onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))} style={{ background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-numeral)', fontSize: 16, color: xpReady ? '#c8b890' : 'rgba(200,184,144,0.6)', textAlign: 'right', width: 44, padding: 0, cursor: 'text' }} />
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'rgba(200,184,144,0.45)' }}>/ {nextXp}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Damage / heal */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
+          <button onClick={() => applyHp(-step)} className="tactile" title="Aplicar dano" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#ff444c', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
+          <input type="text" inputMode="numeric" value={String(step).padStart(2, '0')} onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }} onBlur={() => { if (step < 1) setStep(1) }} title="Valor aplicado por clique" style={{ flex: 1, minWidth: 0, minHeight: 52, background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 2, color: '#c8b890', fontFamily: 'var(--font-numeral)', fontSize: 24, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
+          <button onClick={() => applyHp(step)} className="tactile" title="Curar" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#4FA98C', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
         </div>
       </div>
-      {/* Damage / heal */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-        <button onClick={() => applyHp(-step)} className="tactile" title="Aplicar dano" style={{ width: 64, minHeight: 52, flexShrink: 0, background: 'var(--blood-bright)', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#F5F0E8', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
-        <input type="text" inputMode="numeric" value={String(step).padStart(2, '0')} onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }} onBlur={() => { if (step < 1) setStep(1) }} title="Valor aplicado por clique" style={{ flex: 1, minWidth: 0, minHeight: 52, background: 'rgba(16,11,5,0.9)', border: '1px solid var(--gold-oxidized)', borderRadius: 2, color: 'var(--parchment-pale)', fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 700, textAlign: 'center', letterSpacing: '0.12em', outline: 'none', boxSizing: 'border-box' }} />
-        <button onClick={() => applyHp(step)} className="tactile" title="Curar" style={{ width: 64, minHeight: 52, flexShrink: 0, background: 'var(--verdigris-bright)', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#F5F0E8', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
-      </div>
-    </div>
+    </div>,
+    document.body,
   )
 
   // ════════════════════════════════════════════════════════════════════════
@@ -227,8 +274,8 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Expanded panel */}
-        {expandedPanel}
+        {/* HP / XP overlay */}
+        {hpOverlay}
       </div>
     )
   }
@@ -343,8 +390,8 @@ export function FloatingVitals({
         </div>
       </div>
 
-      {/* Expanded HP / XP panel */}
-      {expandedPanel}
+      {/* HP / XP overlay */}
+      {hpOverlay}
     </div>
   )
 }

@@ -16,7 +16,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body style={{ background: 'var(--ink-black)', color: 'var(--bone-white)', height: '100%' }}>
+      <body style={{ background: '#18140C', color: 'var(--bone-white)', height: '100%' }}>
         {children}
         {/* Global grain texture overlay */}
         <div
@@ -27,14 +27,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             backgroundSize: '320px 320px',
             opacity: 0.45,
             mixBlendMode: 'overlay',
-          }}
-        />
-        {/* Vignette */}
-        <div
-          aria-hidden
-          style={{
-            position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998,
-            background: 'radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(0,0,0,0.55) 100%)',
           }}
         />
       </body>

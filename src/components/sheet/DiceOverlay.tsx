@@ -46,16 +46,16 @@ export function DiceOverlay({ isRolling, lastResult }: Props) {
   const topBorderColor = isCritical ? '#C9A84C' : isFumble ? '#C42020' : '#7A6030'
 
   const bg = isCritical
-    ? 'linear-gradient(148deg, rgba(201,168,76,.18) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.96) 100%), #2E2210'
+    ? 'linear-gradient(148deg, rgba(201,168,76,.18) 0%, rgba(24,20,12,0) 42%, rgba(10,8,5,.96) 100%), #18140C'
     : isFumble
-    ? 'linear-gradient(148deg, rgba(139,21,21,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.96) 100%), #2E2210'
-    : 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(46,34,16,0) 42%, rgba(14,10,3,.96) 100%), #2E2210'
+    ? 'linear-gradient(148deg, rgba(255,68,76,.20) 0%, rgba(24,20,12,0) 42%, rgba(10,8,5,.96) 100%), #18140C'
+    : '#18140C'
 
   const numberColor = isCritical
     ? 'var(--gold-bright)'
     : isFumble
-    ? 'var(--blood-bright)'
-    : 'var(--parchment-pale)'
+    ? '#ff444c'
+    : '#c8b890'
 
   const numberShadow = isCritical
     ? '0 0 24px rgba(201,168,76,0.7)'
