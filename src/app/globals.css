@@ -86,7 +86,7 @@
 
 html, body {
   height: 100%;
-  background: var(--ink-black);
+  background: #18140C;
   color: var(--bone-white);
   font-family: var(--font-body);
 }
