@@ -659,9 +659,11 @@ function TechniqueCard({
           </p>
 
           {/* Description */}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, width: '100%', flex: 1, minHeight: 0, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}>
-            {technique.description}
-          </p>
+          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {technique.description}
+            </p>
+          </div>
         </div>
       </button>
       {popover}
