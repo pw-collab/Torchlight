@@ -8,11 +8,9 @@ import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
 import { roman } from '@/components/shared/TarotCard'
-import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
-const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
 const POPOVER_W = 300
 
 const STAT_SHORT: Record<Stat, string> = {
@@ -451,10 +449,10 @@ function SpellLikeSection({
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
 const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)', glyph: '☿' },
-  choice:       { label: 'Escolha',  color: 'var(--candle-amber)',    soft: 'rgba(196,120,42,0.35)', glyph: '⚖' },
-  limited_use:  { label: 'Usos',     color: 'var(--blood-bright)',    soft: 'rgba(139,21,21,0.38)',  glyph: '⌛' },
-  spell_like:   { label: 'Ativação', color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)',   glyph: '☽' },
+  passive:      { label: 'Passivo',  color: '#a56fde', soft: 'rgba(165,111,222,0.35)', glyph: '☿' },
+  choice:       { label: 'Escolha',  color: '#c8b890', soft: 'rgba(200,184,144,0.35)', glyph: '⚖' },
+  limited_use:  { label: 'Usos',     color: '#ff444c', soft: 'rgba(255,68,76,0.35)',   glyph: '⌛' },
+  spell_like:   { label: 'Ativação', color: '#4fa98c', soft: 'rgba(79,169,140,0.35)',  glyph: '☽' },
 }
 
 function TechniqueCard({
@@ -527,10 +525,10 @@ function TechniqueCard({
               left: pos.left,
               width: POPOVER_W,
               zIndex: 141,
-              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
-              border: `1px solid ${style.soft}`,
+              background: '#18140C',
+              border: `2px solid rgba(200,184,144,0.25)`,
               borderTop: `2px solid ${style.color}`,
-              borderRadius: 6,
+              borderRadius: 4,
               boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${style.soft}`,
               overflow: 'hidden',
               maxHeight: 'calc(100vh - 32px)',
@@ -594,82 +592,77 @@ function TechniqueCard({
         ref={btnRef}
         onClick={() => setOpen(o => !o)}
         title={technique.name}
+        className="tactile card-lift"
         style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
+          background: '#0a0805',
+          border: `1px solid ${open ? style.color : 'rgba(238,233,221,0.25)'}`,
+          boxShadow: '0 4px 7px rgba(0,0,0,0.65)',
+          padding: 4,
           cursor: 'pointer',
           WebkitTapHighlightColor: 'transparent',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: 6,
+          width: '100%',
+          height: 224,
+          boxSizing: 'border-box',
+          transition: 'border-color 250ms',
         }}
       >
-        {/* Hex border (outer) + fill (inner) */}
         <div style={{
-          width: 80,
-          height: 88,
-          clipPath: HEX_CLIP,
-          background: style.color,
+          position: 'relative',
+          flex: 1,
+          width: '100%',
+          border: '1px solid rgba(238,233,221,0.25)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          filter: open ? `drop-shadow(0 0 10px ${style.color})` : `drop-shadow(0 0 4px ${style.soft})`,
-          transition: 'filter 250ms',
+          gap: 6,
+          padding: '10px 9px 12px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}>
-          <div style={{
-            width: 76,
-            height: 84,
-            clipPath: HEX_CLIP,
-            background: open
-              ? `linear-gradient(180deg, rgba(30,10,4,0.98) 0%, #0D0A05 100%)`
-              : `linear-gradient(180deg, rgba(18,8,2,0.97) 0%, #080604 100%)`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 3,
-            transition: 'background 250ms',
-          }}>
-            <span style={{
-              fontSize: 20,
-              lineHeight: 1,
-              userSelect: 'none',
-              filter: `drop-shadow(0 0 5px ${style.soft})`,
-            }}>
-              {style.glyph}
-            </span>
+          {/* Corner marks + roll arrow */}
+          <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+              <span>✦</span><span>✦</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+              <span>✦</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: style.color, lineHeight: 1 }}>↝</span>
+              <span>✦</span>
+            </div>
+          </div>
+
+          {/* Arch icon */}
+          <div style={{ width: 56, height: 56, border: '1px solid rgba(238,233,221,0.25)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: '#eee9dd', lineHeight: 1, userSelect: 'none' }}>{style.glyph}</span>
             {statusLine && (
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 7,
-                color: statusLine.color,
-                lineHeight: 1,
-                letterSpacing: '0.04em',
-              }}>
-                {statusLine.text}
-              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: statusLine.color, lineHeight: 1, letterSpacing: '0.04em' }}>{statusLine.text}</span>
             )}
           </div>
-        </div>
 
-        {/* Name label below hex */}
-        <span style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8,
-          letterSpacing: '0.05em',
-          color: open ? 'var(--parchment-light)' : 'var(--bone-muted)',
-          textAlign: 'center',
-          lineHeight: 1.3,
-          maxWidth: 90,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          transition: 'color 250ms',
-        }}>
-          {technique.name}
-        </span>
+          {/* Title */}
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {technique.name}
+          </p>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
+            <span style={{ flex: 1, height: 1, background: style.color }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: style.color, lineHeight: 1 }}>⨝</span>
+            <span style={{ flex: 1, height: 1, background: style.color }} />
+          </div>
+
+          {/* Kind label */}
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: style.color, letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center', width: '100%' }}>
+            {style.label}
+          </p>
+
+          {/* Description */}
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, width: '100%', flex: 1, minHeight: 0, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}>
+            {technique.description}
+          </p>
+        </div>
       </button>
       {popover}
     </>
@@ -683,23 +676,21 @@ function TalentTable({ classData }: { classData: Class }) {
 
   return (
     <div>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)',
-      }}>
-        <OrnateTitle>Tabela de Talentos</OrnateTitle>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(139,112,48,0.45)' }}>
+      <SectionSubheading trailing={
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(200,184,144,0.45)' }}>
             Role no modal de edição
           </span>
           <button
             onClick={() => setOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', padding: 0 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#c8b890', padding: 0 }}
           >
             {open ? '▲ ocultar' : '▼ ver'}
           </button>
         </div>
-      </div>
+      }>
+        Tabela de Talentos
+      </SectionSubheading>
 
       {open && (
         <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', overflow: 'hidden' }}>
@@ -746,28 +737,31 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
   }
 
   return (
-    <div className="worn-border" style={panelStyle({ padding: 40 })}>
+    <div className="worn-border" style={panelStyle({ padding: 42 })}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--parchment-pale)', letterSpacing: '0.03em' }}>
-          {classData.name}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid rgba(200,184,144,0.25)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1 }}>⪧</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {classData.name}
+          </span>
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#c8b890', flexShrink: 0 }}>
           d{classData.hitDie}
         </span>
       </div>
 
       {/* Proficiencies */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         {[
           { label: 'Armas',     value: classData.weaponProficiency },
           { label: 'Armaduras', value: classData.armorProficiency },
         ].map(({ label, value }) => (
           <div key={label}>
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 3 }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6e5e35', marginBottom: 3 }}>
               {label}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--parchment-light)', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#c8b890', lineHeight: 1.4 }}>
               {value}
             </div>
           </div>
@@ -776,11 +770,9 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
       {/* Techniques */}
       {activeTechniques.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-            <OrnateTitle>Técnicas</OrnateTitle>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 12, justifyItems: 'center' }}>
+        <div style={{ marginBottom: 20 }}>
+          <SectionSubheading>Técnicas</SectionSubheading>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10, alignItems: 'start' }}>
             {activeTechniques.map((t, i) => (
               <TechniqueCard
                 key={t.id}
@@ -798,6 +790,20 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
       {/* Talent Table */}
       <TalentTable classData={classData} />
+    </div>
+  )
+}
+
+// ─── Section subheading (⁕ Title) ─────────────────────────────────────────────
+
+function SectionSubheading({ children, trailing }: { children: React.ReactNode; trailing?: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#ff444c', lineHeight: 1 }}>⁕</span>
+        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: '#c8b890', lineHeight: 1 }}>{children}</span>
+      </span>
+      {trailing}
     </div>
   )
 }

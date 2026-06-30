@@ -248,12 +248,12 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
         </span>
 
         {/* Name */}
-        <span style={{ flex: '1 0 0', minWidth: 0, fontFamily: 'var(--font-heading)', fontSize: 16, color: accent, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ flex: '1 1 0', minWidth: 0, fontFamily: 'var(--font-heading)', fontSize: 16, color: accent, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {talent.name}
         </span>
 
         {/* Trailing: category + roll/expand affordance */}
-        <span style={{ display: 'flex', alignItems: 'stretch', gap: 8, alignSelf: 'stretch', background: '#18140c', border: '1px solid #0a0805', paddingLeft: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'stretch', gap: 8, alignSelf: 'stretch', flexShrink: 0, background: '#18140c', border: '1px solid #0a0805', paddingLeft: 6 }}>
           <span style={{ display: 'flex', alignItems: 'center', fontFamily: 'var(--font-stat)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: accent, whiteSpace: 'nowrap' }}>
             {ORIGIN_LABEL[talent.origin]}
           </span>
