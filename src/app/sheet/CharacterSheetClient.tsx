@@ -190,8 +190,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: isMobile ? 'stretch' : 'center',
-        paddingLeft: isMobile ? 12 : 316,
-        paddingRight: isMobile ? 12 : 316,
+        paddingLeft: isMobile ? 12 : 32,
+        paddingRight: isMobile ? 12 : 32,
         paddingTop: isMobile ? 12 : 80,
         paddingBottom: isMobile ? 'calc(76px + var(--safe-bottom))' : 80,
       }}>
