@@ -1,19 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
-import { roman } from '@/components/shared/TarotCard'
-import { OrnateTitle } from '@/components/shared/OrnateTitle'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
-
-const HEX_CLIP = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
-const POPOVER_W = 300
 
 const STAT_SHORT: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -303,147 +298,77 @@ function SpellLikeSection({
   const cfg = technique.spellLike!
   const expended = state.expendedAbilities ?? []
 
-  // Detect if any ability overrides the default cast stat (e.g. Monk's Mysticism)
-  const hasPerAbilityStat = cfg.abilities.some(a => a.castStat && a.castStat !== cfg.castStat)
-
   function activate(abilityId: string, abilityName: string, dc: number, abilityCastStat?: Stat) {
     const resolvedStat = abilityCastStat ?? cfg.castStat
     const statScore = stats[resolvedStat] ?? 10
     const castMod = modifier(statScore)
     const result = rollDie('d20', abilityName, `DC ${dc}`, castMod)
     onRoll?.(result)
-
     if (result.total < dc) {
-      // Failed — mark as expended
       onChange({ ...state, expendedAbilities: [...expended, abilityId] })
     }
   }
 
-  function resetAll() {
-    onChange({ ...state, expendedAbilities: [] })
+  function restore(abilityId: string) {
+    onChange({ ...state, expendedAbilities: expended.filter(id => id !== abilityId) })
   }
 
-  const defaultStatScore = stats[cfg.castStat] ?? 10
-
   return (
-    <div style={{ marginTop: 8 }}>
-      {/* Cast stat line */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 8.5,
-          color: 'var(--bone-muted)',
-        }}>
-          {hasPerAbilityStat
-            ? 'Rolamento: d20 + atributo (varia por habilidade)'
-            : `Rolamento: d20 + ${STAT_SHORT[cfg.castStat]} (${modifierStr(defaultStatScore)})`
-          }
-        </span>
-        <button
-          onClick={resetAll}
-          disabled={expended.length === 0}
-          style={{
-            ...btnStyle('dark'),
-            fontSize: 7,
-            opacity: expended.length === 0 ? 0.35 : 1,
-            cursor: expended.length === 0 ? 'not-allowed' : 'pointer',
-          }}
-        >
-          Descansar
-        </button>
-      </div>
-
-      {/* Ability list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {cfg.abilities.map(ability => {
-          const isExpended = expended.includes(ability.id)
-          const dc = ability.dc ?? cfg.dc
-          // Per-ability stat resolution (e.g. Monk Mysticism: DEX/CON per technique)
-          const abilityCastStat = ability.castStat ?? cfg.castStat
-          const abilityStatScore = stats[abilityCastStat] ?? 10
-          const abilityCastMod = modifier(abilityStatScore)
-
-          return (
-            <div
-              key={ability.id}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 8,
-                padding: '6px 10px',
-                background: isExpended ? 'rgba(42,34,16,0.2)' : 'rgba(42,34,16,0.4)',
-                border: `1px solid ${isExpended ? 'rgba(139,112,48,0.12)' : 'rgba(139,112,48,0.22)'}`,
-                opacity: isExpended ? 0.6 : 1,
-                transition: 'all 300ms',
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: 12,
-                    color: isExpended ? 'var(--bone-muted)' : 'var(--candle-amber)',
-                  }}>
-                    {ability.name}
-                  </span>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    color: isExpended ? 'var(--blood-bright)' : 'var(--verdigris-light)',
-                    background: isExpended ? 'rgba(139,21,21,0.12)' : 'rgba(42,80,69,0.15)',
-                    border: `1px solid ${isExpended ? 'rgba(139,21,21,0.25)' : 'rgba(42,80,69,0.3)'}`,
-                    padding: '2px 6px',
-                  }}>
-                    {isExpended ? '✕ Usado' : '● Disponível'}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)' }}>
-                    DC {dc} · d20{abilityCastMod >= 0 ? `+${abilityCastMod}` : abilityCastMod}
-                    {hasPerAbilityStat && ` (${STAT_SHORT[abilityCastStat]})`}
-                  </span>
-                </div>
-                {ability.description && (
-                  <p style={{
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 10,
-                    color: 'var(--bone-muted)',
-                    lineHeight: 1.5,
-                    marginTop: 3,
-                  }}>
-                    {ability.description}
-                  </p>
-                )}
-                {(ability.range || ability.duration || ability.castingTime) && (
-                  <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                    {[
-                      { label: 'Alcance', val: ability.range },
-                      { label: 'Duração', val: ability.duration },
-                      { label: 'Ação', val: ability.castingTime },
-                    ].filter(x => x.val).map(({ label, val }) => (
-                      <span key={label} style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(139,112,48,0.5)' }}>
-                        {label}: {val}
-                      </span>
-                    ))}
-                  </div>
-                )}
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', maxWidth: '100%', overflowX: 'auto', padding: '0 16px 2px', boxSizing: 'border-box' }}>
+      {cfg.abilities.map(ability => {
+        const isExpended = expended.includes(ability.id)
+        const dc = ability.dc ?? cfg.dc
+        const abilityCastStat = ability.castStat ?? cfg.castStat
+        const abilityStatScore = stats[abilityCastStat] ?? 10
+        const abilityCastMod = modifier(abilityStatScore)
+        const statusColor = isExpended ? '#ff6044' : '#e0a040'
+        return (
+          <div key={ability.id} style={{ background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
+            <div style={{ border: '1px solid rgba(238,233,221,0.25)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
+              {/* Title */}
+              <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.1, opacity: isExpended ? 0.25 : 1 }}>
+                {ability.name}
+              </p>
+              {/* Status divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
+                <span style={{ flex: 1, height: 1, background: statusColor }} />
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: statusColor, whiteSpace: 'nowrap', lineHeight: 1 }}>
+                  {isExpended ? 'Indisponível' : 'Disponível'}
+                </span>
+                <span style={{ flex: 1, height: 1, background: statusColor }} />
               </div>
-              <button
-                onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
-                disabled={isExpended}
-                style={{
-                  ...btnStyle(isExpended ? 'dark' : 'amber'),
-                  opacity: isExpended ? 0.3 : 1,
-                  cursor: isExpended ? 'not-allowed' : 'pointer',
-                  flexShrink: 0,
-                  marginTop: 1,
-                }}
-              >
-                Ativar
-              </button>
+              {/* Roll line */}
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'rgba(238,233,221,0.25)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                DC {dc} · d20{abilityCastMod >= 0 ? `+${abilityCastMod}` : abilityCastMod} ({STAT_SHORT[abilityCastStat]})
+              </p>
+              {/* Description */}
+              {ability.description && (
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, width: '100%', textAlign: 'left', margin: 0, opacity: isExpended ? 0.25 : 1 }}>
+                  {ability.description}
+                </p>
+              )}
+              {/* Action */}
+              {isExpended ? (
+                <button
+                  onClick={() => restore(ability.id)}
+                  className="tactile"
+                  style={{ width: '100%', background: 'transparent', border: '1px solid #ff6044', color: '#ff6044', fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', padding: '11px 13px', cursor: 'pointer' }}
+                >
+                  Restaurar
+                </button>
+              ) : (
+                <button
+                  onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
+                  className="tactile"
+                  style={{ width: '100%', background: '#e0a040', border: '1px solid #0a0805', color: '#0a0805', fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', padding: '11px 13px', cursor: 'pointer' }}
+                >
+                  Ativar
+                </button>
+              )}
             </div>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -451,22 +376,20 @@ function SpellLikeSection({
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
 const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)', glyph: '☿' },
-  choice:       { label: 'Escolha',  color: 'var(--candle-amber)',    soft: 'rgba(196,120,42,0.35)', glyph: '⚖' },
-  limited_use:  { label: 'Usos',     color: 'var(--blood-bright)',    soft: 'rgba(139,21,21,0.38)',  glyph: '⌛' },
-  spell_like:   { label: 'Ativação', color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)',   glyph: '☽' },
+  passive:      { label: 'Passivo',  color: '#a56fde', soft: 'rgba(165,111,222,0.35)', glyph: '☿' },
+  choice:       { label: 'Escolha',  color: '#c8b890', soft: 'rgba(200,184,144,0.35)', glyph: '⚖' },
+  limited_use:  { label: 'Usos',     color: '#ff444c', soft: 'rgba(255,68,76,0.35)',   glyph: '⌛' },
+  spell_like:   { label: 'Ativação', color: '#4fa98c', soft: 'rgba(79,169,140,0.35)',  glyph: '☽' },
 }
 
 function TechniqueCard({
   technique,
-  index,
   state,
   stats,
   onStateChange,
   onRoll,
 }: {
   technique: ClassTechnique
-  index: number
   state: TechniqueState
   stats: Record<string, number>
   onStateChange: (s: TechniqueState) => void
@@ -474,25 +397,17 @@ function TechniqueCard({
 }) {
   const kind: TechniqueKind = technique.kind ?? 'passive'
   const style = KIND_STYLE[kind]
-  const btnRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
-
-  useEffect(() => {
-    if (!open || !btnRef.current) { setPos(null); return }
-    const r = btnRef.current.getBoundingClientRect()
-    let left = r.left + r.width / 2 - POPOVER_W / 2
-    left = Math.max(8, Math.min(left, window.innerWidth - POPOVER_W - 8))
-    const spaceBelow = window.innerHeight - r.bottom - 8
-    const top = spaceBelow >= 80 ? r.bottom + 8 : Math.max(8, r.top - 8 - 380)
-    setPos({ top, left })
-  }, [open])
 
   useEffect(() => {
     if (!open) return
+    document.body.style.overflow = 'hidden'
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    return () => {
+      document.body.style.overflow = ''
+      window.removeEventListener('keydown', handler)
+    }
   }, [open])
 
   // Compact status indicator shown inside the hex
@@ -514,76 +429,74 @@ function TechniqueCard({
     return null
   })()
 
-  const popover = open && pos
+  const popover = open
     ? createPortal(
-        <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.55)' }} />
-          <div
-            className="animate-ink-spread"
-            onClick={e => e.stopPropagation()}
-            style={{
-              position: 'fixed',
-              top: pos.top,
-              left: pos.left,
-              width: POPOVER_W,
-              zIndex: 141,
-              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
-              border: `1px solid ${style.soft}`,
-              borderTop: `2px solid ${style.color}`,
-              borderRadius: 6,
-              boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${style.soft}`,
-              overflow: 'hidden',
-              maxHeight: 'calc(100vh - 32px)',
-              overflowY: 'auto',
-            }}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px 8px',
-              borderBottom: `1px solid ${style.soft}`,
-              background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${style.soft} 100%)`,
-            }}>
-              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{style.glyph}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--bone-white)', letterSpacing: '0.06em', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {technique.name}
+        <div
+          onClick={() => setOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', padding: 16 }}
+        >
+            {/* Central card — centered both axes, fixed height */}
+            <div
+              onClick={e => e.stopPropagation()}
+              className="animate-ink-spread"
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(360px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
+            >
+              <div style={{ border: '1px solid rgba(238,233,221,0.25)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
+                {/* Heading */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
+                  <span style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${style.color}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: style.color, lineHeight: 1 }}>
+                    {style.glyph}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
+                    <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: style.color, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {technique.name}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: style.color, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1 }}>
+                      {style.label}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setOpen(false)}
+                    aria-label="Fechar"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(238,233,221,0.45)', fontSize: 14, lineHeight: 1, padding: 2, flexShrink: 0 }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#eee9dd')}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(238,233,221,0.45)')}
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.2em', textTransform: 'uppercase', color: style.color, opacity: 0.85, marginTop: 2 }}>
-                  {roman(index + 1)} · {style.label}
+                {/* Divider */}
+                <div style={{ height: 1, background: style.color, flexShrink: 0 }} />
+                {/* Scrollable content */}
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#eee9dd', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+                    <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
+                  </p>
+                  {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
+                  {kind === 'choice' && technique.choice && <ChoiceSection technique={technique} state={state} onChange={onStateChange} />}
+                  {kind === 'limited_use' && technique.uses && (
+                    <UsePips
+                      max={technique.uses.max}
+                      remaining={state.usesRemaining ?? technique.uses.max}
+                      perLabel={technique.uses.perLabel}
+                      onUse={() => {
+                        const cur = state.usesRemaining ?? technique.uses!.max
+                        if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
+                      }}
+                      onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
+                    />
+                  )}
                 </div>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 13, lineHeight: 1, padding: '2px 4px', flexShrink: 0, opacity: 0.6 }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
-              >
-                ✕
-              </button>
             </div>
-            <div style={{ padding: '12px 14px 16px' }}>
-              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', lineHeight: 1.6, margin: 0 }}>
-                <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
-              </p>
-              {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
-              {kind === 'choice' && technique.choice && <ChoiceSection technique={technique} state={state} onChange={onStateChange} />}
-              {kind === 'limited_use' && technique.uses && (
-                <UsePips
-                  max={technique.uses.max}
-                  remaining={state.usesRemaining ?? technique.uses.max}
-                  perLabel={technique.uses.perLabel}
-                  onUse={() => {
-                    const cur = state.usesRemaining ?? technique.uses!.max
-                    if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
-                  }}
-                  onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
-                />
-              )}
-              {kind === 'spell_like' && technique.spellLike && (
-                <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
-              )}
+
+          {/* Ability cards — activation techniques, pinned to the bottom of the screen */}
+          {kind === 'spell_like' && technique.spellLike && (
+            <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', left: 0, right: 0, bottom: 16 }}>
+              <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
             </div>
-          </div>
-        </>,
+          )}
+        </div>,
         document.body,
       )
     : null
@@ -591,85 +504,81 @@ function TechniqueCard({
   return (
     <>
       <button
-        ref={btnRef}
         onClick={() => setOpen(o => !o)}
         title={technique.name}
+        className="tactile card-lift"
         style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
+          background: '#0a0805',
+          border: `1px solid ${open ? style.color : 'rgba(238,233,221,0.25)'}`,
+          boxShadow: '0 4px 7px rgba(0,0,0,0.65)',
+          padding: 4,
           cursor: 'pointer',
           WebkitTapHighlightColor: 'transparent',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: 6,
+          width: '100%',
+          height: 224,
+          boxSizing: 'border-box',
+          transition: 'border-color 250ms',
         }}
       >
-        {/* Hex border (outer) + fill (inner) */}
         <div style={{
-          width: 80,
-          height: 88,
-          clipPath: HEX_CLIP,
-          background: style.color,
+          position: 'relative',
+          flex: 1,
+          width: '100%',
+          border: '1px solid rgba(238,233,221,0.25)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          filter: open ? `drop-shadow(0 0 10px ${style.color})` : `drop-shadow(0 0 4px ${style.soft})`,
-          transition: 'filter 250ms',
+          gap: 6,
+          padding: '10px 9px 12px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}>
-          <div style={{
-            width: 76,
-            height: 84,
-            clipPath: HEX_CLIP,
-            background: open
-              ? `linear-gradient(180deg, rgba(30,10,4,0.98) 0%, #0D0A05 100%)`
-              : `linear-gradient(180deg, rgba(18,8,2,0.97) 0%, #080604 100%)`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 3,
-            transition: 'background 250ms',
-          }}>
-            <span style={{
-              fontSize: 20,
-              lineHeight: 1,
-              userSelect: 'none',
-              filter: `drop-shadow(0 0 5px ${style.soft})`,
-            }}>
-              {style.glyph}
-            </span>
+          {/* Corner marks + roll arrow */}
+          <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+              <span>✦</span><span>✦</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+              <span>✦</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: style.color, lineHeight: 1 }}>↝</span>
+              <span>✦</span>
+            </div>
+          </div>
+
+          {/* Arch icon */}
+          <div style={{ width: 56, height: 56, border: '1px solid rgba(238,233,221,0.25)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: '#eee9dd', lineHeight: 1, userSelect: 'none' }}>{style.glyph}</span>
             {statusLine && (
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 7,
-                color: statusLine.color,
-                lineHeight: 1,
-                letterSpacing: '0.04em',
-              }}>
-                {statusLine.text}
-              </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: statusLine.color, lineHeight: 1, letterSpacing: '0.04em' }}>{statusLine.text}</span>
             )}
           </div>
-        </div>
 
-        {/* Name label below hex */}
-        <span style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8,
-          letterSpacing: '0.05em',
-          color: open ? 'var(--parchment-light)' : 'var(--bone-muted)',
-          textAlign: 'center',
-          lineHeight: 1.3,
-          maxWidth: 90,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          transition: 'color 250ms',
-        }}>
-          {technique.name}
-        </span>
+          {/* Title */}
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {technique.name}
+          </p>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
+            <span style={{ flex: 1, height: 1, background: style.color }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: style.color, lineHeight: 1 }}>⨝</span>
+            <span style={{ flex: 1, height: 1, background: style.color }} />
+          </div>
+
+          {/* Kind label */}
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: style.color, letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center', width: '100%' }}>
+            {style.label}
+          </p>
+
+          {/* Description */}
+          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {technique.description}
+            </p>
+          </div>
+        </div>
       </button>
       {popover}
     </>
@@ -683,23 +592,21 @@ function TalentTable({ classData }: { classData: Class }) {
 
   return (
     <div>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)',
-      }}>
-        <OrnateTitle>Tabela de Talentos</OrnateTitle>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(139,112,48,0.45)' }}>
+      <SectionSubheading trailing={
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(200,184,144,0.45)' }}>
             Role no modal de edição
           </span>
           <button
             onClick={() => setOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', padding: 0 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#c8b890', padding: 0 }}
           >
             {open ? '▲ ocultar' : '▼ ver'}
           </button>
         </div>
-      </div>
+      }>
+        Tabela de Talentos
+      </SectionSubheading>
 
       {open && (
         <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', overflow: 'hidden' }}>
@@ -746,28 +653,31 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
   }
 
   return (
-    <div className="worn-border" style={panelStyle({ padding: 40 })}>
+    <div className="worn-border" style={panelStyle({ padding: 42 })}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--parchment-pale)', letterSpacing: '0.03em' }}>
-          {classData.name}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid rgba(200,184,144,0.25)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1 }}>⪧</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {classData.name}
+          </span>
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#c8b890', flexShrink: 0 }}>
           d{classData.hitDie}
         </span>
       </div>
 
       {/* Proficiencies */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         {[
           { label: 'Armas',     value: classData.weaponProficiency },
           { label: 'Armaduras', value: classData.armorProficiency },
         ].map(({ label, value }) => (
           <div key={label}>
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'var(--bone-muted)', marginBottom: 3 }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6e5e35', marginBottom: 3 }}>
               {label}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--parchment-light)', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#c8b890', lineHeight: 1.4 }}>
               {value}
             </div>
           </div>
@@ -776,16 +686,13 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
       {/* Techniques */}
       {activeTechniques.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ marginBottom: 8, paddingBottom: 7, borderBottom: '1px solid rgba(139,112,48,0.18)' }}>
-            <OrnateTitle>Técnicas</OrnateTitle>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 12, justifyItems: 'center' }}>
-            {activeTechniques.map((t, i) => (
+        <div style={{ marginBottom: 20 }}>
+          <SectionSubheading>Técnicas</SectionSubheading>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10, alignItems: 'start' }}>
+            {activeTechniques.map(t => (
               <TechniqueCard
                 key={t.id}
                 technique={t}
-                index={i}
                 state={getState(techniqueStates, t.id)}
                 stats={stats}
                 onStateChange={handleTechniqueState}
@@ -798,6 +705,20 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
       {/* Talent Table */}
       <TalentTable classData={classData} />
+    </div>
+  )
+}
+
+// ─── Section subheading (⁕ Title) ─────────────────────────────────────────────
+
+function SectionSubheading({ children, trailing }: { children: React.ReactNode; trailing?: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#ff444c', lineHeight: 1 }}>⁕</span>
+        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: '#c8b890', lineHeight: 1 }}>{children}</span>
+      </span>
+      {trailing}
     </div>
   )
 }
