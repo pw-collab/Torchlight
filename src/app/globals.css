@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Goudy+Bookletter+1911&family=Grenze:wght@400;500;600;700;800;900&family=Jacquard+12&family=Jersey+20&family=Sedgwick+Ave&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Courier+Prime:wght@400;700&family=Grenze:wght@400;500;600;700;800;900&family=Jacquard+12&family=Jersey+20&family=Sedgwick+Ave&display=swap');
 @import "tailwindcss";
 
 /* ============================================================
@@ -38,7 +38,7 @@
   --mist-bright:      #6B4E8A;
 
   --font-heading: 'Grenze', serif;
-  --font-body:    'Goudy Bookletter 1911', serif;
+  --font-body:    'Cormorant Garamond', serif;
   --font-mono:    'Courier Prime', monospace;
   --font-stat:    'Jersey 20', sans-serif;   /* stat-grid labels & raw scores */
   --font-numeral: 'Sedgwick Ave', cursive;   /* inked numerals: modifiers, HP, AC */
