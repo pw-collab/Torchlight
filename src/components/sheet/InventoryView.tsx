@@ -8,6 +8,7 @@ import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
+import { SectionHeading, SectionSubheading } from '@/components/shared/SectionHeading'
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -87,7 +88,6 @@ function calculateAC(inv: InventoryItem[], dex: number): number {
 // ─── Style helpers ────────────────────────────────────────────────────────────
 
 const PANEL_BORDER = '1px solid rgba(196,32,32,0.25)'
-const PANEL_BORDER_LIGHT = '1px solid rgba(196,32,32,0.15)'
 
 function panelBase(extra?: React.CSSProperties): React.CSSProperties {
   return {
@@ -95,18 +95,6 @@ function panelBase(extra?: React.CSSProperties): React.CSSProperties {
     borderTop: 'none',
     ...extra,
   }
-}
-
-function sectionHeader(text: string) {
-  return (
-    <div style={{
-      paddingBottom: 7,
-      borderBottom: PANEL_BORDER_LIGHT,
-      marginBottom: 10,
-    }}>
-      <OrnateTitle>{text}</OrnateTitle>
-    </div>
-  )
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -259,7 +247,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
 
   return (
     <div style={panelBase({ padding: 40 })}>
-      {sectionHeader('Tesouro')}
+      <SectionSubheading style={{ marginBottom: 10 }}>Tesouro</SectionSubheading>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {coins.map(({ key, label, color, value }) => (
           <div
@@ -969,7 +957,7 @@ export function InventoryView({
 
         {/* Equipped Slots */}
         <div style={{ padding: 40, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
-          {sectionHeader('Itens Equipados')}
+          <SectionHeading style={{ marginBottom: 10 }}>Itens Equipados</SectionHeading>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {(['mainHand', 'offHand', 'armor'] as EquipSlot[]).map(slot => {
               const item = equipped(slot)
@@ -1093,9 +1081,8 @@ export function InventoryView({
 
         {/* Backpack */}
         <div style={{ padding: 40, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(196,32,32,0.15)' }}>
-            <OrnateTitle>Inventário</OrnateTitle>
-            <div style={{ display: 'flex', gap: 6 }}>
+          <SectionHeading style={{ marginBottom: 10 }} trailing={
+            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
               <button onClick={() => setAddingForm({})} style={quickBtnStyle('dark')}>
                 + Manual
               </button>
@@ -1103,7 +1090,9 @@ export function InventoryView({
                 Catálogo
               </button>
             </div>
-          </div>
+          }>
+            Inventário
+          </SectionHeading>
 
           {addingForm !== null && (
             <AddItemForm
@@ -1176,7 +1165,7 @@ export function InventoryView({
 
         {/* Bonuses (vertical) */}
         <div style={{ padding: 20, background: 'var(--parchment-mid)', border: PANEL_BORDER, borderTop: 'none' }}>
-          {sectionHeader('Bônus de Combate')}
+          <SectionSubheading style={{ marginBottom: 10 }}>Bônus de Combate</SectionSubheading>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {([
               { key: 'meleeBonus' as const, label: 'Corpo-a-Corpo', value: meleeBonus },
