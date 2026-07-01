@@ -314,7 +314,7 @@ function SpellLikeSection({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 196, flexShrink: 0, maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto' }}>
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', maxWidth: '100%', overflowX: 'auto', padding: '0 16px 2px', boxSizing: 'border-box' }}>
       {cfg.abilities.map(ability => {
         const isExpended = expended.includes(ability.id)
         const dc = ability.dc ?? cfg.dc
@@ -323,7 +323,7 @@ function SpellLikeSection({
         const abilityCastMod = modifier(abilityStatScore)
         const statusColor = isExpended ? '#ff6044' : '#e0a040'
         return (
-          <div key={ability.id} style={{ background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, flexShrink: 0 }}>
+          <div key={ability.id} style={{ background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
             <div style={{ border: '1px solid rgba(238,233,221,0.25)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
               {/* Title */}
               <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.1, opacity: isExpended ? 0.25 : 1 }}>
@@ -433,16 +433,13 @@ function TechniqueCard({
     ? createPortal(
         <div
           onClick={() => setOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', padding: 16 }}
         >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ display: 'flex', gap: 10, alignItems: 'flex-start', maxWidth: '100%', maxHeight: 'calc(100dvh - 32px)' }}
-          >
-            {/* Central card */}
+            {/* Central card — centered both axes, fixed height */}
             <div
+              onClick={e => e.stopPropagation()}
               className="animate-ink-spread"
-              style={{ background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, 86vw)', maxHeight: 'calc(100dvh - 32px)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(360px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
             >
               <div style={{ border: '1px solid rgba(238,233,221,0.25)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
                 {/* Heading */}
@@ -493,11 +490,12 @@ function TechniqueCard({
               </div>
             </div>
 
-            {/* Ability column — activation techniques */}
-            {kind === 'spell_like' && technique.spellLike && (
+          {/* Ability cards — activation techniques, pinned to the bottom of the screen */}
+          {kind === 'spell_like' && technique.spellLike && (
+            <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', left: 0, right: 0, bottom: 16 }}>
               <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
-            )}
-          </div>
+            </div>
+          )}
         </div>,
         document.body,
       )
