@@ -43,6 +43,16 @@ const LIGHT_ICON: Record<string, string> = {
   lantern: '🏮',
 }
 
+/** SVG icon per item type — falls back to the emoji glyph above until the file exists in /public. */
+const ITEM_ICON_SRC: Partial<Record<ItemType, string>> = {
+  weapon: '/weapons.svg',
+  armor: '/weapons.svg',
+  shield: '/weapons.svg',
+  gear: '/gear.svg',
+  document: '/book.svg',
+}
+const LIGHT_ICON_SRC = '/light.svg'
+
 // ─── Catalog helpers ──────────────────────────────────────────────────────────
 
 function catalogToInventoryItem(cat: CatalogItem): InventoryItem {
@@ -140,31 +150,64 @@ function isLightSource(name: string): boolean {
   return n.includes('tocha') || n.includes('torch') || n.includes('lampião') || n.includes('lantern') || n.includes('vela') || n.includes('candle')
 }
 
+/** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
+function combatPillStyle(tone: 'blood' | 'mist' | 'amber' | 'dark'): React.CSSProperties {
+  const map: Record<typeof tone, [string, string]> = {
+    blood: ['rgba(139,21,21,0.35)', '#8b1515'],
+    mist:  ['rgba(42,26,58,0.35)', 'rgba(107,78,138,0.5)'],
+    amber: ['rgba(106,58,10,0.35)', '#6B3A0A'],
+    dark:  ['rgba(24,20,12,0.6)', 'rgba(200,184,144,0.25)'],
+  }
+  const [bg, border] = map[tone]
+  return {
+    background: bg,
+    border: `1px solid ${border}`,
+    color: '#f0e8d0',
+    fontFamily: 'var(--font-heading)',
+    fontSize: 8,
+    letterSpacing: '0.8px',
+    textTransform: 'uppercase',
+    padding: '5px 11px',
+    borderRadius: 1,
+    cursor: 'pointer',
+    alignSelf: 'stretch',
+  }
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Thin gold capacity strip, visually paired with the Fortuna bar. */
-function CapacityBar({ str, usedSlots }: { str: number; usedSlots: number }) {
-  const maxSlots = str
-  const isEncumbered = usedSlots > maxSlots
-  const percent = Math.min(100, maxSlots > 0 ? (usedSlots / maxSlots) * 100 : 0)
-
+/** Type-icon image with a graceful fallback to the emoji glyph if the SVG asset is missing/404s. */
+function TypeIcon({ src, fallback, size = 44, style }: { src: string; fallback: string; size?: number; style?: React.CSSProperties }) {
+  const [broken, setBroken] = useState(false)
+  if (broken) {
+    return <span aria-hidden style={{ fontSize: size * 0.5, lineHeight: 1, ...style }}>{fallback}</span>
+  }
   return (
-    <div
-      title={`FOR ${str} → ${maxSlots} slots`}
-      style={{ background: '#c8b890', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}
-    >
-      {/* Fill track */}
-      <div style={{ flex: '1 0 0', height: 20, position: 'relative', overflow: 'hidden', background: 'rgba(10,8,5,0.18)' }}>
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${percent}%`, background: isEncumbered ? '#ff444c' : '#18140c', transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)' }} />
-      </div>
-      <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? '#ff444c' : '#0a0805', lineHeight: 1, flexShrink: 0 }}>
-        {usedSlots}<span style={{ color: 'rgba(10,9,5,0.7)' }}>/{maxSlots}</span>
-      </span>
-      <span style={{ flexShrink: 0, paddingRight: 2, fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? '#ff444c' : '#0a0805', lineHeight: 1 }}>
-        {isEncumbered ? 'Sobrecarregado' : 'Carga'}
-      </span>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element -- small local icon set, no next/image optimization needed
+    <img
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size, objectFit: 'contain', display: 'block', ...style }}
+      onError={() => setBroken(true)}
+    />
   )
+}
+
+/** Resolves the correct icon (SVG, with emoji fallback) for an inventory item's type/light state. */
+function renderTypeIcon(item: InventoryItem, size = 44) {
+  if (item.isLight) {
+    const fallback = item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch']
+    const lightStyle: React.CSSProperties = item.isLit
+      ? { filter: 'drop-shadow(0 0 6px rgba(224,160,64,0.65)) saturate(1.3)' }
+      : { opacity: 0.5, filter: 'saturate(0.4)' }
+    return <TypeIcon src={LIGHT_ICON_SRC} fallback={fallback} size={size} style={lightStyle} />
+  }
+  const src = ITEM_ICON_SRC[item.type]
+  const fallback = ITEM_ICON[item.type] ?? '⚗'
+  if (!src) return <span aria-hidden style={{ fontSize: size * 0.5, lineHeight: 1 }}>{fallback}</span>
+  return <TypeIcon src={src} fallback={fallback} size={size} />
 }
 
 function TreasureVault({ gold, silver, copper, onUpdate }: {
@@ -383,6 +426,9 @@ const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
   document: { color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)' },
 }
 
+const GRID_TILE = 80
+
+/** Occupied grid cell ("Default" state, Figma 91-1044) — icon + item name, gold border. */
 function ItemIconSlot({ item, selected, onSelect }: {
   item: InventoryItem
   selected: boolean
@@ -393,21 +439,21 @@ function ItemIconSlot({ item, selected, onSelect }: {
       onClick={onSelect}
       title={item.name}
       style={{
-        width: 72,
-        height: 72,
-        background: selected ? 'rgba(196,32,32,0.08)' : 'rgba(8,6,4,0.85)',
-        border: selected ? '2px solid var(--blood-bright)' : '1px solid rgba(196,32,32,0.18)',
-        borderRadius: 2,
-        cursor: 'pointer',
-        padding: 0,
+        width: GRID_TILE,
+        height: GRID_TILE,
+        boxSizing: 'border-box',
+        margin: '-1px 0 0 -1px',
+        background: '#18140c',
+        border: `1px solid ${selected ? '#ff444c' : '#c8b890'}`,
+        padding: 6,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         gap: 3,
+        cursor: 'pointer',
         position: 'relative',
-        flexShrink: 0,
-        transition: 'border-color 200ms, background 200ms',
+        zIndex: selected ? 2 : 1,
         WebkitTapHighlightColor: 'transparent',
       }}
     >
@@ -415,41 +461,89 @@ function ItemIconSlot({ item, selected, onSelect }: {
         <span aria-hidden style={{
           position: 'absolute', top: 4, left: 4,
           width: 5, height: 5, borderRadius: '50%',
-          background: 'var(--verdigris-light)',
+          background: '#4fa98c',
         }} />
       )}
-      <span style={{ fontSize: 22, lineHeight: 1, userSelect: 'none' }}>
-        {item.isLight
-          ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
-          : ITEM_ICON[item.type] ?? '⚗'}
-      </span>
-      <span style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 6.5,
-        letterSpacing: '0.06em',
-        color: selected ? 'var(--parchment-light)' : 'var(--bone-muted)',
-        textTransform: 'uppercase',
-        textAlign: 'center',
-        lineHeight: 1.2,
-        maxWidth: 62,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        padding: '0 3px',
-        transition: 'color 200ms',
-      }}>
-        {item.name}
-      </span>
       {item.quantity > 1 && (
         <span style={{
-          position: 'absolute', bottom: 3, right: 4,
-          fontFamily: 'var(--font-mono)', fontSize: 7.5, fontWeight: 700,
-          color: 'var(--bone-muted)', lineHeight: 1,
+          position: 'absolute', top: 4, right: 4,
+          fontFamily: 'var(--font-numeral)', fontSize: 11,
+          color: '#c8b890', lineHeight: 1,
         }}>
           ×{item.quantity}
         </span>
       )}
+      <div style={{ flex: '1 0 0', minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {renderTypeIcon(item, 44)}
+      </div>
+      <span style={{
+        fontFamily: 'var(--font-heading)',
+        fontSize: 8,
+        letterSpacing: '0.3px',
+        textTransform: 'uppercase',
+        color: '#8a7a5a',
+        textAlign: 'center',
+        lineHeight: 1.2,
+        width: '100%',
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+      }}>
+        {item.name}
+      </span>
     </button>
+  )
+}
+
+/** Free grid cell ("Available" state) — click to add an item from the catalog. */
+function GridAvailableTile({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      title="Adicionar item"
+      className="tactile"
+      style={{
+        width: GRID_TILE,
+        height: GRID_TILE,
+        boxSizing: 'border-box',
+        margin: '-1px 0 0 -1px',
+        background: '#18140c',
+        border: '1px solid rgba(255,68,76,0.25)',
+        padding: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        position: 'relative',
+        zIndex: 1,
+        transition: 'border-color 200ms, background 200ms',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,68,76,0.55)'; e.currentTarget.style.background = 'rgba(255,68,76,0.05)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,68,76,0.25)'; e.currentTarget.style.background = '#18140c' }}
+    >
+      <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 32, lineHeight: 1, color: 'rgba(255,68,76,0.25)' }}>+</span>
+    </button>
+  )
+}
+
+/** Non-interactive filler cell ("Empty" state) — diagonal hatch pattern padding the grid to a full row. */
+function GridEmptyTile() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        width: GRID_TILE,
+        height: GRID_TILE,
+        boxSizing: 'border-box',
+        margin: '-1px 0 0 -1px',
+        border: '1px dashed rgba(200,184,144,0.25)',
+        background: 'repeating-linear-gradient(45deg, rgba(200,184,144,0.10) 0px, rgba(200,184,144,0.10) 1px, transparent 1px, transparent 7px), #18140c',
+        position: 'relative',
+        zIndex: 0,
+      }}
+    />
   )
 }
 
@@ -467,7 +561,7 @@ function ItemDetailSkeleton() {
       boxSizing: 'border-box',
       background: 'rgba(8,6,4,0.5)',
       border: '1px dashed rgba(200,184,144,0.18)',
-      padding: '12px 14px',
+      padding: '13px 15px',
       display: 'flex',
       flexDirection: 'column',
       gap: 10,
@@ -915,10 +1009,102 @@ export function InventoryView({
 
   const calcAC = calculateAC(inventory, dex)
 
+  // Carga (weight capacity) — shown inline in the Inventário header
+  const maxSlots = str
+  const isEncumbered = usedSlots > maxSlots
+
+  // Grid cells: existing items, then a small buffer of "+" quick-add cells,
+  // then diagonal filler padding the grid out to a full row of GRID_COLS.
+  const GRID_COLS = 5
+  const ADD_BUFFER = 3
+  const preFillerCount = inventory.length + ADD_BUFFER
+  const totalCells = Math.ceil(preFillerCount / GRID_COLS) * GRID_COLS
+  const emptyCellCount = totalCells - preFillerCount
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-        {/* Equipped Slots + Carga + Bônus */}
+        {/* Inventário — grid takes emphasis, Carga inline in the header */}
+        <div className="worn-border" style={{ padding: 42 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 10, borderBottom: '2px solid rgba(200,184,144,0.25)', marginBottom: 16 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1, flexShrink: 0 }}>⪧</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? '#ff444c' : '#8a7a5a', lineHeight: 1 }}>
+                  {usedSlots}<span style={{ color: isEncumbered ? 'rgba(255,68,76,0.7)' : 'rgba(138,122,90,0.7)' }}>/{maxSlots}</span>
+                </span>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? '#ff444c' : '#8a7a5a', lineHeight: 1 }}>
+                  {isEncumbered ? 'Sobrecarregado' : 'Carga'}
+                </span>
+              </span>
+            </span>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <button onClick={() => setAddingForm({})} className="tactile" style={buttonStyle('dark')}>Criar</button>
+              <button onClick={() => setShowCatalog(true)} className="tactile" style={buttonStyle('hollow')}>Adicionar</button>
+            </div>
+          </div>
+
+          {addingForm !== null && (
+            <AddItemForm
+              initialForm={addingForm}
+              onAdd={addItem}
+              onCancel={() => setAddingForm(null)}
+            />
+          )}
+
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            {/* Item grid — occupied / available / empty-filler cells */}
+            <div style={{ width: GRID_COLS * GRID_TILE, flexShrink: 0, border: '1px solid rgba(200,184,144,0.25)', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start' }}>
+              {inventory.map(item => (
+                <ItemIconSlot
+                  key={item.id}
+                  item={item}
+                  selected={selectedItemId === item.id || editingId === item.id}
+                  onSelect={() => {
+                    if (editingId === item.id) return
+                    setSelectedItemId(selectedItemId === item.id ? null : item.id)
+                    setEditingId(null)
+                  }}
+                />
+              ))}
+              {Array.from({ length: ADD_BUFFER }).map((_, i) => (
+                <GridAvailableTile key={`add-${i}`} onClick={() => setShowCatalog(true)} />
+              ))}
+              {Array.from({ length: emptyCellCount }).map((_, i) => (
+                <GridEmptyTile key={`empty-${i}`} />
+              ))}
+            </div>
+
+            {/* Right pane — always present so the grid width never shifts */}
+            <div style={{ width: 220, flexShrink: 0 }}>
+              {editingItem ? (
+                <EditItemForm
+                  item={editingItem}
+                  onSave={updated => { updateItem(editingItem.id, updated); setEditingId(null) }}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : selectedItem ? (
+                <ItemDetailPane
+                  item={selectedItem}
+                  onClose={() => setSelectedItemId(null)}
+                  onEdit={() => setEditingId(selectedItem.id)}
+                  onRemove={() => removeItem(selectedItem.id)}
+                  onEquipToggle={isEquippable(selectedItem) ? () => toggleEquipFromList(selectedItem) : undefined}
+                  onConsume={selectedItem.type === 'gear' ? () => consumeItem(selectedItem.id) : undefined}
+                  onOpen={selectedItem.type === 'document' ? () => setBookViewItem(selectedItem) : undefined}
+                  onRollAttack={selectedItem.type === 'weapon' && onRoll ? () => rollAttack(selectedItem) : undefined}
+                  onRollDamage={selectedItem.damageDie && onRoll ? () => rollDamage(selectedItem) : undefined}
+                  onRollParry={selectedItem.type === 'shield' && onRoll ? () => rollParry(selectedItem) : undefined}
+                />
+              ) : (
+                <ItemDetailSkeleton />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Itens Equipados + Bônus de Combate */}
         <div className="worn-border" style={{ padding: 42 }}>
           <SectionHeading style={{ marginBottom: 16 }}>Itens Equipados</SectionHeading>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -927,10 +1113,9 @@ export function InventoryView({
               return (
                 <div
                   key={slot}
-                  className="worn-border"
                   style={{
                     background: item ? 'rgba(12,8,4,0.7)' : 'rgba(8,6,4,0.5)',
-                    border: `1px solid ${item ? 'rgba(196,32,32,0.30)' : 'rgba(196,32,32,0.14)'}`,
+                    border: '2px solid rgba(200,184,144,0.25)',
                     padding: '10px 10px',
                     minHeight: 90,
                     display: 'flex',
@@ -945,12 +1130,12 @@ export function InventoryView({
                   {item ? (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#f0e8d0', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
                           {item.isLight
                             ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
                             : ITEM_ICON[item.type] ?? '⚗'}
                         </span>
-                        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--parchment-light)', flex: 1, lineHeight: 1.3 }}>
+                        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: '#c4a96a', flex: 1, lineHeight: 1.3 }}>
                           {item.name}
                         </span>
                       </div>
@@ -969,14 +1154,14 @@ export function InventoryView({
 
                       {item.type === 'weapon' && (
                         <div style={{ display: 'flex', gap: 4 }}>
-                          <button onClick={() => rollAttack(item)} style={quickBtnStyle('blood')}>Atk</button>
-                          {item.damageDie && <button onClick={() => rollDamage(item)} style={quickBtnStyle('mist')}>Dmg</button>}
+                          <button onClick={() => rollAttack(item)} style={combatPillStyle('blood')}>Atk</button>
+                          {item.damageDie && <button onClick={() => rollDamage(item)} style={combatPillStyle('mist')}>Dmg</button>}
                         </div>
                       )}
 
                       {item.type === 'shield' && onRoll && (
                         <div style={{ display: 'flex', gap: 4 }}>
-                          <button onClick={() => rollParry(item)} style={quickBtnStyle('mist')}>Aparar</button>
+                          <button onClick={() => rollParry(item)} style={combatPillStyle('mist')}>Aparar</button>
                         </div>
                       )}
 
@@ -988,7 +1173,7 @@ export function InventoryView({
                               updateItem(item.id, { isLit: igniting })
                               if (igniting) sendToDiscord({ type: 'torch_lit', player: playerName, minutesLeft: item.lightMinutesLeft ?? item.lightMaxMinutes ?? 60 })
                             }}
-                            style={quickBtnStyle(item.isLit ? 'amber' : 'dark')}
+                            style={combatPillStyle(item.isLit ? 'amber' : 'dark')}
                           >
                             {item.isLit ? 'Apagar' : 'Acender'}
                           </button>
@@ -1041,11 +1226,6 @@ export function InventoryView({
             })}
           </div>
 
-          {/* Carga — thin bar */}
-          <div style={{ marginTop: 16 }}>
-            <CapacityBar str={str} usedSlots={usedSlots} />
-          </div>
-
           {/* Bônus de Combate — inline inputs, spellcasting style */}
           <div style={{ marginTop: 20 }}>
             <SectionSubheading trailing={
@@ -1082,80 +1262,6 @@ export function InventoryView({
               Bônus de Combate
             </SectionSubheading>
           </div>
-        </div>
-
-        {/* Backpack */}
-        <div className="worn-border" style={{ padding: 42 }}>
-          <SectionHeading style={{ marginBottom: 10 }} trailing={
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-              <button onClick={() => setAddingForm({})} style={quickBtnStyle('dark')}>
-                + Manual
-              </button>
-              <button onClick={() => setShowCatalog(true)} style={quickBtnStyle('blood')}>
-                Catálogo
-              </button>
-            </div>
-          }>
-            Inventário
-          </SectionHeading>
-
-          {addingForm !== null && (
-            <AddItemForm
-              initialForm={addingForm}
-              onAdd={addItem}
-              onCancel={() => setAddingForm(null)}
-            />
-          )}
-
-          {inventory.length === 0 && addingForm === null ? (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--parchment-warm)' }}>
-              Nenhum item registrado no arquivo.
-            </p>
-          ) : (
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              {/* Icon slot grid */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: 1, minWidth: 0, alignContent: 'flex-start' }}>
-                {inventory.map(item => (
-                  <ItemIconSlot
-                    key={item.id}
-                    item={item}
-                    selected={selectedItemId === item.id || editingId === item.id}
-                    onSelect={() => {
-                      if (editingId === item.id) return
-                      setSelectedItemId(selectedItemId === item.id ? null : item.id)
-                      setEditingId(null)
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Right pane — always present so the grid width never shifts */}
-              <div style={{ width: 220, flexShrink: 0 }}>
-                {editingItem ? (
-                  <EditItemForm
-                    item={editingItem}
-                    onSave={updated => { updateItem(editingItem.id, updated); setEditingId(null) }}
-                    onCancel={() => setEditingId(null)}
-                  />
-                ) : selectedItem ? (
-                  <ItemDetailPane
-                    item={selectedItem}
-                    onClose={() => setSelectedItemId(null)}
-                    onEdit={() => setEditingId(selectedItem.id)}
-                    onRemove={() => removeItem(selectedItem.id)}
-                    onEquipToggle={isEquippable(selectedItem) ? () => toggleEquipFromList(selectedItem) : undefined}
-                    onConsume={selectedItem.type === 'gear' ? () => consumeItem(selectedItem.id) : undefined}
-                    onOpen={selectedItem.type === 'document' ? () => setBookViewItem(selectedItem) : undefined}
-                    onRollAttack={selectedItem.type === 'weapon' && onRoll ? () => rollAttack(selectedItem) : undefined}
-                    onRollDamage={selectedItem.damageDie && onRoll ? () => rollDamage(selectedItem) : undefined}
-                    onRollParry={selectedItem.type === 'shield' && onRoll ? () => rollParry(selectedItem) : undefined}
-                  />
-                ) : (
-                  <ItemDetailSkeleton />
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Treasure */}
