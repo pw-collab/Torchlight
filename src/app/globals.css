@@ -89,6 +89,9 @@ html, body {
   background: #18140C;
   color: var(--bone-white);
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
