@@ -9,6 +9,8 @@ import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionHeading, SectionSubheading } from '@/components/shared/SectionHeading'
+import { buttonStyle } from '@/components/shared/buttonStyles'
+import type { ButtonVariant } from '@/components/shared/buttonStyles'
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -119,30 +121,18 @@ function inputStyle(): React.CSSProperties {
 
 type BtnVariant = 'blood' | 'mist' | 'amber' | 'dark' | 'danger' | 'green'
 
+/** Legacy variant names mapped onto the design-system button (Figma 64-849). */
+const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
+  blood:  'primary',
+  amber:  'primary',
+  green:  'primary',
+  mist:   'dark',
+  dark:   'dark',
+  danger: 'danger',
+}
+
 function quickBtnStyle(variant: BtnVariant): React.CSSProperties {
-  const map: Record<BtnVariant, [string, string, string]> = {
-    blood:  ['rgba(139,21,21,0.35)',  'var(--blood-mid)',       'var(--bone-white)'],
-    mist:   ['rgba(42,26,58,0.35)',   'rgba(107,78,138,0.5)',  'var(--bone-white)'],
-    amber:  ['rgba(106,58,10,0.3)',   '#6B3A0A',               'var(--bone-white)'],
-    dark:   ['rgba(42,34,16,0.4)',    'rgba(139,112,48,0.3)',  'var(--bone-muted)'],
-    danger: ['rgba(139,21,21,0.2)',   'rgba(196,32,32,0.4)',   'var(--blood-bright)'],
-    green:  ['rgba(42,80,69,0.3)',    '#2A5045',               'var(--bone-white)'],
-  }
-  const [bg, border, color] = map[variant]
-  return {
-    background: bg,
-    border: `1px solid ${border}`,
-    color,
-    fontFamily: 'var(--font-heading)',
-    fontSize: 8,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const,
-    padding: '4px 10px',
-    cursor: 'pointer',
-    borderRadius: 1,
-    transition: 'all 250ms',
-    whiteSpace: 'nowrap' as const,
-  }
+  return buttonStyle(BTN_VARIANT_MAP[variant], 'sm')
 }
 
 function isLightSource(name: string): boolean {

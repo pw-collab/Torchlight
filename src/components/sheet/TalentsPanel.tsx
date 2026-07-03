@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
+import { buttonStyle } from '@/components/shared/buttonStyles'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -97,21 +98,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
         <button
           onClick={() => formOpen ? closeForm() : setFormOpen(true)}
           className="tactile"
-          style={{
-            background: '#0a0805',
-            border: '1px solid #c8b890',
-            color: '#c8b890',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 16,
-            letterSpacing: '3px',
-            textTransform: 'uppercase',
-            height: 44,
-            minHeight: 44,
-            padding: '0 19px',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
+          style={{ ...buttonStyle('dark'), flexShrink: 0 }}
           onMouseEnter={e => { e.currentTarget.style.background = '#14110a' }}
           onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
         >
@@ -156,16 +143,8 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             disabled={!form.name.trim() || !form.description.trim()}
             className="tactile"
             style={{
-              background: '#ff444c',
-              border: 'none',
-              color: '#0a0805',
-              fontFamily: 'var(--font-heading)',
-              fontWeight: 700,
-              fontSize: 14,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              padding: '10px 0',
-              cursor: 'pointer',
+              ...buttonStyle('primary'),
+              width: '100%',
               opacity: !form.name.trim() || !form.description.trim() ? 0.45 : 1,
             }}
           >
@@ -209,18 +188,8 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
   const accent = ORIGIN_ACCENT[talent.origin].color
   const soft = ORIGIN_ACCENT[talent.origin].soft
 
-  const actionBtn = (kind: 'edit' | 'remove'): React.CSSProperties => ({
-    fontFamily: 'var(--font-heading)',
-    fontSize: 12,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    background: '#0a0805',
-    border: `1px solid ${kind === 'edit' ? 'rgba(200,184,144,0.4)' : 'rgba(255,68,76,0.45)'}`,
-    color: kind === 'edit' ? '#c8b890' : '#ff444c',
-    padding: '8px 14px',
-    cursor: 'pointer',
-    transition: 'background 180ms, border-color 180ms',
-  })
+  const actionBtn = (kind: 'edit' | 'remove'): React.CSSProperties =>
+    buttonStyle(kind === 'edit' ? 'dark' : 'danger', 'sm')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -275,17 +244,19 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={onEdit}
+              className="tactile"
               style={actionBtn('edit')}
-              onMouseEnter={e => { e.currentTarget.style.background = '#14110a'; e.currentTarget.style.borderColor = '#c8b890' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0a0805'; e.currentTarget.style.borderColor = 'rgba(200,184,144,0.4)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#14110a' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
             >
               ✎ Editar
             </button>
             <button
               onClick={onRemove}
+              className="tactile"
               style={actionBtn('remove')}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1a0a0a'; e.currentTarget.style.borderColor = '#ff444c' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0a0805'; e.currentTarget.style.borderColor = 'rgba(255,68,76,0.45)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,96,68,0.12)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               ✕ Excluir
             </button>
