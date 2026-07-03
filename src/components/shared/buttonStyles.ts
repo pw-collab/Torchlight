@@ -1,41 +1,40 @@
 import type { CSSProperties } from 'react'
 
 /**
- * Design-system button (Figma node 64-849).
+ * Design-system button (Figma component set 64-849).
  *
- * Canonical form: Grenze, uppercase, 3px tracking, 44px height,
- * 9px/19px padding, square corners. Three variants:
- *  - dark:    #0a0805 fill, gold border + label
- *  - primary: solid amber #e0a040 fill, dark label
- *  - danger:  transparent fill, red #ff6044 border + label
+ * One canonical size for every variant: min-height 32px, Grenze Regular
+ * 14px, 1px tracking, 22px line-height, uppercase, 9px/19px padding,
+ * square corners. Variants:
+ *  - dark:   #0a0805 fill, gold #c8b890 border + label
+ *  - red:    solid #ff444c fill, dark border + label
+ *  - hollow: transparent fill, red #ff444c border + label
+ *  - link:   borderless, red underlined label
  */
-export type ButtonVariant = 'dark' | 'primary' | 'danger'
-export type ButtonSize = 'md' | 'sm'
+export type ButtonVariant = 'dark' | 'red' | 'hollow' | 'link'
 
-const VARIANTS: Record<ButtonVariant, { bg: string; border: string; color: string }> = {
-  dark:    { bg: '#0a0805',     border: '#c8b890', color: '#c8b890' },
-  primary: { bg: '#e0a040',     border: '#0a0805', color: '#0a0805' },
-  danger:  { bg: 'transparent', border: '#ff6044', color: '#ff6044' },
+const VARIANTS: Record<ButtonVariant, CSSProperties> = {
+  dark:   { background: '#0a0805',     border: '1px solid #c8b890', color: '#c8b890' },
+  red:    { background: '#ff444c',     border: '1px solid #0a0805', color: '#0a0805' },
+  hollow: { background: 'transparent', border: '1px solid #ff444c', color: '#ff444c' },
+  link:   { background: 'transparent', border: '1px solid transparent', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', padding: 1 },
 }
 
-export function buttonStyle(variant: ButtonVariant = 'dark', size: ButtonSize = 'md'): CSSProperties {
-  const v = VARIANTS[variant]
-  const md = size === 'md'
+export function buttonStyle(variant: ButtonVariant = 'dark'): CSSProperties {
   return {
-    background: v.bg,
-    border: `1px solid ${v.border}`,
-    color: v.color,
     fontFamily: 'var(--font-heading)',
-    fontSize: md ? 16 : 11,
-    letterSpacing: md ? '3px' : '1.5px',
+    fontSize: 14,
+    letterSpacing: '1px',
     textTransform: 'uppercase',
-    lineHeight: md ? '22px' : '14px',
-    minHeight: md ? 44 : 30,
-    padding: md ? '9px 19px' : '4px 10px',
+    lineHeight: '22px',
+    textAlign: 'center',
+    minHeight: 32,
+    padding: '9px 19px',
     borderRadius: 0,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     transition: 'background 200ms, border-color 200ms, color 200ms, opacity 200ms',
     WebkitTapHighlightColor: 'transparent',
+    ...VARIANTS[variant],
   }
 }

@@ -123,16 +123,16 @@ type BtnVariant = 'blood' | 'mist' | 'amber' | 'dark' | 'danger' | 'green'
 
 /** Legacy variant names mapped onto the design-system button (Figma 64-849). */
 const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
-  blood:  'primary',
-  amber:  'primary',
-  green:  'primary',
+  blood:  'red',
+  amber:  'red',
+  green:  'red',
   mist:   'dark',
   dark:   'dark',
-  danger: 'danger',
+  danger: 'hollow',
 }
 
 function quickBtnStyle(variant: BtnVariant): React.CSSProperties {
-  return buttonStyle(BTN_VARIANT_MAP[variant], 'sm')
+  return buttonStyle(BTN_VARIANT_MAP[variant])
 }
 
 function isLightSource(name: string): boolean {

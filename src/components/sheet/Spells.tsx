@@ -266,7 +266,7 @@ export function Spells({
           <button
             onClick={() => setShowPicker(true)}
             className="tactile"
-            style={buttonStyle('dark', 'sm')}
+            style={buttonStyle('dark')}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#14110a' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#0a0805' }}
           >

@@ -143,7 +143,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             disabled={!form.name.trim() || !form.description.trim()}
             className="tactile"
             style={{
-              ...buttonStyle('primary'),
+              ...buttonStyle('red'),
               width: '100%',
               opacity: !form.name.trim() || !form.description.trim() ? 0.45 : 1,
             }}
@@ -189,7 +189,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
   const soft = ORIGIN_ACCENT[talent.origin].soft
 
   const actionBtn = (kind: 'edit' | 'remove'): React.CSSProperties =>
-    buttonStyle(kind === 'edit' ? 'dark' : 'danger', 'sm')
+    buttonStyle(kind === 'edit' ? 'dark' : 'hollow')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

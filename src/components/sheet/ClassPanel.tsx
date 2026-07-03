@@ -27,16 +27,16 @@ type BtnVariant = 'blood' | 'amber' | 'mist' | 'dark' | 'danger' | 'green'
 
 /** Legacy variant names mapped onto the design-system button (Figma 64-849). */
 const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
-  blood:  'primary',
-  amber:  'primary',
-  green:  'primary',
+  blood:  'red',
+  amber:  'red',
+  green:  'red',
   mist:   'dark',
   dark:   'dark',
-  danger: 'danger',
+  danger: 'hollow',
 }
 
 function btnStyle(variant: BtnVariant): React.CSSProperties {
-  return buttonStyle(BTN_VARIANT_MAP[variant], 'sm')
+  return buttonStyle(BTN_VARIANT_MAP[variant])
 }
 
 // ─── State helpers ────────────────────────────────────────────────────────────
@@ -351,7 +351,7 @@ function SpellLikeSection({
                 <button
                   onClick={() => restore(ability.id)}
                   className="tactile"
-                  style={{ ...buttonStyle('danger'), width: '100%' }}
+                  style={{ ...buttonStyle('hollow'), border: '1px solid #ff6044', color: '#ff6044', width: '100%' }}
                 >
                   Restaurar
                 </button>
@@ -359,7 +359,7 @@ function SpellLikeSection({
                 <button
                   onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
                   className="tactile"
-                  style={{ ...buttonStyle('primary'), width: '100%' }}
+                  style={{ ...buttonStyle('red'), background: '#e0a040', width: '100%' }}
                 >
                   Ativar
                 </button>
