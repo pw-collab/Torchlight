@@ -11,21 +11,6 @@ interface Props {
 export function StepSpells({ classId, selectedSpells, onChange }: Props) {
   const available = getSpellsForClass(classId)
 
-  if (available.length === 0) {
-    return (
-      <p style={{
-        fontFamily: 'var(--font-body)',
-        fontStyle: 'italic',
-        fontSize: 12,
-        color: 'var(--bone-muted)',
-        textAlign: 'center',
-        padding: '24px 0',
-      }}>
-        Nenhuma magia disponível para esta classe.
-      </p>
-    )
-  }
-
   function toggle(id: string) {
     if (selectedSpells.includes(id)) {
       onChange(selectedSpells.filter(s => s !== id))
