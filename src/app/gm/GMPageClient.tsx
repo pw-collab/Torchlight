@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
-import { sendToDiscord } from '@/lib/discord'
 import { SessionPanel } from '@/components/gm/SessionPanel'
 import { NPCCard } from '@/components/gm/NPCCard'
 import { NPCListItem } from '@/components/gm/NPCListItem'
@@ -68,7 +67,6 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       .single()
     if (data) {
       setSession(data)
-      await sendToDiscord({ type: 'session_start', gm: gmName })
     }
     setCreating(false)
   }

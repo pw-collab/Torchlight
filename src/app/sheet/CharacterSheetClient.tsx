@@ -52,14 +52,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       setRollHistory(prev => [result, ...prev].slice(0, 20))
       setIsRolling(false)
     }, 600)
-    sendToDiscord({
-      type: 'roll',
-      player: playerName,
-      die: result.die,
-      result: result.result,
-      modifier: result.modifier ?? 0,
-      total: result.total,
-    })
+    sendToDiscord({ type: 'roll', player: playerName, ...result })
   }, [playerName])
 
   // Light-source burn-down
@@ -115,16 +108,11 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const ancestry = getAncestry(character.ancestryId)
 
   async function handleHpChange(newHp: number) {
-    const delta = newHp - character!.hpCurrent
     await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
-    await sendToDiscord({ type: 'hp_change', player: playerName, from: character!.hpCurrent, to: newHp, delta })
-    if (newHp <= 0) await sendToDiscord({ type: 'player_down', player: playerName })
   }
 
   async function handleLuckChange(newValue: number) {
-    const prev = character!.luckTokens
     await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>)
-    if (newValue < prev) await sendToDiscord({ type: 'luck_used', player: playerName, remaining: newValue })
   }
 
   async function handleInventoryUpdate(inventory: InventoryItem[]) {
