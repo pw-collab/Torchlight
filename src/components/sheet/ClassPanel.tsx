@@ -7,6 +7,8 @@ import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
+import { buttonStyle } from '@/components/shared/buttonStyles'
+import type { ButtonVariant } from '@/components/shared/buttonStyles'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -22,22 +24,19 @@ function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
 }
 
 type BtnVariant = 'blood' | 'amber' | 'mist' | 'dark' | 'danger' | 'green'
+
+/** Legacy variant names mapped onto the design-system button (Figma 64-849). */
+const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
+  blood:  'red',
+  amber:  'red',
+  green:  'red',
+  mist:   'dark',
+  dark:   'dark',
+  danger: 'hollow',
+}
+
 function btnStyle(variant: BtnVariant): React.CSSProperties {
-  const map: Record<BtnVariant, [string, string, string]> = {
-    blood:  ['rgba(139,21,21,0.35)',  'var(--blood-mid)',       'var(--bone-white)'],
-    amber:  ['rgba(106,58,10,0.3)',   '#6B3A0A',               'var(--bone-white)'],
-    mist:   ['rgba(42,26,58,0.35)',   'rgba(107,78,138,0.5)',  'var(--bone-white)'],
-    dark:   ['rgba(42,34,16,0.4)',    'rgba(139,112,48,0.3)',  'var(--bone-muted)'],
-    danger: ['rgba(139,21,21,0.2)',   'rgba(196,32,32,0.4)',   'var(--blood-bright)'],
-    green:  ['rgba(42,80,69,0.3)',    '#2A5045',               'var(--bone-white)'],
-  }
-  const [bg, border, color] = map[variant]
-  return {
-    background: bg, border: `1px solid ${border}`, color,
-    fontFamily: 'var(--font-body)', fontStyle: 'italic' as const, fontSize: 10, padding: '4px 10px',
-    cursor: 'pointer', transition: 'all 220ms',
-    whiteSpace: 'nowrap' as const,
-  }
+  return buttonStyle(BTN_VARIANT_MAP[variant])
 }
 
 // ─── State helpers ────────────────────────────────────────────────────────────
@@ -352,7 +351,7 @@ function SpellLikeSection({
                 <button
                   onClick={() => restore(ability.id)}
                   className="tactile"
-                  style={{ width: '100%', background: 'transparent', border: '1px solid #ff6044', color: '#ff6044', fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', padding: '11px 13px', cursor: 'pointer' }}
+                  style={{ ...buttonStyle('hollow'), border: '1px solid #ff6044', color: '#ff6044', width: '100%' }}
                 >
                   Restaurar
                 </button>
@@ -360,7 +359,7 @@ function SpellLikeSection({
                 <button
                   onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
                   className="tactile"
-                  style={{ width: '100%', background: '#e0a040', border: '1px solid #0a0805', color: '#0a0805', fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', padding: '11px 13px', cursor: 'pointer' }}
+                  style={{ ...buttonStyle('red'), background: '#e0a040', width: '100%' }}
                 >
                   Ativar
                 </button>

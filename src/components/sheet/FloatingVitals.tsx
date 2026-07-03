@@ -105,7 +105,7 @@ export function FloatingVitals({
           width: 'min(360px, 100%)',
           background: '#18140C',
           border: '2px solid rgba(200,184,144,0.25)',
-          borderRadius: 4,
+          borderRadius: 0,
           boxShadow: '0 12px 48px rgba(0,0,0,0.9)',
           padding: '18px 18px 20px',
           display: 'flex', flexDirection: 'column', gap: 16,
@@ -130,7 +130,7 @@ export function FloatingVitals({
 
         {/* XP bar */}
         <div>
-          <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 4, overflow: 'hidden', border: '1px solid rgba(200,184,144,0.18)' }}>
+          <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 0, overflow: 'hidden', border: '1px solid rgba(200,184,144,0.18)' }}>
             <div style={{ height: '100%', width: `${xpPct}%`, background: xpReady ? '#c8b890' : '#4FA98C', boxShadow: xpReady ? '0 0 6px #c8b890' : 'none', transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
@@ -144,9 +144,9 @@ export function FloatingVitals({
 
         {/* Damage / heal */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-          <button onClick={() => applyHp(-step)} className="tactile" title="Aplicar dano" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#ff444c', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
-          <input type="text" inputMode="numeric" value={String(step).padStart(2, '0')} onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }} onBlur={() => { if (step < 1) setStep(1) }} title="Valor aplicado por clique" style={{ flex: 1, minWidth: 0, minHeight: 52, background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 2, color: '#c8b890', fontFamily: 'var(--font-numeral)', fontSize: 24, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
-          <button onClick={() => applyHp(step)} className="tactile" title="Curar" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#4FA98C', border: 'none', borderRadius: 2, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
+          <button onClick={() => applyHp(-step)} className="tactile" title="Aplicar dano" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#ff444c', border: 'none', borderRadius: 0, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
+          <input type="text" inputMode="numeric" value={String(step).padStart(2, '0')} onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }} onBlur={() => { if (step < 1) setStep(1) }} title="Valor aplicado por clique" style={{ flex: 1, minWidth: 0, minHeight: 52, background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 0, color: '#c8b890', fontFamily: 'var(--font-numeral)', fontSize: 24, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
+          <button onClick={() => applyHp(step)} className="tactile" title="Curar" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#4FA98C', border: 'none', borderRadius: 0, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
         </div>
       </div>
     </div>,
@@ -158,7 +158,9 @@ export function FloatingVitals({
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
-      <div style={{ position: 'fixed', left: 24, top: 80, width: 268, zIndex: 85, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', maxHeight: 'calc(100dvh - 96px)', paddingBottom: 24 }}>
+      /* Anchor at 0,0 — safety paddings position the column clear of the header and screen edges */
+      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 24px calc(24px + var(--safe-left))', boxSizing: 'border-box' }}>
+      <div style={{ width: 268, maxHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24, boxSizing: 'border-box' }}>
 
         {/* Heading: class/ancestry + character name */}
         <div style={{ paddingTop: 8 }}>
@@ -233,7 +235,7 @@ export function FloatingVitals({
 
         {/* Stats 2×3 grid */}
         {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)', height: 234 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', height: 156 }}>
             {STAT_KEYS.map(key => (
               <button
                 key={key}
@@ -276,6 +278,7 @@ export function FloatingVitals({
 
         {/* HP / XP overlay */}
         {hpOverlay}
+      </div>
       </div>
     )
   }
@@ -336,7 +339,7 @@ export function FloatingVitals({
 
         {/* Stats 2×3 grid — fills the space beside the portrait, matching its height */}
         {stats && (
-          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(3, 1fr)' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)' }}>
             {STAT_KEYS.map(key => (
               <button
                 key={key}

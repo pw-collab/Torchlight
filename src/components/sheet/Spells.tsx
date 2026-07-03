@@ -8,6 +8,7 @@ import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
 import { TarotCard } from '@/components/shared/TarotCard'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
+import { buttonStyle } from '@/components/shared/buttonStyles'
 
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
@@ -264,28 +265,10 @@ export function Spells({
         {onSpellsChange && (
           <button
             onClick={() => setShowPicker(true)}
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 7.5,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              background: 'rgba(42,26,58,0.5)',
-              border: '1px solid rgba(107,78,138,0.4)',
-              color: '#8B6AAA',
-              padding: '4px 10px',
-              borderRadius: 2,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 200ms',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,78,138,0.25)'
-              ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--parchment-light)'
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(42,26,58,0.5)'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#8B6AAA'
-            }}
+            className="tactile"
+            style={buttonStyle('dark')}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#14110a' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#0a0805' }}
           >
             + Aprender
           </button>

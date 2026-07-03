@@ -5,7 +5,7 @@ import type { Character, CharacterRow, KnowledgeArea } from '@/types/character.t
 import { DOMAINS } from '@/data/domains/index'
 import { getAncestry } from '@/data/ancestries/index'
 import { getDomain } from '@/data/domains/index'
-import { OrnateTitle } from '@/components/shared/OrnateTitle'
+import { SectionHeading } from '@/components/shared/SectionHeading'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -25,14 +25,7 @@ const FAITHS = [
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const card: React.CSSProperties = {
-  border: '1px solid rgba(139,112,48,0.28)',
-  padding: 40,
-}
-
-const sectionTitle: React.CSSProperties = {
-  paddingBottom: 8,
-  borderBottom: '1px solid rgba(139,112,48,0.22)',
-  marginBottom: 14,
+  padding: 42,
 }
 
 const labelStyle: React.CSSProperties = {
@@ -261,8 +254,8 @@ export function BackstoryView({ character, onUpdate }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
-      <section style={card}>
-        <div style={sectionTitle}><OrnateTitle color="var(--candle-amber)">✦ Conhecimentos</OrnateTitle></div>
+      <section className="worn-border" style={card}>
+        <SectionHeading marker="✦" style={{ marginBottom: 14 }}>Conhecimentos</SectionHeading>
 
         {/* Languages */}
         <div style={{ marginBottom: 18 }}>
@@ -357,8 +350,8 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
-      <section style={card}>
-        <div style={sectionTitle}><OrnateTitle color="var(--candle-amber)">✎ Histórico</OrnateTitle></div>
+      <section className="worn-border" style={card}>
+        <SectionHeading marker="✎" style={{ marginBottom: 14 }}>Histórico</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['concept',         'Conceito',           concept,    setConcept,    3],
@@ -381,8 +374,8 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
-      <section style={card}>
-        <div style={sectionTitle}><OrnateTitle color="var(--candle-amber)">◈ Relações e Conexões</OrnateTitle></div>
+      <section className="worn-border" style={card}>
+        <SectionHeading marker="◈" style={{ marginBottom: 14 }}>Relações e Conexões</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
           <div>
@@ -419,8 +412,8 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
-      <section style={card}>
-        <div style={sectionTitle}><OrnateTitle color="var(--candle-amber)">⚡ Impulsos</OrnateTitle></div>
+      <section className="worn-border" style={card}>
+        <SectionHeading marker="⚡" style={{ marginBottom: 14 }}>Impulsos</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['secrets',    'Segredos',  secrets,    setSecrets],
