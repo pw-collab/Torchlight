@@ -1,9 +1,17 @@
 export type DiscordEvent =
-  | { type: 'roll'; player: string; die: string; result: number; modifier: number; total: number; dc?: number; success?: boolean }
+  | {
+      type: 'roll'
+      player: string
+      label: string
+      subLabel?: string
+      die: string
+      result: number
+      modifier?: number
+      total: number
+      isCritical?: boolean
+      isFumble?: boolean
+      rolls?: number[]
+    }
   | { type: 'torch_lit'; player: string; minutesLeft: number }
   | { type: 'torch_warning'; player: string; minutesLeft: number }
   | { type: 'torch_out'; player: string }
-  | { type: 'hp_change'; player: string; from: number; to: number; delta: number }
-  | { type: 'player_down'; player: string }
-  | { type: 'luck_used'; player: string; remaining: number }
-  | { type: 'session_start'; gm: string }

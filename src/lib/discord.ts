@@ -3,13 +3,29 @@ import type { DiscordEvent } from '@/types/discord.types'
 export function formatDiscordMessage(event: DiscordEvent): string {
   switch (event.type) {
     case 'roll': {
-      const sign = event.modifier >= 0 ? '+' : ''
-      const base = `🎲 [${event.player}] ${event.die}${sign}${event.modifier} → **${event.total}**`
-      if (event.dc !== undefined && event.success !== undefined) {
-        const outcome = event.success ? 'SUCESSO' : 'FALHOU'
-        return `${base}   ${outcome} vs DC ${event.dc}`
-      }
-      return base
+      const modifier = event.modifier ?? 0
+      const sign = modifier >= 0 ? '+' : ''
+      const header = `🎲 **${event.player}** — ${event.label}${event.subLabel ? ` _(${event.subLabel})_` : ''}`
+
+      const rollLine = event.rolls && event.rolls.length > 1
+        ? `${event.die}: ${event.rolls.join(', ')} → ${event.result}`
+        : `${event.die}: ${event.result}`
+
+      const block = [
+        '```',
+        rollLine,
+        `Bônus: ${sign}${modifier}`,
+        `Total: ${event.total}`,
+        '```',
+      ].join('\n')
+
+      const flag = event.isCritical
+        ? '\n✨ **CRÍTICO!**'
+        : event.isFumble
+        ? '\n💀 **FALHA CRÍTICA!**'
+        : ''
+
+      return `${header}\n${block}${flag}`
     }
     case 'torch_lit':
       return `🕯️ [${event.player}] Tocha acesa — ${event.minutesLeft}min restantes`
@@ -17,16 +33,6 @@ export function formatDiscordMessage(event: DiscordEvent): string {
       return `⚠️ [${event.player}] Tocha quase apagando — ${event.minutesLeft}min restantes`
     case 'torch_out':
       return `🌑 [${event.player}] Tocha apagou`
-    case 'hp_change': {
-      const sign = event.delta > 0 ? '+' : ''
-      return `❤️ [${event.player}] HP ${event.from} → ${event.to} (${sign}${event.delta})`
-    }
-    case 'player_down':
-      return `💀 [${event.player}] Caiu — 0 HP`
-    case 'luck_used':
-      return `🍀 [${event.player}] Luck Token usado — restam ${event.remaining}`
-    case 'session_start':
-      return `⚔️ Sessão iniciada pelo GM (${event.gm})`
   }
 }
 
