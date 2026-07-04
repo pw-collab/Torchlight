@@ -1013,11 +1013,12 @@ export function InventoryView({
   const maxSlots = str
   const isEncumbered = usedSlots > maxSlots
 
-  // Grid cells: existing items, then a small buffer of "+" quick-add cells,
-  // then diagonal filler padding the grid out to a full row of GRID_COLS.
+  // Grid cells: existing items, then one "+" quick-add cell per slot of
+  // remaining carga capacity, then diagonal filler padding the grid out to
+  // a full row of GRID_COLS.
   const GRID_COLS = 5
-  const ADD_BUFFER = 3
-  const preFillerCount = inventory.length + ADD_BUFFER
+  const availableCount = Math.max(0, maxSlots - usedSlots)
+  const preFillerCount = inventory.length + availableCount
   const totalCells = Math.ceil(preFillerCount / GRID_COLS) * GRID_COLS
   const emptyCellCount = totalCells - preFillerCount
 
@@ -1068,7 +1069,7 @@ export function InventoryView({
                   }}
                 />
               ))}
-              {Array.from({ length: ADD_BUFFER }).map((_, i) => (
+              {Array.from({ length: availableCount }).map((_, i) => (
                 <GridAvailableTile key={`add-${i}`} onClick={() => setShowCatalog(true)} />
               ))}
               {Array.from({ length: emptyCellCount }).map((_, i) => (
