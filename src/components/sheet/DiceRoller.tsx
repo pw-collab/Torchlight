@@ -258,16 +258,19 @@ export function DiceRoller({ onRoll }: Props) {
     )
   }
 
-  // ── Desktop: floating bottom bar ─────────────────────────────────────────
+  // ── Desktop: floating bottom-left bar, aligned in position/width with the
+  //    FloatingVitals sidebar — wraps into 2 rows to fit the narrower column ──
   return (
     <div
       style={{
         position: 'fixed',
         bottom: 24,
-        right: 24,
+        left: 'calc(24px + var(--safe-left))',
         zIndex: 50,
+        width: 268,
+        boxSizing: 'border-box',
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
         gap: 4,
         background: '#c8b890',
         border: '1px solid rgba(139,112,48,0.42)',
@@ -276,86 +279,94 @@ export function DiceRoller({ onRoll }: Props) {
         padding: '7px 7px 6px',
       }}
     >
-      {SMALL_DICE.map(d => (
-        <button
-          key={d} onClick={() => roll(d)}
-          className="tactile"
-          title={`d${d}`} aria-label={`Rolar d${d}`}
-          style={{ background: '#0a0805', border: '1px solid #ff444c', borderRadius: 2, color: '#c8b890', width: 48, height: 48, minHeight: 48, minWidth: 48, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 200ms, border-color 200ms' }}
-          onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
-          onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
-        >
-          <Die sides={d} size={32} shapeColor="#ff444c" numberColor="#0a0805" />
-        </button>
-      ))}
+      {/* Row 1: d4–d12 */}
+      <div style={{ display: 'flex', gap: 2 }}>
+        {SMALL_DICE.map(d => (
+          <button
+            key={d} onClick={() => roll(d)}
+            className="tactile"
+            title={`d${d}`} aria-label={`Rolar d${d}`}
+            style={{ background: '#0a0805', border: '1px solid #ff444c', borderRadius: 0, color: '#c8b890', flex: '1 0 0', height: 48, minHeight: 48, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 200ms, border-color 200ms' }}
+            onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
+            onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
+          >
+            <Die sides={d} size={32} shapeColor="#ff444c" numberColor="#0a0805" />
+          </button>
+        ))}
+      </div>
 
-      <p style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#0a0805', fontWeight: 700, lineHeight: 1, padding: '0 2px', userSelect: 'none' }}>+</p>
-
-      <input
-        type="text" inputMode="numeric" value={mod}
-        onChange={e => setMod(Number(e.target.value))}
-        title="Modificador"
-        style={{ background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', color: '#c8b890', width: 64, height: 40, minHeight: 40, fontFamily: 'var(--font-numeral)', fontSize: 16, textAlign: 'center', outline: 'none', borderRadius: 2, boxSizing: 'border-box' }}
-      />
-
-      <div ref={dropdownRef} style={{ position: 'relative' }}>
-        <button
-          onClick={() => setD20Open(v => !v)}
-          className="tactile glow-hover-blood"
-          title="Rolar d20" aria-label="Rolar d20"
-          style={{
-            background: '#ff444c',
-            border: '1px solid rgba(139,112,48,0.35)',
-            borderRadius: 2,
-            height: 48,
-            minHeight: 48,
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px',
-          }}
-        >
-          <Die sides={20} size={36} shapeColor="#0a0805" numberColor="#ff444c" />
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: '#0a0805', fontWeight: 700, transform: d20Open ? 'scaleY(-1)' : 'none', display: 'inline-block', transition: 'transform 200ms' }}>▲</span>
-        </button>
-
-        {d20Open && (
-          <div
-            className="animate-drop-in"
+      {/* Row 2: d20 + modifier */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div ref={dropdownRef} style={{ position: 'relative', flex: '1 0 0' }}>
+          <button
+            onClick={() => setD20Open(v => !v)}
+            className="tactile glow-hover-blood"
+            title="Rolar d20" aria-label="Rolar d20"
             style={{
-              position: 'absolute',
-              bottom: 'calc(100% + 8px)',
-              right: 0,
-              transformOrigin: 'bottom center',
-              background: '#18140C',
-              border: '2px solid rgba(200,184,144,0.25)',
-              boxShadow: '0 -4px 20px rgba(0,0,0,0.7)',
-              borderRadius: 4,
-              padding: 8,
-              minWidth: 180,
-              display: 'flex', flexDirection: 'column', gap: 5,
+              background: '#ff444c',
+              border: '1px solid rgba(139,112,48,0.35)',
+              borderRadius: 0,
+              height: 48,
+              minHeight: 48,
+              width: '100%',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '5px 9px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)' }}>
-              <span style={overlayLabel}>DC Alvo</span>
-              <input
-                type="text" inputMode="numeric" value={dc}
-                onChange={e => setDc(Number(e.target.value))}
-                style={{ ...overlayInput, flex: 1, fontSize: 14, minHeight: 40 }}
-              />
-            </div>
+            <Die sides={20} size={36} shapeColor="#0a0805" numberColor="#ff444c" />
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: '#0a0805', fontWeight: 700, transform: d20Open ? 'scaleY(-1)' : 'none', display: 'inline-block', transition: 'transform 200ms' }}>▲</span>
+          </button>
 
-            {d20Modes.map(({ mode, label, color }) => (
-              <button
-                key={mode} onClick={() => roll(20, mode)}
-                className="tactile"
-                style={{ background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 2, width: '100%', textAlign: 'left', color, padding: '11px 12px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, letterSpacing: '0.04em', minHeight: 44, transition: 'background 200ms, border-color 200ms' }}
-                onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(200,184,144,0.5)' }}
-                onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = 'rgba(200,184,144,0.25)' }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
+          {d20Open && (
+            <div
+              className="animate-drop-in"
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 8px)',
+                left: 0,
+                transformOrigin: 'bottom center',
+                background: '#18140C',
+                border: '2px solid rgba(200,184,144,0.25)',
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.7)',
+                borderRadius: 0,
+                padding: 8,
+                minWidth: 180,
+                display: 'flex', flexDirection: 'column', gap: 5,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)' }}>
+                <span style={overlayLabel}>DC Alvo</span>
+                <input
+                  type="text" inputMode="numeric" value={dc}
+                  onChange={e => setDc(Number(e.target.value))}
+                  style={{ ...overlayInput, flex: 1, fontSize: 14, minHeight: 40, borderRadius: 0 }}
+                />
+              </div>
+
+              {d20Modes.map(({ mode, label, color }) => (
+                <button
+                  key={mode} onClick={() => roll(20, mode)}
+                  className="tactile"
+                  style={{ background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 0, width: '100%', textAlign: 'left', color, padding: '11px 12px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, letterSpacing: '0.04em', minHeight: 44, transition: 'background 200ms, border-color 200ms' }}
+                  onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(200,184,144,0.5)' }}
+                  onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = 'rgba(200,184,144,0.25)' }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#0a0805', fontWeight: 700, lineHeight: 1, textAlign: 'right', width: 45, flexShrink: 0, userSelect: 'none' }}>+</p>
+
+        <input
+          type="text" inputMode="numeric" value={mod}
+          onChange={e => setMod(Number(e.target.value))}
+          title="Modificador"
+          style={{ background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', color: '#c8b890', width: 49, height: 48, minHeight: 48, flexShrink: 0, fontFamily: 'var(--font-numeral)', fontSize: 16, textAlign: 'center', outline: 'none', borderRadius: 0, boxSizing: 'border-box' }}
+        />
       </div>
     </div>
   )

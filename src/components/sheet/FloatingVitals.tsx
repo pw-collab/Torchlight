@@ -158,8 +158,9 @@ export function FloatingVitals({
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
-      /* Anchor at 0,0 — safety paddings position the column clear of the header and screen edges */
-      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 24px calc(24px + var(--safe-left))', boxSizing: 'border-box' }}>
+      /* Anchor at 0,0 — safety paddings clear the header, screen edges, and the
+         DiceRoller now docked bottom-left in this same column (137px tall incl. its own offset) */
+      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 calc(137px + var(--safe-bottom)) calc(24px + var(--safe-left))', boxSizing: 'border-box' }}>
       <div style={{ width: 268, maxHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24, boxSizing: 'border-box' }}>
 
         {/* Heading: class/ancestry + character name */}
@@ -217,22 +218,6 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* LV + EDITAR */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: '#ff444c', lineHeight: 1 }}>{level}</span>
-          </div>
-          <Link
-            href={editHref}
-            style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-          >
-            Editar
-          </Link>
-        </div>
-
         {/* Stats 2×3 grid */}
         {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', height: 156 }}>
@@ -254,26 +239,37 @@ export function FloatingVitals({
           </div>
         )}
 
-        {/* Spacer */}
-        <div style={{ height: 4 }} />
+        {/* Control: LV + Fortuna + Editar, unified on one row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 32 }}>
+          <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '1px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: '#ff444c', lineHeight: 1 }}>{level}</span>
+          </div>
 
-        {/* Luck row */}
-        <div style={{ background: '#c8b890', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
-          <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
-            {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
-                title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: 24, lineHeight: '20px', color: i < luckTokens ? '#ff444c' : 'rgba(255,68,76,0.25)', transition: 'color 300ms', fontFamily: 'var(--font-body)', minHeight: 28 }}
-              >
-                ✦
-              </button>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#c8b890', lineHeight: 1 }}>Fortuna</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
+                  title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 24, lineHeight: '20px', color: i < luckTokens ? '#ff444c' : 'rgba(255,68,76,0.25)', transition: 'color 300ms', fontFamily: 'var(--font-body)' }}
+                >
+                  ✦
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 62 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>Fortuna</span>
-          </div>
+
+          <Link
+            href={editHref}
+            style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 32, display: 'flex', alignItems: 'center', flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+          >
+            Editar
+          </Link>
         </div>
 
         {/* HP / XP overlay */}
