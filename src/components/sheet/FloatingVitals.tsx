@@ -159,9 +159,11 @@ export function FloatingVitals({
   if (!isMobile) {
     return (
       /* Anchor at 0,0 — safety paddings clear the header, screen edges, and the
-         DiceRoller now docked bottom-left in this same column (137px tall incl. its own offset) */
-      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 calc(137px + var(--safe-bottom)) calc(24px + var(--safe-left))', boxSizing: 'border-box' }}>
-      <div style={{ width: 268, maxHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24, boxSizing: 'border-box' }}>
+         DiceRoller now docked bottom-left in this same column (137px tall incl. its own offset).
+         pointerEvents:none on this full-height shim keeps its empty padding area from swallowing
+         clicks meant for the DiceRoller underneath; the actual content re-enables it below. */
+      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 calc(137px + var(--safe-bottom)) calc(24px + var(--safe-left))', boxSizing: 'border-box', pointerEvents: 'none' }}>
+      <div style={{ width: 268, maxHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24, boxSizing: 'border-box', pointerEvents: 'auto' }}>
 
         {/* Heading: class/ancestry + character name */}
         <div style={{ paddingTop: 8 }}>
