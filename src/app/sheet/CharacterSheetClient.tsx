@@ -164,6 +164,84 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     <TabBar tabs={tabItems} active={tab} onChange={setTab} />
   ) : undefined
 
+  const vitals = (
+    <FloatingVitals
+      ac={character.ac}
+      hpMax={character.hpMax}
+      hpCurrent={character.hpCurrent}
+      luckTokens={character.luckTokens}
+      onHpChange={handleHpChange}
+      onLuckChange={handleLuckChange}
+      characterId={characterId}
+      portraitUrl={character.portraitUrl}
+      characterName={character.name}
+      level={character.level}
+      xp={character.xp}
+      onXpUpdate={handleXpUpdate}
+      className={cls?.name ?? character.classId}
+      ancestryName={ancestry?.name ?? character.ancestryId}
+      onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
+      editHref={`/sheet/${characterId}/edit`}
+      stats={character.stats}
+      onRoll={handleRoll}
+    />
+  )
+
+  const tabContent = (
+    <>
+      {tab === 'stats' && (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+          {cls && (
+            <ClassPanel
+              classData={cls}
+              stats={character.stats}
+              techniqueStates={character.techniqueStates}
+              onStateChange={handleTechniqueStatesChange}
+              onRoll={handleRoll}
+            />
+          )}
+        </div>
+      )}
+
+      {tab === 'inventory' && (
+        <InventoryView
+          inventory={character.inventory}
+          str={character.stats.str}
+          dex={character.stats.dex}
+          gold={character.gold}
+          silver={character.silver}
+          copper={character.copper}
+          onUpdate={handleInventoryUpdate}
+          onAcChange={handleAcChange}
+          onCurrencyUpdate={handleCurrencyUpdate}
+          onMeleeRangedUpdate={handleMeleeRangedUpdate}
+          onRoll={handleRoll}
+          meleeBonus={character.meleeBonus}
+          rangedBonus={character.rangedBonus}
+          playerName={playerName}
+        />
+      )}
+
+      {tab === 'spells' && (
+        <Spells
+          classId={character.classId}
+          equippedSpells={character.spells}
+          spellcastingBonus={character.spellcastingBonus}
+          castingAttr={character.castingAttr}
+          stats={character.stats}
+          onRoll={handleRoll}
+          onUpdate={handleSpellcastingUpdate}
+          onSpellsChange={handleSpellsChange}
+        />
+      )}
+
+      {tab === 'backstory' && (
+        <BackstoryView character={character} onUpdate={updateCharacter} />
+      )}
+    </>
+  )
+
   return (
     <AppShell
       breadcrumbs={[
@@ -174,104 +252,63 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
       navSlot={navSlot}
     >
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: isMobile ? 'stretch' : 'center',
-        paddingLeft: isMobile ? 12 : 32,
-        paddingRight: isMobile ? 12 : 32,
-        paddingTop: isMobile ? 12 : 80,
-        paddingBottom: isMobile ? 'calc(76px + var(--safe-bottom))' : 80,
-      }}>
-
-        {/* FloatingVitals: fixed left sidebar on desktop, inline on mobile */}
-        <FloatingVitals
-          ac={character.ac}
-          hpMax={character.hpMax}
-          hpCurrent={character.hpCurrent}
-          luckTokens={character.luckTokens}
-          onHpChange={handleHpChange}
-          onLuckChange={handleLuckChange}
-          characterId={characterId}
-          portraitUrl={character.portraitUrl}
-          characterName={character.name}
-          level={character.level}
-          xp={character.xp}
-          onXpUpdate={handleXpUpdate}
-          className={cls?.name ?? character.classId}
-          ancestryName={ancestry?.name ?? character.ancestryId}
-          onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
-          editHref={`/sheet/${characterId}/edit`}
-          stats={character.stats}
-          onRoll={handleRoll}
-        />
-
-        {/* Tab content — page-centered column, panels carry their own gold borders */}
-        <div style={{ width: '100%', maxWidth: isMobile ? undefined : 692, marginBottom: 40 }}>
-
-          {tab === 'stats' && (
-            <div className="sheet-columns">
-              <div className="sheet-col-main" style={{ display: 'flex', flexDirection: 'column' }}>
-                <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
-                {cls && (
-                  <ClassPanel
-                    classData={cls}
-                    stats={character.stats}
-                    techniqueStates={character.techniqueStates}
-                    onStateChange={handleTechniqueStatesChange}
-                    onRoll={handleRoll}
-                  />
-                )}
-              </div>
-            </div>
-          )}
-
-          {tab === 'inventory' && (
-            <InventoryView
-              inventory={character.inventory}
-              str={character.stats.str}
-              dex={character.stats.dex}
-              gold={character.gold}
-              silver={character.silver}
-              copper={character.copper}
-              onUpdate={handleInventoryUpdate}
-              onAcChange={handleAcChange}
-              onCurrencyUpdate={handleCurrencyUpdate}
-              onMeleeRangedUpdate={handleMeleeRangedUpdate}
-              onRoll={handleRoll}
-              meleeBonus={character.meleeBonus}
-              rangedBonus={character.rangedBonus}
-              playerName={playerName}
-            />
-          )}
-
-          {tab === 'spells' && (
-            <Spells
-              classId={character.classId}
-              equippedSpells={character.spells}
-              spellcastingBonus={character.spellcastingBonus}
-              castingAttr={character.castingAttr}
-              stats={character.stats}
-              onRoll={handleRoll}
-              onUpdate={handleSpellcastingUpdate}
-              onSpellsChange={handleSpellsChange}
-            />
-          )}
-
-          {tab === 'backstory' && (
-            <BackstoryView character={character} onUpdate={updateCharacter} />
-          )}
-
+      {isMobile ? (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingTop: 12,
+          paddingBottom: 'calc(76px + var(--safe-bottom))',
+        }}>
+          {vitals}
+          <div style={{ width: '100%', marginBottom: 40 }}>{tabContent}</div>
         </div>
-      </div>
+      ) : (
+        // Sidebar + content live in the SAME flex row, so the sidebar is
+        // genuinely anchored to the content's left edge (not a viewport-relative
+        // guess) and the pair centers together as one unit on wide screens.
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          gap: 32,
+          paddingLeft: 32,
+          paddingRight: 32,
+          paddingTop: 80,
+          paddingBottom: 80,
+        }}>
+          <div style={{
+            position: 'sticky',
+            top: 'calc(80px + var(--safe-top))',
+            flexShrink: 0,
+            width: 268,
+            height: 'calc(100dvh - 80px - var(--safe-top) - 24px)',
+            display: 'flex',
+            flexDirection: 'column',
+            boxSizing: 'border-box',
+          }}>
+            {vitals}
+            <DiceRoller onRoll={handleRoll} />
+          </div>
 
-      {/* Mobile tab bar */}
+          {/* Content fluidly fills the space beside the sidebar, up to a readable cap */}
+          <div style={{ flex: '1 1 0%', minWidth: 0, maxWidth: 900, marginBottom: 40 }}>
+            {tabContent}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile tab bar + dice FAB */}
       {isMobile && (
-        <TabBar tabs={tabItems} active={tab} onChange={setTab} />
+        <>
+          <TabBar tabs={tabItems} active={tab} onChange={setTab} />
+          <DiceRoller onRoll={handleRoll} />
+        </>
       )}
 
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
-      <DiceRoller onRoll={handleRoll} />
       <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
       <RollToasts rolls={rollHistory} />
       <SaveSeal savedAt={savedAt} />

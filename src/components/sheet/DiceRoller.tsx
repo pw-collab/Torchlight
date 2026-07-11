@@ -258,16 +258,14 @@ export function DiceRoller({ onRoll }: Props) {
     )
   }
 
-  // ── Desktop: floating bottom-left bar, aligned in position/width with the
-  //    FloatingVitals sidebar — wraps into 2 rows to fit the narrower column ──
+  // ── Desktop: docked at the bottom of the sticky sidebar column (see
+  //    CharacterSheetClient) — fills that column's width, no fixed positioning
+  //    of its own, so it can never drift out of alignment with it ──
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: 24,
-        left: 'calc(24px + var(--safe-left))',
-        zIndex: 50,
-        width: 268,
+        width: '100%',
+        flexShrink: 0,
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',

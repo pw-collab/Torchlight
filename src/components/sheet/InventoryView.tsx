@@ -426,8 +426,6 @@ const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
   document: { color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)' },
 }
 
-const GRID_TILE = 80
-
 /** Occupied grid cell ("Default" state, Figma 91-1044) — icon + item name, gold border. */
 function ItemIconSlot({ item, selected, onSelect }: {
   item: InventoryItem
@@ -439,8 +437,8 @@ function ItemIconSlot({ item, selected, onSelect }: {
       onClick={onSelect}
       title={item.name}
       style={{
-        width: GRID_TILE,
-        height: GRID_TILE,
+        width: '100%',
+        aspectRatio: '1 / 1',
         boxSizing: 'border-box',
         margin: '-1px 0 0 -1px',
         background: '#18140c',
@@ -504,8 +502,8 @@ function GridAvailableTile({ onClick }: { onClick: () => void }) {
       title="Adicionar item"
       className="tactile"
       style={{
-        width: GRID_TILE,
-        height: GRID_TILE,
+        width: '100%',
+        aspectRatio: '1 / 1',
         boxSizing: 'border-box',
         margin: '-1px 0 0 -1px',
         background: '#18140c',
@@ -534,8 +532,8 @@ function GridEmptyTile() {
     <div
       aria-hidden
       style={{
-        width: GRID_TILE,
-        height: GRID_TILE,
+        width: '100%',
+        aspectRatio: '1 / 1',
         boxSizing: 'border-box',
         margin: '-1px 0 0 -1px',
         border: '1px dashed rgba(200,184,144,0.25)',
@@ -1054,9 +1052,12 @@ export function InventoryView({
             />
           )}
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            {/* Item grid — occupied / available / empty-filler cells */}
-            <div style={{ width: GRID_COLS * GRID_TILE, flexShrink: 0, border: '1px solid rgba(200,184,144,0.25)', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start' }}>
+          {/* flexWrap so the detail pane drops below the grid on narrower desktop
+              widths instead of forcing horizontal overflow */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-start' }}>
+            {/* Item grid — occupied / available / empty-filler cells. Fluid: fills whatever
+                width is left beside the detail pane, tiles stay square via aspect-ratio. */}
+            <div style={{ flex: '3 1 320px', border: '1px solid rgba(200,184,144,0.25)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
               {inventory.map(item => (
                 <ItemIconSlot
                   key={item.id}
@@ -1078,7 +1079,7 @@ export function InventoryView({
             </div>
 
             {/* Right pane — always present so the grid width never shifts */}
-            <div style={{ width: 220, flexShrink: 0 }}>
+            <div style={{ flex: '1 1 220px' }}>
               {editingItem ? (
                 <EditItemForm
                   item={editingItem}
