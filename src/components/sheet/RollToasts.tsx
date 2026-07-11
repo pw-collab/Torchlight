@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import type { RollResult } from '@/lib/dice'
+import { DICE_SPRING } from '@/lib/diceMotion'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
@@ -62,9 +64,12 @@ export function RollToasts({ rolls }: Props) {
           : 'var(--bone-muted)'
 
         return (
-          <div
+          <motion.div
             key={roll.id}
-            className="worn-border animate-slide-in-right"
+            className="worn-border"
+            initial={{ opacity: 0, x: 26, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={DICE_SPRING.panel}
             style={{
               background: bg,
               border: `1px solid ${borderColor}`,
@@ -172,7 +177,7 @@ export function RollToasts({ rolls }: Props) {
                 })}
               </div>
             )}
-          </div>
+          </motion.div>
         )
       })}
     </div>
