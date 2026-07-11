@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useCharacter } from '@/hooks/useCharacter'
+import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
@@ -41,19 +42,19 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
-  const [isRolling, setIsRolling] = useState(false)
-  const [lastResult, setLastResult] = useState<RollResult | null>(null)
   const isMobile = useIsMobile()
 
+  // Roll lifecycle: useDiceRoll drives the phase timeline (anticipation →
+  // tumble → impact); history/toasts land exactly on the impact frame.
+  const onRollSettled = useCallback((result: RollResult) => {
+    setRollHistory(prev => [result, ...prev].slice(0, 20))
+  }, [])
+  const { phase: rollPhase, roll: activeRoll, startRoll } = useDiceRoll({ onSettled: onRollSettled })
+
   const handleRoll = useCallback((result: RollResult) => {
-    setIsRolling(true)
-    setLastResult(result)
-    setTimeout(() => {
-      setRollHistory(prev => [result, ...prev].slice(0, 20))
-      setIsRolling(false)
-    }, 600)
+    startRoll(result)
     sendToDiscord({ type: 'roll', player: playerName, ...result })
-  }, [playerName])
+  }, [playerName, startRoll])
 
   // Light-source burn-down
   const inventoryRef = useRef<InventoryItem[]>([])
@@ -309,7 +310,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       )}
 
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
-      <DiceOverlay isRolling={isRolling} lastResult={lastResult} />
+      <DiceOverlay phase={rollPhase} roll={activeRoll} />
       <RollToasts rolls={rollHistory} />
       <SaveSeal savedAt={savedAt} />
     </AppShell>

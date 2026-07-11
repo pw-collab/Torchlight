@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import { rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
+import { DieGlyph } from '@/components/dice/DieGlyph'
+import { DICE_SPRING } from '@/lib/diceMotion'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 const SMALL_DICE = [4, 6, 8, 10, 12]
@@ -13,39 +16,12 @@ interface Props {
   onRoll?: (result: RollResult) => void
 }
 
-// ─── Die shapes ────────────────────────────────────────────────────────────────
-// Each die is a solid filled polygon with its number punched over it (Figma).
-
-const DIE_SHAPES: Record<number, React.ReactNode> = {
-  4:  <polygon points="16,3 29,27 3,27" />,
-  6:  <rect x="5" y="5" width="22" height="22" rx="3" />,
-  8:  <polygon points="16,2 30,16 16,30 2,16" />,
-  10: <polygon points="16,2 28,12 23,29 9,29 4,12" />,
-  12: <polygon points="16,3 29,13 24,29 8,29 3,13" />,
-  20: <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" />,
-}
-
-/** Filled die icon with the die's number overlaid. */
-function Die({ sides, size = 32, shapeColor, numberColor }: { sides: number; size?: number; shapeColor: string; numberColor: string }) {
-  return (
-    <span style={{ position: 'relative', width: size, height: size, flexShrink: 0, display: 'inline-flex' }} aria-hidden>
-      <svg width={size} height={size} viewBox="0 0 32 32" fill={shapeColor}>
-        {DIE_SHAPES[sides]}
-      </svg>
-      <span
-        style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'var(--font-heading)', fontWeight: 700,
-          fontSize: Math.round(size * 0.375), lineHeight: 1,
-          color: numberColor,
-          paddingTop: sides === 4 ? Math.round(size * 0.18) : 0,
-        }}
-      >
-        {sides}
-      </span>
-    </span>
-  )
+// Shared micro-interaction for every dice button: lift on hover,
+// squash on press — spring-driven so release snaps back with life.
+const diceTap = {
+  whileHover: { scale: 1.05, y: -2 },
+  whileTap: { scale: 0.9, y: 1 },
+  transition: DICE_SPRING.tap,
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -109,11 +85,12 @@ export function DiceRoller({ onRoll }: Props) {
     return (
       <>
         {/* FAB */}
-        <button
+        <motion.button
           onClick={() => setMobileOpen(v => !v)}
           title="Rolar dados"
           aria-label="Abrir painel de dados"
-          className="tactile"
+          whileTap={{ scale: 0.88 }}
+          transition={DICE_SPRING.tap}
           style={{
             position: 'fixed',
             right: 16,
@@ -131,8 +108,8 @@ export function DiceRoller({ onRoll }: Props) {
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          <Die sides={20} size={30} shapeColor={mobileOpen ? '#0a0805' : '#ff444c'} numberColor={mobileOpen ? '#ff444c' : '#0a0805'} />
-        </button>
+          <DieGlyph className="animate-die-idle" sides={20} size={30} shapeColor={mobileOpen ? '#0a0805' : '#ff444c'} numberColor={mobileOpen ? '#ff444c' : '#0a0805'} />
+        </motion.button>
 
         {mobileOpen && typeof document !== 'undefined' && createPortal(
           /* Backdrop doubles as the flex centering container — panel never clips off-screen */
@@ -185,10 +162,10 @@ export function DiceRoller({ onRoll }: Props) {
               {/* d4–d12 grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                 {SMALL_DICE.map(d => (
-                  <button
+                  <motion.button
                     key={d}
                     onClick={() => roll(d)}
-                    className="tactile"
+                    {...diceTap}
                     title={`d${d}`}
                     aria-label={`Rolar d${d}`}
                     style={{
@@ -201,8 +178,8 @@ export function DiceRoller({ onRoll }: Props) {
                     onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
                     onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
                   >
-                    <Die sides={d} size={30} shapeColor="#ff444c" numberColor="#0a0805" />
-                  </button>
+                    <DieGlyph sides={d} size={30} shapeColor="#ff444c" numberColor="#0a0805" />
+                  </motion.button>
                 ))}
               </div>
 
@@ -230,9 +207,9 @@ export function DiceRoller({ onRoll }: Props) {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
                   {d20Modes.map(({ mode, label, color }) => (
-                    <button
+                    <motion.button
                       key={mode} onClick={() => roll(20, mode)}
-                      className="tactile"
+                      {...diceTap}
                       style={{
                         background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 2,
                         cursor: 'pointer', color, padding: '10px 4px', minHeight: 64,
@@ -244,9 +221,9 @@ export function DiceRoller({ onRoll }: Props) {
                       onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(200,184,144,0.5)' }}
                       onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = 'rgba(200,184,144,0.25)' }}
                     >
-                      <Die sides={20} size={26} shapeColor="#ff444c" numberColor="#0a0805" />
+                      <DieGlyph sides={20} size={26} shapeColor="#ff444c" numberColor="#0a0805" />
                       <span>{label}</span>
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
@@ -280,25 +257,28 @@ export function DiceRoller({ onRoll }: Props) {
       {/* Row 1: d4–d12 */}
       <div style={{ display: 'flex', gap: 2 }}>
         {SMALL_DICE.map(d => (
-          <button
+          <motion.button
             key={d} onClick={() => roll(d)}
-            className="tactile"
+            {...diceTap}
             title={`d${d}`} aria-label={`Rolar d${d}`}
             style={{ background: '#0a0805', border: '1px solid #ff444c', borderRadius: 0, color: '#c8b890', flex: '1 0 0', height: 48, minHeight: 48, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 200ms, border-color 200ms' }}
             onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
             onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
           >
-            <Die sides={d} size={32} shapeColor="#ff444c" numberColor="#0a0805" />
-          </button>
+            <DieGlyph sides={d} size={32} shapeColor="#ff444c" numberColor="#0a0805" />
+          </motion.button>
         ))}
       </div>
 
       {/* Row 2: d20 + modifier */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <div ref={dropdownRef} style={{ position: 'relative', flex: '1 0 0' }}>
-          <button
+          <motion.button
             onClick={() => setD20Open(v => !v)}
-            className="tactile glow-hover-blood"
+            className="glow-hover-blood"
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.94, y: 1 }}
+            transition={DICE_SPRING.tap}
             title="Rolar d20" aria-label="Rolar d20"
             style={{
               background: '#ff444c',
@@ -312,9 +292,9 @@ export function DiceRoller({ onRoll }: Props) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '5px 9px',
             }}
           >
-            <Die sides={20} size={36} shapeColor="#0a0805" numberColor="#ff444c" />
+            <DieGlyph className="animate-die-idle" sides={20} size={36} shapeColor="#0a0805" numberColor="#ff444c" />
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: '#0a0805', fontWeight: 700, transform: d20Open ? 'scaleY(-1)' : 'none', display: 'inline-block', transition: 'transform 200ms' }}>▲</span>
-          </button>
+          </motion.button>
 
           {d20Open && (
             <div
@@ -343,15 +323,17 @@ export function DiceRoller({ onRoll }: Props) {
               </div>
 
               {d20Modes.map(({ mode, label, color }) => (
-                <button
+                <motion.button
                   key={mode} onClick={() => roll(20, mode)}
-                  className="tactile"
+                  whileHover={{ x: 2 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={DICE_SPRING.tap}
                   style={{ background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 0, width: '100%', textAlign: 'left', color, padding: '11px 12px', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, letterSpacing: '0.04em', minHeight: 44, transition: 'background 200ms, border-color 200ms' }}
                   onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(200,184,144,0.5)' }}
                   onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = 'rgba(200,184,144,0.25)' }}
                 >
                   {label}
-                </button>
+                </motion.button>
               ))}
             </div>
           )}

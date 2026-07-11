@@ -218,6 +218,15 @@ html, body {
 .animate-crit   { animation: critFlash 700ms ease-in-out 2; }
 .animate-fumble { animation: fumblePulse 900ms ease-out both; }
 
+/* Die at rest — a slow, barely-there wobble so the roller never feels static.
+   (Killed by the global prefers-reduced-motion rule below.) */
+@keyframes dieIdle {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  30%      { transform: rotate(-4deg) translateY(-1px); }
+  60%      { transform: rotate(3deg) translateY(0.5px); }
+}
+.animate-die-idle { animation: dieIdle 5.2s ease-in-out infinite; }
+
 /* Tremor — pairs with crit/fumble for impact. */
 @keyframes shakeX {
   0%, 100% { transform: translateX(0); }
