@@ -154,16 +154,13 @@ export function FloatingVitals({
   )
 
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — fixed left sidebar
+  // DESKTOP — flows inside the sticky sidebar column the parent page lays out
+  // (see CharacterSheetClient), so it's genuinely anchored to that column's
+  // left edge rather than pinned to a viewport-relative pixel offset.
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
-      /* Anchor at 0,0 — safety paddings clear the header, screen edges, and the
-         DiceRoller now docked bottom-left in this same column (137px tall incl. its own offset).
-         pointerEvents:none on this full-height shim keeps its empty padding area from swallowing
-         clicks meant for the DiceRoller underneath; the actual content re-enables it below. */
-      <div style={{ position: 'fixed', top: 0, left: 0, height: '100dvh', zIndex: 85, padding: 'calc(80px + var(--safe-top)) 0 calc(137px + var(--safe-bottom)) calc(24px + var(--safe-left))', boxSizing: 'border-box', pointerEvents: 'none' }}>
-      <div style={{ width: 268, maxHeight: '100%', display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 24, boxSizing: 'border-box', pointerEvents: 'auto' }}>
+      <div style={{ width: '100%', flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 16, boxSizing: 'border-box' }}>
 
         {/* Heading: class/ancestry + character name */}
         <div style={{ paddingTop: 8 }}>
@@ -276,7 +273,6 @@ export function FloatingVitals({
 
         {/* HP / XP overlay */}
         {hpOverlay}
-      </div>
       </div>
     )
   }
