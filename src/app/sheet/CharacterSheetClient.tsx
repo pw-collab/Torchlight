@@ -160,11 +160,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   const tabItems = (Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))
 
-  // Desktop tabs are passed as navSlot to AppShell; mobile tabs render as fixed bottom bar
-  const navSlot = !isMobile ? (
-    <TabBar tabs={tabItems} active={tab} onChange={setTab} />
-  ) : undefined
-
   const vitals = (
     <FloatingVitals
       ac={character.ac}
@@ -251,7 +246,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       ]}
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
-      navSlot={navSlot}
     >
       {isMobile ? (
         <div style={{
@@ -278,20 +272,19 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           paddingLeft: 32,
           paddingRight: 32,
           paddingTop: 80,
-          paddingBottom: 80,
+          paddingBottom: 'calc(88px + var(--safe-bottom))',
         }}>
           <div style={{
             position: 'sticky',
             top: 'calc(80px + var(--safe-top))',
             flexShrink: 0,
             width: 268,
-            height: 'calc(100dvh - 80px - var(--safe-top) - 24px)',
+            height: 'calc(100dvh - 80px - var(--safe-top) - 96px)',
             display: 'flex',
             flexDirection: 'column',
             boxSizing: 'border-box',
           }}>
             {vitals}
-            <DiceRoller onRoll={handleRoll} />
           </div>
 
           {/* Content fluidly fills the space beside the sidebar, up to a readable cap */}
@@ -301,13 +294,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
       )}
 
-      {/* Mobile tab bar + dice FAB */}
-      {isMobile && (
-        <>
-          <TabBar tabs={tabItems} active={tab} onChange={setTab} />
-          <DiceRoller onRoll={handleRoll} />
-        </>
-      )}
+      {/* Bottom navigation bar — tabs + dice FAB as the last button (desktop & mobile) */}
+      <TabBar tabs={tabItems} active={tab} onChange={setTab} trailing={<DiceRoller onRoll={handleRoll} />} />
 
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceOverlay phase={rollPhase} roll={activeRoll} />
