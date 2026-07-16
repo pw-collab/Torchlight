@@ -333,8 +333,8 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
       playerName={playerName}
       playerRole={isGm ? 'MESTRE' : 'ARQUIVISTA'}
     >
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '20px 16px 40px' }}>
-        <header style={{ marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+      <div className="grid-12 grid-12-page--center" style={{ maxWidth: 960 }}>
+        <header className="col-span-12" style={{ paddingBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
@@ -446,22 +446,28 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
           </div>
         </header>
 
-        <div className="grid-characters">
+        {/* Character cards on the 12-col grid: span 4 (3-up) → 6 (2-up) → 12 (1-up) */}
+        <div className="grid-12 col-span-12">
           {characters.map((char, i) => (
-            <CharacterCard
-              key={char.id}
-              char={char}
-              index={i}
-              isGm={isGm}
-              onEdit={e => {
-                e.preventDefault()
-                e.stopPropagation()
-                setEditingId(char.id)
-              }}
-              onDelete={e => handleDelete(e, char)}
-            />
+            <div key={char.id} className="col-span-4 col-sm-6 col-xs-12" style={{ display: 'grid' }}>
+              <CharacterCard
+                char={char}
+                index={i}
+                isGm={isGm}
+                onEdit={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setEditingId(char.id)
+                }}
+                onDelete={e => handleDelete(e, char)}
+              />
+            </div>
           ))}
-          {!isGm && <CreateCard />}
+          {!isGm && (
+            <div className="col-span-4 col-sm-6 col-xs-12" style={{ display: 'grid' }}>
+              <CreateCard />
+            </div>
+          )}
         </div>
       </div>
 

@@ -341,19 +341,13 @@ html, body {
    Responsive layout utilities
    ============================================================ */
 
-/* Stat block: 6 cols desktop → 3 cols mobile */
+/* Stat block on the 12-col system: stats span 2 (6-up) → span 4 (3-up) mobile */
 .grid-stats {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0;
 }
-
-/* Character cards grid: 3 cols → 2 → 1 */
-.grid-characters {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
+.grid-stats > * { grid-column: span 2 / span 2; }
 
 /* NPC grid */
 .grid-npcs {
@@ -363,24 +357,36 @@ html, body {
 }
 
 @media (max-width: 640px) {
-  .grid-stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .grid-characters {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
+  .grid-stats > * { grid-column: span 4 / span 4; }
 
   .grid-npcs {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 400px) {
-  .grid-characters {
-    grid-template-columns: 1fr;
+/* ============================================================
+   Character sheet — sidebar + content on the 12-col grid
+   ============================================================ */
+.sheet-sidebar {
+  grid-column: span 3 / span 3;
+  position: sticky;
+  top: calc(80px + var(--safe-top));
+  height: calc(100dvh - 80px - var(--safe-top) - 96px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.sheet-content {
+  grid-column: span 9 / span 9;
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .sheet-sidebar {
+    grid-column: span 12 / span 12;
+    position: static;
+    height: auto;
   }
+  .sheet-content { grid-column: span 12 / span 12; }
 }
 
 /* ============================================================
@@ -388,21 +394,23 @@ html, body {
    ============================================================ */
 .creator-shell {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
   width: 100%;
   max-width: 1160px;
   margin: 0 auto;
   flex: 1;
   align-items: start;
 }
-.creator-sidebar { position: sticky; top: 0; }
+.creator-sidebar { grid-column: span 3 / span 3; position: sticky; top: 0; }
 .creator-mobile-steps { display: none; }
-.creator-main { min-width: 0; }
+.creator-main { grid-column: span 9 / span 9; min-width: 0; }
 .creator-content { max-width: 780px; }
 
 @media (max-width: 900px) {
-  .creator-shell { grid-template-columns: 1fr; max-width: 780px; }
+  .creator-shell { max-width: 780px; gap: 0; }
   .creator-sidebar { display: none; }
+  .creator-main { grid-column: span 12 / span 12; }
   .creator-mobile-steps { display: flex; }
 }
 
@@ -436,44 +444,32 @@ html, body {
   text-shadow: 0 0 10px rgba(201,168,76,0.7);
 }
 
-/* NPC master-detail (Outlook-style) */
-.npc-master-detail {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
+/* NPC master-detail (Outlook-style) — columns placed via grid-12 spans */
 .npc-master-list {
-  flex: 0 0 270px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-height: calc(100dvh - 240px);
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
 }
 .npc-detail-pane {
-  flex: 1;
   min-width: 0;
 }
 
 @media (max-width: 640px) {
-  .npc-master-detail {
-    flex-direction: column;
-  }
   .npc-master-list {
-    flex: none;
-    width: 100%;
     max-height: 260px;
-  }
-  .npc-detail-pane {
-    width: 100%;
   }
 }
 
 /* ============================================================
-   12-column layout grid (inventory tab)
+   12-column layout grid (app-wide)
    12 auto-width columns · 24px gutter · content placed via span.
-   Page shell: 48px margin, 24px padding. Spacing scale: ×6.
+   Page shell: 48px margin, 24px padding (--center keeps the shell
+   horizontally centered under a max-width). Spacing scale: ×6.
+   Responsive spans: .col-md-* (≤900px), .col-sm-* (≤640px),
+   .col-xs-* (≤400px) override the base span at that breakpoint.
    ============================================================ */
 .grid-12 {
   display: grid;
@@ -485,13 +481,27 @@ html, body {
   margin: 48px;
   padding: 24px;
 }
-.col-span-6  { grid-column: span 6 / span 6; }
+.grid-12-page--center {
+  margin: 48px auto;
+  padding: 24px;
+}
+.col-span-3  { grid-column: span 3 / span 3; }
 .col-span-4  { grid-column: span 4 / span 4; }
+.col-span-6  { grid-column: span 6 / span 6; }
 .col-span-8  { grid-column: span 8 / span 8; }
+.col-span-9  { grid-column: span 9 / span 9; }
 .col-span-12 { grid-column: span 12 / span 12; }
 
-@media (max-width: 719px) {
+@media (max-width: 900px) {
+  .col-md-12 { grid-column: span 12 / span 12; }
+}
+@media (max-width: 640px) {
   .grid-12 { gap: 12px; }
   .grid-12-page { margin: 12px; padding: 12px; }
-  .col-span-4, .col-span-8 { grid-column: span 12 / span 12; }
+  .grid-12-page--center { margin: 12px auto; padding: 12px; }
+  .col-sm-6  { grid-column: span 6 / span 6; }
+  .col-sm-12 { grid-column: span 12 / span 12; }
+}
+@media (max-width: 400px) {
+  .col-xs-12 { grid-column: span 12 / span 12; }
 }

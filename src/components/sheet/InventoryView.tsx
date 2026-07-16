@@ -1199,7 +1199,7 @@ export function InventoryView({
 
           {/* Equipamento — armor + shield squares (span 6 each), then the two
               hand slots as wide rectangles (span 12), on a nested 12-col grid. */}
-          <div className="grid-12 grid-12--tight col-span-4" style={{ alignContent: 'start' }}>
+          <div className="grid-12 grid-12--tight col-span-4 col-sm-12" style={{ alignContent: 'start' }}>
             <div className="col-span-12">
               <SectionSubheading>Equipamento</SectionSubheading>
             </div>
@@ -1210,7 +1210,7 @@ export function InventoryView({
           </div>
 
           {/* Mochila — item grid with the detail pane below it */}
-          <div className="grid-12 grid-12--tight col-span-8" style={{ alignContent: 'start' }}>
+          <div className="grid-12 grid-12--tight col-span-8 col-sm-12" style={{ alignContent: 'start' }}>
             <div className="col-span-12">
               <SectionSubheading
                 trailing={

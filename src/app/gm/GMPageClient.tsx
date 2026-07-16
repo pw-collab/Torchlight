@@ -163,19 +163,19 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       playerName={gmName}
       playerRole="MESTRE · CAMPANHA ATIVA"
     >
-      <div style={{ padding: '0 24px 32px' }}>
+      <div className="grid-12 grid-12-page" style={{ paddingTop: 0, marginTop: 0 }}>
 
         {/* Page header */}
         <div
+          className="col-span-12"
           style={{
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: 12,
-            padding: '22px 0 18px',
+            padding: '24px 0 18px',
             borderBottom: '1px solid rgba(139,112,48,0.22)',
-            marginBottom: 0,
           }}
         >
           <div>
@@ -226,7 +226,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(139,112,48,0.22)', marginBottom: 22 }}>
+        <div className="col-span-12" style={{ display: 'flex', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
           <button className="tactile" style={tabStyle(tab === 'session')} onClick={() => setTab('session')}>
             Sessão
           </button>
@@ -237,7 +237,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
         {/* Tab: Session */}
         {tab === 'session' && (
-          <>
+          <div className="col-span-12">
             {!session ? (
               <div
                 className="worn-border card-surface animate-mist-rise"
@@ -374,13 +374,13 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 <SessionPanel sessionId={session.id} />
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* Tab: NPCs */}
         {tab === 'npcs' && (
-          <div className="animate-ink-spread" style={{ paddingTop: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10, flexWrap: 'wrap' }}>
+          <div className="animate-ink-spread col-span-12">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
               </span>
@@ -426,9 +426,9 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 </p>
               </div>
             ) : (
-              <div className="npc-master-detail">
-                {/* Master list */}
-                <div className="npc-master-list">
+              <div className="grid-12" style={{ alignItems: 'start' }}>
+                {/* Master list — span 4; full width on small screens */}
+                <div className="npc-master-list col-span-4 col-sm-12">
                   {npcs.map(npc => (
                     <NPCListItem
                       key={npc.id}
@@ -439,8 +439,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   ))}
                 </div>
 
-                {/* Detail pane */}
-                <div className="npc-detail-pane">
+                {/* Detail pane — span 8; full width on small screens */}
+                <div className="npc-detail-pane col-span-8 col-sm-12">
                   {selectedNpc ? (
                     <div style={{ opacity: deletingId === selectedNpc.id ? 0.4 : 1, transition: 'opacity 300ms' }}>
                       <NPCCard
