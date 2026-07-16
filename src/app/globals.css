@@ -469,3 +469,29 @@ html, body {
     width: 100%;
   }
 }
+
+/* ============================================================
+   12-column layout grid (inventory tab)
+   12 auto-width columns · 24px gutter · content placed via span.
+   Page shell: 48px margin, 24px padding. Spacing scale: ×6.
+   ============================================================ */
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+}
+.grid-12--tight { gap: 12px; }
+.grid-12-page {
+  margin: 48px;
+  padding: 24px;
+}
+.col-span-6  { grid-column: span 6 / span 6; }
+.col-span-4  { grid-column: span 4 / span 4; }
+.col-span-8  { grid-column: span 8 / span 8; }
+.col-span-12 { grid-column: span 12 / span 12; }
+
+@media (max-width: 719px) {
+  .grid-12 { gap: 12px; }
+  .grid-12-page { margin: 12px; padding: 12px; }
+  .col-span-4, .col-span-8 { grid-column: span 12 / span 12; }
+}
