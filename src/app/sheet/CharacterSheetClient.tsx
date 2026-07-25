@@ -186,16 +186,20 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const tabContent = (
     <>
       {tab === 'stats' && (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+        <div className="grid-12">
+          <div className="col-span-12">
+            <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+          </div>
           {cls && (
-            <ClassPanel
-              classData={cls}
-              stats={character.stats}
-              techniqueStates={character.techniqueStates}
-              onStateChange={handleTechniqueStatesChange}
-              onRoll={handleRoll}
-            />
+            <div className="col-span-12">
+              <ClassPanel
+                classData={cls}
+                stats={character.stats}
+                techniqueStates={character.techniqueStates}
+                onStateChange={handleTechniqueStatesChange}
+                onRoll={handleRoll}
+              />
+            </div>
           )}
         </div>
       )}
@@ -261,34 +265,24 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <div style={{ width: '100%', marginBottom: 40 }}>{tabContent}</div>
         </div>
       ) : (
-        // Sidebar + content live in the SAME flex row, so the sidebar is
+        // Sidebar + content live on the SAME 12-column grid, so the sidebar is
         // genuinely anchored to the content's left edge (not a viewport-relative
         // guess) and the pair centers together as one unit on wide screens.
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          gap: 32,
-          paddingLeft: 32,
-          paddingRight: 32,
-          paddingTop: 80,
-          paddingBottom: 'calc(88px + var(--safe-bottom))',
+        <div className="grid-12" style={{
+          alignItems: 'start',
+          maxWidth: 1200,
+          margin: '0 auto',
+          paddingLeft: 24,
+          paddingRight: 24,
+          paddingTop: 84,
+          paddingBottom: 'calc(90px + var(--safe-bottom))',
         }}>
-          <div style={{
-            position: 'sticky',
-            top: 'calc(80px + var(--safe-top))',
-            flexShrink: 0,
-            width: 268,
-            height: 'calc(100dvh - 80px - var(--safe-top) - 96px)',
-            display: 'flex',
-            flexDirection: 'column',
-            boxSizing: 'border-box',
-          }}>
+          <div className="sheet-sidebar">
             {vitals}
           </div>
 
-          {/* Content fluidly fills the space beside the sidebar, up to a readable cap */}
-          <div style={{ flex: '1 1 0%', minWidth: 0, maxWidth: 900, marginBottom: 40 }}>
+          {/* Content fills the remaining 9 columns beside the sidebar */}
+          <div className="sheet-content" style={{ marginBottom: 42 }}>
             {tabContent}
           </div>
         </div>
