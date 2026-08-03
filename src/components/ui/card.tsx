@@ -1,20 +1,31 @@
 import * as React from "react"
+import { mergeProps } from "@base-ui/react/merge-props"
+import { useRender } from "@base-ui/react/use-render"
 
 import { cn } from "@/lib/utils"
 
+// `render` is supported here (as it is on Item) so a card that is itself the
+// click target can be a real <button> instead of a div with a click handler.
 function Card({
   className,
   size = "default",
+  render,
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
-  return (
-    <div
-      data-slot="card"
-      data-size={size}
-      className={cn("cn-card group/card flex flex-col", className)}
-      {...props}
-    />
-  )
+}: useRender.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+  return useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(
+      {
+        className: cn("cn-card group/card flex flex-col", className),
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: "card",
+      size,
+    },
+  })
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
