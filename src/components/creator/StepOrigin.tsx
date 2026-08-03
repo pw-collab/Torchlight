@@ -4,6 +4,10 @@ import { useState, useMemo } from 'react'
 import { getAncestry } from '@/data/ancestries/index'
 import { DOMAINS, getDomain, ALL_DOMAIN_IDS } from '@/data/domains/index'
 import { modifier } from '@/lib/dice'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 const FAITHS = [
   'A Igreja de Ezra da Fé Matriz',
@@ -102,48 +106,40 @@ export function StepOrigin({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div className="flex flex-col gap-7">
 
       {/* Domain picker */}
       {hasDomainChoice && (
         <section>
-          <div style={sectionLabel}>Domínio de Origem</div>
-          <p style={sectionNote}>
+          <div className={SECTION_LABEL_CLASS}>Domínio de Origem</div>
+          <p className={SECTION_NOTE_CLASS}>
             As Terras das Névoas são compostas de domínios isolados por cerração mágica.
             Escolha o lar que moldou sua história.
           </p>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-            gap: 5,
-            marginTop: 12,
-            maxHeight: availableDomains.length > 12 ? 260 : undefined,
-            overflowY: availableDomains.length > 12 ? 'auto' : undefined,
-          }}>
+          <div
+            className={cn(
+              'mt-3 grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-[5px]',
+              availableDomains.length > 12 && 'max-h-[260px] overflow-y-auto',
+            )}
+          >
             {availableDomains.map(d => {
               const active = domainId === d.id
               return (
-                <button
+                <Button
                   key={d.id}
+                  variant="outline"
                   onClick={() => handleDomainSelect(d.id)}
-                  style={{
-                    background: active ? 'rgba(139,112,48,0.14)' : 'rgba(13,10,5,0.5)',
-                    border: `1px solid ${active ? 'rgba(196,120,42,0.5)' : 'rgba(139,112,48,0.18)'}`,
-                    borderRadius: 2,
-                    padding: '7px 10px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: 11,
-                    color: active ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 200ms',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
+                  aria-pressed={active}
+                  className={cn(
+                    'h-auto justify-start truncate rounded-sm px-2.5 py-[7px] text-[11px] normal-case',
+                    'font-sans tracking-normal transition-all duration-200',
+                    active
+                      ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.14)] text-[var(--parchment-light)]'
+                      : 'text-muted-foreground border-[rgba(139,112,48,0.18)] bg-[rgba(13,10,5,0.5)]',
+                  )}
                 >
                   {d.name}
-                </button>
+                </Button>
               )
             })}
           </div>
@@ -153,15 +149,15 @@ export function StepOrigin({
       {/* Languages */}
       {(fixedLangs.length > 0 || rules) && (
         <section>
-          <div style={sectionLabel}>Idiomas</div>
+          <div className={SECTION_LABEL_CLASS}>Idiomas</div>
 
           {/* Fixed languages */}
           {fixedLangs.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <span style={subLabel}>Concedidos pela ancestralidade</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
+            <div className="mb-2.5">
+              <span className={SUB_LABEL_CLASS}>Concedidos pela ancestralidade</span>
+              <div className="mt-[5px] flex flex-wrap gap-[5px]">
                 {fixedLangs.map(l => (
-                  <span key={l} style={fixedChip}>{l}</span>
+                  <Badge key={l} variant="outline" className={CHIP_CLASS}>{l}</Badge>
                 ))}
               </div>
             </div>
@@ -169,32 +165,40 @@ export function StepOrigin({
 
           {/* Domain language picks */}
           {domainPickCount > 0 && domainPool.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <span style={subLabel}>
+            <div className="mb-3">
+              <span className={SUB_LABEL_CLASS}>
                 Do domínio — escolha {domainPickCount} de {selectedDomain?.name}
-                <span style={{ color: 'var(--gold-oxidized)', marginLeft: 6 }}>
+                <span className="ml-1.5 text-[var(--gold-oxidized)]">
                   {selectedDomainLangs.length}/{domainPickCount}
                 </span>
               </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 6 }}>
+              <div className="mt-1.5 flex flex-wrap gap-[5px]">
                 {domainPool.map(l => {
                   const sel = selectedDomainLangs.includes(l)
                   const full = !sel && selectedDomainLangs.length >= domainPickCount
                   return (
-                    <button
+                    <Badge
                       key={l}
-                      onClick={() => toggleDomainLang(l)}
-                      disabled={full}
-                      style={{
-                        ...pickChip,
-                        background: sel ? 'rgba(139,112,48,0.2)' : 'rgba(13,10,5,0.5)',
-                        borderColor: sel ? 'rgba(196,120,42,0.5)' : 'rgba(139,112,48,0.2)',
-                        color: sel ? 'var(--parchment-light)' : full ? '#3A2E18' : 'var(--bone-muted)',
-                        cursor: full ? 'default' : 'pointer',
-                      }}
+                      variant="outline"
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => toggleDomainLang(l)}
+                          disabled={full}
+                          aria-pressed={sel}
+                        />
+                      }
+                      className={cn(
+                        PICK_CHIP_CLASS,
+                        sel
+                          ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.2)] text-[var(--parchment-light)]'
+                          : full
+                            ? 'cursor-default border-[rgba(139,112,48,0.2)] bg-[rgba(13,10,5,0.5)] text-[#3A2E18]'
+                            : 'text-muted-foreground border-[rgba(139,112,48,0.2)] bg-[rgba(13,10,5,0.5)]',
+                      )}
                     >
                       {l}
-                    </button>
+                    </Badge>
                   )
                 })}
               </div>
@@ -202,7 +206,7 @@ export function StepOrigin({
           )}
 
           {domainPickCount > 0 && !selectedDomain && hasDomainChoice && (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: '#3A2E18', marginBottom: 10 }}>
+            <p className="mb-2.5 text-[10px] text-[#3A2E18] italic">
               Escolha um domínio acima para ver as opções de idiomas.
             </p>
           )}
@@ -210,62 +214,51 @@ export function StepOrigin({
           {/* Free language picks */}
           {freePickCount > 0 && (
             <div>
-              <span style={subLabel}>
+              <span className={SUB_LABEL_CLASS}>
                 Idiomas adicionais — qualquer
-                <span style={{ color: 'var(--gold-oxidized)', marginLeft: 6 }}>
+                <span className="ml-1.5 text-[var(--gold-oxidized)]">
                   {freeLangs.length}/{freePickCount}
                 </span>
               </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 6, marginBottom: 8 }}>
+              <div className="mt-1.5 mb-2 flex flex-wrap gap-[5px]">
                 {freeLangs.map(l => (
-                  <button
+                  <Badge
                     key={l}
-                    onClick={() => removeFreeLang(l)}
-                    style={{ ...pickChip, background: 'rgba(139,112,48,0.18)', borderColor: 'rgba(196,120,42,0.4)', color: 'var(--parchment-light)' }}
+                    variant="outline"
+                    render={
+                      <button
+                        type="button"
+                        onClick={() => removeFreeLang(l)}
+                        aria-label={`Remover ${l}`}
+                      />
+                    }
+                    className={cn(
+                      PICK_CHIP_CLASS,
+                      'border-[rgba(196,120,42,0.4)] bg-[rgba(139,112,48,0.18)] text-[var(--parchment-light)]',
+                    )}
                   >
                     {l} ×
-                  </button>
+                  </Badge>
                 ))}
               </div>
               {freeLangs.length < freePickCount && (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input
+                <div className="flex gap-1.5">
+                  <Input
                     type="text"
                     value={freeInput}
                     onChange={e => setFreeInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addFreeLang()}
                     placeholder="Nome do idioma..."
-                    style={{
-                      flex: 1,
-                      background: 'rgba(13,10,5,0.7)',
-                      border: '1px solid rgba(139,112,48,0.25)',
-                      borderRadius: 2,
-                      padding: '7px 10px',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: 12,
-                      color: 'var(--parchment-pale)',
-                      outline: 'none',
-                    }}
-                    onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.5)' }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'rgba(139,112,48,0.25)' }}
+                    aria-label="Nome do idioma"
+                    className="h-auto flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-[rgba(13,10,5,0.7)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] focus-visible:border-[rgba(196,120,42,0.5)]"
                   />
-                  <button
+                  <Button
+                    variant="outline"
                     onClick={addFreeLang}
-                    style={{
-                      background: 'rgba(139,112,48,0.14)',
-                      border: '1px solid rgba(139,112,48,0.3)',
-                      borderRadius: 2,
-                      padding: '7px 14px',
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: 9,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      color: 'var(--parchment-light)',
-                      cursor: 'pointer',
-                    }}
+                    className="h-auto rounded-sm border-[rgba(139,112,48,0.3)] bg-[rgba(139,112,48,0.14)] px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
                   >
                     + Adicionar
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -275,31 +268,27 @@ export function StepOrigin({
 
       {/* Faith */}
       <section>
-        <div style={sectionLabel}>Fé</div>
-        <p style={sectionNote}>Nas Terras das Névoas, a fé pode ser âncora ou corrente.</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12 }}>
+        <div className={SECTION_LABEL_CLASS}>Fé</div>
+        <p className={SECTION_NOTE_CLASS}>Nas Terras das Névoas, a fé pode ser âncora ou corrente.</p>
+        <div className="mt-3 flex flex-col gap-1">
           {FAITHS.map(f => {
             const active = faith === f
             return (
-              <button
+              <Button
                 key={f}
+                variant="outline"
                 onClick={() => onFaithChange(active ? '' : f)}
-                style={{
-                  background: active ? 'rgba(74,48,104,0.2)' : 'rgba(13,10,5,0.4)',
-                  border: `1px solid ${active ? 'rgba(107,78,138,0.5)' : 'rgba(139,112,48,0.15)'}`,
-                  borderRadius: 2,
-                  padding: '9px 14px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: active ? 'normal' : 'italic',
-                  fontSize: 12,
-                  color: active ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                  transition: 'all 200ms',
-                }}
+                aria-pressed={active}
+                className={cn(
+                  'h-auto justify-start rounded-sm px-3.5 py-2.5 text-left text-xs normal-case',
+                  'font-sans tracking-normal transition-all duration-200',
+                  active
+                    ? 'border-[rgba(107,78,138,0.5)] bg-[rgba(74,48,104,0.2)] text-[var(--parchment-light)] not-italic'
+                    : 'text-muted-foreground border-[rgba(139,112,48,0.15)] bg-[rgba(13,10,5,0.4)] italic',
+                )}
               >
                 {f}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -308,46 +297,16 @@ export function StepOrigin({
   )
 }
 
-const sectionLabel: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
-  fontSize: 8,
-  letterSpacing: '0.22em',
-  textTransform: 'uppercase',
-  color: 'var(--candle-amber)',
-  marginBottom: 6,
-}
+const SECTION_LABEL_CLASS =
+  'font-heading mb-1.5 text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
 
-const sectionNote: React.CSSProperties = {
-  fontFamily: 'var(--font-body)',
-  fontStyle: 'italic',
-  fontSize: 10,
-  color: 'var(--bone-muted)',
-  lineHeight: 1.5,
-}
+const SECTION_NOTE_CLASS = 'text-muted-foreground text-[10px] leading-normal italic'
 
-const subLabel: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
-  fontSize: 7,
-  letterSpacing: '0.16em',
-  textTransform: 'uppercase',
-  color: 'var(--bone-muted)',
-}
+const SUB_LABEL_CLASS =
+  'font-heading text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
 
-const fixedChip: React.CSSProperties = {
-  fontFamily: 'var(--font-body)',
-  fontSize: 11,
-  color: 'var(--parchment-light)',
-  background: 'rgba(20,14,6,0.6)',
-  border: '1px solid rgba(139,112,48,0.3)',
-  borderRadius: 10,
-  padding: '3px 10px',
-}
+const CHIP_CLASS =
+  'rounded-[10px] border-[rgba(139,112,48,0.3)] bg-[rgba(20,14,6,0.6)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]'
 
-const pickChip: React.CSSProperties = {
-  fontFamily: 'var(--font-body)',
-  fontSize: 11,
-  borderRadius: 10,
-  padding: '3px 10px',
-  border: '1px solid',
-  transition: 'all 150ms',
-}
+const PICK_CHIP_CLASS =
+  'cursor-pointer rounded-[10px] border px-2.5 py-[3px] text-[11px] transition-all duration-150'
