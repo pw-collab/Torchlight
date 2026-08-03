@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types'
+import type { InventoryItem, EquipSlot, ItemType, WeaponKind } from '@/types/inventory.types'
 import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
@@ -10,8 +10,12 @@ import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
-import { buttonStyle } from '@/components/shared/buttonStyles'
-import type { ButtonVariant } from '@/components/shared/buttonStyles'
+import { Button, type buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import type { VariantProps } from 'class-variance-authority'
+
+type ButtonVariants = VariantProps<typeof buttonVariants>
 import { NumInput } from '@/components/sheet/NumInput'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -115,35 +119,19 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function inputStyle(): React.CSSProperties {
-  return {
-    width: '100%',
-    background: 'var(--ink-deep)',
-    border: '1px solid rgba(139,112,48,0.28)',
-    color: 'var(--parchment-light)',
-    fontFamily: 'var(--font-body)',
-    fontSize: 11,
-    padding: '5px 7px',
-    outline: 'none',
-    borderRadius: 1,
-    boxSizing: 'border-box',
-  }
-}
+const INPUT_CLASS =
+  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
 
 type BtnVariant = 'blood' | 'mist' | 'amber' | 'dark' | 'danger' | 'green'
 
-/** Legacy variant names mapped onto the design-system button (Figma 64-849). */
-const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
-  blood:  'red',
-  amber:  'red',
-  green:  'red',
-  mist:   'dark',
-  dark:   'dark',
+/** Legacy variant names mapped onto the shadcn Button variants. */
+const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariants['variant']> = {
+  blood:  'default',
+  amber:  'default',
+  green:  'default',
+  mist:   'secondary',
+  dark:   'secondary',
   danger: 'hollow',
-}
-
-function quickBtnStyle(variant: BtnVariant): React.CSSProperties {
-  return buttonStyle(BTN_VARIANT_MAP[variant])
 }
 
 function isLightSource(name: string): boolean {
@@ -152,27 +140,18 @@ function isLightSource(name: string): boolean {
 }
 
 /** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
-function combatPillStyle(tone: 'blood' | 'mist' | 'amber' | 'dark'): React.CSSProperties {
-  const map: Record<typeof tone, [string, string]> = {
-    blood: ['rgba(139,21,21,0.35)', '#8b1515'],
-    mist:  ['rgba(42,26,58,0.35)', 'rgba(107,78,138,0.5)'],
-    amber: ['rgba(106,58,10,0.35)', '#6B3A0A'],
-    dark:  ['rgba(24,20,12,0.6)', 'rgba(200,184,144,0.25)'],
-  }
-  const [bg, border] = map[tone]
-  return {
-    background: bg,
-    border: `1px solid ${border}`,
-    color: '#f0e8d0',
-    fontFamily: 'var(--font-heading)',
-    fontSize: 8,
-    letterSpacing: '0.8px',
-    textTransform: 'uppercase',
-    padding: '6px 12px',
-    borderRadius: 1,
-    cursor: 'pointer',
-    alignSelf: 'stretch',
-  }
+const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
+  blood: 'border-[#8b1515] bg-[rgba(139,21,21,0.35)]',
+  mist:  'border-[rgba(107,78,138,0.5)] bg-[rgba(42,26,58,0.35)]',
+  amber: 'border-[#6B3A0A] bg-[rgba(106,58,10,0.35)]',
+  dark:  'border-[rgba(200,184,144,0.25)] bg-[rgba(24,20,12,0.6)]',
+}
+
+function combatPill(tone: keyof typeof COMBAT_PILL_TONE): string {
+  return cn(
+    'h-auto rounded-[1px] px-3 py-1.5 text-[8px] tracking-[0.8px] text-[#f0e8d0]',
+    COMBAT_PILL_TONE[tone],
+  )
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -397,9 +376,9 @@ function CatalogPickerModal({ onAdd, onClose }: {
           ))}
         </div>
 
-        <button onClick={onClose} style={{ ...quickBtnStyle('dark'), width: '100%', marginTop: 10, padding: '7px 0' }}>
+        <Button onClick={onClose} variant={BTN_VARIANT_MAP.dark} className="w-full mt-2.5 h-auto py-[7px]">
           Fechar
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -662,18 +641,18 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-        {onRollAttack && <button onClick={onRollAttack} style={{ ...quickBtnStyle('blood'), textAlign: 'center' }}>⚔ Atacar</button>}
-        {onRollDamage && <button onClick={onRollDamage} style={{ ...quickBtnStyle('mist'), textAlign: 'center' }}>Dano</button>}
-        {onRollParry && <button onClick={onRollParry} style={{ ...quickBtnStyle('mist'), textAlign: 'center' }}>Aparar</button>}
-        {onOpen && <button onClick={onOpen} style={{ ...quickBtnStyle('dark'), textAlign: 'center' }}>📖 Ler</button>}
-        {onConsume && <button onClick={onConsume} style={{ ...quickBtnStyle('green'), textAlign: 'center' }}>Consumir</button>}
+        {onRollAttack && <Button onClick={onRollAttack} variant={BTN_VARIANT_MAP.blood} className="justify-center">⚔ Atacar</Button>}
+        {onRollDamage && <Button onClick={onRollDamage} variant={BTN_VARIANT_MAP.mist} className="justify-center">Dano</Button>}
+        {onRollParry && <Button onClick={onRollParry} variant={BTN_VARIANT_MAP.mist} className="justify-center">Aparar</Button>}
+        {onOpen && <Button onClick={onOpen} variant={BTN_VARIANT_MAP.dark} className="justify-center">📖 Ler</Button>}
+        {onConsume && <Button onClick={onConsume} variant={BTN_VARIANT_MAP.green} className="justify-center">Consumir</Button>}
         {onEquipToggle && (
-          <button onClick={onEquipToggle} style={{ ...quickBtnStyle(item.equipped ? 'amber' : 'dark'), textAlign: 'center' }}>
+          <Button onClick={onEquipToggle} variant={BTN_VARIANT_MAP[item.equipped ? 'amber' : 'dark']} className="justify-center">
             {item.equipped ? 'Desequipar' : 'Equipar'}
-          </button>
+          </Button>
         )}
-        <button onClick={onEdit} style={{ ...quickBtnStyle('dark'), textAlign: 'center' }}>✎ Editar</button>
-        <button onClick={onRemove} style={{ ...quickBtnStyle('danger'), textAlign: 'center' }}>✕ Remover</button>
+        <Button onClick={onEdit} variant={BTN_VARIANT_MAP.dark} className="justify-center">✎ Editar</Button>
+        <Button onClick={onRemove} variant={BTN_VARIANT_MAP.danger} className="justify-center">✕ Remover</Button>
       </div>
     </div>
   )
@@ -684,34 +663,32 @@ function ItemFormFields({ form, onChange }: {
   onChange: (f: Partial<InventoryItem>) => void
 }) {
   const set = (patch: Partial<InventoryItem>) => onChange({ ...form, ...patch })
-  const inp = inputStyle()
-
   return (
     <>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
         <div>
           <FieldLabel>Nome</FieldLabel>
-          <input type="text" value={form.name ?? ''} onChange={e => set({ name: e.target.value })} placeholder="ex.: Espada Curta" style={inp} />
+          <Input type="text" value={form.name ?? ''} onChange={e => set({ name: e.target.value })} placeholder="ex.: Espada Curta" className={INPUT_CLASS} />
         </div>
         <div>
           <FieldLabel>Tipo</FieldLabel>
-          <select value={form.type ?? 'gear'} onChange={e => set({ type: e.target.value as ItemType })} style={inp}>
-            <option value="gear">Equipamento</option>
-            <option value="weapon">Arma</option>
-            <option value="armor">Armadura</option>
-            <option value="shield">Escudo</option>
-            <option value="treasure">Tesouro</option>
-            <option value="document">Documento</option>
-          </select>
+          <NativeSelect value={form.type ?? 'gear'} onChange={e => set({ type: e.target.value as ItemType })} aria-label="Tipo" className={INPUT_CLASS}>
+            <NativeSelectOption value="gear">Equipamento</NativeSelectOption>
+            <NativeSelectOption value="weapon">Arma</NativeSelectOption>
+            <NativeSelectOption value="armor">Armadura</NativeSelectOption>
+            <NativeSelectOption value="shield">Escudo</NativeSelectOption>
+            <NativeSelectOption value="treasure">Tesouro</NativeSelectOption>
+            <NativeSelectOption value="document">Documento</NativeSelectOption>
+          </NativeSelect>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           <div>
             <FieldLabel>Slots</FieldLabel>
-            <input type="number" value={form.slots ?? 1} min={0} onChange={e => set({ slots: parseInt(e.target.value) || 0 })} style={inp} />
+            <Input type="number" value={form.slots ?? 1} min={0} onChange={e => set({ slots: parseInt(e.target.value) || 0 })} className={INPUT_CLASS} />
           </div>
           <div>
             <FieldLabel>Qtd</FieldLabel>
-            <input type="number" value={form.quantity ?? 1} min={1} onChange={e => set({ quantity: parseInt(e.target.value) || 1 })} style={inp} />
+            <Input type="number" value={form.quantity ?? 1} min={1} onChange={e => set({ quantity: parseInt(e.target.value) || 1 })} className={INPUT_CLASS} />
           </div>
         </div>
       </div>
@@ -720,18 +697,18 @@ function ItemFormFields({ form, onChange }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           <div>
             <FieldLabel>Tipo de Arma</FieldLabel>
-            <select value={form.weaponKind ?? 'melee'} onChange={e => set({ weaponKind: e.target.value as any })} style={inp}>
-              <option value="melee">Corpo-a-Corpo</option>
-              <option value="ranged">À Distância</option>
-            </select>
+            <NativeSelect value={form.weaponKind ?? 'melee'} onChange={e => set({ weaponKind: e.target.value as WeaponKind })} aria-label="Tipo de arma" className={INPUT_CLASS}>
+              <NativeSelectOption value="melee">Corpo-a-Corpo</NativeSelectOption>
+              <NativeSelectOption value="ranged">À Distância</NativeSelectOption>
+            </NativeSelect>
           </div>
           <div>
             <FieldLabel>Bônus Ataque</FieldLabel>
-            <input type="number" value={form.attackBonus ?? 0} onChange={e => set({ attackBonus: parseInt(e.target.value) || 0 })} style={inp} />
+            <Input type="number" value={form.attackBonus ?? 0} onChange={e => set({ attackBonus: parseInt(e.target.value) || 0 })} className={INPUT_CLASS} />
           </div>
           <div>
             <FieldLabel>Dano</FieldLabel>
-            <input type="text" value={form.damageDie ?? ''} placeholder="ex.: 1d8" onChange={e => set({ damageDie: e.target.value })} style={inp} />
+            <Input type="text" value={form.damageDie ?? ''} placeholder="ex.: 1d8" onChange={e => set({ damageDie: e.target.value })} className={INPUT_CLASS} />
           </div>
         </div>
       )}
@@ -740,11 +717,11 @@ function ItemFormFields({ form, onChange }: {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8 }}>
           <div>
             <FieldLabel>{form.type === 'shield' ? 'Bônus CA (+)' : 'CA Base'}</FieldLabel>
-            <input type="number" value={form.acBonus ?? 0} onChange={e => set({ acBonus: parseInt(e.target.value) || 0 })} style={inp} />
+            <Input type="number" value={form.acBonus ?? 0} onChange={e => set({ acBonus: parseInt(e.target.value) || 0 })} className={INPUT_CLASS} />
           </div>
           <div>
             <FieldLabel>Descrição</FieldLabel>
-            <input type="text" value={form.description ?? ''} placeholder="Propriedades..." onChange={e => set({ description: e.target.value })} style={inp} />
+            <Input type="text" value={form.description ?? ''} placeholder="Propriedades..." onChange={e => set({ description: e.target.value })} className={INPUT_CLASS} />
           </div>
         </div>
       )}
@@ -754,16 +731,16 @@ function ItemFormFields({ form, onChange }: {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <FieldLabel>Custo</FieldLabel>
-              <input type="text" value={form.cost ?? ''} placeholder="ex.: 10 PO" onChange={e => set({ cost: e.target.value })} style={inp} />
+              <Input type="text" value={form.cost ?? ''} placeholder="ex.: 10 PO" onChange={e => set({ cost: e.target.value })} className={INPUT_CLASS} />
             </div>
             <div>
               <FieldLabel>Alcance</FieldLabel>
-              <input type="text" value={form.range ?? ''} placeholder="ex.: 30m" onChange={e => set({ range: e.target.value })} style={inp} />
+              <Input type="text" value={form.range ?? ''} placeholder="ex.: 30m" onChange={e => set({ range: e.target.value })} className={INPUT_CLASS} />
             </div>
           </div>
           <div>
             <FieldLabel>Descrição / Propriedades</FieldLabel>
-            <input type="text" value={form.description ?? ''} placeholder="Propriedades especiais..." onChange={e => set({ description: e.target.value })} style={inp} />
+            <Input type="text" value={form.description ?? ''} placeholder="Propriedades especiais..." onChange={e => set({ description: e.target.value })} className={INPUT_CLASS} />
           </div>
         </>
       )}
@@ -817,12 +794,12 @@ function AddItemForm({ onAdd, onCancel, initialForm }: {
     >
       <ItemFormFields form={form} onChange={setForm} />
       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-        <button onClick={submit} disabled={!form.name?.trim()} style={{ ...quickBtnStyle('blood'), flex: 1, padding: '6px 0' }}>
+        <Button onClick={submit} disabled={!form.name?.trim()} variant={BTN_VARIANT_MAP.blood} className="flex-1 h-auto py-1.5">
           Adicionar
-        </button>
-        <button onClick={onCancel} style={{ ...quickBtnStyle('dark'), flex: 1, padding: '6px 0' }}>
+        </Button>
+        <Button onClick={onCancel} variant={BTN_VARIANT_MAP.dark} className="flex-1 h-auto py-1.5">
           Cancelar
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -848,12 +825,12 @@ function EditItemForm({ item, onSave, onCancel }: {
     >
       <ItemFormFields form={form} onChange={setForm} />
       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-        <button onClick={() => onSave(form)} style={{ ...quickBtnStyle('blood'), flex: 1, padding: '6px 0' }}>
+        <Button onClick={() => onSave(form)} variant={BTN_VARIANT_MAP.blood} className="flex-1 h-auto py-1.5">
           Salvar
-        </button>
-        <button onClick={onCancel} style={{ ...quickBtnStyle('dark'), flex: 1, padding: '6px 0' }}>
+        </Button>
+        <Button onClick={onCancel} variant={BTN_VARIANT_MAP.dark} className="flex-1 h-auto py-1.5">
           Cancelar
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -1070,29 +1047,28 @@ export function InventoryView({
 
             {item.type === 'weapon' && (
               <div style={{ display: 'flex', gap: 4 }}>
-                <button onClick={() => rollAttack(item)} style={combatPillStyle('blood')}>Atk</button>
-                {item.damageDie && <button onClick={() => rollDamage(item)} style={combatPillStyle('mist')}>Dmg</button>}
+                <Button onClick={() => rollAttack(item)} variant="outline" className={combatPill('blood')}>Atk</Button>
+                {item.damageDie && <Button onClick={() => rollDamage(item)} variant="outline" className={combatPill('mist')}>Dmg</Button>}
               </div>
             )}
 
             {item.type === 'shield' && onRoll && (
               <div style={{ display: 'flex', gap: 4 }}>
-                <button onClick={() => rollParry(item)} style={combatPillStyle('mist')}>Aparar</button>
+                <Button onClick={() => rollParry(item)} variant="outline" className={combatPill('mist')}>Aparar</Button>
               </div>
             )}
 
             {item.isLight && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <button
+                <Button
                   onClick={() => {
                     const igniting = !item.isLit
                     updateItem(item.id, { isLit: igniting })
                     if (igniting) sendToDiscord({ type: 'torch_lit', player: playerName, minutesLeft: item.lightMinutesLeft ?? item.lightMaxMinutes ?? 60 })
                   }}
-                  style={combatPillStyle(item.isLit ? 'amber' : 'dark')}
-                >
+                  variant="outline" className={combatPill(item.isLit ? 'amber' : 'dark')}>
                   {item.isLit ? 'Apagar' : 'Acender'}
-                </button>
+                </Button>
                 {item.lightMinutesLeft != null && (
                   <span style={{
                     fontFamily: 'var(--font-mono)',
@@ -1172,8 +1148,8 @@ export function InventoryView({
               </span>
             </span>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <button onClick={() => setAddingForm({})} className="tactile" style={buttonStyle('dark')}>Criar</button>
-              <button onClick={() => setShowCatalog(true)} className="tactile" style={buttonStyle('hollow')}>Adicionar</button>
+              <Button onClick={() => setAddingForm({})} variant="secondary" className="tactile">Criar</Button>
+              <Button onClick={() => setShowCatalog(true)} variant="hollow" className="tactile">Adicionar</Button>
             </div>
           </div>
 
@@ -1360,9 +1336,9 @@ export function InventoryView({
                 </button>
               ))
             )}
-            <button onClick={() => setSelectingSlot(null)} style={{ ...quickBtnStyle('dark'), marginTop: 12, width: '100%' }}>
+            <Button onClick={() => setSelectingSlot(null)} variant={BTN_VARIANT_MAP.dark} className="w-full mt-3">
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -1418,9 +1394,9 @@ export function InventoryView({
                 </button>
               ))}
 
-            <button onClick={() => setReplaceFor(null)} style={{ ...quickBtnStyle('dark'), marginTop: 12, width: '100%' }}>
+            <Button onClick={() => setReplaceFor(null)} variant={BTN_VARIANT_MAP.dark} className="w-full mt-3">
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       )}
