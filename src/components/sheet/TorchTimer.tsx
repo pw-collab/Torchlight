@@ -63,7 +63,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
           <Button
             onClick={lightTorch}
             variant="outline"
-            className="text-foreground w-full border-[var(--primary)] bg-[var(--primary)] text-[9.5px] tracking-[0.14em] transition-all duration-[350ms] hover:bg-[var(--primary)]"
+            className="text-foreground w-full border-[var(--primary)] bg-[var(--primary)]/15 text-[9.5px] tracking-[0.14em] transition-all duration-[350ms] hover:bg-[var(--primary)]"
           >
             Acender Tocha
           </Button>

@@ -59,7 +59,7 @@ function LoginContent() {
       {error && (
         <Alert
           variant="destructive"
-          className="worn-border animate-ink-spread mb-5 w-full max-w-[360px] border-[var(--destructive)] bg-[var(--destructive)] px-5 py-2.5 text-center"
+          className="worn-border animate-ink-spread mb-5 w-full max-w-[360px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-5 py-2.5 text-center"
         >
           <AlertDescription className="text-[12px] leading-relaxed text-[var(--blood-bright)] italic">
             {ERROR_MESSAGES[error] ?? 'Erro desconhecido. Tentai novamente.'}

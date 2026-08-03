@@ -204,7 +204,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
           <Button
             variant="outline"
             onClick={addArea}
-            className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3 py-2 text-[9px] tracking-[0.1em] text-[var(--parchment-light)]"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)]/15 px-3 py-2 text-[9px] tracking-[0.1em] text-[var(--parchment-light)]"
           >
             + Add
           </Button>

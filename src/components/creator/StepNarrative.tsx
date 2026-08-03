@@ -144,7 +144,7 @@ export function StepNarrative({
                 <Button
                   variant="outline"
                   onClick={() => addRelItem(key)}
-                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
+                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)]/15 px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
                 >
                   + Add
                 </Button>

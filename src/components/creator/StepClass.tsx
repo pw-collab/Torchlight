@@ -76,8 +76,8 @@ export function StepClass({ classId, onChange }: Props) {
                     className={cn(
                       'size-2 shrink-0 rounded-full border transition-all duration-200',
                       active
-                        ? 'border-[var(--candle-amber)] bg-[var(--candle-amber)] shadow-[var(--glow-candle)]'
-                        : 'border-[var(--border)] bg-[var(--border)]',
+                        ? 'border-[var(--candle-amber)] bg-[var(--candle-amber)]/15 shadow-[var(--glow-candle)]'
+                        : 'border-[var(--border)] bg-[var(--border)]/15',
                     )}
                   />
                   <span

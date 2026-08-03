@@ -141,9 +141,9 @@ function isLightSource(name: string): boolean {
 
 /** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
 const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
-  blood: 'border-[var(--destructive)] bg-[var(--destructive)]',
+  blood: 'border-[var(--destructive)] bg-[var(--destructive)]/15',
   mist:  'border-[var(--chart-4)] bg-[var(--muted)]',
-  amber: 'border-[var(--primary)] bg-[var(--primary)]',
+  amber: 'border-[var(--primary)] bg-[var(--primary)]/15',
   dark:  'border-[var(--border)] bg-[var(--card)]',
 }
 

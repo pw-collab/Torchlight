@@ -206,7 +206,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
             <Button
               onClick={handleSave}
               variant="outline"
-              className="text-foreground flex-1 border-[var(--chart-2)] bg-[var(--chart-2)] text-[9px] tracking-[0.12em]"
+              className="text-foreground flex-1 border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[9px] tracking-[0.12em]"
             >
               Salvar
             </Button>

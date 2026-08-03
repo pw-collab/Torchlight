@@ -348,7 +348,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <Button
                 variant="outline"
                 onClick={rollAndAdd}
-                className="text-foreground h-auto rounded-[1px] border-[var(--primary)] bg-[var(--primary)] px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
+                className="text-foreground h-auto rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
               >
                 ✦ Rolar 2d6
               </Button>
@@ -649,8 +649,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               className={cn(
                 'h-auto rounded-[1px] px-3 text-[7.5px] tracking-[0.1em] transition-all duration-200',
                 langInput.trim()
-                  ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
-                  : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
+                  ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15'
+                  : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15',
               )}
             >
               ✦ Adicionar
@@ -667,8 +667,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             className={cn(
               'h-auto flex-[2] rounded-[1px] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300',
               valid
-                ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
-                : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
+                ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15'
+                : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15',
               saving && 'opacity-60',
             )}
           >

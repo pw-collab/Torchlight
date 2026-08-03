@@ -72,8 +72,8 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[var(--destructive)] bg-[var(--destructive)]'
-            : 'border-[var(--destructive)] bg-[var(--destructive)] text-[var(--blood-bright)]',
+            ? 'text-muted-foreground cursor-wait border-[var(--destructive)] bg-[var(--destructive)]/15'
+            : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--blood-bright)]',
         )}
       >
         {rolling ? '⟳ Rolando...' : hpMax > 0 ? '⟳ Rolar novamente' : '✦ Rolar HP Inicial'}
@@ -103,7 +103,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
       )}
 
       {!editMode && hpMax > 0 && rawRoll !== null && (
-        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--destructive)] bg-[var(--destructive)] px-4 py-6">
+        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--destructive)] bg-[var(--destructive)]/15 px-4 py-6">
           <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase">
             HP Máximo
           </span>

@@ -107,8 +107,8 @@ function AddRow({
         className={cn(
           'h-auto rounded-[1px] px-2.5 text-[7.5px] tracking-[0.1em] transition-all duration-200',
           active
-            ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
-            : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
+            ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15'
+            : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15',
         )}
       >
         ✦ Adicionar

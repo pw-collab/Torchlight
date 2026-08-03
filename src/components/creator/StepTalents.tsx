@@ -72,7 +72,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
             onClick={rollAndAdd}
             variant="outline"
             size="sm"
-            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
+            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
           >
             ✦ Rolar 2d6 — {classData.name}
           </Button>
@@ -104,7 +104,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                         ? 'bg-[var(--primary)]'
                         : i % 2 === 0
                           ? 'bg-[var(--card)]'
-                          : 'bg-[var(--card)]',
+                          : 'bg-transparent',
                     )}
                   >
                     <TableCell
@@ -178,7 +178,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
               >
                 <Badge
                   variant="outline"
-                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)] px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
+                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
                 >
                   Classe
                 </Badge>

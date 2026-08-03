@@ -64,7 +64,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               title="Excluir ficha"
               aria-label="Excluir ficha"
               variant="outline"
-              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)] px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
+              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
             >
               ✕
             </Button>

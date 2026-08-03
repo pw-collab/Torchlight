@@ -54,7 +54,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[var(--border)] bg-[var(--border)]'
+            ? 'text-muted-foreground cursor-wait border-[var(--border)] bg-[var(--border)]/15'
             : 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_12px_var(--primary)]',
         )}
       >
@@ -108,7 +108,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
       )}
 
       {eligible && (
-        <Alert className="rounded-[1px] border-[var(--primary)] bg-[var(--primary)] px-3 py-2">
+        <Alert className="rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-2">
           <AlertDescription className="text-center text-[11px] text-[var(--candle-amber)] italic">
             Nenhum atributo excede 14 — o destino permite um novo lançamento.
           </AlertDescription>

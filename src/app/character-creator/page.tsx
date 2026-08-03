@@ -593,7 +593,7 @@ export default function CharacterCreatorPage() {
               'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.14em] transition-all duration-200',
               canNext()
                 ? 'border-[var(--primary)] bg-[linear-gradient(180deg,var(--candle-glow),var(--candle-amber))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--primary),transparent_65%)]'
-                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]',
+                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]/15',
             )}
           >
             Próximo →
@@ -606,7 +606,7 @@ export default function CharacterCreatorPage() {
             className={cn(
               'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.16em] transition-all duration-200',
               saving
-                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]'
+                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]/15'
                 : 'border-[var(--chart-2)] bg-[linear-gradient(180deg,var(--verdigris-bright),var(--verdigris))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--chart-2),transparent_65%)]',
             )}
           >

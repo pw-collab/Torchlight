@@ -391,7 +391,7 @@ export function CharacterEditWizard({ character }: Props) {
               stepIdx === 0 ? 'flex-1' : 'flex-[2]',
               canNext() && !stepSaving
                 ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_10px_color-mix(in_oklch,var(--primary),transparent_75%)]'
-                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]',
+                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]/15',
             )}
           >
             {stepSaving ? '⟳ Salvando...' : 'Próximo →'}
@@ -405,8 +405,8 @@ export function CharacterEditWizard({ character }: Props) {
             className={cn(
               'h-auto flex-[2] rounded-sm px-4 py-3.5 text-[9px] tracking-[0.2em] transition-all duration-200',
               saving
-                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]'
-                : 'border-[var(--chart-2)] bg-[var(--chart-2)] text-[var(--verdigris-light)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
+                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]/15'
+                : 'border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--verdigris-light)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
             )}
           >
             {saving ? '⟳ Salvando...' : '✦ Selar Alterações'}

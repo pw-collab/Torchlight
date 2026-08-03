@@ -51,7 +51,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       'font-mono h-auto shrink-0 rounded-sm border px-2.5 py-[3px] text-[9px] font-bold',
       'tracking-normal normal-case transition-all duration-[180ms]',
       active
-        ? 'border-[var(--chart-4)] bg-[var(--chart-4)] text-[var(--parchment-light)]'
+        ? 'border-[var(--chart-4)] bg-[var(--chart-4)]/15 text-[var(--parchment-light)]'
         : 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--muted-foreground)]',
     )
 
@@ -149,7 +149,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 fontSize: 8,
                 fontWeight: 700,
                 color: 'var(--chart-4)',
-                background: 'var(--chart-4)',
+                background: 'color-mix(in oklch, var(--chart-4), transparent 85%)',
                 border: '1px solid var(--chart-4)',
                 padding: '1px 5px',
                 borderRadius: 1,
@@ -300,7 +300,7 @@ function SpellCard({
                 )}
                 {isFailed && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--primary)', background: 'var(--primary)', border: '1px solid var(--primary)', padding: '2px 7px', letterSpacing: '0.1em' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--primary)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid var(--primary)', padding: '2px 7px', letterSpacing: '0.1em' }}>
                       FALHOU
                     </span>
                     <Button

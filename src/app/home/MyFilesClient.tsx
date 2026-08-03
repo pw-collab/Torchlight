@@ -107,7 +107,9 @@ function CharacterCard({
               fontSize: 7,
               letterSpacing: '0.1em',
               color: char.isOwnCharacter ? 'var(--verdigris-light)' : 'var(--candle-amber)',
-              background: char.isOwnCharacter ? 'var(--chart-2)' : 'var(--border)',
+              background: char.isOwnCharacter
+                ? 'color-mix(in oklch, var(--chart-2), transparent 85%)'
+                : 'color-mix(in oklch, var(--muted-foreground), transparent 88%)',
               border: `1px solid ${char.isOwnCharacter ? 'var(--chart-2)' : 'var(--border)'}`,
               padding: '2px 6px',
               borderRadius: 1,
@@ -368,7 +370,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                 <Button
                   variant="outline"
                   onClick={() => router.push('/character-creator')}
-                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)] px-4.5 text-[13px] tracking-normal text-[var(--blood-bright)] normal-case italic transition-all duration-200 hover:border-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-[var(--primary)]"
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-4.5 text-[13px] tracking-normal text-[var(--blood-bright)] normal-case italic transition-all duration-200 hover:border-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-[var(--primary)]"
                 >
                   + Criar Personagem
                 </Button>

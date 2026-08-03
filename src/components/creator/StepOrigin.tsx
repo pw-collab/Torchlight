@@ -255,7 +255,7 @@ export function StepOrigin({
                   <Button
                     variant="outline"
                     onClick={addFreeLang}
-                    className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+                    className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)]/15 px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
                   >
                     + Adicionar
                   </Button>
