@@ -158,6 +158,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     await updateCharacter({ xp } as Partial<CharacterRow>)
   }
 
+  // Throws so AvatarUpload keeps the error visible instead of showing a
+  // portrait that was never written to the row.
+  async function handleAvatarUpload(url: string) {
+    const saved = await updateCharacter({ portrait_url: url } as Partial<CharacterRow>)
+    if (!saved) throw new Error('character row update failed')
+  }
+
   const tabItems = (Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))
 
   const vitals = (
@@ -176,7 +183,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       onXpUpdate={handleXpUpdate}
       className={cls?.name ?? character.classId}
       ancestryName={ancestry?.name ?? character.ancestryId}
-      onAvatarUpload={url => updateCharacter({ portrait_url: url } as Partial<CharacterRow>)}
+      onAvatarUpload={handleAvatarUpload}
       editHref={`/sheet/${characterId}/edit`}
       stats={character.stats}
       onRoll={handleRoll}

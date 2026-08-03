@@ -1,9 +1,11 @@
 -- Create avatars storage bucket (public reads, authenticated writes)
 -- Run in Supabase SQL editor or via the dashboard bucket setup.
 
--- NOTE: The bucket itself must be created via the Supabase dashboard:
+-- NOTE: This migration originally required creating the bucket by hand:
 --   Storage → New bucket → Name: "avatars" → Public: true
--- The policies below handle per-character write access.
+-- Superseded by 010_avatar_bucket.sql, which creates the bucket in SQL and
+-- re-declares the policies below idempotently. Run 010 on any project where
+-- portrait uploads fail with "Bucket not found".
 
 -- Allow anyone to read avatar images (public bucket)
 CREATE POLICY "avatars_public_read"

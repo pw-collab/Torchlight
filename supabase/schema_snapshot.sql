@@ -190,3 +190,60 @@ CREATE POLICY characters_update_gm_session ON characters
 
 -- Realtime (GM panel)
 ALTER PUBLICATION supabase_realtime ADD TABLE characters;
+
+-- ---------------------------------------------------------------------------
+-- Storage — character portraits (avatars/{character_id}/portrait.jpg)
+-- ---------------------------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('avatars', 'avatars', true, 5 * 1024 * 1024)
+ON CONFLICT (id) DO UPDATE
+  SET public          = EXCLUDED.public,
+      file_size_limit = EXCLUDED.file_size_limit;
+
+CREATE POLICY "avatars_public_read"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'avatars');
+
+-- Owner (or GM) may write the portrait for a character they own. upsert:true
+-- routes through UPDATE once the object exists, so both policies are needed.
+CREATE POLICY "avatars_owner_upsert"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND (
+      EXISTS (
+        SELECT 1 FROM public.characters
+        WHERE id::text = (storage.foldername(name))[1]
+          AND user_id = public.auth_discord_id()
+      )
+      OR public.is_gm()
+    )
+  );
+
+CREATE POLICY "avatars_owner_update"
+  ON storage.objects FOR UPDATE TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (
+      EXISTS (
+        SELECT 1 FROM public.characters
+        WHERE id::text = (storage.foldername(name))[1]
+          AND user_id = public.auth_discord_id()
+      )
+      OR public.is_gm()
+    )
+  );
+
+CREATE POLICY "avatars_owner_delete"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND (
+      EXISTS (
+        SELECT 1 FROM public.characters
+        WHERE id::text = (storage.foldername(name))[1]
+          AND user_id = public.auth_discord_id()
+      )
+      OR public.is_gm()
+    )
+  );
