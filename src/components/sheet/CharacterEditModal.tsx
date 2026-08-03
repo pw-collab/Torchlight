@@ -8,6 +8,18 @@ import type { Talent } from '@/types/talent.types'
 import { rollClassTalent } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
 import { getDomain } from '@/data/domains/index'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import { cn } from '@/lib/utils'
 
 const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -51,18 +63,8 @@ function isValid(form: EditForm): boolean {
   )
 }
 
-const inp: React.CSSProperties = {
-  width: '100%',
-  background: 'var(--ink-deep)',
-  border: '1px solid rgba(139,112,48,0.28)',
-  color: 'var(--parchment-light)',
-  fontFamily: 'var(--font-body)',
-  fontSize: 11,
-  padding: '5px 7px',
-  outline: 'none',
-  borderRadius: 1,
-  boxSizing: 'border-box',
-}
+const INPUT_CLASS =
+  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -205,63 +207,29 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
   const valid = isValid(form)
 
   return (
-    <div
-      onClick={handleClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 110,
-        background: 'rgba(0,0,0,0.75)',
-        backdropFilter: 'blur(2px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        className="worn-border"
-        style={{
-          background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-          border: '1px solid rgba(139,112,48,0.42)',
-          borderTop: '2px solid #7A6030',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
-          minWidth: 460,
-          maxWidth: 560,
-          width: '100%',
-          maxHeight: '88vh',
-          overflowY: 'auto',
-          padding: '22px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 14,
-        }}
+    <Dialog open onOpenChange={open => { if (!open) handleClose() }}>
+      <DialogContent
+        showCloseButton={false}
+        className="worn-border flex max-h-[88vh] w-full max-w-[560px] min-w-[460px] flex-col gap-3.5 overflow-y-auto border-t-2 border-t-[#7A6030] bg-[#2E2210] px-6 py-5.5"
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 11,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'var(--parchment-light)',
-          }}>
+        <DialogHeader className="flex-row items-center justify-between border-b border-[rgba(139,112,48,0.22)] pb-3.5">
+          <DialogTitle className="font-heading text-[11px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
             ✦ Editar Personagem
-          </span>
-          <button
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Ajuste nome, nível, vitalidade, atributos, talentos e idiomas do personagem.
+          </DialogDescription>
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={handleClose}
-            style={{
-              background: 'none', border: 'none',
-              color: 'var(--bone-muted)', fontFamily: 'var(--font-heading)',
-              fontSize: 14, cursor: 'pointer', lineHeight: 1, padding: '0 4px',
-            }}
+            aria-label="Fechar"
+            className="text-muted-foreground text-sm leading-none hover:bg-transparent"
           >
             ✕
-          </button>
-        </div>
-
-        <div style={{ borderBottom: '1px solid rgba(139,112,48,0.22)' }} />
+          </Button>
+        </DialogHeader>
 
         {/* ── Identity ────────────────────────────────────────────────── */}
         <div>
@@ -269,22 +237,24 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
             <div>
               <FieldLabel>Nome</FieldLabel>
-              <input
+              <Input
                 type="text"
                 value={form.name}
                 onChange={e => set({ name: e.target.value })}
-                style={inp}
+                aria-label="Nome"
+                className={INPUT_CLASS}
                 maxLength={60}
               />
             </div>
             <div>
               <FieldLabel>Nível (1–10)</FieldLabel>
-              <input
+              <Input
                 type="number"
                 value={form.level}
                 min={1} max={10}
                 onChange={numField('level', 1, 10)}
-                style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
+                aria-label="Nível"
+                className={cn(INPUT_CLASS, '[-moz-appearance:textfield]')}
               />
             </div>
           </div>
@@ -295,12 +265,13 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
           <SectionDivider>⚔ Combate</SectionDivider>
           <div style={{ maxWidth: 180 }}>
             <FieldLabel>HP Máximo</FieldLabel>
-            <input
+            <Input
               type="number"
               value={form.hpMax}
               min={1} max={999}
               onChange={numField('hpMax', 1, 999)}
-              style={{ ...inp, MozAppearance: 'textfield' } as React.CSSProperties}
+              aria-label="HP máximo"
+              className={cn(INPUT_CLASS, '[-moz-appearance:textfield]')}
             />
             {form.hpMax < character.hpCurrent && (
               <div style={{
@@ -338,19 +309,13 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 }}>
                   {STAT_LABELS[key]}
                 </div>
-                <input
+                <Input
                   type="number"
                   value={form[key]}
                   min={1} max={20}
                   onChange={numField(key, 1, 20)}
-                  style={{
-                    width: '100%', background: 'var(--ink-deep)',
-                    border: '1px solid rgba(139,112,48,0.28)',
-                    color: 'var(--parchment-light)', fontFamily: 'var(--font-mono)',
-                    fontSize: 13, fontWeight: 700, padding: '3px 2px',
-                    outline: 'none', borderRadius: 1, textAlign: 'center',
-                    boxSizing: 'border-box', MozAppearance: 'textfield',
-                  } as React.CSSProperties}
+                  aria-label={STAT_LABELS[key]}
+                  className="font-mono h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-[13px] font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
                 />
                 <div style={{
                   fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 3,
@@ -373,38 +338,20 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
 
             {/* Roll row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
-              <button
+              <Button
+                variant="link"
                 onClick={() => setTableOpen(o => !o)}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontFamily: 'var(--font-heading)', fontSize: 7.5,
-                  letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: 'var(--bone-muted)', padding: 0,
-                }}
+                className="text-muted-foreground h-auto p-0 text-[7.5px] tracking-[0.12em] no-underline"
               >
                 {tableOpen ? '▲ ocultar tabela' : '▼ ver tabela'}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
                 onClick={rollAndAdd}
-                style={{
-                  background: 'rgba(106,58,10,0.3)',
-                  border: '1px solid #6B3A0A',
-                  color: 'var(--bone-white)',
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 8,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  padding: '5px 12px',
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  transition: 'all 220ms',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.55)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.3)')}
+                className="text-foreground h-auto rounded-[1px] border-[#6B3A0A] bg-[rgba(106,58,10,0.3)] px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[rgba(106,58,10,0.55)]"
               >
                 ✦ Rolar 2d6
-              </button>
+              </Button>
             </div>
 
             {/* Collapsible talent table */}
@@ -553,20 +500,16 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                           </div>
                         )}
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => removeClassTalent(talent.id)}
                         title="Remover talento"
-                        style={{
-                          background: 'none', border: 'none',
-                          cursor: 'pointer', color: 'rgba(139,21,21,0.45)',
-                          fontSize: 11, padding: '0 2px', lineHeight: 1,
-                          transition: 'color 180ms', flexShrink: 0,
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                        aria-label="Remover talento"
+                        className="h-auto w-auto shrink-0 px-0.5 text-[11px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[180ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
                       >
                         ✕
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -636,19 +579,16 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                   }}
                 >
                   {lang}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeLang(lang)}
                     title={`Remover ${lang}`}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      color: 'rgba(139,21,21,0.45)', fontSize: 10,
-                      padding: '0 1px', lineHeight: 1, transition: 'color 160ms',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+                    aria-label={`Remover ${lang}`}
+                    className="h-auto w-auto px-px text-[10px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
                   >
                     ✕
-                  </button>
+                  </Button>
                 </span>
               ))}
             </div>
@@ -676,30 +616,14 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {available.map(lang => (
-                    <button
+                    <Button
                       key={lang}
+                      variant="outline"
                       onClick={() => addLang(lang)}
-                      style={{
-                        background: 'rgba(42,34,16,0.3)',
-                        border: '1px solid rgba(139,112,48,0.2)',
-                        color: 'var(--bone-muted)',
-                        fontFamily: 'var(--font-body)', fontSize: 10,
-                        padding: '2px 8px', borderRadius: 2, cursor: 'pointer',
-                        transition: 'all 160ms',
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = 'rgba(106,58,10,0.3)'
-                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.5)'
-                        e.currentTarget.style.color = 'var(--candle-amber)'
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = 'rgba(42,34,16,0.3)'
-                        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
-                        e.currentTarget.style.color = 'var(--bone-muted)'
-                      }}
+                      className="font-sans text-muted-foreground h-auto rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.3)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:border-[rgba(139,112,48,0.5)] hover:bg-[rgba(106,58,10,0.3)] hover:text-[var(--candle-amber)]"
                     >
                       + {lang}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -708,72 +632,58 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
 
           {/* Free-text add */}
           <div style={{ display: 'flex', gap: 6 }}>
-            <input
+            <Input
               type="text"
               value={langInput}
               onChange={e => setLangInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLangFromInput() } }}
               placeholder="Outro idioma…"
+              aria-label="Outro idioma"
               maxLength={40}
-              style={{ flex: 1, ...inp }}
+              className={cn(INPUT_CLASS, 'flex-1')}
             />
-            <button
+            <Button
+              variant="outline"
               onClick={addLangFromInput}
               disabled={!langInput.trim()}
-              style={{
-                background: langInput.trim() ? 'rgba(42,80,69,0.3)' : 'rgba(42,80,69,0.12)',
-                border: `1px solid ${langInput.trim() ? '#2A5045' : 'rgba(42,80,69,0.2)'}`,
-                color: langInput.trim() ? 'var(--bone-white)' : 'var(--bone-muted)',
-                fontFamily: 'var(--font-heading)', fontSize: 7.5,
-                letterSpacing: '0.1em', textTransform: 'uppercase',
-                padding: '0 12px', cursor: langInput.trim() ? 'pointer' : 'not-allowed',
-                borderRadius: 1, transition: 'all 200ms', whiteSpace: 'nowrap',
-              }}
+              className={cn(
+                'h-auto rounded-[1px] px-3 text-[7.5px] tracking-[0.1em] transition-all duration-200',
+                langInput.trim()
+                  ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.3)]'
+                  : 'text-muted-foreground border-[rgba(42,80,69,0.2)] bg-[rgba(42,80,69,0.12)]',
+              )}
             >
               ✦ Adicionar
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* ── Actions ──────────────────────────────────────────────────── */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-          <button
+        <DialogFooter className="mt-1 flex-row gap-2 sm:justify-stretch">
+          <Button
+            variant="outline"
             onClick={handleSave}
             disabled={!valid || saving}
-            style={{
-              flex: 2,
-              background: valid ? 'rgba(42,80,69,0.35)' : 'rgba(42,80,69,0.15)',
-              border: `1px solid ${valid ? '#2A5045' : 'rgba(42,80,69,0.3)'}`,
-              color: valid ? 'var(--bone-white)' : 'var(--bone-muted)',
-              fontFamily: 'var(--font-heading)', fontSize: 9,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              padding: '9px 0',
-              cursor: valid && !saving ? 'pointer' : 'not-allowed',
-              borderRadius: 1, transition: 'all 300ms',
-              opacity: saving ? 0.6 : 1,
-            }}
+            className={cn(
+              'h-auto flex-[2] rounded-[1px] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300',
+              valid
+                ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.35)]'
+                : 'text-muted-foreground border-[rgba(42,80,69,0.3)] bg-[rgba(42,80,69,0.15)]',
+              saving && 'opacity-60',
+            )}
           >
-            {saving ? '...' : '✦ Salvar Alterações'}
-          </button>
-          <button
+            {saving ? <Spinner /> : '✦ Salvar Alterações'}
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleClose}
             disabled={saving}
-            style={{
-              flex: 1,
-              background: 'rgba(42,34,16,0.4)',
-              border: '1px solid rgba(139,112,48,0.3)',
-              color: 'var(--bone-muted)',
-              fontFamily: 'var(--font-heading)', fontSize: 9,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              padding: '9px 0',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              borderRadius: 1, transition: 'all 300ms',
-            }}
+            className="text-muted-foreground h-auto flex-1 rounded-[1px] border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300"
           >
             Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
