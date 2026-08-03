@@ -10,6 +10,8 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
 import type { CharacterRow } from '@/types/character.types'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export interface CharacterSummary {
   id: string
@@ -150,61 +152,34 @@ function CharacterCard({
             zIndex: 2,
           }}
         >
-          <button
+          <Button
             type="button"
+            variant="outline"
             title="Editar ficha"
+            aria-label="Editar ficha"
             onClick={onEdit}
-            className="tactile"
-            style={cardActionStyle}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = 'var(--parchment-light)'
-              e.currentTarget.style.borderColor = 'rgba(139,112,48,0.55)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = 'var(--bone-muted)'
-              e.currentTarget.style.borderColor = 'rgba(139,112,48,0.35)'
-            }}
+            className={cn(CARD_ACTION_CLASS, 'hover:border-[rgba(139,112,48,0.55)] hover:text-[var(--parchment-light)]')}
           >
             ✏
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             title="Excluir ficha"
+            aria-label="Excluir ficha"
             onClick={onDelete}
-            className="tactile"
-            style={{ ...cardActionStyle, color: 'var(--blood-bright)' }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'rgba(196,32,32,0.55)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'rgba(139,112,48,0.35)'
-            }}
+            className={cn(CARD_ACTION_CLASS, 'text-[var(--blood-bright)] hover:border-[rgba(196,32,32,0.55)]')}
           >
             ✕
-          </button>
+          </Button>
         </div>
       )}
     </div>
   )
 }
 
-const cardActionStyle: React.CSSProperties = {
-  background: 'rgba(13,10,5,0.92)',
-  border: '1px solid rgba(139,112,48,0.35)',
-  color: 'var(--bone-muted)',
-  fontFamily: 'var(--font-heading)',
-  fontSize: 13,
-  cursor: 'pointer',
-  borderRadius: 1,
-  padding: '10px 12px',
-  lineHeight: 1,
-  transition: 'all 200ms',
-  minHeight: 44,
-  minWidth: 44,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-}
+const CARD_ACTION_CLASS =
+  'tactile text-muted-foreground size-11 min-h-11 min-w-11 rounded-[1px] border-[rgba(139,112,48,0.35)] bg-[rgba(13,10,5,0.92)] text-[13px] leading-none transition-all duration-200'
 
 function CreateCard() {
   return (
@@ -381,66 +356,22 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
             </div>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
               {isGm && (
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/gm')}
-                  style={{
-                    background: 'rgba(42,34,16,0.4)',
-                    border: '1px solid rgba(139,112,48,0.3)',
-                    color: '#8B7030',
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 13,
-                    padding: '11px 16px',
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    transition: 'all 200ms',
-                    whiteSpace: 'nowrap',
-                    minHeight: 44,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.color = 'var(--candle-amber)'
-                    e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
-                    e.currentTarget.style.background = 'rgba(60,46,18,0.55)'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.color = '#8B7030'
-                    e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)'
-                    e.currentTarget.style.background = 'rgba(42,34,16,0.4)'
-                  }}
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] px-4 text-[13px] tracking-normal text-[#8B7030] normal-case italic transition-all duration-200 hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(60,46,18,0.55)] hover:text-[var(--candle-amber)]"
                 >
                   Painel do Mestre
-                </button>
+                </Button>
               )}
               {!isGm && (
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/character-creator')}
-                  style={{
-                    background: 'rgba(80,20,20,0.35)',
-                    border: '1px solid rgba(196,32,32,0.4)',
-                    color: 'var(--blood-bright)',
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 13,
-                    padding: '11px 18px',
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    transition: 'all 200ms',
-                    whiteSpace: 'nowrap',
-                    minHeight: 44,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(110,25,25,0.5)'
-                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.65)'
-                    e.currentTarget.style.color = '#E84040'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(80,20,20,0.35)'
-                    e.currentTarget.style.borderColor = 'rgba(196,32,32,0.4)'
-                    e.currentTarget.style.color = 'var(--blood-bright)'
-                  }}
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[rgba(196,32,32,0.4)] bg-[rgba(80,20,20,0.35)] px-4.5 text-[13px] tracking-normal text-[var(--blood-bright)] normal-case italic transition-all duration-200 hover:border-[rgba(196,32,32,0.65)] hover:bg-[rgba(110,25,25,0.5)] hover:text-[#E84040]"
                 >
                   + Criar Personagem
-                </button>
+                </Button>
               )}
             </div>
           </div>

@@ -19,6 +19,9 @@ import { getAncestry } from '@/data/ancestries/index'
 import type { Character, CharacterRow, KnowledgeArea } from '@/types/character.types'
 import type { Stat } from '@/types/class.types'
 import type { Talent } from '@/types/talent.types'
+import { Button } from '@/components/ui/button'
+import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 
 type StepId = 'ancestry' | 'class' | 'stats' | 'hp' | 'origin' | 'equipment' | 'talents' | 'spells' | 'narrative' | 'review'
 
@@ -198,52 +201,42 @@ export function CharacterEditWizard({ character }: Props) {
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 2, background: 'rgba(139,112,48,0.1)', borderRadius: 1, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
-            width: `${progress * 100}%`,
-            background: 'linear-gradient(90deg, #4A3520, var(--candle-amber))',
-            boxShadow: '0 0 8px rgba(196,120,42,0.4)',
-            transition: 'width 500ms cubic-bezier(0.4,0,0.2,1)',
-          }} />
-        </div>
+        <Progress
+          value={progress * 100}
+          className="gap-0"
+          aria-label={`Passo ${current.chapter} de ${totalSteps}`}
+        >
+          <ProgressTrack className="h-0.5 rounded-[1px] bg-[rgba(139,112,48,0.1)]">
+            <ProgressIndicator className="bg-[linear-gradient(90deg,#4A3520,var(--candle-amber))] shadow-[0_0_8px_rgba(196,120,42,0.4)] transition-[width] duration-500 ease-[var(--ease-ritual)]" />
+          </ProgressTrack>
+        </Progress>
 
         {/* Step dots — all clickable */}
         <div style={{ display: 'flex', gap: 2, marginTop: 9, justifyContent: 'center', alignItems: 'center' }}>
           {steps.map((s, i) => (
-            <button
+            <Button
               key={s.id}
+              variant="ghost"
               onClick={() => goTo(i)}
               disabled={dotBusy}
               title={s.title}
-              style={{
-                /* Invisible hit area wrapping the visible pip */
-                width: 24,
-                height: 28,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'none',
-                border: 'none',
-                cursor: dotBusy ? 'wait' : 'pointer',
-                padding: 0,
-                flexShrink: 0,
-                opacity: dotBusy ? 0.5 : 1,
-                WebkitTapHighlightColor: 'transparent',
-              }}
+              aria-label={s.title}
+              aria-current={i === stepIdx ? 'step' : undefined}
+              /* Invisible hit area wrapping the visible pip */
+              className={cn(
+                'h-7 w-6 shrink-0 p-0 hover:bg-transparent',
+                dotBusy ? 'cursor-wait opacity-50' : 'cursor-pointer',
+              )}
             >
-              <span style={{
-                display: 'block',
-                width: i === stepIdx ? 20 : 8,
-                height: 8,
-                borderRadius: 4,
-                background: i === stepIdx
-                  ? 'var(--candle-amber)'
-                  : 'var(--gold-oxidized)',
-                transition: 'all 300ms cubic-bezier(0.4,0,0.2,1)',
-                boxShadow: i === stepIdx ? '0 0 8px rgba(196,120,42,0.5)' : 'none',
-              }} />
-            </button>
+              <span
+                className={cn(
+                  'block h-2 rounded-[4px] transition-all duration-300 ease-[var(--ease-ritual)]',
+                  i === stepIdx
+                    ? 'w-5 bg-[var(--candle-amber)] shadow-[0_0_8px_rgba(196,120,42,0.5)]'
+                    : 'w-2 bg-[var(--gold-oxidized)]',
+                )}
+              />
+            </Button>
           ))}
         </div>
       </div>
@@ -374,83 +367,50 @@ export function CharacterEditWizard({ character }: Props) {
       {/* Navigation */}
       <div style={{ width: '100%', maxWidth: 640, display: 'flex', gap: 10, marginTop: 28 }}>
         {stepIdx > 0 && (
-          <button
+          <Button
+            variant="outline"
             onClick={prev}
             disabled={stepSaving}
-            style={{
-              flex: 1,
-              background: 'none',
-              border: '1px solid rgba(139,112,48,0.25)',
-              borderRadius: 2,
-              padding: '13px 16px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: 'var(--bone-muted)',
-              cursor: stepSaving ? 'wait' : 'pointer',
-              transition: 'all 200ms',
-              opacity: stepSaving ? 0.5 : 1,
-            }}
-            onMouseEnter={e => {
-              if (!stepSaving) {
-                e.currentTarget.style.borderColor = 'rgba(139,112,48,0.4)'
-                e.currentTarget.style.color = 'var(--parchment-light)'
-              }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'rgba(139,112,48,0.25)'
-              e.currentTarget.style.color = 'var(--bone-muted)'
-            }}
+            className={cn(
+              'text-muted-foreground h-auto flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-transparent',
+              'px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
+              'hover:border-[rgba(139,112,48,0.4)] hover:text-[var(--parchment-light)]',
+              stepSaving && 'cursor-wait opacity-50',
+            )}
           >
             ← Anterior
-          </button>
+          </Button>
         )}
         {!isLast && (
-          <button
+          <Button
+            variant="outline"
             onClick={next}
             disabled={!canNext() || stepSaving}
-            style={{
-              flex: stepIdx === 0 ? 1 : 2,
-              background: canNext() && !stepSaving ? 'rgba(139,112,48,0.16)' : 'rgba(139,112,48,0.05)',
-              border: `1px solid ${canNext() && !stepSaving ? 'rgba(196,120,42,0.45)' : 'rgba(139,112,48,0.12)'}`,
-              borderRadius: 2,
-              padding: '13px 16px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: canNext() && !stepSaving ? 'var(--parchment-light)' : 'var(--bone-muted)',
-              cursor: canNext() && !stepSaving ? 'pointer' : 'not-allowed',
-              transition: 'all 200ms',
-              boxShadow: canNext() && !stepSaving ? '0 0 10px rgba(196,120,42,0.08)' : 'none',
-            }}
+            className={cn(
+              'h-auto rounded-sm px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
+              stepIdx === 0 ? 'flex-1' : 'flex-[2]',
+              canNext() && !stepSaving
+                ? 'border-[rgba(196,120,42,0.45)] bg-[rgba(139,112,48,0.16)] text-[var(--parchment-light)] shadow-[0_0_10px_rgba(196,120,42,0.08)]'
+                : 'text-muted-foreground cursor-not-allowed border-[rgba(139,112,48,0.12)] bg-[rgba(139,112,48,0.05)]',
+            )}
           >
             {stepSaving ? '⟳ Salvando...' : 'Próximo →'}
-          </button>
+          </Button>
         )}
         {isLast && (
-          <button
+          <Button
+            variant="outline"
             onClick={saveAll}
             disabled={saving}
-            style={{
-              flex: 2,
-              background: saving ? 'rgba(42,80,69,0.2)' : 'rgba(42,80,69,0.28)',
-              border: `1px solid ${saving ? 'rgba(61,112,96,0.25)' : 'rgba(61,112,96,0.55)'}`,
-              borderRadius: 2,
-              padding: '13px 16px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: saving ? 'var(--bone-muted)' : 'var(--verdigris-light)',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              transition: 'all 200ms',
-              boxShadow: saving ? 'none' : '0 0 12px rgba(61,112,96,0.15)',
-            }}
+            className={cn(
+              'h-auto flex-[2] rounded-sm px-4 py-3.5 text-[9px] tracking-[0.2em] transition-all duration-200',
+              saving
+                ? 'text-muted-foreground cursor-not-allowed border-[rgba(61,112,96,0.25)] bg-[rgba(42,80,69,0.2)]'
+                : 'border-[rgba(61,112,96,0.55)] bg-[rgba(42,80,69,0.28)] text-[var(--verdigris-light)] shadow-[0_0_12px_rgba(61,112,96,0.15)]',
+            )}
           >
             {saving ? '⟳ Salvando...' : '✦ Selar Alterações'}
-          </button>
+          </Button>
         )}
       </div>
 
