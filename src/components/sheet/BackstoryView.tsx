@@ -255,7 +255,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✦" style={{ marginBottom: 14 }}>Conhecimentos</SectionHeading>
+        <SectionHeading marker="✦" className="mb-3.5">Conhecimentos</SectionHeading>
 
         {/* Languages */}
         <div style={{ marginBottom: 18 }}>
@@ -351,7 +351,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✎" style={{ marginBottom: 14 }}>Histórico</SectionHeading>
+        <SectionHeading marker="✎" className="mb-3.5">Histórico</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['concept',         'Conceito',           concept,    setConcept,    3],
@@ -375,7 +375,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="◈" style={{ marginBottom: 14 }}>Relações e Conexões</SectionHeading>
+        <SectionHeading marker="◈" className="mb-3.5">Relações e Conexões</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
           <div>
@@ -413,7 +413,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="⚡" style={{ marginBottom: 14 }}>Impulsos</SectionHeading>
+        <SectionHeading marker="⚡" className="mb-3.5">Impulsos</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['secrets',    'Segredos',  secrets,    setSecrets],

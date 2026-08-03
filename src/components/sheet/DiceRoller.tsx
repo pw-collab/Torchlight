@@ -1,11 +1,23 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieGlyph } from '@/components/dice/DieGlyph'
 import { DICE_SPRING } from '@/lib/diceMotion'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 const SMALL_DICE = [4, 6, 8, 10, 12]
 type RollMode = 'normal' | 'advantage' | 'disadvantage'
@@ -22,6 +34,12 @@ const diceTap = {
   transition: DICE_SPRING.tap,
 }
 
+// Shared label treatment for the popover's form rows.
+const LABEL_CLASS =
+  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[rgba(200,184,144,0.55)] uppercase'
+const FIELD_CLASS =
+  'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
@@ -33,20 +51,6 @@ export function DiceRoller({ onRoll }: Props) {
   const [mod, setMod] = useState(0)
   const [dc,  setDc]  = useState(14)
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    function onOutside(e: MouseEvent | TouchEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onOutside)
-    document.addEventListener('touchstart', onOutside)
-    return () => {
-      document.removeEventListener('mousedown', onOutside)
-      document.removeEventListener('touchstart', onOutside)
-    }
-  }, [open])
 
   function roll(sides: number, mode: RollMode = 'normal') {
     const result = rollDie(`d${sides}`, `d${sides}`, undefined, mod, mode === 'advantage', mode === 'disadvantage')
@@ -61,159 +65,122 @@ export function DiceRoller({ onRoll }: Props) {
     { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: '#ff444c'  },
   ] as const
 
-  // Shared label style for popover form rows
-  const overlayLabel: React.CSSProperties = {
-    fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11,
-    letterSpacing: '0.16em', textTransform: 'uppercase',
-    color: 'rgba(200,184,144,0.55)', whiteSpace: 'nowrap',
-  }
-  const overlayInput: React.CSSProperties = {
-    background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)',
-    color: '#c8b890', fontFamily: 'var(--font-numeral)', fontSize: 16,
-    padding: '8px', outline: 'none', borderRadius: 0, textAlign: 'center',
-    boxSizing: 'border-box', minHeight: 44,
-  }
-
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'flex', alignItems: 'stretch' }}>
+    <Popover open={open} onOpenChange={setOpen}>
       {/* FAB — the last button in the bottom navigation bar */}
-      <motion.button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        title="Rolar dados"
-        aria-label="Abrir painel de dados"
-        aria-expanded={open}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.9 }}
-        transition={DICE_SPRING.tap}
-        style={{
-          width: 56,
-          height: 48,
-          minHeight: 48,
-          borderRadius: 0,
-          border: '1px solid #ff444c',
-          background: open ? '#ff444c' : '#0a0805',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'background 250ms',
-          WebkitTapHighlightColor: 'transparent',
-        }}
-      >
-        <DieGlyph className="animate-die-idle" sides={20} size={30} shapeColor={open ? '#0a0805' : '#ff444c'} numberColor={open ? '#ff444c' : '#0a0805'} />
-      </motion.button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Rolar dados"
-          className="animate-drop-in"
-          style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 12px)',
-            right: 0,
-            transformOrigin: 'bottom right',
-            width: 'min(320px, calc(100vw - 32px))',
-            maxHeight: 'calc(100dvh - 150px)',
-            overflowY: 'auto',
-            background: '#18140C',
-            border: '2px solid rgba(200,184,144,0.25)',
-            borderRadius: 0,
-            boxShadow: '0 -6px 32px rgba(0,0,0,0.85)',
-            padding: '14px 12px 16px',
-            display: 'flex', flexDirection: 'column', gap: 12,
-            zIndex: 70,
-          }}
-        >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c8b890' }}>
-              Rolar Dados
-            </span>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Fechar"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(200,184,144,0.6)', fontSize: 15, lineHeight: 1, padding: '4px 6px' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#c8b890')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(200,184,144,0.6)')}
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* d4–d12 grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
-            {SMALL_DICE.map(d => (
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            title="Rolar dados"
+            aria-label="Abrir painel de dados"
+            variant="hollow"
+            render={
               <motion.button
-                key={d}
-                type="button"
-                onClick={() => roll(d)}
-                {...diceTap}
-                title={`d${d}`}
-                aria-label={`Rolar d${d}`}
-                style={{
-                  background: '#0a0805', border: '1px solid #ff444c', borderRadius: 0,
-                  cursor: 'pointer', minWidth: 0, height: 54,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background 200ms, border-color 200ms',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-                onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(255,68,76,0.7)' }}
-                onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = '#ff444c' }}
-              >
-                <DieGlyph sides={d} size={28} shapeColor="#ff444c" numberColor="#0a0805" />
-              </motion.button>
-            ))}
-          </div>
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.9 }}
+                transition={DICE_SPRING.tap}
+              />
+            }
+            className="bg-secondary data-popup-open:bg-primary h-12 min-h-12 w-14 px-0 transition-colors duration-[250ms]"
+          />
+        }
+      >
+        <DieGlyph
+          className="animate-die-idle"
+          sides={20}
+          size={30}
+          shapeColor={open ? '#0a0805' : '#ff444c'}
+          numberColor={open ? '#ff444c' : '#0a0805'}
+        />
+      </PopoverTrigger>
 
-          {/* Modifier */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={overlayLabel}>Modificador</span>
-            <input
-              type="text" inputMode="numeric" value={mod}
-              onChange={e => setMod(Number(e.target.value))}
-              style={{ ...overlayInput, flex: 1 }}
+      <PopoverContent
+        side="top"
+        align="end"
+        sideOffset={12}
+        aria-label="Rolar dados"
+        className={cn(
+          'bg-background border-border z-70 flex w-[min(320px,calc(100vw-32px))] flex-col gap-3',
+          'max-h-[calc(100dvh-150px)] overflow-y-auto border-2 px-3 pt-3.5 pb-4',
+          'shadow-[0_-6px_32px_rgba(0,0,0,0.85)]',
+        )}
+      >
+        <PopoverHeader className="p-0">
+          <PopoverTitle className="font-heading text-secondary-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
+            Rolar Dados
+          </PopoverTitle>
+        </PopoverHeader>
+
+        {/* d4–d12 grid */}
+        <div className="grid grid-cols-5 gap-1.5">
+          {SMALL_DICE.map(d => (
+            <Button
+              key={d}
+              type="button"
+              onClick={() => roll(d)}
+              render={<motion.button {...diceTap} />}
+              title={`d${d}`}
+              aria-label={`Rolar d${d}`}
+              variant="hollow"
+              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[rgba(255,68,76,0.7)] hover:bg-[#1a140a]"
+            >
+              <DieGlyph sides={d} size={28} shapeColor="#ff444c" numberColor="#0a0805" />
+            </Button>
+          ))}
+        </div>
+
+        {/* Modifier */}
+        <div className="flex items-center gap-2.5">
+          <Label htmlFor="dice-mod" className={LABEL_CLASS}>Modificador</Label>
+          <Input
+            id="dice-mod"
+            type="text"
+            inputMode="numeric"
+            value={mod}
+            onChange={e => setMod(Number(e.target.value))}
+            className={FIELD_CLASS}
+          />
+        </div>
+
+        <Separator className="bg-[rgba(200,184,144,0.18)]" />
+
+        {/* d20 section */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2.5">
+            <Label htmlFor="dice-dc" className={LABEL_CLASS}>DC Alvo</Label>
+            <Input
+              id="dice-dc"
+              type="text"
+              inputMode="numeric"
+              value={dc}
+              onChange={e => setDc(Number(e.target.value))}
+              className={FIELD_CLASS}
             />
           </div>
 
-          <div style={{ height: 1, background: 'rgba(200,184,144,0.18)' }} />
-
-          {/* d20 section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={overlayLabel}>DC Alvo</span>
-              <input
-                type="text" inputMode="numeric" value={dc}
-                onChange={e => setDc(Number(e.target.value))}
-                style={{ ...overlayInput, flex: 1 }}
-              />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-              {d20Modes.map(({ mode, label, color }) => (
-                <motion.button
-                  key={mode}
-                  type="button"
-                  onClick={() => roll(20, mode)}
-                  {...diceTap}
-                  style={{
-                    background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 0,
-                    cursor: 'pointer', color, padding: '10px 4px', minHeight: 64,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.04em',
-                    transition: 'background 200ms, border-color 200ms',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                  onMouseEnter={e => { const t = e.currentTarget; t.style.background = '#1a140a'; t.style.borderColor = 'rgba(200,184,144,0.5)' }}
-                  onMouseLeave={e => { const t = e.currentTarget; t.style.background = '#0a0805'; t.style.borderColor = 'rgba(200,184,144,0.25)' }}
-                >
-                  <DieGlyph sides={20} size={26} shapeColor="#ff444c" numberColor="#0a0805" />
-                  <span>{label}</span>
-                </motion.button>
-              ))}
-            </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {d20Modes.map(({ mode, label, color }) => (
+              <Button
+                key={mode}
+                type="button"
+                onClick={() => roll(20, mode)}
+                render={<motion.button {...diceTap} />}
+                variant="outline"
+                style={{ color }}
+                className={cn(
+                  'font-heading bg-secondary border-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
+                  'text-[11px] font-bold tracking-[0.04em] normal-case',
+                  'hover:border-[rgba(200,184,144,0.5)] hover:bg-[#1a140a]',
+                )}
+              >
+                <DieGlyph sides={20} size={26} shapeColor="#ff444c" numberColor="#0a0805" />
+                <span>{label}</span>
+              </Button>
+            ))}
           </div>
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   )
 }

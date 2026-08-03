@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { getSpell, getSpellsForClass } from '@/data/spells/index'
@@ -489,7 +490,7 @@ export function Spells({
     >
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(107,78,138,0.2)', flexWrap: 'wrap' }}>
-        <OrnateTitle color="#6B4E8A" style={{ flex: 1 }}>☽ Magias</OrnateTitle>
+        <OrnateTitle color="#6B4E8A" className="flex-1">☽ Magias</OrnateTitle>
 
         {/* Learn button */}
         {onSpellsChange && (
@@ -513,20 +514,15 @@ export function Spells({
             <NumInput
               value={spellcastingBonus}
               onCommit={n => onUpdate?.({ spellcastingBonus: n })}
-              style={{
-                width: 46,
-                background: 'rgba(42,26,58,0.5)',
-                border: '1px solid rgba(107,78,138,0.35)',
-                color: spellcastingBonus > 0 ? 'var(--verdigris-light)' : spellcastingBonus < 0 ? 'var(--blood-bright)' : 'var(--bone-white)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 13,
-                fontWeight: 700,
-                padding: '3px 4px',
-                outline: 'none',
-                borderRadius: 2,
-                textAlign: 'center',
-                boxSizing: 'border-box',
-              }}
+              className={cn(
+                'font-mono h-auto w-[46px] rounded-sm px-1 py-[3px] text-[13px] font-bold',
+                'border-[rgba(107,78,138,0.35)] bg-[rgba(42,26,58,0.5)]',
+                spellcastingBonus > 0
+                  ? 'text-[var(--verdigris-light)]'
+                  : spellcastingBonus < 0
+                    ? 'text-[var(--blood-bright)]'
+                    : 'text-[var(--bone-white)]',
+              )}
             />
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
               Atrib.

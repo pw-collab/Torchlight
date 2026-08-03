@@ -1,8 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown, { type Components } from 'react-markdown'
 import type { InventoryItem } from '@/types/inventory.types'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface Props {
   item: InventoryItem
@@ -26,66 +37,29 @@ function paginateMarkdown(md: string, charsPerPage = 600): string[] {
   return pages.length ? pages : ['']
 }
 
-const mdComponents = {
-  h1: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '0.1em', color: 'var(--gold-oxidized)', margin: '0 0 10px', lineHeight: 1.3 }}>{children}</h1>
+const mdComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="font-heading mb-2.5 text-sm leading-snug tracking-[0.1em] text-[var(--gold-oxidized)]">{children}</h1>
   ),
-  h2: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 12, letterSpacing: '0.08em', color: 'var(--gold-oxidized)', margin: '8px 0 6px', lineHeight: 1.3 }}>{children}</h2>
+  h2: ({ children }) => (
+    <h2 className="font-heading mt-2 mb-1.5 text-xs leading-snug tracking-[0.08em] text-[var(--gold-oxidized)]">{children}</h2>
   ),
-  h3: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.06em', color: 'var(--gold-oxidized)', margin: '6px 0 4px', lineHeight: 1.3 }}>{children}</h3>
+  h3: ({ children }) => (
+    <h3 className="font-heading mt-1.5 mb-1 text-[11px] leading-snug tracking-[0.06em] text-[var(--gold-oxidized)]">{children}</h3>
   ),
-  p: ({ children }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p style={{ margin: '0 0 8px', lineHeight: 1.55 }}>{children}</p>
+  p: ({ children }) => <p className="mb-2 leading-[1.55]">{children}</p>,
+  strong: ({ children }) => (
+    <strong className="font-semibold text-[var(--candle-amber)]">{children}</strong>
   ),
-  strong: ({ children }: React.HTMLAttributes<HTMLElement>) => (
-    <strong style={{ color: 'var(--candle-amber)', fontWeight: 600 }}>{children}</strong>
-  ),
-  em: ({ children }: React.HTMLAttributes<HTMLElement>) => (
-    <em style={{ color: 'var(--bone-muted)', fontStyle: 'italic' }}>{children}</em>
-  ),
-  ul: ({ children }: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul style={{ paddingLeft: 16, margin: '0 0 8px' }}>{children}</ul>
-  ),
-  ol: ({ children }: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol style={{ paddingLeft: 16, margin: '0 0 8px' }}>{children}</ol>
-  ),
-  li: ({ children }: React.HTMLAttributes<HTMLLIElement>) => (
-    <li style={{ marginBottom: 3 }}>{children}</li>
-  ),
-  hr: () => (
-    <hr style={{ border: 'none', borderTop: '1px solid rgba(139,112,48,0.3)', margin: '10px 0' }} />
-  ),
+  em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
+  ul: ({ children }) => <ul className="mb-2 list-disc pl-4">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2 list-decimal pl-4">{children}</ol>,
+  li: ({ children }) => <li className="mb-[3px]">{children}</li>,
+  hr: () => <hr className="my-2.5 border-t border-[rgba(139,112,48,0.3)]" />,
 }
 
-const pageStyle: React.CSSProperties = {
-  width: 340,
-  minHeight: 480,
-  background: 'var(--parchment-light, #f0e8d0)',
-  padding: '32px 28px',
-  fontFamily: 'var(--font-body)',
-  fontSize: 13,
-  color: 'var(--ink-deep, #1a1408)',
-  lineHeight: 1.55,
-  overflowY: 'hidden',
-  position: 'relative',
-  flexShrink: 0,
-}
-
-const navBtnStyle: React.CSSProperties = {
-  background: 'rgba(42,34,16,0.55)',
-  border: '1px solid rgba(139,112,48,0.4)',
-  color: 'var(--parchment-light)',
-  fontFamily: 'var(--font-heading)',
-  fontSize: 10,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  padding: '7px 18px',
-  cursor: 'pointer',
-  borderRadius: 1,
-  transition: 'all 250ms',
-}
+const PAGE_CLASS =
+  'relative w-[340px] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--parchment-light)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--ink-deep)]'
 
 export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
   const [spreadIndex, setSpreadIndex] = useState(0)
@@ -108,158 +82,144 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
   }
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(3px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={onClose}
-    >
-      <div
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, maxWidth: '100%' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 736 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
-            📖 {item.name}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
-              style={{ ...navBtnStyle, fontSize: 9 }}
-            >
-              ✎ Editar Conteúdo
-            </button>
-            <button
-              onClick={onClose}
-              style={{ ...navBtnStyle, color: 'var(--blood-bright)', borderColor: 'rgba(196,32,32,0.4)', padding: '7px 13px' }}
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-
-        {/* Book spread */}
-        <div style={{
-          display: 'flex',
-          boxShadow: '0 16px 60px rgba(0,0,0,0.85), 0 4px 16px rgba(0,0,0,0.6)',
-          border: '1px solid rgba(139,112,48,0.4)',
-        }}>
-          {/* Left page */}
-          <div style={pageStyle}>
-            <div style={{ position: 'absolute', bottom: 10, left: 16, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(80,60,20,0.45)' }}>
-              {leftNum}
+    <>
+      <Dialog open onOpenChange={open => { if (!open) onClose() }}>
+        <DialogContent
+          showCloseButton={false}
+          className="flex w-auto max-w-full flex-col items-center gap-4 border-none bg-transparent p-6 shadow-none"
+        >
+          {/* Header */}
+          <DialogHeader className="flex w-full max-w-[736px] flex-row items-center justify-between gap-3">
+            <DialogTitle className="font-heading text-[11px] tracking-[0.16em] text-[var(--parchment-warm)] uppercase">
+              📖 {item.name}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Leitor de {item.name}, página {leftNum} de {totalPages}.
+            </DialogDescription>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
+                className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+              >
+                ✎ Editar Conteúdo
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onClose}
+                aria-label="Fechar"
+                className="border-[rgba(196,32,32,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] text-[var(--blood-bright)]"
+              >
+                ✕
+              </Button>
             </div>
-            {leftPage
-              ? <ReactMarkdown components={mdComponents as any}>{leftPage}</ReactMarkdown>
-              : <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(80,60,20,0.35)' }}>
+          </DialogHeader>
+
+          {/* Book spread */}
+          <div className="flex border border-[rgba(139,112,48,0.4)] shadow-[0_16px_60px_rgba(0,0,0,0.85),0_4px_16px_rgba(0,0,0,0.6)]">
+            {/* Left page */}
+            <div className={PAGE_CLASS}>
+              <div className="absolute bottom-2.5 left-4 text-[9px] text-[rgba(80,60,20,0.45)] italic">
+                {leftNum}
+              </div>
+              {leftPage ? (
+                <ReactMarkdown components={mdComponents}>{leftPage}</ReactMarkdown>
+              ) : (
+                <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
                   Página em branco.
                 </span>
-            }
-          </div>
-
-          {/* Spine */}
-          <div style={{ width: 6, background: 'linear-gradient(to right, rgba(80,55,10,0.55), rgba(139,112,48,0.5), rgba(80,55,10,0.55))', flexShrink: 0 }} />
-
-          {/* Right page */}
-          <div style={pageStyle}>
-            <div style={{ position: 'absolute', bottom: 10, right: 16, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9, color: 'rgba(80,60,20,0.45)' }}>
-              {rightPage !== null ? rightNum : ''}
+              )}
             </div>
-            {rightPage !== null
-              ? <ReactMarkdown components={mdComponents as any}>{rightPage}</ReactMarkdown>
-              : <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(80,60,20,0.35)' }}>
+
+            {/* Spine */}
+            <div className="w-1.5 shrink-0 bg-[linear-gradient(to_right,rgba(80,55,10,0.55),rgba(139,112,48,0.5),rgba(80,55,10,0.55))]" />
+
+            {/* Right page */}
+            <div className={PAGE_CLASS}>
+              <div className="absolute right-4 bottom-2.5 text-[9px] text-[rgba(80,60,20,0.45)] italic">
+                {rightPage !== null ? rightNum : ''}
+              </div>
+              {rightPage !== null ? (
+                <ReactMarkdown components={mdComponents}>{rightPage}</ReactMarkdown>
+              ) : (
+                <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
                   {totalPages > 1 ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
                 </span>
-            }
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Footer navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => setSpreadIndex(s => Math.max(0, s - 1))}
-            disabled={spreadIndex === 0}
-            style={{ ...navBtnStyle, opacity: spreadIndex === 0 ? 0.35 : 1 }}
-          >
-            ← Anterior
-          </button>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', minWidth: 120, textAlign: 'center' }}>
-            {totalPages <= 1
-              ? 'Página 1'
-              : `Págs. ${leftNum}–${Math.min(rightNum, totalPages)} de ${totalPages}`
-            }
-          </span>
-          <button
-            onClick={() => setSpreadIndex(s => Math.min(totalSpreads - 1, s + 1))}
-            disabled={spreadIndex >= totalSpreads - 1}
-            style={{ ...navBtnStyle, opacity: spreadIndex >= totalSpreads - 1 ? 0.35 : 1 }}
-          >
-            Próximo →
-          </button>
-        </div>
-      </div>
+          {/* Footer navigation */}
+          <DialogFooter className="flex-row items-center justify-center gap-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSpreadIndex(s => Math.max(0, s - 1))}
+              disabled={spreadIndex === 0}
+              className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+            >
+              ← Anterior
+            </Button>
+            <span className="text-muted-foreground min-w-[120px] text-center text-[11px] italic">
+              {totalPages <= 1
+                ? 'Página 1'
+                : `Págs. ${leftNum}–${Math.min(rightNum, totalPages)} de ${totalPages}`}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSpreadIndex(s => Math.min(totalSpreads - 1, s + 1))}
+              disabled={spreadIndex >= totalSpreads - 1}
+              className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+            >
+              Próximo →
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit content dialog */}
-      {editingContent && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-          onClick={() => setEditingContent(false)}
-        >
-          <div
-            style={{
-              background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-              border: '1px solid rgba(139,112,48,0.42)',
-              borderTop: '2px solid #7A6030',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
-              padding: '20px 24px',
-              width: 540,
-              maxWidth: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)' }}>
+      <Dialog open={editingContent} onOpenChange={setEditingContent}>
+        <DialogContent className="max-w-[540px] border-t-2 border-t-[#7A6030] p-6">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-[9px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
               Editar Conteúdo — {item.name}
-            </div>
-            <textarea
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              placeholder={'# Título\n\nEscreva aqui em **Markdown**...\n\nPalavras *em itálico*, **negrito**, listas, etc.'}
-              style={{
-                width: '100%',
-                height: 360,
-                background: 'var(--ink-deep)',
-                border: '1px solid rgba(139,112,48,0.28)',
-                color: 'var(--parchment-light)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                padding: '10px 12px',
-                outline: 'none',
-                resize: 'vertical',
-                boxSizing: 'border-box',
-                lineHeight: 1.5,
-              }}
-            />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleSave} style={{
-                flex: 1, background: 'rgba(42,80,69,0.3)', border: '1px solid #2A5045',
-                color: 'var(--bone-white)', fontFamily: 'var(--font-heading)', fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 0', cursor: 'pointer',
-              }}>
-                Salvar
-              </button>
-              <button onClick={() => setEditingContent(false)} style={{
-                flex: 1, background: 'rgba(42,34,16,0.4)', border: '1px solid rgba(139,112,48,0.3)',
-                color: 'var(--bone-muted)', fontFamily: 'var(--font-heading)', fontSize: 9,
-                letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 0', cursor: 'pointer',
-              }}>
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Escreva o conteúdo do livro em Markdown.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder={'# Título\n\nEscreva aqui em **Markdown**...\n\nPalavras *em itálico*, **negrito**, listas, etc.'}
+            className={cn(
+              'font-mono h-[360px] resize-y bg-[var(--ink-deep)] text-[11px] leading-normal',
+              'border-[rgba(139,112,48,0.28)] text-[var(--parchment-light)]',
+            )}
+          />
+
+          <DialogFooter className="sm:justify-stretch">
+            <Button
+              onClick={handleSave}
+              variant="outline"
+              className="text-foreground flex-1 border-[#2A5045] bg-[rgba(42,80,69,0.3)] text-[9px] tracking-[0.12em]"
+            >
+              Salvar
+            </Button>
+            <Button
+              onClick={() => setEditingContent(false)}
+              variant="outline"
+              className="text-muted-foreground flex-1 border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] text-[9px] tracking-[0.12em]"
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

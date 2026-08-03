@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import type { InventoryItem, EquipSlot, ItemType } from '@/types/inventory.types'
 import type { RollResult } from '@/lib/dice'
@@ -217,14 +218,14 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
   onUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
 }) {
   const coins = [
-    { key: 'gold'   as const, label: 'PO', color: 'var(--gold-bright)',  value: gold },
-    { key: 'silver' as const, label: 'PP', color: 'var(--bone-white)',   value: silver },
-    { key: 'copper' as const, label: 'PC', color: 'var(--candle-amber)', value: copper },
+    { key: 'gold'   as const, label: 'PO', color: 'text-[var(--gold-bright)]',  value: gold },
+    { key: 'silver' as const, label: 'PP', color: 'text-[var(--bone-white)]',   value: silver },
+    { key: 'copper' as const, label: 'PC', color: 'text-[var(--candle-amber)]', value: copper },
   ]
 
   return (
     <div className="worn-border" style={{ padding: 24 }}>
-      <SectionSubheading style={{ marginBottom: 12 }}>Tesouro</SectionSubheading>
+      <SectionSubheading className="mb-3">Tesouro</SectionSubheading>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {coins.map(({ key, label, color, value }) => (
           <div
@@ -239,18 +240,10 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
               value={value}
               min={0}
               onCommit={n => onUpdate({ [key]: n })}
-              style={{
-                width: '100%',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                textAlign: 'center',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 22,
-                fontWeight: 700,
+              className={cn(
+                'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[22px] font-bold',
                 color,
-                cursor: 'text',
-              }}
+              )}
             />
           </div>
         ))}
@@ -1288,19 +1281,15 @@ export function InventoryView({
                     <NumInput
                       value={value}
                       onCommit={n => onMeleeRangedUpdate({ [key]: n })}
-                      style={{
-                        width: 46,
-                        background: '#0a0805',
-                        border: '1px solid rgba(200,184,144,0.25)',
-                        color: value > 0 ? '#4fa98c' : value < 0 ? '#ff444c' : '#c8b890',
-                        fontFamily: 'var(--font-numeral)',
-                        fontSize: 14,
-                        padding: '4px',
-                        outline: 'none',
-                        borderRadius: 2,
-                        textAlign: 'center',
-                        boxSizing: 'border-box',
-                      }}
+                      className={cn(
+                        'bg-secondary border-border h-auto w-[46px] rounded-sm p-1 text-sm',
+                        'font-[var(--font-numeral)]',
+                        value > 0
+                          ? 'text-[#4fa98c]'
+                          : value < 0
+                            ? 'text-primary'
+                            : 'text-secondary-foreground',
+                      )}
                     />
                   </span>
                 ))}

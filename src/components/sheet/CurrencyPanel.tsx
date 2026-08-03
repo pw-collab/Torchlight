@@ -1,6 +1,9 @@
 'use client'
 
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface Props {
   gold: number
@@ -17,62 +20,35 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
   ]
 
   return (
-    <div
-      className="worn-border"
-      style={{
-        padding: '40px 40px',
-      }}
-    >
-      <div style={{
-        marginBottom: 10,
-        paddingBottom: 7,
-        borderBottom: '1px solid rgba(139,112,48,0.18)',
-      }}>
+    <Card className="worn-border bg-transparent p-10 ring-0">
+      <CardHeader className="border-b border-[rgba(139,112,48,0.18)] px-0 pb-[7px]">
         <OrnateTitle>Tesouro</OrnateTitle>
-      </div>
+      </CardHeader>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <CardContent className="grid grid-cols-3 gap-2 px-0">
         {coins.map(({ key, label, color, value }) => (
           <div
             key={key}
-            className="worn-border"
-            style={{
-              background: 'rgba(42,34,16,0.4)',
-              border: '1px solid rgba(139,112,48,0.22)',
-              padding: '8px 10px',
-              textAlign: 'center',
-            }}
+            className="worn-border border border-[rgba(139,112,48,0.22)] bg-[rgba(42,34,16,0.4)] px-2.5 py-2 text-center"
           >
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontStyle: 'italic',
-              fontSize: 9,
-              color: 'var(--bone-muted)',
-              marginBottom: 4,
-            }}>
+            <Label
+              htmlFor={`currency-${key}`}
+              className="text-muted-foreground mb-1 block justify-center text-[9px] italic"
+            >
               {label}
-            </div>
-            <input
+            </Label>
+            <Input
+              id={`currency-${key}`}
               type="number"
               value={value}
               min={0}
               onChange={e => onUpdate({ [key]: Math.max(0, parseInt(e.target.value) || 0) })}
-              style={{
-                width: '100%',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                textAlign: 'center',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 22,
-                fontWeight: 700,
-                color,
-                cursor: 'text',
-              }}
+              className="font-heading h-auto cursor-text border-none bg-transparent p-0 text-center text-[22px] font-bold"
+              style={{ color }}
             />
           </div>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

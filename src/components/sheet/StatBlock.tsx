@@ -1,9 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { modifier, modifierStr, rollDie } from '@/lib/dice'
+import { useState } from 'react'
+import { modifier, rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -13,29 +20,20 @@ const STAT_FULL: Record<Stat, string> = {
   str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma',
 }
 
+const ROLL_TYPES = [
+  { id: 'normal' as const, label: 'Normal', className: 'text-[var(--parchment-light)]' },
+  { id: 'advantage' as const, label: '✦ Vantagem', className: 'text-[var(--verdigris-light)]' },
+  { id: 'disadvantage' as const, label: '✕ Desvantagem', className: 'text-[var(--blood-bright)]' },
+]
+
 interface Props {
   stats: Record<Stat, number>
   onRoll?: (result: RollResult) => void
 }
 
 export function StatBlock({ stats, onRoll }: Props) {
-  const [openStat, setOpenStat] = useState<Stat | null>(null)
   const [pulsedStat, setPulsedStat] = useState<Stat | null>(null)
   const statKeys: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
-
-  useEffect(() => {
-    if (!openStat) return
-    function close(e: MouseEvent | TouchEvent) {
-      const target = e.target as HTMLElement
-      if (!target.closest('[data-stat-card]')) setOpenStat(null)
-    }
-    document.addEventListener('mousedown', close)
-    document.addEventListener('touchstart', close)
-    return () => {
-      document.removeEventListener('mousedown', close)
-      document.removeEventListener('touchstart', close)
-    }
-  }, [openStat])
 
   function handleRollType(stat: Stat, type: 'normal' | 'advantage' | 'disadvantage') {
     if (!onRoll) return
@@ -49,7 +47,6 @@ export function StatBlock({ stats, onRoll }: Props) {
       type === 'disadvantage',
     )
     onRoll(result)
-    setOpenStat(null)
     setPulsedStat(stat)
     setTimeout(() => setPulsedStat(s => (s === stat ? null : s)), 450)
   }
@@ -58,126 +55,74 @@ export function StatBlock({ stats, onRoll }: Props) {
     <div className="grid-stats">
       {statKeys.map((key, idx) => {
         const mod = modifier(stats[key])
-        const isOpen = openStat === key
         const isInteractive = !!onRoll
-        // Determine dropdown alignment: last 3 stats open to the left
-        const dropdownAlign = idx >= 3 ? { right: 0, left: 'auto', transform: 'none' } : { left: '50%', transform: 'translateX(-50%)' }
 
-        return (
+        const card = (
           <div
-            key={key}
-            data-stat-card
-            onClick={() => isInteractive && setOpenStat(isOpen ? null : key)}
-            className="worn-border"
-            style={{
-              position: 'relative',
-              background: isOpen
-                ? 'var(--gold-oxidized)'
-                : 'var(--parchment-mid)',
-              padding: '8px 2px 10px',
-              textAlign: 'center',
-              cursor: isInteractive ? 'pointer' : 'default',
-              transition: 'all 300ms',
-              userSelect: 'none',
-              WebkitTapHighlightColor: 'transparent',
-            }}
+            className={cn(
+              'worn-border relative w-full px-0.5 pt-2 pb-2.5 text-center select-none',
+              'bg-[var(--parchment-mid)] transition-all duration-300',
+              'group-data-popup-open/stat:bg-[var(--gold-oxidized)]',
+              isInteractive ? 'cursor-pointer' : 'cursor-default',
+            )}
           >
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: isOpen ? 'var(--parchment-mid)' : 'var(--parchment-light)',
-              marginBottom: 2,
-              transition: 'color 300ms',
-            }}>
+            <div className="font-mono mb-0.5 text-[10px] tracking-[0.12em] text-[var(--parchment-light)] uppercase transition-colors duration-300 group-data-popup-open/stat:text-[var(--parchment-mid)]">
               {STAT_LABELS[key]}
             </div>
 
             <div
               key={pulsedStat === key ? 'pulse' : 'idle'}
-              className={pulsedStat === key ? 'animate-value-pulse' : ''}
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 24,
-                fontWeight: 700,
-                lineHeight: 1,
-                color: mod > 0
-                  ? 'var(--verdigris-light)'
+              className={cn(
+                'font-heading text-2xl leading-none font-bold',
+                pulsedStat === key && 'animate-value-pulse',
+                mod > 0
+                  ? 'text-[var(--verdigris-light)]'
                   : mod < 0
-                  ? 'var(--blood-bright)'
-                  : 'var(--bone-white)',
-              }}
+                    ? 'text-[var(--blood-bright)]'
+                    : 'text-[var(--bone-white)]',
+              )}
             >
               {mod > 0 ? `+${mod}` : mod}
             </div>
 
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              color: isOpen ? 'var(--parchment-mid)' : 'var(--gold-bright)',
-              marginTop: 2,
-            }}>
+            <div className="font-mono mt-0.5 text-[10px] text-[var(--gold-bright)] group-data-popup-open/stat:text-[var(--parchment-mid)]">
               {stats[key]}
             </div>
-
-            {isOpen && (
-              <div
-                data-stat-card
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 4px)',
-                  zIndex: 50,
-                  background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-                  border: '1px solid var(--gold-oxidized)',
-                  borderTop: '4px solid var(--gold-oxidized)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                  minWidth: 130,
-                  animation: 'inkSpread 200ms cubic-bezier(0.4,0,0.2,1) both',
-                  ...dropdownAlign,
-                }}
-                onClick={e => e.stopPropagation()}
-              >
-                {[
-                  { id: 'normal' as const, label: 'Normal' },
-                  { id: 'advantage' as const, label: '✦ Vantagem' },
-                  { id: 'disadvantage' as const, label: '✕ Desvantagem' },
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => handleRollType(key, opt.id)}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '11px 14px',
-                      background: 'none',
-                      border: 'none',
-                      borderBottom: opt.id !== 'disadvantage' ? '1px solid rgba(139,112,48,0.15)' : 'none',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontFamily: 'var(--font-body)',
-                      fontStyle: 'italic',
-                      fontSize: 13,
-                      color: opt.id === 'advantage'
-                        ? 'var(--verdigris-light)'
-                        : opt.id === 'disadvantage'
-                        ? 'var(--blood-bright)'
-                        : 'var(--parchment-light)',
-                      transition: 'background 200ms',
-                    }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(139,112,48,0.1)'
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'none'
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
+        )
+
+        if (!isInteractive) return <div key={key}>{card}</div>
+
+        return (
+          <DropdownMenu key={key}>
+            <DropdownMenuTrigger
+              className="group/stat outline-none"
+              aria-label={`Rolar ${STAT_FULL[key]}`}
+            >
+              {card}
+            </DropdownMenuTrigger>
+
+            {/* The last three stats open toward the start edge so the menu
+                stays inside the six-up grid. */}
+            <DropdownMenuContent
+              align={idx >= 3 ? 'end' : 'center'}
+              sideOffset={4}
+              className="w-auto min-w-[130px] border-t-4 border-t-[var(--gold-oxidized)] p-0"
+            >
+              {ROLL_TYPES.map(opt => (
+                <DropdownMenuItem
+                  key={opt.id}
+                  onClick={() => handleRollType(key, opt.id)}
+                  className={cn(
+                    'px-3.5 py-2.5 text-[13px] italic not-last:border-b not-last:border-[rgba(139,112,48,0.15)]',
+                    opt.className,
+                  )}
+                >
+                  {opt.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )
       })}
     </div>
