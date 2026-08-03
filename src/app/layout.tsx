@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Inter, Lora } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const loraHeading = Lora({subsets:['latin'],variable:'--font-heading'});
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: 'Torchlight — Shadowdark VTT',
@@ -15,7 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={cn("font-sans", inter.variable, loraHeading.variable)}>
       <body style={{ background: '#18140C', color: 'var(--bone-white)', height: '100%' }}>
         {children}
         {/* Global grain texture overlay */}

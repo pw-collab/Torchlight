@@ -15,6 +15,7 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.ranged_bonus !== undefined && { rangedBonus: updates.ranged_bonus }),
     ...(updates.spellcasting_bonus !== undefined && { spellcastingBonus: updates.spellcasting_bonus }),
     ...(updates.casting_attr !== undefined && { castingAttr: updates.casting_attr }),
+    ...('portrait_url' in updates && { portraitUrl: updates.portrait_url ?? null }),
     ...(updates.gold !== undefined && { gold: updates.gold }),
     ...(updates.silver !== undefined && { silver: updates.silver }),
     ...(updates.copper !== undefined && { copper: updates.copper }),
@@ -66,7 +67,8 @@ export function useCharacter(characterId: string) {
 
   const supabase = createClient()
 
-  async function updateCharacter(updates: Partial<CharacterRow>) {
+  /** Returns false when the write did not land — the optimistic state is rolled back to the server row. */
+  async function updateCharacter(updates: Partial<CharacterRow>): Promise<boolean> {
     setCharacter(prev => (prev ? patchCharacter(prev, updates) : prev))
 
     const { data, error } = await supabase
@@ -77,17 +79,19 @@ export function useCharacter(characterId: string) {
       .single()
 
     if (error) {
+      console.error('[useCharacter] falha ao salvar', Object.keys(updates), error)
       const { data: refetched } = await supabase
         .from('characters')
         .select('*')
         .eq('id', characterId)
         .single()
       if (refetched) setCharacter(rowToCharacter(refetched as CharacterRow))
-      return
+      return false
     }
 
     if (data) setCharacter(rowToCharacter(data as CharacterRow))
     setSavedAt(Date.now())
+    return true
   }
 
   return { character, loading, updateCharacter, savedAt }

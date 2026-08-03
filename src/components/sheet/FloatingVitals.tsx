@@ -26,7 +26,7 @@ interface Props {
   onXpUpdate: (xp: number) => void
   className: string
   ancestryName: string
-  onAvatarUpload: (url: string) => void
+  onAvatarUpload: (url: string) => void | Promise<void>
   editHref: string
   // Stats (desktop sidebar only)
   stats?: Record<Stat, number>

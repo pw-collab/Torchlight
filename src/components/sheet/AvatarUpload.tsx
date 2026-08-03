@@ -1,18 +1,28 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 
 interface Props {
   characterId: string
   portraitUrl: string | null
-  onUpload: (url: string) => void
+  /** Persists the portrait URL on the character. Rejecting marks the upload as failed. */
+  onUpload: (url: string) => void | Promise<void>
   editable?: boolean
   size?: number
   height?: number
 }
 
 const PORTRAIT_RADIUS = 8
+const MAX_FILE_BYTES = 4 * 1024 * 1024
+const MAX_DIMENSION = 512
+const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp|gif|avif|bmp)$/i
+
+// Some platforms (Android pickers, a few Windows builds) hand over an empty
+// MIME type, so fall back to the file name before rejecting the pick.
+function isImageFile(file: File): boolean {
+  return file.type ? file.type.startsWith('image/') : IMAGE_EXTENSIONS.test(file.name)
+}
 
 async function resizeImage(file: File, maxDim: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -38,6 +48,18 @@ async function resizeImage(file: File, maxDim: number): Promise<Blob> {
   })
 }
 
+// Turns whatever blew up into something a player at the table can act on. The
+// technical detail still goes to the console for whoever is debugging.
+function errorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err)
+  if (/bucket not found/i.test(raw)) return 'Armazenamento de retratos não configurado. Avise o mestre.'
+  if (/row-level security|not authorized|unauthorized|403/i.test(raw)) return 'Sem permissão para alterar o retrato desta ficha.'
+  if (/payload too large|exceeded the maximum|413/i.test(raw)) return 'Imagem grande demais para o armazenamento.'
+  if (/image load failed/i.test(raw)) return 'Não foi possível ler esta imagem. Converta para JPG ou PNG.'
+  if (/failed to fetch|network/i.test(raw)) return 'Falha de conexão. Verifique a rede e tente novamente.'
+  return 'Erro ao salvar retrato. Tente novamente.'
+}
+
 export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -46,40 +68,60 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
   const [hovering, setHovering] = useState(false)
   const [dragging, setDragging] = useState(false)
 
+  // Local preview object URLs have to be released by hand, otherwise every pick
+  // leaks the full file for as long as the sheet stays open.
+  const previewRef = useRef<string | null>(null)
+  function swapPreview(next: string | null) {
+    if (previewRef.current?.startsWith('blob:')) URL.revokeObjectURL(previewRef.current)
+    previewRef.current = next
+    setPreview(next)
+  }
+  useEffect(() => () => {
+    if (previewRef.current?.startsWith('blob:')) URL.revokeObjectURL(previewRef.current)
+  }, [])
+
   const displayUrl = preview ?? portraitUrl
 
   async function processFile(file: File) {
-    if (!file.type.startsWith('image/')) {
+    if (!isImageFile(file)) {
       setError('Formato inválido. Use JPG, PNG ou WebP.')
       return
     }
-    if (file.size > 4 * 1024 * 1024) {
+    if (file.size > MAX_FILE_BYTES) {
       setError('Arquivo muito grande. Máximo 4 MB.')
       return
     }
     setError(null)
 
-    const localUrl = URL.createObjectURL(file)
-    setPreview(localUrl)
+    swapPreview(URL.createObjectURL(file))
     setUploading(true)
 
     try {
-      const blob = await resizeImage(file, 512)
+      const blob = await resizeImage(file, MAX_DIMENSION)
       const supabase = createClient()
       const path = `${characterId}/portrait.jpg`
+      // Upload as a File so the multipart part carries an explicit name and
+      // content type — storage-js drops the `contentType` option for raw Blobs.
+      const jpeg = new File([blob], 'portrait.jpg', { type: 'image/jpeg' })
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
+        .upload(path, jpeg, { contentType: 'image/jpeg', upsert: true })
 
       if (uploadError) throw uploadError
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      // The path is stable across re-uploads, so the timestamp is what makes the
+      // CDN and the <img> pick up the new file.
       const url = `${data.publicUrl}?t=${Date.now()}`
-      onUpload(url)
-      setPreview(url)
+
+      // Wait for the sheet to actually persist the URL. Without this the
+      // portrait looked saved and silently vanished on the next page load.
+      await onUpload(url)
+      swapPreview(null)
     } catch (err) {
-      setError('Erro ao salvar retrato. Tente novamente.')
-      setPreview(null)
+      console.error('[AvatarUpload] falha ao salvar retrato', err)
+      setError(errorMessage(err))
+      swapPreview(null)
     } finally {
       setUploading(false)
     }
@@ -126,6 +168,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
         aria-label={editable ? (displayUrl ? 'Alterar retrato' : 'Adicionar retrato') : 'Retrato do personagem'}
+        aria-busy={uploading || undefined}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         onMouseEnter={() => editable && setHovering(true)}
@@ -276,7 +319,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
 
       {/* Error message */}
       {error && (
-        <p style={{
+        <p role="alert" style={{
           fontFamily: 'var(--font-body)',
           fontSize: 10,
           color: 'var(--blood-bright)',
