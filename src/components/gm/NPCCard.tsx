@@ -4,6 +4,7 @@ import type { NPC } from '@/types/npc.types'
 import { rollFormula, type RollResult } from '@/lib/dice'
 import { injectDiceSpans } from '@/lib/diceParser'
 import { RollableText } from '@/components/shared/RollableText'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   npc: NPC
@@ -47,34 +48,26 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       {(onEdit || onDelete) && (
         <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 1 }}>
           {onEdit && (
-            <button
+            <Button
               onClick={onEdit}
               title="Editar ficha"
-              className="tactile"
-              style={{
-                background: 'rgba(42,34,16,0.75)', border: '1px solid rgba(139,112,48,0.45)',
-                color: 'var(--bone-white)', fontFamily: 'var(--font-heading)', fontSize: 13,
-                letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', borderRadius: 1,
-                minWidth: 40, minHeight: 36, lineHeight: 1,
-              }}
+              aria-label="Editar ficha"
+              variant="outline"
+              className="tactile text-foreground h-9 min-h-9 min-w-10 rounded-[1px] border-[rgba(139,112,48,0.45)] bg-[rgba(42,34,16,0.75)] px-3 text-[13px] tracking-[0.1em]"
             >
               ✎
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button
+            <Button
               onClick={onDelete}
               title="Excluir ficha"
-              className="tactile"
-              style={{
-                background: 'rgba(139,21,21,0.4)', border: '1px solid rgba(196,32,32,0.45)',
-                color: 'var(--blood-bright)', fontFamily: 'var(--font-heading)', fontSize: 13,
-                letterSpacing: '0.1em', padding: '8px 12px', cursor: 'pointer', borderRadius: 1,
-                minWidth: 40, minHeight: 36, lineHeight: 1,
-              }}
+              aria-label="Excluir ficha"
+              variant="outline"
+              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[rgba(196,32,32,0.45)] bg-[rgba(139,21,21,0.4)] px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
             >
               ✕
-            </button>
+            </Button>
           )}
         </div>
       )}

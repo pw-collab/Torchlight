@@ -1,6 +1,11 @@
 'use client'
 
 import { ancestries } from '@/data/ancestries/index'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 interface Props {
   name: string
@@ -17,125 +22,84 @@ const ANCESTRY_FLAVOR: Record<string, string> = {
   resurrected:'Mortos que retornam sem memória, os Ressurretos carregam o estigma da morte como uma segunda pele.',
 }
 
+const STEP_LABEL_CLASS =
+  'font-heading mb-2.5 block text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
+
 export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange }: Props) {
   const selected = ancestries.find(a => a.id === ancestryId)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div className="flex flex-col gap-6">
       {/* Name */}
-      <div>
-        <label style={{
-          display: 'block',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--candle-amber)',
-          marginBottom: 10,
-        }}>
+      <Field>
+        <FieldLabel htmlFor="character-name" className={STEP_LABEL_CLASS}>
           Nome do Personagem
-        </label>
-        <input
+        </FieldLabel>
+        <Input
+          id="character-name"
           type="text"
           value={name}
           onChange={e => onNameChange(e.target.value)}
           placeholder="Como te chamam nas Terras das Névoas?"
-          style={{
-            width: '100%',
-            background: 'rgba(13,10,5,0.8)',
-            border: '1px solid rgba(139,112,48,0.3)',
-            borderRadius: 2,
-            padding: '12px 14px',
-            fontFamily: 'var(--font-body)',
-            fontSize: 15,
-            color: 'var(--parchment-pale)',
-            outline: 'none',
-            letterSpacing: '0.02em',
-          }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.6)' }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'rgba(139,112,48,0.3)' }}
+          className="h-auto rounded-sm border-[rgba(139,112,48,0.3)] bg-[rgba(13,10,5,0.8)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[rgba(196,120,42,0.6)]"
         />
-      </div>
+      </Field>
 
       {/* Ancestry grid */}
       <div>
-        <label style={{
-          display: 'block',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 8,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--candle-amber)',
-          marginBottom: 10,
-        }}>
-          Ancestralidade
-        </label>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <span className={STEP_LABEL_CLASS}>Ancestralidade</span>
+        <div className="grid grid-cols-2 gap-2">
           {ancestries.map(a => {
             const active = a.id === ancestryId
             return (
-              <button
+              <Card
                 key={a.id}
-                onClick={() => onAncestryChange(a.id)}
-                style={{
-                  background: active ? 'rgba(139,112,48,0.14)' : 'rgba(20,14,6,0.5)',
-                  border: `1px solid ${active ? 'rgba(196,120,42,0.55)' : 'rgba(139,112,48,0.2)'}`,
-                  borderRadius: 2,
-                  padding: '12px 14px',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'all 250ms',
-                  boxShadow: active ? '0 0 14px rgba(196,120,42,0.12)' : 'none',
-                }}
-                onMouseEnter={e => {
-                  if (!active) e.currentTarget.style.borderColor = 'rgba(139,112,48,0.4)'
-                }}
-                onMouseLeave={e => {
-                  if (!active) e.currentTarget.style.borderColor = 'rgba(139,112,48,0.2)'
-                }}
+                render={
+                  <button type="button" onClick={() => onAncestryChange(a.id)} aria-pressed={active} />
+                }
+                size="sm"
+                className={cn(
+                  'cursor-pointer gap-0 rounded-sm border px-3.5 py-3 text-left ring-0 transition-all duration-[250ms]',
+                  active
+                    ? 'border-[rgba(196,120,42,0.55)] bg-[rgba(139,112,48,0.14)] shadow-[0_0_14px_rgba(196,120,42,0.12)]'
+                    : 'border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] hover:border-[rgba(139,112,48,0.4)]',
+                )}
               >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 4,
-                }}>
-                  <span style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: 14,
-                    color: active ? 'var(--parchment-pale)' : 'var(--parchment-light)',
-                    letterSpacing: '0.04em',
-                  }}>
+                <div className="mb-1 flex items-center justify-between">
+                  <span
+                    className={cn(
+                      'font-heading text-sm tracking-[0.04em]',
+                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                    )}
+                  >
                     {a.name}
                   </span>
                   {a.pariahLevel && (
-                    <span style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 7,
-                      color: a.pariahLevel === '0/6' ? 'var(--verdigris-light)' : a.pariahLevel === '6/6' ? 'var(--blood-mid)' : 'var(--bone-muted)',
-                      letterSpacing: '0.06em',
-                      background: 'rgba(0,0,0,0.3)',
-                      padding: '2px 5px',
-                      borderRadius: 1,
-                    }}>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'font-mono rounded-[1px] border-0 bg-black/30 px-[5px] py-0.5 text-[7px] tracking-[0.06em]',
+                        a.pariahLevel === '0/6'
+                          ? 'text-[var(--verdigris-light)]'
+                          : a.pariahLevel === '6/6'
+                            ? 'text-[var(--blood-mid)]'
+                            : 'text-muted-foreground',
+                      )}
+                    >
                       PÁRIA {a.pariahLevel}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 {a.traits.map(t => (
-                  <p key={t.name} style={{
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 10,
-                    color: 'var(--bone-muted)',
-                    lineHeight: 1.4,
-                    marginTop: 2,
-                  }}>
-                    <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>{t.name}: </span>
+                  <p
+                    key={t.name}
+                    className="text-muted-foreground mt-0.5 text-[10px] leading-snug italic"
+                  >
+                    <span className="text-[var(--parchment-warm)] not-italic">{t.name}: </span>
                     {t.description}
                   </p>
                 ))}
-              </button>
+              </Card>
             )
           })}
         </div>
@@ -143,18 +107,8 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
 
       {/* Ancestry flavor */}
       {selected && ANCESTRY_FLAVOR[selected.id] && (
-        <div style={{
-          borderLeft: '2px solid rgba(139,112,48,0.3)',
-          paddingLeft: 14,
-          marginTop: -8,
-        }}>
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            color: 'var(--bone-muted)',
-            lineHeight: 1.6,
-          }}>
+        <div className="-mt-2 border-l-2 border-[rgba(139,112,48,0.3)] pl-3.5">
+          <p className="text-muted-foreground text-[11px] leading-relaxed italic">
             {ANCESTRY_FLAVOR[selected.id]}
           </p>
         </div>

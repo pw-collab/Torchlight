@@ -1,44 +1,46 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface Props {
   children: ReactNode
   color?: string
   fontSize?: number
-  /** Extra styles for the wrapper (e.g. { flex: 1 }) */
-  style?: CSSProperties
+  /** Extra classes for the wrapper (e.g. "flex-1") */
+  className?: string
 }
 
 /**
  * Section title flanked by mirrored floral flourishes — the ornamental
  * framing used across the sheet's panel headers.
  */
-export function OrnateTitle({ children, color = 'var(--bone-dim)', fontSize = 8.5, style }: Props) {
-  const flourish: CSSProperties = {
-    fontSize: fontSize + 3,
-    lineHeight: 1,
-    color,
-    opacity: 0.5,
-    flexShrink: 0,
-    userSelect: 'none',
-  }
+export function OrnateTitle({
+  children,
+  color = 'var(--bone-dim)',
+  fontSize = 8.5,
+  className,
+}: Props) {
+  const flourish: CSSProperties = { fontSize: fontSize + 3, color }
+
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0, ...style }}>
-      <span aria-hidden style={{ ...flourish, transform: 'scaleX(-1)' }}>❧</span>
-      <span style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-      }}>
+    <span className={cn('inline-flex min-w-0 items-center gap-[7px]', className)}>
+      <span
+        aria-hidden
+        className="shrink-0 -scale-x-100 leading-none opacity-50 select-none"
+        style={flourish}
+      >
+        ❧
+      </span>
+      <span
+        className="font-heading truncate tracking-[0.2em] uppercase"
+        style={{ fontSize, color }}
+      >
         {children}
       </span>
-      <span aria-hidden style={flourish}>❧</span>
+      <span aria-hidden className="shrink-0 leading-none opacity-50 select-none" style={flourish}>
+        ❧
+      </span>
     </span>
   )
 }

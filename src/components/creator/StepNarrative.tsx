@@ -1,6 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Field, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 interface BackgroundDetails {
   concept?: string
@@ -32,6 +37,18 @@ interface Props {
   onImpulsesChange: (patch: Impulses) => void
 }
 
+const SECTION_LABEL_CLASS =
+  'font-heading mb-0.5 text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
+
+const FIELD_LABEL_CLASS =
+  'font-heading text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
+
+const TEXTAREA_CLASS =
+  'h-auto resize-y rounded-sm border-[rgba(139,112,48,0.22)] bg-[rgba(13,10,5,0.7)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--parchment-pale)] italic transition-colors duration-200 focus-visible:border-[rgba(196,120,42,0.5)]'
+
+const INPUT_CLASS =
+  'h-auto w-full flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-[rgba(13,10,5,0.7)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] transition-colors duration-200 focus-visible:border-[rgba(196,120,42,0.5)]'
+
 export function StepNarrative({
   backgroundDetails, relations, impulses,
   onBackgroundChange, onRelationsChange, onImpulsesChange,
@@ -52,12 +69,12 @@ export function StepNarrative({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div className="flex flex-col gap-7">
 
       {/* Histórico */}
-      <section>
-        <div style={sectionLabel}>✎ Histórico</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+      <FieldSet>
+        <FieldLegend className={SECTION_LABEL_CLASS}>✎ Histórico</FieldLegend>
+        <FieldGroup className="mt-2.5 grid grid-cols-2 gap-2.5">
           {(
             [
               { key: 'concept',        label: 'Conceito',           placeholder: 'Em uma frase, quem és tu?' },
@@ -66,25 +83,25 @@ export function StepNarrative({
               { key: 'traumaticEvents',label: 'Eventos Traumáticos', placeholder: 'Cicatrizes que o tempo não apagou...' },
             ] as { key: keyof BackgroundDetails; label: string; placeholder: string }[]
           ).map(({ key, label, placeholder }) => (
-            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={fieldLabel}>{label}</label>
-              <textarea
+            <Field key={key} className="gap-1">
+              <FieldLabel htmlFor={`bg-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
+              <Textarea
+                id={`bg-${key}`}
                 defaultValue={backgroundDetails[key] ?? ''}
                 onBlur={e => onBackgroundChange({ ...backgroundDetails, [key]: e.target.value })}
                 placeholder={placeholder}
                 rows={3}
-                style={textareaStyle}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.5)' }}
+                className={TEXTAREA_CLASS}
               />
-            </div>
+            </Field>
           ))}
-        </div>
-      </section>
+        </FieldGroup>
+      </FieldSet>
 
       {/* Relações */}
-      <section>
-        <div style={sectionLabel}>◈ Relações</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 10 }}>
+      <FieldSet>
+        <FieldLegend className={SECTION_LABEL_CLASS}>◈ Relações</FieldLegend>
+        <FieldGroup className="mt-2.5 flex flex-col gap-3">
           {(
             [
               { key: 'family', label: 'Família' },
@@ -92,53 +109,67 @@ export function StepNarrative({
               { key: 'rivals', label: 'Rivais' },
             ] as { key: 'family' | 'allies' | 'rivals'; label: string }[]
           ).map(({ key, label }) => (
-            <div key={key}>
-              <label style={fieldLabel}>{label}</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 5, marginTop: 5 }}>
+            <Field key={key} className="gap-0">
+              <FieldLabel htmlFor={`rel-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
+
+              <div className="my-[5px] flex flex-wrap gap-[5px]">
                 {(relations[key] ?? []).map(v => (
-                  <button
+                  <Badge
                     key={v}
-                    onClick={() => removeRelItem(key, v)}
-                    style={relChip}
+                    variant="outline"
+                    render={
+                      <button
+                        type="button"
+                        onClick={() => removeRelItem(key, v)}
+                        aria-label={`Remover ${v}`}
+                      />
+                    }
+                    className="cursor-pointer rounded-[10px] border-[rgba(139,112,48,0.3)] bg-[rgba(20,14,6,0.6)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)] transition-all duration-150"
                   >
                     {v} ×
-                  </button>
+                  </Badge>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
+
+              <div className="flex gap-1.5">
+                <Input
+                  id={`rel-${key}`}
                   type="text"
                   value={relInput[key]}
                   onChange={e => setRelInput(r => ({ ...r, [key]: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && addRelItem(key)}
                   placeholder={`Nome de ${label.toLowerCase()}...`}
-                  style={inputStyle}
-                  onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.5)' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(139,112,48,0.25)' }}
+                  className={INPUT_CLASS}
                 />
-                <button onClick={() => addRelItem(key)} style={addBtn}>+ Add</button>
+                <Button
+                  variant="outline"
+                  onClick={() => addRelItem(key)}
+                  className="h-auto rounded-sm border-[rgba(139,112,48,0.28)] bg-[rgba(139,112,48,0.12)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
+                >
+                  + Add
+                </Button>
               </div>
-            </div>
+            </Field>
           ))}
 
-          <div>
-            <label style={fieldLabel}>Facção</label>
-            <input
+          <Field className="gap-0">
+            <FieldLabel htmlFor="rel-faction" className={FIELD_LABEL_CLASS}>Facção</FieldLabel>
+            <Input
+              id="rel-faction"
               type="text"
               defaultValue={relations.faction ?? ''}
               onBlur={e => onRelationsChange({ ...relations, faction: e.target.value })}
               placeholder="Guilda, culto, ordem ou grupo..."
-              style={{ ...inputStyle, marginTop: 5 }}
-              onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.5)' }}
+              className={`${INPUT_CLASS} mt-[5px]`}
             />
-          </div>
-        </div>
-      </section>
+          </Field>
+        </FieldGroup>
+      </FieldSet>
 
       {/* Impulsos */}
-      <section>
-        <div style={sectionLabel}>⚡ Impulsos</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+      <FieldSet>
+        <FieldLegend className={SECTION_LABEL_CLASS}>⚡ Impulsos</FieldLegend>
+        <FieldGroup className="mt-2.5 grid grid-cols-2 gap-2.5">
           {(
             [
               { key: 'secrets',    label: 'Segredos',   placeholder: 'O que ninguém pode saber...' },
@@ -147,95 +178,21 @@ export function StepNarrative({
               { key: 'objectives', label: 'Objetivos',  placeholder: 'O que te faz continuar andando...' },
             ] as { key: keyof Impulses; label: string; placeholder: string }[]
           ).map(({ key, label, placeholder }) => (
-            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={fieldLabel}>{label}</label>
-              <textarea
+            <Field key={key} className="gap-1">
+              <FieldLabel htmlFor={`imp-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
+              <Textarea
+                id={`imp-${key}`}
                 defaultValue={impulses[key] ?? ''}
                 onBlur={e => onImpulsesChange({ ...impulses, [key]: e.target.value })}
                 placeholder={placeholder}
                 rows={3}
-                style={textareaStyle}
-                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(196,120,42,0.5)' }}
+                className={TEXTAREA_CLASS}
               />
-            </div>
+            </Field>
           ))}
-        </div>
-      </section>
+        </FieldGroup>
+      </FieldSet>
 
     </div>
   )
-}
-
-const sectionLabel: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
-  fontSize: 8,
-  letterSpacing: '0.22em',
-  textTransform: 'uppercase',
-  color: 'var(--candle-amber)',
-  marginBottom: 2,
-}
-
-const fieldLabel: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
-  fontSize: 7,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: 'var(--bone-muted)',
-  display: 'block',
-}
-
-const textareaStyle: React.CSSProperties = {
-  width: '100%',
-  background: 'rgba(13,10,5,0.7)',
-  border: '1px solid rgba(139,112,48,0.22)',
-  borderRadius: 2,
-  padding: '9px 11px',
-  fontFamily: 'var(--font-body)',
-  fontStyle: 'italic',
-  fontSize: 11,
-  color: 'var(--parchment-pale)',
-  resize: 'vertical',
-  outline: 'none',
-  lineHeight: 1.5,
-  transition: 'border-color 200ms',
-}
-
-const inputStyle: React.CSSProperties = {
-  flex: 1,
-  background: 'rgba(13,10,5,0.7)',
-  border: '1px solid rgba(139,112,48,0.25)',
-  borderRadius: 2,
-  padding: '7px 10px',
-  fontFamily: 'var(--font-body)',
-  fontSize: 12,
-  color: 'var(--parchment-pale)',
-  outline: 'none',
-  transition: 'border-color 200ms',
-  width: '100%',
-}
-
-const addBtn: React.CSSProperties = {
-  background: 'rgba(139,112,48,0.12)',
-  border: '1px solid rgba(139,112,48,0.28)',
-  borderRadius: 2,
-  padding: '7px 12px',
-  fontFamily: 'var(--font-heading)',
-  fontSize: 8,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
-  color: 'var(--parchment-light)',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-}
-
-const relChip: React.CSSProperties = {
-  fontFamily: 'var(--font-body)',
-  fontSize: 11,
-  color: 'var(--parchment-light)',
-  background: 'rgba(20,14,6,0.6)',
-  border: '1px solid rgba(139,112,48,0.3)',
-  borderRadius: 10,
-  padding: '3px 10px',
-  cursor: 'pointer',
-  transition: 'all 150ms',
 }

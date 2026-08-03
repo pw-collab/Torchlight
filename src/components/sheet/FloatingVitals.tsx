@@ -8,6 +8,10 @@ import { AvatarUpload } from '@/components/sheet/AvatarUpload'
 import { modifier, modifierStr, rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 
 interface Props {
   // Vitals
@@ -117,36 +121,77 @@ export function FloatingVitals({
           <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c8b890' }}>
             Pontos de Vida
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => setOpen(false)}
             aria-label="Fechar"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(200,184,144,0.6)', fontSize: 15, lineHeight: 1, padding: '4px 6px' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#c8b890')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(200,184,144,0.6)')}
+            className="text-[15px] leading-none text-[rgba(200,184,144,0.6)] hover:bg-transparent hover:text-[var(--bone-dim)]"
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         {/* XP bar */}
         <div>
-          <div aria-hidden style={{ height: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 0, overflow: 'hidden', border: '1px solid rgba(200,184,144,0.18)' }}>
-            <div style={{ height: '100%', width: `${xpPct}%`, background: xpReady ? '#c8b890' : '#4FA98C', boxShadow: xpReady ? '0 0 6px #c8b890' : 'none', transition: 'width 400ms cubic-bezier(0.4,0,0.2,1)' }} />
-          </div>
+          <Progress value={xpPct} className="gap-0" aria-label="Progresso de XP">
+            <ProgressTrack className="h-2 rounded-none border border-[rgba(200,184,144,0.18)] bg-black/50">
+              <ProgressIndicator
+                className={cn(
+                  'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
+                  xpReady ? 'bg-[var(--bone-dim)] shadow-[0_0_6px_#c8b890]' : 'bg-[#4FA98C]',
+                )}
+              />
+            </ProgressTrack>
+          </Progress>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)' }}>XP</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <input type="number" value={xp} min={0} onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))} style={{ background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-numeral)', fontSize: 16, color: xpReady ? '#c8b890' : 'rgba(200,184,144,0.6)', textAlign: 'right', width: 44, padding: 0, cursor: 'text' }} />
+              <Input
+                type="number"
+                value={xp}
+                min={0}
+                onChange={e => onXpUpdate(Math.max(0, parseInt(e.target.value) || 0))}
+                aria-label="XP atual"
+                className={cn(
+                  'h-auto w-11 cursor-text border-none bg-transparent p-0 text-right text-base',
+                  'font-[var(--font-numeral)]',
+                  xpReady ? 'text-[var(--bone-dim)]' : 'text-[rgba(200,184,144,0.6)]',
+                )}
+              />
               <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'rgba(200,184,144,0.45)' }}>/ {nextXp}</span>
             </span>
           </div>
         </div>
 
         {/* Damage / heal */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
-          <button onClick={() => applyHp(-step)} className="tactile" title="Aplicar dano" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#ff444c', border: 'none', borderRadius: 0, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↓</button>
-          <input type="text" inputMode="numeric" value={String(step).padStart(2, '0')} onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }} onBlur={() => { if (step < 1) setStep(1) }} title="Valor aplicado por clique" style={{ flex: 1, minWidth: 0, minHeight: 52, background: '#0a0805', border: '1px solid rgba(200,184,144,0.25)', borderRadius: 0, color: '#c8b890', fontFamily: 'var(--font-numeral)', fontSize: 24, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }} />
-          <button onClick={() => applyHp(step)} className="tactile" title="Curar" style={{ width: 64, minHeight: 52, flexShrink: 0, background: '#4FA98C', border: 'none', borderRadius: 0, cursor: 'pointer', color: '#0a0805', fontSize: 24, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
+        <div className="flex items-stretch gap-3">
+          <Button
+            onClick={() => applyHp(-step)}
+            title="Aplicar dano"
+            aria-label="Aplicar dano"
+            className="tactile bg-primary h-auto min-h-13 w-16 shrink-0 border-none px-0 text-2xl leading-none text-[#0a0805]"
+          >
+            ↓
+          </Button>
+          <Input
+            type="text"
+            inputMode="numeric"
+            value={String(step).padStart(2, '0')}
+            onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }}
+            onBlur={() => { if (step < 1) setStep(1) }}
+            title="Valor aplicado por clique"
+            aria-label="Valor aplicado por clique"
+            className="bg-secondary border-border text-secondary-foreground h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
+          />
+          <Button
+            onClick={() => applyHp(step)}
+            title="Curar"
+            aria-label="Curar"
+            className="tactile h-auto min-h-13 w-16 shrink-0 border-none bg-[#4FA98C] px-0 text-2xl leading-none text-[#0a0805]"
+          >
+            ↑
+          </Button>
         </div>
       </div>
     </div>,
@@ -221,19 +266,22 @@ export function FloatingVitals({
         {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', height: 156 }}>
             {STAT_KEYS.map(key => (
-              <button
+              <Button
                 key={key}
                 type="button"
+                variant="secondary"
                 title={`Rolar ${STAT_FULL[key]}`}
                 onClick={() => rollStat(key)}
-                style={{ background: '#0a0805', border: '1px solid #c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '9px 3px 11px', cursor: onRoll ? 'pointer' : 'default', transition: 'background 150ms' }}
-                onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
+                className={cn(
+                  'h-auto flex-col items-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
+                  'hover:bg-[rgba(200,184,144,0.07)]',
+                  onRoll ? 'cursor-pointer' : 'cursor-default',
+                )}
               >
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -249,14 +297,19 @@ export function FloatingVitals({
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#c8b890', lineHeight: 1 }}>Fortuna</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-                <button
+                <Button
                   key={i}
+                  variant="ghost"
                   onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
                   title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 24, lineHeight: '20px', color: i < luckTokens ? '#ff444c' : 'rgba(255,68,76,0.25)', transition: 'color 300ms', fontFamily: 'var(--font-body)' }}
+                  aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
+                  className={cn(
+                    'font-sans h-5 w-auto p-0 text-2xl leading-5 transition-colors duration-300 hover:bg-transparent',
+                    i < luckTokens ? 'text-primary' : 'text-[rgba(255,68,76,0.25)]',
+                  )}
                 >
                   ✦
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -335,19 +388,22 @@ export function FloatingVitals({
         {stats && (
           <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)' }}>
             {STAT_KEYS.map(key => (
-              <button
+              <Button
                 key={key}
                 type="button"
+                variant="secondary"
                 title={`Rolar ${STAT_FULL[key]}`}
                 onClick={() => rollStat(key)}
-                style={{ background: '#0a0805', border: '1px solid #c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 3px', cursor: onRoll ? 'pointer' : 'default', transition: 'background 150ms', WebkitTapHighlightColor: 'transparent' }}
-                onMouseEnter={e => { if (onRoll) e.currentTarget.style.background = 'rgba(200,184,144,0.07)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
+                className={cn(
+                  'h-auto flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
+                  'hover:bg-[rgba(200,184,144,0.07)]',
+                  onRoll ? 'cursor-pointer' : 'cursor-default',
+                )}
               >
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -372,14 +428,19 @@ export function FloatingVitals({
       <div style={{ background: '#c8b890', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
         <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
           {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-            <button
+            <Button
               key={i}
+              variant="ghost"
               onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
               title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: 22, lineHeight: '20px', color: i < luckTokens ? '#ff444c' : 'rgba(255,68,76,0.25)', transition: 'color 300ms', fontFamily: 'var(--font-body)', minHeight: 30, WebkitTapHighlightColor: 'transparent' }}
+              aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
+              className={cn(
+                'font-sans h-auto min-h-[30px] w-auto px-0.5 text-[22px] leading-5 transition-colors duration-300 hover:bg-transparent',
+                i < luckTokens ? 'text-primary' : 'text-[rgba(255,68,76,0.25)]',
+              )}
             >
               ✦
-            </button>
+            </Button>
           ))}
         </div>
         <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 60 }}>

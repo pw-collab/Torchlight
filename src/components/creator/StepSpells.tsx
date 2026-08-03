@@ -1,6 +1,9 @@
 'use client'
 
 import { getSpellsForClass } from '@/data/spells/index'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface Props {
   classId: string
@@ -20,89 +23,57 @@ export function StepSpells({ classId, selectedSpells, onChange }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <p style={{
-        fontFamily: 'var(--font-body)',
-        fontStyle: 'italic',
-        fontSize: 11,
-        color: 'var(--bone-muted)',
-        lineHeight: 1.6,
-        borderLeft: '2px solid rgba(107,78,138,0.4)',
-        paddingLeft: 12,
-      }}>
+    <div className="flex flex-col gap-4">
+      <p className="text-muted-foreground border-l-2 border-[rgba(107,78,138,0.4)] pl-3 text-[11px] leading-relaxed italic">
         O grimório começa com as magias que o mestre permitiu carregar.
         Cada palavra arcana tem um preço — escolha com cuidado.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <div className="flex flex-col gap-[5px]">
         {available.map(spell => {
           const selected = selectedSpells.includes(spell.id)
           return (
-            <button
+            <Card
               key={spell.id}
-              onClick={() => toggle(spell.id)}
-              style={{
-                background: selected ? 'rgba(74,48,104,0.18)' : 'rgba(13,10,5,0.5)',
-                border: `1px solid ${selected ? 'rgba(107,78,138,0.5)' : 'rgba(139,112,48,0.18)'}`,
-                borderRadius: 2,
-                padding: '11px 14px',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 200ms',
-                boxShadow: selected ? '0 0 10px rgba(107,78,138,0.1)' : 'none',
-              }}
+              render={
+                <button type="button" onClick={() => toggle(spell.id)} aria-pressed={selected} />
+              }
+              size="sm"
+              className={cn(
+                'cursor-pointer gap-0 rounded-sm border px-3.5 py-2.5 text-left ring-0 transition-all duration-200',
+                selected
+                  ? 'border-[rgba(107,78,138,0.5)] bg-[rgba(74,48,104,0.18)] shadow-[0_0_10px_rgba(107,78,138,0.1)]'
+                  : 'border-[rgba(139,112,48,0.18)] bg-[rgba(13,10,5,0.5)]',
+              )}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                <span style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 13,
-                  color: selected ? 'var(--parchment-pale)' : 'var(--parchment-light)',
-                  letterSpacing: '0.03em',
-                }}>
+              <div className="flex items-start justify-between gap-2.5">
+                <span
+                  className={cn(
+                    'font-heading text-[13px] tracking-[0.03em]',
+                    selected ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                  )}
+                >
                   {spell.name}
                 </span>
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 7,
-                  color: 'var(--mist-bright)',
-                  background: 'rgba(74,48,104,0.25)',
-                  border: '1px solid rgba(107,78,138,0.25)',
-                  padding: '2px 6px',
-                  borderRadius: 1,
-                  flexShrink: 0,
-                  marginTop: 1,
-                }}>
+                <Badge
+                  variant="outline"
+                  className="font-mono mt-px shrink-0 rounded-[1px] border-[rgba(107,78,138,0.25)] bg-[rgba(74,48,104,0.25)] px-1.5 py-0.5 text-[7px] text-[var(--mist-bright)]"
+                >
                   NÍVEL {spell.tier}
-                </span>
+                </Badge>
               </div>
               {spell.description && (
-                <p style={{
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 10,
-                  color: 'var(--bone-muted)',
-                  marginTop: 4,
-                  lineHeight: 1.4,
-                }}>
+                <p className="text-muted-foreground mt-1 text-[10px] leading-snug italic">
                   {spell.description}
                 </p>
               )}
-            </button>
+            </Card>
           )
         })}
       </div>
 
       {selectedSpells.length > 0 && (
-        <div style={{
-          padding: '8px 12px',
-          background: 'rgba(74,48,104,0.1)',
-          border: '1px solid rgba(107,78,138,0.25)',
-          borderRadius: 2,
-          fontFamily: 'var(--font-body)',
-          fontStyle: 'italic',
-          fontSize: 10,
-          color: 'var(--mist-bright)',
-        }}>
+        <div className="rounded-sm border border-[rgba(107,78,138,0.25)] bg-[rgba(74,48,104,0.1)] px-3 py-2 text-[10px] text-[var(--mist-bright)] italic">
           {selectedSpells.length} magia{selectedSpells.length !== 1 ? 's' : ''} selecionada{selectedSpells.length !== 1 ? 's' : ''}
         </div>
       )}

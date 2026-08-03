@@ -4,6 +4,20 @@ import { useState } from 'react'
 import type { NPC, NPCFeature } from '@/types/npc.types'
 import { npcToMarkdown } from '@/types/npc.types'
 import { NPCCard } from '@/components/gm/NPCCard'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
+import { Kbd } from '@/components/ui/kbd'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Spinner } from '@/components/ui/spinner'
+import { Textarea } from '@/components/ui/textarea'
 
 const TEMPLATE = `# Nome do NPC
 Tipo — Raça, Alinhamento
@@ -179,112 +193,63 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
   }
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background: 'linear-gradient(148deg, rgba(74,54,28,.2) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-          border: '1px solid rgba(139,112,48,0.42)',
-          borderTop: '2px solid #7A6030',
-          boxShadow: '0 12px 60px rgba(0,0,0,0.85)',
-          width: '100%',
-          maxWidth: 920,
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Modal header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-light)' }}>
+    <Dialog open onOpenChange={open => { if (!open) onClose() }}>
+      <DialogContent className="flex max-h-[90vh] max-w-[920px] flex-col overflow-hidden border-t-2 border-t-[#7A6030] p-0">
+        <DialogHeader className="border-b border-[rgba(139,112,48,0.22)] px-5 py-3.5">
+          <DialogTitle className="font-heading text-[10px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
             {isEditing ? '✎ Editar Ficha de NPC' : '✦ Nova Ficha de NPC'}
-          </span>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'var(--bone-muted)', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 12, padding: '2px 6px' }}
-          >
-            ✕
-          </button>
-        </div>
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Escreva a ficha do NPC em Markdown; a pré-visualização atualiza enquanto você digita.
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Split pane */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* Left: Markdown input */}
-          <div style={{ flex: '0 0 48%', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(139,112,48,0.18)', padding: '14px 16px', gap: 8 }}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 2 }}>
+          <Field className="flex flex-[0_0_48%] flex-col gap-2 border-r border-[rgba(139,112,48,0.18)] px-4 py-3.5">
+            <FieldLabel
+              htmlFor="npc-markdown"
+              className="text-muted-foreground font-heading mb-0.5 text-[8px] tracking-[0.16em] uppercase"
+            >
               Markdown — cole ou edite abaixo
-            </div>
-            <textarea
+            </FieldLabel>
+            <Textarea
+              id="npc-markdown"
               value={md}
               onChange={e => setMd(e.target.value)}
-              style={{
-                flex: 1,
-                width: '100%',
-                background: 'var(--ink-deep)',
-                border: '1px solid rgba(139,112,48,0.28)',
-                color: 'var(--parchment-light)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                padding: '10px 12px',
-                outline: 'none',
-                resize: 'none',
-                boxSizing: 'border-box',
-                lineHeight: 1.55,
-                minHeight: 400,
-              }}
+              className="font-mono min-h-[400px] flex-1 resize-none border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
             />
-            <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--bone-muted)', lineHeight: 1.5 }}>
-              Dica: use <code style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--candle-amber)' }}>**negrito**</code> nas descrições de features. Stats separados por <code style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--candle-amber)' }}>|</code>.
-            </div>
-          </div>
+            <FieldDescription className="text-muted-foreground text-[10px] leading-normal italic">
+              Dica: use <Kbd className="text-[var(--candle-amber)]">**negrito**</Kbd> nas descrições
+              de features. Stats separados por <Kbd className="text-[var(--candle-amber)]">|</Kbd>.
+            </FieldDescription>
+          </Field>
 
           {/* Right: Live preview */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px', background: 'rgba(0,0,0,0.15)' }}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 10 }}>
-              Pré-visualização
+          <ScrollArea className="flex-1 bg-black/15">
+            <div className="px-5 py-3.5">
+              <div className="text-muted-foreground font-heading mb-2.5 text-[8px] tracking-[0.16em] uppercase">
+                Pré-visualização
+              </div>
+              <NPCCard npc={previewNpc} />
             </div>
-            <NPCCard npc={previewNpc} />
-          </div>
+          </ScrollArea>
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(139,112,48,0.18)', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <DialogFooter className="flex-row items-center gap-2.5 border-t border-[rgba(139,112,48,0.18)] px-5 py-3">
           {error && (
-            <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--blood-bright)', flex: 1 }}>
-              {error}
-            </span>
+            <span className="flex-1 text-[11px] text-[var(--blood-bright)] italic">{error}</span>
           )}
-          <div style={{ flex: error ? 0 : 1 }} />
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(42,34,16,0.4)', border: '1px solid rgba(139,112,48,0.3)',
-              color: 'var(--bone-muted)', fontFamily: 'var(--font-heading)', fontSize: 9,
-              letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 20px', cursor: 'pointer',
-            }}
-          >
+          <div className={error ? 'flex-0' : 'flex-1'} />
+          <Button variant="outline" onClick={onClose} className="text-muted-foreground">
             Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving || !parsed.name?.trim()}
-            style={{
-              background: saving ? 'var(--parchment-mid)' : 'rgba(139,21,21,0.35)',
-              border: `1px solid ${saving ? 'rgba(139,112,48,0.22)' : 'var(--blood-mid)'}`,
-              color: 'var(--bone-white)', fontFamily: 'var(--font-heading)', fontSize: 9,
-              letterSpacing: '0.12em', textTransform: 'uppercase', padding: '8px 24px',
-              cursor: saving || !parsed.name?.trim() ? 'not-allowed' : 'pointer',
-              opacity: !parsed.name?.trim() ? 0.45 : 1,
-            }}
-          >
-            {saving ? '⧖ Salvando...' : isEditing ? '✎ Salvar Alterações' : '✦ Salvar Ficha'}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !parsed.name?.trim()}>
+            {saving ? <><Spinner /> Salvando…</> : isEditing ? '✎ Salvar Alterações' : '✦ Salvar Ficha'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

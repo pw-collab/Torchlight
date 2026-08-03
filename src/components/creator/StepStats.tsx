@@ -4,6 +4,11 @@ import { useState } from 'react'
 import { rollStats, modifier, modifierStr } from '@/lib/dice'
 import { canReroll } from '@/lib/reroll'
 import type { Stat } from '@/types/class.types'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 const STAT_META: Record<Stat, { label: string; full: string }> = {
   str: { label: 'FOR', full: 'Força' },
@@ -15,6 +20,9 @@ const STAT_META: Record<Stat, { label: string; full: string }> = {
 }
 
 const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
+
+const STAT_CAPTION_CLASS =
+  'font-heading text-[8px] tracking-[0.18em] text-[var(--candle-amber)]/70 uppercase'
 
 interface Props {
   stats: Record<Stat, number>
@@ -37,47 +45,40 @@ export function StepStats({ stats, onChange, editMode }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="flex flex-col gap-5">
       {/* Roll button */}
-      <button
+      <Button
         onClick={handleRoll}
         disabled={rolling}
-        style={{
-          width: '100%',
-          background: rolling ? 'rgba(139,112,48,0.06)' : 'rgba(139,112,48,0.14)',
-          border: `1px solid ${rolling ? 'rgba(139,112,48,0.2)' : 'rgba(196,120,42,0.45)'}`,
-          borderRadius: 2,
-          padding: '14px 20px',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 11,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: rolling ? 'var(--bone-muted)' : 'var(--parchment-light)',
-          cursor: rolling ? 'wait' : 'pointer',
-          transition: 'all 200ms',
-          boxShadow: rolling ? 'none' : '0 0 12px rgba(196,120,42,0.1)',
-        }}
+        variant="outline"
+        className={cn(
+          'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
+          rolling
+            ? 'text-muted-foreground cursor-wait border-[rgba(139,112,48,0.2)] bg-[rgba(139,112,48,0.06)]'
+            : 'border-[rgba(196,120,42,0.45)] bg-[rgba(139,112,48,0.14)] text-[var(--parchment-light)] shadow-[0_0_12px_rgba(196,120,42,0.1)]',
+        )}
       >
         {rolling ? '⟳ Rolando os dados...' : allSet ? '⟳ Rolar novamente' : '✦ Rolar 3d6 por atributo'}
-      </button>
+      </Button>
 
       {editMode && (
-        <div className="grid-stats" style={{ gap: 6 }}>
+        <div className="grid-stats gap-1.5">
           {STAT_KEYS.map(key => {
             const val = stats[key]
             const mod = Math.floor((val - 10) / 2)
             return (
-              <div key={key} style={{
-                background: 'rgba(20,14,6,0.5)',
-                border: '1px solid rgba(139,112,48,0.2)',
-                borderRadius: 2,
-                padding: '10px 4px',
-                textAlign: 'center',
-              }}>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--candle-amber)', opacity: 0.7, marginBottom: 4 }}>
+              <div
+                key={key}
+                className="rounded-sm border border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] px-1 py-2.5 text-center"
+              >
+                <Label
+                  htmlFor={`stat-${key}`}
+                  className={cn(STAT_CAPTION_CLASS, 'mb-1 justify-center text-[7px]')}
+                >
                   {STAT_META[key].label}
-                </div>
-                <input
+                </Label>
+                <Input
+                  id={`stat-${key}`}
                   type="number"
                   value={val || ''}
                   min={1}
@@ -86,18 +87,18 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     const n = parseInt(e.target.value)
                     onChange({ ...stats, [key]: isNaN(n) ? 1 : Math.min(20, Math.max(1, n)) })
                   }}
-                  style={{
-                    width: '100%', background: 'var(--ink-deep)', border: '1px solid rgba(139,112,48,0.28)',
-                    color: 'var(--parchment-light)', fontFamily: 'var(--font-mono)', fontSize: 14,
-                    fontWeight: 700, padding: '3px 2px', outline: 'none', borderRadius: 1,
-                    textAlign: 'center', boxSizing: 'border-box',
-                    MozAppearance: 'textfield',
-                  } as React.CSSProperties}
+                  className="font-mono h-auto rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-sm font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
                 />
-                <div style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 4,
-                  color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--blood-bright)' : 'var(--bone-muted)',
-                }}>
+                <div
+                  className={cn(
+                    'font-mono mt-1 text-[8.5px]',
+                    mod > 0
+                      ? 'text-[var(--verdigris-light)]'
+                      : mod < 0
+                        ? 'text-[var(--blood-bright)]'
+                        : 'text-muted-foreground',
+                  )}
+                >
                   {mod >= 0 ? `+${mod}` : `${mod}`}
                 </div>
               </div>
@@ -107,77 +108,61 @@ export function StepStats({ stats, onChange, editMode }: Props) {
       )}
 
       {eligible && (
-        <div style={{
-          textAlign: 'center',
-          fontFamily: 'var(--font-body)',
-          fontStyle: 'italic',
-          fontSize: 11,
-          color: 'var(--candle-amber)',
-          padding: '8px 12px',
-          background: 'rgba(196,120,42,0.06)',
-          border: '1px solid rgba(196,120,42,0.2)',
-          borderRadius: 1,
-        }}>
-          Nenhum atributo excede 14 — o destino permite um novo lançamento.
-        </div>
+        <Alert className="rounded-[1px] border-[rgba(196,120,42,0.2)] bg-[rgba(196,120,42,0.06)] px-3 py-2">
+          <AlertDescription className="text-center text-[11px] text-[var(--candle-amber)] italic">
+            Nenhum atributo excede 14 — o destino permite um novo lançamento.
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Stats grid */}
       {allSet && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <div className="grid grid-cols-3 gap-2">
           {STAT_KEYS.map(key => {
             const val = stats[key]
             const mod = modifier(val)
             const modStr = modifierStr(val)
             const isHigh = val >= 16
             const isLow = val <= 6
-            const color = isHigh ? 'var(--verdigris-light)' : isLow ? 'var(--blood-mid)' : 'var(--parchment-light)'
 
             return (
-              <div key={key} style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '14px 10px',
-                background: 'rgba(20,14,6,0.5)',
-                border: `1px solid ${isHigh ? 'rgba(61,112,96,0.4)' : isLow ? 'rgba(139,21,21,0.35)' : 'rgba(139,112,48,0.2)'}`,
-                borderRadius: 2,
-                gap: 2,
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 8,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: 'var(--candle-amber)',
-                  opacity: 0.7,
-                }}>
-                  {STAT_META[key].label}
-                </span>
-                <span style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 30,
-                  fontWeight: 700,
-                  color,
-                  lineHeight: 1,
-                }}>
+              <div
+                key={key}
+                className={cn(
+                  'flex flex-col items-center gap-0.5 rounded-sm border bg-[rgba(20,14,6,0.5)] px-2.5 py-3.5',
+                  isHigh
+                    ? 'border-[rgba(61,112,96,0.4)]'
+                    : isLow
+                      ? 'border-[rgba(139,21,21,0.35)]'
+                      : 'border-[rgba(139,112,48,0.2)]',
+                )}
+              >
+                <span className={STAT_CAPTION_CLASS}>{STAT_META[key].label}</span>
+                <span
+                  className={cn(
+                    'font-heading text-[30px] leading-none font-bold',
+                    isHigh
+                      ? 'text-[var(--verdigris-light)]'
+                      : isLow
+                        ? 'text-[var(--blood-mid)]'
+                        : 'text-[var(--parchment-light)]',
+                  )}
+                >
                   {val}
                 </span>
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--blood-mid)' : 'var(--bone-muted)',
-                }}>
+                <span
+                  className={cn(
+                    'font-mono text-[11px]',
+                    mod > 0
+                      ? 'text-[var(--verdigris-light)]'
+                      : mod < 0
+                        ? 'text-[var(--blood-mid)]'
+                        : 'text-muted-foreground',
+                  )}
+                >
                   {modStr}
                 </span>
-                <span style={{
-                  fontFamily: 'var(--font-body)',
-                  fontStyle: 'italic',
-                  fontSize: 9,
-                  color: 'var(--bone-muted)',
-                  opacity: 0.6,
-                  marginTop: 2,
-                }}>
+                <span className="text-muted-foreground mt-0.5 text-[9px] opacity-60 italic">
                   {STAT_META[key].full}
                 </span>
               </div>
@@ -187,14 +172,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
       )}
 
       {allSet && (
-        <p style={{
-          fontFamily: 'var(--font-body)',
-          fontStyle: 'italic',
-          fontSize: 10,
-          color: 'var(--bone-muted)',
-          textAlign: 'center',
-          opacity: 0.6,
-        }}>
+        <p className="text-muted-foreground text-center text-[10px] opacity-60 italic">
           Regra Shadowdark: 3d6 por atributo, em ordem. Sem modificações.
         </p>
       )}

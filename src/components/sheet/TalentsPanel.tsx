@@ -4,7 +4,20 @@ import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
-import { buttonStyle } from '@/components/shared/buttonStyles'
+import { SectionHeading } from '@/components/shared/SectionHeading'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -24,6 +37,9 @@ const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
   general: '✦',
 }
 
+const FIELD_LABEL_CLASS =
+  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[rgba(200,184,144,0.6)] uppercase'
+
 interface Props {
   talents: Talent[]
   onUpdate: (talents: Talent[]) => void
@@ -36,6 +52,8 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', origin: 'general' as TalentOrigin, description: '' })
 
+  const invalid = !form.name.trim() || !form.description.trim()
+
   function closeForm() {
     setForm({ name: '', origin: 'general', description: '' })
     setEditingId(null)
@@ -43,7 +61,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   }
 
   function submitForm() {
-    if (!form.name.trim() || !form.description.trim()) return
+    if (invalid) return
     if (editingId) {
       onUpdate(talents.map(t => t.id === editingId
         ? { ...t, name: form.name, origin: form.origin, description: form.description }
@@ -73,107 +91,100 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
     onUpdate(talents.filter(t => t.id !== id))
   }
 
-  const inp: React.CSSProperties = {
-    width: '100%',
-    background: '#0a0805',
-    border: '1px solid rgba(200,184,144,0.25)',
-    color: '#c8b890',
-    fontFamily: 'var(--font-body)',
-    fontSize: 13,
-    padding: '8px 10px',
-    outline: 'none',
-    boxSizing: 'border-box',
-  }
-
   return (
-    <div className="worn-border" style={{ padding: 42 }}>
-      {/* Heading */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '2px solid rgba(200,184,144,0.25)' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1 }}>⪧</span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            Talentos &amp; Habilidades
-          </span>
-        </span>
-        <button
-          onClick={() => formOpen ? closeForm() : setFormOpen(true)}
-          className="tactile"
-          style={{ ...buttonStyle('dark'), flexShrink: 0 }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#14110a' }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
-        >
-          {formOpen ? '✕ Fechar' : '+ Adicionar'}
-        </button>
-      </div>
-
-      {/* Add / edit form */}
-      {formOpen && (
-        <div
-          className="animate-ink-spread"
-          style={{
-            background: '#0a0805',
-            border: '1px solid rgba(200,184,144,0.25)',
-            padding: '14px 16px',
-            marginTop: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-        >
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)', marginBottom: 4 }}>Nome</div>
-              <input type="text" value={form.name} placeholder="ex.: Visão nas Trevas" onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={inp} />
-            </div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)', marginBottom: 4 }}>Origem</div>
-              <select value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value as TalentOrigin }))} style={inp}>
-                <option value="ancestry">Ancestralidade</option>
-                <option value="class">Classe</option>
-                <option value="general">Geral</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)', marginBottom: 4 }}>Descrição</div>
-            <input type="text" value={form.description} placeholder="O que este talento faz?" onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={inp} />
-          </div>
-          <button
-            onClick={submitForm}
-            disabled={!form.name.trim() || !form.description.trim()}
-            className="tactile"
-            style={{
-              ...buttonStyle('red'),
-              width: '100%',
-              opacity: !form.name.trim() || !form.description.trim() ? 0.45 : 1,
-            }}
+    <Card className="worn-border bg-transparent p-10 ring-0">
+      <SectionHeading
+        trailing={
+          <Button
+            variant="secondary"
+            className="tactile shrink-0"
+            onClick={() => (formOpen ? closeForm() : setFormOpen(true))}
           >
-            {editingId ? '✦ Salvar Alterações' : '✦ Registrar Talento'}
-          </button>
-        </div>
-      )}
+            {formOpen ? '✕ Fechar' : '+ Adicionar'}
+          </Button>
+        }
+      >
+        Talentos &amp; Habilidades
+      </SectionHeading>
 
-      {/* List */}
-      {talents.length === 0 && !formOpen ? (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'rgba(200,184,144,0.5)', marginTop: 16 }}>
-          Nenhum talento registrado nos arquivos.
-        </p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-          {talents.map(t => (
-            <TalentRow
-              key={t.id}
-              talent={t}
-              expanded={expandedId === t.id}
-              onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
-              onRemove={() => removeTalent(t.id)}
-              onEdit={() => startEdit(t)}
-              onRoll={onRoll}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      <CardContent className="px-0">
+        {/* Add / edit form */}
+        {formOpen && (
+          <div className="animate-ink-spread bg-secondary border-border mt-4 flex flex-col gap-2.5 border px-4 py-3.5">
+            <div className="grid grid-cols-[2fr_1fr] gap-2.5">
+              <Field>
+                <FieldLabel htmlFor="talent-name" className={FIELD_LABEL_CLASS}>Nome</FieldLabel>
+                <Input
+                  id="talent-name"
+                  type="text"
+                  value={form.name}
+                  placeholder="ex.: Visão nas Trevas"
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  className="bg-secondary text-secondary-foreground h-auto px-2.5 py-2 text-[13px]"
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="talent-origin" className={FIELD_LABEL_CLASS}>Origem</FieldLabel>
+                <Select
+                  value={form.origin}
+                  onValueChange={value => setForm(f => ({ ...f, origin: value as TalentOrigin }))}
+                >
+                  <SelectTrigger
+                    id="talent-origin"
+                    className="bg-secondary text-secondary-foreground h-auto w-full px-2.5 py-2 text-[13px]"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ancestry">Ancestralidade</SelectItem>
+                    <SelectItem value="class">Classe</SelectItem>
+                    <SelectItem value="general">Geral</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            <Field>
+              <FieldLabel htmlFor="talent-desc" className={FIELD_LABEL_CLASS}>Descrição</FieldLabel>
+              <Input
+                id="talent-desc"
+                type="text"
+                value={form.description}
+                placeholder="O que este talento faz?"
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                className="bg-secondary text-secondary-foreground h-auto px-2.5 py-2 text-[13px]"
+              />
+            </Field>
+
+            <Button onClick={submitForm} disabled={invalid} className="tactile w-full">
+              {editingId ? '✦ Salvar Alterações' : '✦ Registrar Talento'}
+            </Button>
+          </div>
+        )}
+
+        {/* List */}
+        {talents.length === 0 && !formOpen ? (
+          <p className="mt-4 text-[13px] text-[rgba(200,184,144,0.5)] italic">
+            Nenhum talento registrado nos arquivos.
+          </p>
+        ) : (
+          <div className="mt-4 flex flex-col gap-2">
+            {talents.map(t => (
+              <TalentRow
+                key={t.id}
+                talent={t}
+                expanded={expandedId === t.id}
+                onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
+                onRemove={() => removeTalent(t.id)}
+                onEdit={() => startEdit(t)}
+                onRoll={onRoll}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -185,84 +196,75 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
   onEdit: () => void
   onRoll?: (r: RollResult) => void
 }) {
-  const accent = ORIGIN_ACCENT[talent.origin].color
-  const soft = ORIGIN_ACCENT[talent.origin].soft
-
-  const actionBtn = (kind: 'edit' | 'remove'): React.CSSProperties =>
-    buttonStyle(kind === 'edit' ? 'dark' : 'hollow')
+  const { color: accent, soft } = ORIGIN_ACCENT[talent.origin]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* Row */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="tactile"
-        style={{
-          background: '#14110a',
-          border: `1px solid ${accent}`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: 6,
-          width: '100%',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
+    <Collapsible open={expanded} onOpenChange={onToggle} className="flex flex-col">
+      <CollapsibleTrigger
+        render={
+          <Button
+            type="button"
+            variant="secondary"
+            className="tactile h-auto w-full justify-start gap-2 bg-[#14110a] p-1.5 text-left normal-case"
+            style={{ borderColor: accent }}
+          />
+        }
       >
         {/* Icon */}
-        <span style={{ background: '#0a0805', border: `1px solid ${accent}`, width: 32, height: 32, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 18, color: '#eee9dd', lineHeight: 1 }}>
+        <span
+          className="bg-secondary flex size-8 shrink-0 items-center justify-center border text-lg leading-none text-[#eee9dd]"
+          style={{ borderColor: accent }}
+        >
           {ORIGIN_GLYPH[talent.origin]}
         </span>
 
         {/* Name */}
-        <span style={{ flex: '1 1 0', minWidth: 0, fontFamily: 'var(--font-heading)', fontSize: 16, color: accent, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span
+          className="font-heading min-w-0 flex-1 truncate text-base tracking-normal"
+          style={{ color: accent }}
+        >
           {talent.name}
         </span>
 
-        {/* Trailing: category + roll/expand affordance */}
-        <span style={{ display: 'flex', alignItems: 'stretch', gap: 8, alignSelf: 'stretch', flexShrink: 0, background: '#18140c', border: '1px solid #0a0805', paddingLeft: 6 }}>
-          <span style={{ display: 'flex', alignItems: 'center', fontFamily: 'var(--font-stat)', fontSize: 10, letterSpacing: '1.2px', textTransform: 'uppercase', color: accent, whiteSpace: 'nowrap' }}>
+        {/* Trailing: category + expand affordance */}
+        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[#0a0805] pl-1.5">
+          <span
+            className="flex items-center font-[var(--font-stat)] text-[10px] tracking-[1.2px] whitespace-nowrap uppercase"
+            style={{ color: accent }}
+          >
             {ORIGIN_LABEL[talent.origin]}
           </span>
-          <span aria-hidden style={{ background: accent, border: '1px solid #0a0805', alignSelf: 'stretch', aspectRatio: '1 / 1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-heading)', fontSize: 16, color: '#0a0805', lineHeight: 1, transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 200ms' }}>
+          <span
+            aria-hidden
+            className={cn(
+              'font-heading flex aspect-square items-center justify-center self-stretch border',
+              'border-[#0a0805] text-base leading-none text-[#0a0805] transition-transform duration-200',
+              expanded && 'rotate-90',
+            )}
+            style={{ background: accent }}
+          >
             ↝
           </span>
         </span>
-      </button>
+      </CollapsibleTrigger>
 
       {/* Expanded detail */}
-      {expanded && (
-        <div
-          className="animate-ink-spread"
-          style={{ background: soft, border: `1px solid ${accent}`, borderTop: 'none', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}
-        >
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: '#d8cdb0', lineHeight: 1.6, margin: 0 }}>
-            <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
-          </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={onEdit}
-              className="tactile"
-              style={actionBtn('edit')}
-              onMouseEnter={e => { e.currentTarget.style.background = '#14110a' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0a0805' }}
-            >
-              ✎ Editar
-            </button>
-            <button
-              onClick={onRemove}
-              className="tactile"
-              style={actionBtn('remove')}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,96,68,0.12)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              ✕ Excluir
-            </button>
-          </div>
+      <CollapsibleContent
+        className="animate-ink-spread flex flex-col gap-3 border border-t-0 px-3.5 py-3"
+        style={{ background: soft, borderColor: accent }}
+      >
+        <p className="text-[13.5px] leading-relaxed text-[#d8cdb0]">
+          <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
+        </p>
+        <div className="flex gap-2">
+          <Button variant="secondary" className="tactile" onClick={onEdit}>
+            ✎ Editar
+          </Button>
+          <Button variant="hollow" className="tactile" onClick={onRemove}>
+            ✕ Excluir
+          </Button>
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }

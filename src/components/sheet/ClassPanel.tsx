@@ -7,8 +7,12 @@ import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { RollableText } from '@/components/shared/RollableText'
-import { buttonStyle } from '@/components/shared/buttonStyles'
-import type { ButtonVariant } from '@/components/shared/buttonStyles'
+import { Button, type buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import type { VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+
+type ButtonVariants = VariantProps<typeof buttonVariants>
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 
@@ -25,18 +29,14 @@ function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
 
 type BtnVariant = 'blood' | 'amber' | 'mist' | 'dark' | 'danger' | 'green'
 
-/** Legacy variant names mapped onto the design-system button (Figma 64-849). */
-const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariant> = {
-  blood:  'red',
-  amber:  'red',
-  green:  'red',
-  mist:   'dark',
-  dark:   'dark',
+/** Legacy variant names mapped onto the shadcn Button variants. */
+const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariants['variant']> = {
+  blood:  'default',
+  amber:  'default',
+  green:  'default',
+  mist:   'secondary',
+  dark:   'secondary',
   danger: 'hollow',
-}
-
-function btnStyle(variant: BtnVariant): React.CSSProperties {
-  return buttonStyle(BTN_VARIANT_MAP[variant])
 }
 
 // ─── State helpers ────────────────────────────────────────────────────────────
@@ -152,64 +152,52 @@ function ChoiceSection({
               }}>
                 {currentLabel}
               </span>
-              <button
+              <Button
+                variant={BTN_VARIANT_MAP.dark}
                 onClick={() => { setDraft(state.choice ?? ''); setEditing(true) }}
-                style={{ ...btnStyle('dark'), fontSize: 7, padding: '3px 7px' }}
+                className="h-auto px-[7px] py-[3px] text-[7px]"
               >
                 ✏ alterar
-              </button>
+              </Button>
             </>
           ) : (
-            <button
-              onClick={() => setEditing(true)}
-              style={btnStyle('amber')}
-            >
+            <Button variant={BTN_VARIANT_MAP.amber} onClick={() => setEditing(true)}>
               + {cfg.prompt}
-            </button>
+            </Button>
           )}
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           {cfg.kind === 'free_text' ? (
-            <input
+            <Input
               autoFocus
               type="text"
               value={draft}
               onChange={e => setDraft(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') commit(draft); if (e.key === 'Escape') setEditing(false) }}
               placeholder={cfg.prompt}
-              style={{
-                background: 'var(--ink-deep)',
-                border: '1px solid rgba(139,112,48,0.4)',
-                color: 'var(--parchment-light)',
-                fontFamily: 'var(--font-body)',
-                fontSize: 14,
-                padding: '4px 8px',
-                outline: 'none',
-                flex: 1,
-                minWidth: 120,
-              }}
+              aria-label={cfg.prompt}
+              className="h-auto min-w-[120px] flex-1 border-[rgba(139,112,48,0.4)] bg-[var(--ink-deep)] px-2 py-1 text-sm text-[var(--parchment-light)]"
             />
           ) : (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {(cfg.options ?? []).map(opt => (
-                <button
+                <Button
                   key={opt.value}
+                  variant={BTN_VARIANT_MAP[state.choice === opt.value ? 'amber' : 'dark']}
                   onClick={() => commit(opt.value)}
-                  style={{
-                    ...btnStyle(state.choice === opt.value ? 'amber' : 'dark'),
-                    fontSize: 8,
-                  }}
+                  aria-pressed={state.choice === opt.value}
+                  className="text-[8px]"
                 >
                   {opt.label}
-                </button>
+                </Button>
               ))}
             </div>
           )}
           {cfg.kind === 'free_text' && (
-            <button onClick={() => commit(draft)} style={btnStyle('green')}>✓</button>
+            <Button variant={BTN_VARIANT_MAP.green} onClick={() => commit(draft)} aria-label="Confirmar">✓</Button>
           )}
-          <button onClick={() => setEditing(false)} style={btnStyle('dark')}>✕</button>
+          <Button variant={BTN_VARIANT_MAP.dark} onClick={() => setEditing(false)} aria-label="Cancelar">✕</Button>
         </div>
       )}
     </div>
@@ -253,28 +241,22 @@ function UsePips({
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--bone-muted)' }}>
         {remaining}/{max}{perLabel ? ` ${perLabel}` : ''}
       </span>
-      <button
+      <Button
+        variant={BTN_VARIANT_MAP.blood}
         onClick={onUse}
         disabled={remaining <= 0}
-        style={{
-          ...btnStyle('blood'),
-          opacity: remaining <= 0 ? 0.35 : 1,
-          cursor: remaining <= 0 ? 'not-allowed' : 'pointer',
-        }}
+        className="disabled:opacity-35"
       >
         Usar
-      </button>
-      <button
+      </Button>
+      <Button
+        variant={BTN_VARIANT_MAP.dark}
         onClick={onReset}
         disabled={remaining >= max}
-        style={{
-          ...btnStyle('dark'),
-          opacity: remaining >= max ? 0.35 : 1,
-          cursor: remaining >= max ? 'not-allowed' : 'pointer',
-        }}
+        className="disabled:opacity-35"
       >
         Descansar
-      </button>
+      </Button>
     </div>
   )
 }
@@ -348,21 +330,20 @@ function SpellLikeSection({
               )}
               {/* Action */}
               {isExpended ? (
-                <button
+                <Button
                   onClick={() => restore(ability.id)}
-                  className="tactile"
-                  style={{ ...buttonStyle('hollow'), border: '1px solid #ff6044', color: '#ff6044', width: '100%' }}
+                  variant="hollow"
+                  className="tactile w-full border-[#ff6044] text-[#ff6044] hover:bg-[#ff6044]/10"
                 >
                   Restaurar
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
-                  className="tactile"
-                  style={{ ...buttonStyle('red'), background: '#e0a040', width: '100%' }}
+                  className="tactile w-full border-[#0a0805] bg-[#e0a040] text-[#0a0805] hover:bg-[#e0a040]/80"
                 >
                   Ativar
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -454,15 +435,15 @@ function TechniqueCard({
                       {style.label}
                     </p>
                   </div>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => setOpen(false)}
                     aria-label="Fechar"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(238,233,221,0.45)', fontSize: 14, lineHeight: 1, padding: 2, flexShrink: 0 }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#eee9dd')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(238,233,221,0.45)')}
+                    className="shrink-0 text-sm leading-none text-[rgba(238,233,221,0.45)] hover:bg-transparent hover:text-[#eee9dd]"
                   >
                     ✕
-                  </button>
+                  </Button>
                 </div>
                 {/* Divider */}
                 <div style={{ height: 1, background: style.color, flexShrink: 0 }} />
@@ -502,24 +483,16 @@ function TechniqueCard({
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setOpen(o => !o)}
         title={technique.name}
-        className="tactile card-lift"
-        style={{
-          background: '#0a0805',
-          border: `1px solid ${open ? style.color : 'rgba(238,233,221,0.25)'}`,
-          boxShadow: '0 4px 7px rgba(0,0,0,0.65)',
-          padding: 4,
-          cursor: 'pointer',
-          WebkitTapHighlightColor: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          height: 224,
-          boxSizing: 'border-box',
-          transition: 'border-color 250ms',
-        }}
+        variant="secondary"
+        aria-expanded={open}
+        className={cn(
+          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          'transition-[border-color] duration-[250ms]',
+        )}
+        style={{ borderColor: open ? style.color : 'rgba(238,233,221,0.25)' }}
       >
         <div style={{
           position: 'relative',
@@ -578,7 +551,7 @@ function TechniqueCard({
             </p>
           </div>
         </div>
-      </button>
+      </Button>
       {popover}
     </>
   )
@@ -596,12 +569,13 @@ function TalentTable({ classData }: { classData: Class }) {
           <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(200,184,144,0.45)' }}>
             Role no modal de edição
           </span>
-          <button
+          <Button
+            variant="link"
             onClick={() => setOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: '#c8b890', padding: 0 }}
+            className="font-sans text-secondary-foreground h-auto p-0 text-xs tracking-normal normal-case italic no-underline"
           >
             {open ? '▲ ocultar' : '▼ ver'}
-          </button>
+          </Button>
         </div>
       }>
         Tabela de Talentos

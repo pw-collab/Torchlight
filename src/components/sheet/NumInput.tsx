@@ -1,19 +1,25 @@
 'use client'
 import { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
 interface NumInputProps {
   value: number
   min?: number
   onCommit: (n: number) => void
-  style?: React.CSSProperties
+  className?: string
 }
 
-export function NumInput({ value, min, onCommit, style }: NumInputProps) {
+/**
+ * Numeric field that only commits on blur, so typing an intermediate value
+ * (or clearing the field entirely) never fires a write.
+ */
+export function NumInput({ value, min, onCommit, className }: NumInputProps) {
   const [draft, setDraft] = useState<string | null>(null)
   const display = draft !== null ? draft : String(value)
 
   return (
-    <input
+    <Input
       type="text"
       inputMode="numeric"
       value={display}
@@ -25,7 +31,7 @@ export function NumInput({ value, min, onCommit, style }: NumInputProps) {
         setDraft(null)
         if (safe !== value) onCommit(safe)
       }}
-      style={style}
+      className={cn('text-center', className)}
     />
   )
 }

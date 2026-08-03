@@ -1,6 +1,7 @@
 'use client'
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface Props {
   children: ReactNode
@@ -8,20 +9,29 @@ interface Props {
   marker?: string
   /** Optional content pinned to the right of the heading (buttons, links, etc.). */
   trailing?: ReactNode
-  /** Extra styles merged onto the heading wrapper (e.g. { marginBottom: 10 }). */
-  style?: CSSProperties
+  /** Extra classes merged onto the heading wrapper (e.g. "mb-3"). */
+  className?: string
 }
 
 /**
  * Main panel heading — red marker glyph + gold Grenze title with a 2px gold
  * bottom rule. Matches the `⪧ Talentos & Habilidades` panel headers.
  */
-export function SectionHeading({ children, marker = '⪧', trailing, style }: Props) {
+export function SectionHeading({ children, marker = '⪧', trailing, className }: Props) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 8, borderBottom: '2px solid rgba(200,184,144,0.25)', ...style }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1, flexShrink: 0 }}>{marker}</span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{children}</span>
+    <div
+      className={cn(
+        'border-border flex items-center justify-between gap-3 border-b-2 pb-2',
+        className,
+      )}
+    >
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span aria-hidden className="font-heading text-primary shrink-0 text-2xl leading-none">
+          {marker}
+        </span>
+        <span className="font-heading text-secondary-foreground truncate text-2xl leading-none font-semibold">
+          {children}
+        </span>
       </span>
       {trailing}
     </div>
@@ -32,12 +42,21 @@ export function SectionHeading({ children, marker = '⪧', trailing, style }: Pr
  * Subsection heading — red marker glyph + gold Grenze title with a 1px gold
  * bottom rule. Matches the `⁕ Técnicas` subheaders.
  */
-export function SectionSubheading({ children, marker = '⁕', trailing, style }: Props) {
+export function SectionSubheading({ children, marker = '⁕', trailing, className }: Props) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)', ...style }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#ff444c', lineHeight: 1, flexShrink: 0 }}>{marker}</span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: '#c8b890', lineHeight: 1 }}>{children}</span>
+    <div
+      className={cn(
+        'flex items-center justify-between gap-3 border-b border-[rgba(200,184,144,0.18)] pb-[7px]',
+        className,
+      )}
+    >
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span aria-hidden className="font-heading text-primary shrink-0 text-base leading-none">
+          {marker}
+        </span>
+        <span className="font-heading text-secondary-foreground text-[17px] leading-none font-semibold">
+          {children}
+        </span>
       </span>
       {trailing}
     </div>

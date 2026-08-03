@@ -11,6 +11,11 @@ import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
 import type { RollResult } from '@/lib/dice'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 
 interface Props {
   gmName: string
@@ -139,22 +144,6 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     setEditingNpc(null)
   }
 
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    fontFamily: 'var(--font-heading)',
-    fontSize: 11,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    padding: '12px 18px',
-    cursor: 'pointer',
-    background: active ? 'rgba(139,112,48,0.12)' : 'none',
-    border: 'none',
-    borderBottom: active ? '2px solid rgba(139,112,48,0.6)' : '2px solid transparent',
-    color: active ? 'var(--parchment-light)' : 'var(--bone-muted)',
-    transition: 'all 250ms',
-    minHeight: 44,
-    WebkitTapHighlightColor: 'transparent',
-  })
-
   const selectedNpc = npcs.find(n => n.id === selectedNpcId) ?? null
 
   return (
@@ -226,14 +215,31 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         </div>
 
         {/* Tabs */}
-        <div className="col-span-12" style={{ display: 'flex', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-          <button className="tactile" style={tabStyle(tab === 'session')} onClick={() => setTab('session')}>
-            Sessão
-          </button>
-          <button className="tactile" style={tabStyle(tab === 'npcs')} onClick={() => setTab('npcs')}>
-            NPCs &amp; Monstros
-          </button>
-        </div>
+        <Tabs
+          value={tab}
+          onValueChange={value => setTab(value as 'session' | 'npcs')}
+          className="col-span-12 border-b border-[rgba(139,112,48,0.22)]"
+        >
+          <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
+            {([
+              { value: 'session', label: 'Sessão' },
+              { value: 'npcs', label: 'NPCs & Monstros' },
+            ] as const).map(t => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className={cn(
+                  'tactile font-heading text-muted-foreground min-h-11 flex-none border-b-2 border-transparent',
+                  'px-4.5 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
+                  'data-active:border-b-[rgba(139,112,48,0.6)] data-active:bg-[rgba(139,112,48,0.12)]',
+                  'data-active:text-[var(--parchment-light)]',
+                )}
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         {/* Tab: Session */}
         {tab === 'session' && (
@@ -268,28 +274,14 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   Registrai o título desta sessão nos anais do arquivo antes de invocar os aventureiros.
                 </p>
 
-                <input
+                <Input
                   type="text"
                   value={sessionName}
                   onChange={e => setSessionName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && createSession()}
                   placeholder="Nome da sessão..."
-                  style={{
-                    width: '100%',
-                    background: 'var(--ink-deep)',
-                    border: '1px solid rgba(139,112,48,0.28)',
-                    color: 'var(--parchment-light)',
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 13,
-                    padding: '9px 12px',
-                    outline: 'none',
-                    borderRadius: 1,
-                    boxSizing: 'border-box',
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)',
-                    marginBottom: 14,
-                    transition: `border-color var(--duration-base) var(--ease-ritual)`,
-                  }}
+                  aria-label="Nome da sessão"
+                  className="mb-3.5 h-auto rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-3 py-2.5 text-[13px] text-[var(--parchment-light)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
                 />
 
                 <div
@@ -299,28 +291,20 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   }}
                 />
 
-                <button
+                <Button
                   onClick={createSession}
                   disabled={creating || !sessionName.trim()}
-                  style={{
-                    background: creating ? 'var(--parchment-mid)' : 'var(--blood-mid)',
-                    border: `1px solid ${creating ? 'rgba(139,112,48,0.22)' : 'var(--blood-bright)'}`,
-                    color: 'var(--parchment-pale)',
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: 10,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    padding: '9px 22px',
-                    cursor: creating || !sessionName.trim() ? 'not-allowed' : 'pointer',
-                    borderRadius: 1,
-                    opacity: !sessionName.trim() ? 0.45 : 1,
-                    boxShadow: creating ? 'none' : '0 2px 8px rgba(0,0,0,0.5)',
-                    transition: `all var(--duration-base) var(--ease-ritual)`,
-                  }}
+                  variant="outline"
+                  className={cn(
+                    'h-auto rounded-[1px] px-5.5 py-2.5 text-[10px] font-semibold tracking-[0.14em]',
+                    'text-[var(--parchment-pale)] transition-all duration-[var(--duration-base)] ease-[var(--ease-ritual)]',
+                    creating
+                      ? 'border-[rgba(139,112,48,0.22)] bg-[var(--parchment-mid)]'
+                      : 'border-[var(--blood-bright)] bg-[var(--blood-mid)] shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
+                  )}
                 >
-                  {creating ? '⧖ Registrando...' : '⚔ Iniciar Sessão'}
-                </button>
+                  {creating ? <><Spinner /> Registrando…</> : '⚔ Iniciar Sessão'}
+                </Button>
               </div>
             ) : (
               <div className="animate-ink-spread">
@@ -384,26 +368,13 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
               </span>
-              <button
+              <Button
                 onClick={openCreator}
-                className="tactile glow-hover-blood"
-                style={{
-                  background: 'rgba(139,21,21,0.25)',
-                  border: '1px solid var(--blood-mid)',
-                  color: 'var(--bone-white)',
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 10,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  padding: '12px 18px',
-                  cursor: 'pointer',
-                  transition: 'all 250ms',
-                  minHeight: 44,
-                  borderRadius: 1,
-                }}
+                variant="outline"
+                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[rgba(139,21,21,0.25)] px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
               >
                 + Nova Ficha
-              </button>
+              </Button>
             </div>
 
             {loadingNpcs ? (

@@ -6,6 +6,11 @@ import { DOMAINS } from '@/data/domains/index'
 import { getAncestry } from '@/data/ancestries/index'
 import { getDomain } from '@/data/domains/index'
 import { SectionHeading } from '@/components/shared/SectionHeading'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -37,29 +42,12 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 4,
 }
 
-const inputBase: React.CSSProperties = {
-  width: '100%',
-  background: 'var(--ink-deep)',
-  border: '1px solid rgba(139,112,48,0.28)',
-  color: 'var(--parchment-light)',
-  fontFamily: 'var(--font-body)',
-  fontSize: 11,
-  padding: '5px 8px',
-  outline: 'none',
-  borderRadius: 1,
-  boxSizing: 'border-box',
-}
+const INPUT_CLASS =
+  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-2 py-[5px] text-[11px] text-[var(--parchment-light)]'
 
-const taStyle: React.CSSProperties = {
-  ...inputBase,
-  resize: 'vertical',
-  lineHeight: 1.5,
-}
+const TEXTAREA_CLASS = `${INPUT_CLASS} resize-y leading-normal`
 
-const selStyle: React.CSSProperties = {
-  ...inputBase,
-  cursor: 'pointer',
-}
+const SELECT_CLASS = `${INPUT_CLASS} cursor-pointer`
 
 const chip: React.CSSProperties = {
   display: 'inline-flex',
@@ -82,16 +70,15 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function RemoveBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon-xs"
       onClick={onClick}
-      style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        color: 'rgba(139,21,21,0.45)', fontSize: 10,
-        padding: '0 1px', lineHeight: 1, transition: 'color 160ms', flexShrink: 0,
-      }}
-      onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-      onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
-    >✕</button>
+      aria-label="Remover"
+      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+    >
+      ✕
+    </Button>
   )
 }
 
@@ -103,28 +90,29 @@ function AddRow({
   const active = value.trim().length > 0
   return (
     <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-      <input
+      <Input
         type="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onAdd() } }}
         placeholder={placeholder}
+        aria-label={placeholder}
         maxLength={80}
-        style={{ flex: 1, ...inputBase }}
+        className={cn(INPUT_CLASS, 'flex-1')}
       />
-      <button
+      <Button
+        variant="outline"
         onClick={onAdd}
         disabled={!active}
-        style={{
-          background: active ? 'rgba(42,80,69,0.3)' : 'rgba(42,80,69,0.12)',
-          border: `1px solid ${active ? '#2A5045' : 'rgba(42,80,69,0.2)'}`,
-          color: active ? 'var(--bone-white)' : 'var(--bone-muted)',
-          fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.1em',
-          textTransform: 'uppercase', padding: '0 10px',
-          cursor: active ? 'pointer' : 'not-allowed', borderRadius: 1,
-          transition: 'all 200ms', whiteSpace: 'nowrap',
-        }}
-      >✦ Adicionar</button>
+        className={cn(
+          'h-auto rounded-[1px] px-2.5 text-[7.5px] tracking-[0.1em] transition-all duration-200',
+          active
+            ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.3)]'
+            : 'text-muted-foreground border-[rgba(42,80,69,0.2)] bg-[rgba(42,80,69,0.12)]',
+        )}
+      >
+        ✦ Adicionar
+      </Button>
     </div>
   )
 }
@@ -255,7 +243,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✦" style={{ marginBottom: 14 }}>Conhecimentos</SectionHeading>
+        <SectionHeading marker="✦" className="mb-3.5">Conhecimentos</SectionHeading>
 
         {/* Languages */}
         <div style={{ marginBottom: 18 }}>
@@ -271,15 +259,14 @@ export function BackstoryView({ character, onUpdate }: Props) {
           {langPool.filter(l => !langs.includes(l)).length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, marginTop: 4 }}>
               {langPool.filter(l => !langs.includes(l)).map(l => (
-                <button key={l} onClick={() => addLang(l)}
-                  style={{
-                    background: 'rgba(42,34,16,0.3)', border: '1px solid rgba(139,112,48,0.2)',
-                    color: 'var(--bone-muted)', fontFamily: 'var(--font-body)', fontSize: 10,
-                    padding: '2px 8px', borderRadius: 2, cursor: 'pointer', transition: 'all 160ms',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(106,58,10,0.3)'; e.currentTarget.style.color = 'var(--candle-amber)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(42,34,16,0.3)'; e.currentTarget.style.color = 'var(--bone-muted)' }}
-                >+ {l}</button>
+                <Button
+                  key={l}
+                  variant="outline"
+                  onClick={() => addLang(l)}
+                  className="font-sans text-muted-foreground h-auto rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.3)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[rgba(106,58,10,0.3)] hover:text-[var(--candle-amber)]"
+                >
+                  + {l}
+                </Button>
               ))}
             </div>
           )}
@@ -293,25 +280,24 @@ export function BackstoryView({ character, onUpdate }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 6 }}>
               {areas.map((area, i) => (
                 <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
+                  <Input
                     type="text"
                     value={area.name}
                     onChange={e => updateArea(i, { name: e.target.value })}
                     onBlur={e => updateArea(i, { name: e.target.value }, true)}
                     placeholder="Área de conhecimento"
-                    style={{ flex: 1, ...inputBase }}
+                    aria-label="Área de conhecimento"
+                    className={cn(INPUT_CLASS, 'flex-1')}
                   />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>Bônus</span>
-                    <input
+                    <Input
                       type="number"
                       value={area.bonus}
                       onChange={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 })}
                       onBlur={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 }, true)}
-                      style={{
-                        width: 48, ...inputBase, textAlign: 'center',
-                        MozAppearance: 'textfield',
-                      } as React.CSSProperties}
+                      aria-label="Bônus"
+                      className={cn(INPUT_CLASS, 'w-12 text-center [-moz-appearance:textfield]')}
                     />
                   </div>
                   <RemoveBtn onClick={() => saveAreas(areas.filter((_, j) => j !== i))} />
@@ -326,32 +312,34 @@ export function BackstoryView({ character, onUpdate }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
             <Label>Domínio de Origem</Label>
-            <select
+            <NativeSelect
               value={originDomain}
               onChange={e => { setOriginDomain(e.target.value); onUpdate({ domain_id: e.target.value }) }}
-              style={selStyle}
+              aria-label="Domínio de origem"
+              className={SELECT_CLASS}
             >
-              <option value="">— Selecionar —</option>
-              {DOMAINS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
+              <NativeSelectOption value="">— Selecionar —</NativeSelectOption>
+              {DOMAINS.map(d => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
+            </NativeSelect>
           </div>
           <div>
             <Label>Fé / Divindade</Label>
-            <select
+            <NativeSelect
               value={faith}
               onChange={e => { setFaith(e.target.value); onUpdate({ faith: e.target.value }) }}
-              style={selStyle}
+              aria-label="Fé / Divindade"
+              className={SELECT_CLASS}
             >
-              <option value="">— Selecionar —</option>
-              {FAITHS.map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
+              <NativeSelectOption value="">— Selecionar —</NativeSelectOption>
+              {FAITHS.map(f => <NativeSelectOption key={f} value={f}>{f}</NativeSelectOption>)}
+            </NativeSelect>
           </div>
         </div>
       </section>
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✎" style={{ marginBottom: 14 }}>Histórico</SectionHeading>
+        <SectionHeading marker="✎" className="mb-3.5">Histórico</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['concept',         'Conceito',           concept,    setConcept,    3],
@@ -361,12 +349,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
           ] as [string, string, string, (v: string) => void, number][]).map(([field, label, val, setVal, rows]) => (
             <div key={field}>
               <Label>{label}</Label>
-              <textarea
+              <Textarea
                 rows={rows}
                 value={val}
                 onChange={e => setVal(e.target.value)}
                 onBlur={e => saveBg(field as Parameters<typeof saveBg>[0], e.target.value)}
-                style={taStyle}
+                aria-label={label}
+                className={TEXTAREA_CLASS}
               />
             </div>
           ))}
@@ -375,7 +364,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="◈" style={{ marginBottom: 14 }}>Relações e Conexões</SectionHeading>
+        <SectionHeading marker="◈" className="mb-3.5">Relações e Conexões</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
           <div>
@@ -398,14 +387,15 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
           <div>
             <Label>Facção ou Sociedade</Label>
-            <input
+            <Input
               type="text"
               value={faction}
               onChange={e => setFaction(e.target.value)}
               onBlur={e => saveRels(family, allies, rivals, e.target.value)}
               placeholder="Nome da facção…"
+              aria-label="Facção ou Sociedade"
               maxLength={80}
-              style={inputBase}
+              className={INPUT_CLASS}
             />
           </div>
         </div>
@@ -413,7 +403,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="⚡" style={{ marginBottom: 14 }}>Impulsos</SectionHeading>
+        <SectionHeading marker="⚡" className="mb-3.5">Impulsos</SectionHeading>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {([
             ['secrets',    'Segredos',  secrets,    setSecrets],
@@ -423,12 +413,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
           ] as [string, string, string, (v: string) => void][]).map(([field, label, val, setVal]) => (
             <div key={field}>
               <Label>{label}</Label>
-              <textarea
+              <Textarea
                 rows={4}
                 value={val}
                 onChange={e => setVal(e.target.value)}
                 onBlur={e => saveImp(field as Parameters<typeof saveImp>[0], e.target.value)}
-                style={taStyle}
+                aria-label={label}
+                className={TEXTAREA_CLASS}
               />
             </div>
           ))}
