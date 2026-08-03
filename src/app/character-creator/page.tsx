@@ -19,6 +19,8 @@ import { getItem } from '@/data/equipment/index'
 import { modifier } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
 import type { KnowledgeArea } from '@/types/character.types'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const EMPTY_STATS: Record<Stat, number> = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }
 
@@ -270,22 +272,17 @@ export default function CharacterCreatorPage() {
                     : '#5A4A2E'
 
               return (
-                <button
+                <Button
                   key={s.id}
+                  variant="ghost"
                   onClick={() => { if (clickable) setStepIdx(i) }}
                   disabled={!clickable}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '32px 1fr',
-                    gap: 14,
-                    width: '100%',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    textAlign: 'left',
-                    cursor: clickable ? 'pointer' : 'default',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
+                  aria-current={state === 'current' ? 'step' : undefined}
+                  className={cn(
+                    'grid h-auto w-full grid-cols-[32px_1fr] gap-3.5 p-0 text-left',
+                    'hover:bg-transparent disabled:opacity-100',
+                    clickable ? 'cursor-pointer' : 'cursor-default',
+                  )}
                 >
                   {/* Node + connector column */}
                   <div style={{
@@ -356,7 +353,7 @@ export default function CharacterCreatorPage() {
                       {s.label}
                     </div>
                   </div>
-                </button>
+                </Button>
               )
             })}
           </nav>
@@ -536,28 +533,20 @@ export default function CharacterCreatorPage() {
         backdropFilter: 'blur(8px)',
       }}>
         {/* Back */}
-        <button
+        <Button
+          variant="ghost"
           onClick={prev}
           disabled={stepIdx === 0}
-          className="tactile"
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '12px 8px',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 12,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            color: stepIdx === 0 ? '#3A2E18' : 'var(--bone-muted)',
-            cursor: stepIdx === 0 ? 'default' : 'pointer',
-            transition: 'color 200ms',
-            opacity: stepIdx === 0 ? 0.5 : 1,
-          }}
-          onMouseEnter={e => { if (stepIdx > 0) e.currentTarget.style.color = 'var(--parchment-light)' }}
-          onMouseLeave={e => { if (stepIdx > 0) e.currentTarget.style.color = 'var(--bone-muted)' }}
+          className={cn(
+            'tactile h-auto px-2 py-3 text-xs tracking-[0.16em] transition-colors duration-200',
+            'hover:bg-transparent',
+            stepIdx === 0
+              ? 'cursor-default text-[#3A2E18] opacity-50'
+              : 'text-muted-foreground hover:text-[var(--parchment-light)]',
+          )}
         >
           ← Voltar
-        </button>
+        </Button>
 
         {/* Character summary (center, ≥560px) */}
         <div style={{
@@ -596,55 +585,33 @@ export default function CharacterCreatorPage() {
 
         {/* Next / Seal */}
         {!isLast ? (
-          <button
+          <Button
             onClick={next}
             disabled={!canNext()}
-            className="tactile"
-            style={{
-              background: canNext()
-                ? 'linear-gradient(180deg, var(--candle-glow), var(--candle-amber))'
-                : 'rgba(139,112,48,0.1)',
-              border: `1px solid ${canNext() ? 'rgba(224,160,64,0.6)' : 'rgba(139,112,48,0.15)'}`,
-              borderRadius: 4,
-              padding: '12px 28px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: canNext() ? 'var(--ink-black)' : 'var(--bone-muted)',
-              cursor: canNext() ? 'pointer' : 'not-allowed',
-              transition: 'all 200ms',
-              boxShadow: canNext() ? '0 0 16px rgba(196,120,42,0.35)' : 'none',
-            }}
+            variant="outline"
+            className={cn(
+              'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.14em] transition-all duration-200',
+              canNext()
+                ? 'border-[rgba(224,160,64,0.6)] bg-[linear-gradient(180deg,var(--candle-glow),var(--candle-amber))] text-[var(--ink-black)] shadow-[0_0_16px_rgba(196,120,42,0.35)]'
+                : 'text-muted-foreground cursor-not-allowed border-[rgba(139,112,48,0.15)] bg-[rgba(139,112,48,0.1)]',
+            )}
           >
             Próximo →
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={save}
             disabled={saving}
-            className="tactile"
-            style={{
-              background: saving
-                ? 'rgba(42,80,69,0.2)'
-                : 'linear-gradient(180deg, var(--verdigris-bright), var(--verdigris))',
-              border: `1px solid ${saving ? 'rgba(61,112,96,0.25)' : 'rgba(79,169,140,0.6)'}`,
-              borderRadius: 4,
-              padding: '12px 28px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: saving ? 'var(--bone-muted)' : 'var(--ink-black)',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              transition: 'all 200ms',
-              boxShadow: saving ? 'none' : '0 0 16px rgba(61,112,96,0.35)',
-            }}
+            variant="outline"
+            className={cn(
+              'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.16em] transition-all duration-200',
+              saving
+                ? 'text-muted-foreground cursor-not-allowed border-[rgba(61,112,96,0.25)] bg-[rgba(42,80,69,0.2)]'
+                : 'border-[rgba(79,169,140,0.6)] bg-[linear-gradient(180deg,var(--verdigris-bright),var(--verdigris))] text-[var(--ink-black)] shadow-[0_0_16px_rgba(61,112,96,0.35)]',
+            )}
           >
             {saving ? '⟳ Registrando...' : '✦ Selar o Registro'}
-          </button>
+          </Button>
         )}
       </div>
     </div>
