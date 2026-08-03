@@ -287,49 +287,33 @@ function CatalogPickerModal({ onAdd, onClose }: {
           <OrnateTitle color="var(--parchment-light)" fontSize={10}>Adicionar do Catálogo</OrnateTitle>
         </div>
 
-        <input
+        <Input
           autoFocus
           type="text"
           placeholder="Buscar..."
           value={query}
           onChange={e => setQuery(e.target.value)}
-          style={{
-            width: '100%',
-            background: 'rgba(14,10,3,0.8)',
-            border: '1px solid rgba(139,112,48,0.35)',
-            color: 'var(--parchment-light)',
-            fontFamily: 'var(--font-body)',
-            fontSize: 11,
-            padding: '6px 9px',
-            outline: 'none',
-            borderRadius: 2,
-            marginBottom: 10,
-            boxSizing: 'border-box',
-          }}
+          aria-label="Buscar no catálogo"
+          className="mb-2.5 h-auto rounded-sm border-[rgba(139,112,48,0.35)] bg-[rgba(14,10,3,0.8)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
         />
 
         <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid rgba(139,112,48,0.2)', marginBottom: 0 }}>
           {(Object.keys(CATALOG_TABS) as CatalogTab[]).map(t => (
-            <button
+            <Button
               key={t}
+              variant="ghost"
               onClick={() => setTab(t)}
-              style={{
-                background: tab === t ? 'rgba(139,112,48,0.15)' : 'none',
-                border: 'none',
-                borderBottom: `2px solid ${tab === t ? 'var(--gold-oxidized)' : 'transparent'}`,
-                cursor: 'pointer',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 8,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: tab === t ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                padding: '6px 10px 4px',
-                marginBottom: -1,
-                transition: 'all 250ms',
-              }}
+              aria-pressed={tab === t}
+              className={cn(
+                '-mb-px h-auto rounded-none border-b-2 px-2.5 pt-1.5 pb-1 text-[8px] tracking-[0.14em]',
+                'transition-all duration-[250ms]',
+                tab === t
+                  ? 'border-b-[var(--gold-oxidized)] bg-[rgba(139,112,48,0.15)] text-[var(--parchment-light)]'
+                  : 'text-muted-foreground border-b-transparent',
+              )}
             >
               {CATALOG_TABS[t].label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -340,22 +324,11 @@ function CatalogPickerModal({ onAdd, onClose }: {
             </p>
           )}
           {filtered.map(cat => (
-            <button
+            <Button
               key={cat.id}
+              variant="ghost"
               onClick={() => { onAdd(catalogToInventoryItem(cat)); onClose() }}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                background: 'none',
-                border: 'none',
-                borderBottom: '1px solid rgba(139,112,48,0.1)',
-                padding: '8px 4px',
-                cursor: 'pointer',
-                transition: 'background 180ms',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.1)] px-1 py-2 text-left normal-case transition-colors duration-[180ms] hover:bg-[rgba(139,112,48,0.08)]"
             >
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', flex: 1 }}>
@@ -372,7 +345,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
                 {cat.range ? ` · ${cat.range}` : ''}
                 {cat.description && cat.description !== '-' ? ` — ${cat.description}` : ''}
               </div>
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -405,27 +378,16 @@ function ItemIconSlot({ item, selected, onSelect }: {
   onSelect: () => void
 }) {
   return (
-    <button
+    <Button
       onClick={onSelect}
       title={item.name}
-      style={{
-        width: '100%',
-        aspectRatio: '1 / 1',
-        boxSizing: 'border-box',
-        margin: '-1px 0 0 -1px',
-        background: '#18140c',
-        border: `1px solid ${selected ? '#ff444c' : '#c8b890'}`,
-        padding: 6,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: 3,
-        cursor: 'pointer',
-        position: 'relative',
-        zIndex: selected ? 2 : 1,
-        WebkitTapHighlightColor: 'transparent',
-      }}
+      variant="outline"
+      aria-pressed={selected}
+      className={cn(
+        'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
+        'bg-[#18140c] hover:bg-[#18140c]',
+        selected ? 'z-[2] border-[#ff444c]' : 'z-[1] border-[var(--bone-dim)]',
+      )}
     >
       {item.equipped && (
         <span aria-hidden style={{
@@ -462,39 +424,26 @@ function ItemIconSlot({ item, selected, onSelect }: {
       }}>
         {item.name}
       </span>
-    </button>
+    </Button>
   )
 }
 
 /** Free grid cell ("Available" state) — click to add an item from the catalog. */
 function GridAvailableTile({ onClick }: { onClick: () => void }) {
   return (
-    <button
+    <Button
       onClick={onClick}
       title="Adicionar item"
-      className="tactile"
-      style={{
-        width: '100%',
-        aspectRatio: '1 / 1',
-        boxSizing: 'border-box',
-        margin: '-1px 0 0 -1px',
-        background: '#18140c',
-        border: '1px solid rgba(255,68,76,0.25)',
-        padding: 6,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        position: 'relative',
-        zIndex: 1,
-        transition: 'border-color 200ms, background 200ms',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,68,76,0.55)'; e.currentTarget.style.background = 'rgba(255,68,76,0.05)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,68,76,0.25)'; e.currentTarget.style.background = '#18140c' }}
+      aria-label="Adicionar item"
+      variant="outline"
+      className={cn(
+        'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
+        'border-[rgba(255,68,76,0.25)] bg-[#18140c] transition-colors duration-200',
+        'hover:border-[rgba(255,68,76,0.55)] hover:bg-[rgba(255,68,76,0.05)]',
+      )}
     >
-      <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 32, lineHeight: 1, color: 'rgba(255,68,76,0.25)' }}>+</span>
-    </button>
+      <span aria-hidden className="font-heading text-[32px] leading-none text-[rgba(255,68,76,0.25)]">+</span>
+    </Button>
   )
 }
 
@@ -600,12 +549,15 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
             {TYPE_LABEL[item.type] ?? item.type}
           </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={onClose}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 11, padding: 2, lineHeight: 1, flexShrink: 0 }}
+          aria-label="Fechar"
+          className="text-muted-foreground shrink-0 text-[11px] leading-none hover:bg-transparent"
         >
           ✕
-        </button>
+        </Button>
       </div>
 
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', lineHeight: 1.7 }}>
@@ -1083,38 +1035,23 @@ export function InventoryView({
               </div>
             )}
 
-            <button
+            <Button
+              variant="link"
               onClick={() => unequipItem(item.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--blood-mid)', alignSelf: 'flex-start', padding: 0, marginTop: 'auto' }}
+              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--blood-mid)] no-underline"
             >
               Desequipar
-            </button>
+            </Button>
           </>
         ) : (
-          <button
+          <Button
+            variant="outline"
             onClick={() => setSelectingSlot(slot)}
-            style={{
-              background: 'none',
-              border: '1px dashed rgba(196,32,32,0.25)',
-              cursor: 'pointer',
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 5,
-              fontFamily: 'var(--font-heading)',
-              fontSize: 9,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: 'var(--parchment-warm)',
-              transition: 'all 300ms',
-              borderRadius: 1,
-            }}
+            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[rgba(196,32,32,0.25)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--parchment-warm)] transition-all duration-300"
           >
             <span aria-hidden style={{ fontSize: shape === 'square' ? 18 : 22, lineHeight: 1, opacity: 0.3, filter: 'saturate(0.3)' }}>{emptyIcon}</span>
             <span>+ Equipar</span>
-          </button>
+          </Button>
         )}
       </div>
     )
@@ -1313,17 +1250,11 @@ export function InventoryView({
               </p>
             ) : (
               unequippedCompatible(selectingSlot).map(item => (
-                <button
+                <Button
                   key={item.id}
+                  variant="ghost"
                   onClick={() => equipItem(item.id, selectingSlot!)}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    background: 'none', border: 'none',
-                    borderBottom: '1px solid rgba(139,112,48,0.12)',
-                    padding: '8px 0', cursor: 'pointer', transition: 'background 200ms',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.12)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[rgba(139,112,48,0.08)]"
                 >
                   <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
                     {item.isLight ? LIGHT_ICON[item.lightKind ?? 'torch'] : ITEM_ICON[item.type] ?? '⚗'} {item.name}
@@ -1333,7 +1264,7 @@ export function InventoryView({
                     {item.damageDie ? ` · ${item.damageDie}` : ''}
                     {item.acBonus ? ` · CA ${item.acBonus}` : ''}
                   </div>
-                </button>
+                </Button>
               ))
             )}
             <Button onClick={() => setSelectingSlot(null)} variant={BTN_VARIANT_MAP.dark} className="w-full mt-3">
@@ -1372,17 +1303,11 @@ export function InventoryView({
               .map(slot => ({ slot, item: inventory.find(i => i.equipped && i.slot === slot) }))
               .filter(({ item }) => item)
               .map(({ slot, item }) => (
-                <button
+                <Button
                   key={slot}
+                  variant="ghost"
                   onClick={() => equipItem(replaceFor, slot)}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    background: 'none', border: 'none',
-                    borderBottom: '1px solid rgba(139,112,48,0.12)',
-                    padding: '8px 0', cursor: 'pointer', transition: 'background 200ms',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,112,48,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.12)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[rgba(139,112,48,0.08)]"
                 >
                   <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
                     {item!.isLight ? LIGHT_ICON[item!.lightKind ?? 'torch'] : ITEM_ICON[item!.type] ?? '⚗'} {item!.name}
@@ -1391,7 +1316,7 @@ export function InventoryView({
                     {item!.damageDie ? `${item!.damageDie}` : ''}
                     {item!.acBonus ? `+${item!.acBonus} CA` : ''}
                   </div>
-                </button>
+                </Button>
               ))}
 
             <Button onClick={() => setReplaceFor(null)} variant={BTN_VARIANT_MAP.dark} className="w-full mt-3">
