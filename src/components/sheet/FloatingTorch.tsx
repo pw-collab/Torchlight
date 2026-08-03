@@ -2,6 +2,8 @@
 
 import type { InventoryItem } from '@/types/inventory.types'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface Props {
   inventory: InventoryItem[]
@@ -40,30 +42,18 @@ export function FloatingTorch({ inventory, onClick }: Props) {
   const haloColor = isLow ? 'rgba(196,32,32,0.35)' : 'rgba(224,160,64,0.35)'
 
   return (
-    <button
+    <Button
       onClick={onClick}
-      className="animate-drop-in"
+      variant="outline"
+      className={cn(
+        'animate-drop-in fixed z-90 flex h-auto items-center gap-2.5 rounded-sm bg-[#2E2210] px-3 py-2',
+        isMobile ? 'top-[58px] left-2.5' : 'top-[70px] right-6',
+        isLow ? 'border-[rgba(196,32,32,0.45)]' : 'border-[rgba(196,120,42,0.4)]',
+        onClick ? 'cursor-pointer' : 'cursor-default',
+      )}
+      style={{ boxShadow: `0 4px 16px rgba(0,0,0,0.6), 0 0 14px ${haloColor}` }}
       title={`${KIND_LABEL[source.lightKind ?? 'torch']} acesa — ${mins} min restantes`}
       aria-label={`Fonte de luz acesa: ${source.name}, ${mins} minutos restantes`}
-      style={{
-        position: 'fixed',
-        top: isMobile ? 58 : 70,
-        left: isMobile ? 10 : 'auto',
-        right: isMobile ? 'auto' : 24,
-        zIndex: 90,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        background: isLow
-          ? 'linear-gradient(148deg, rgba(139,21,21,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210'
-          : 'linear-gradient(148deg, rgba(106,58,10,.25) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-        border: `1px solid ${isLow ? 'rgba(196,32,32,0.45)' : 'rgba(196,120,42,0.4)'}`,
-        borderRadius: 2,
-        boxShadow: `0 4px 16px rgba(0,0,0,0.6), 0 0 14px ${haloColor}`,
-        padding: '8px 12px',
-        cursor: onClick ? 'pointer' : 'default',
-        WebkitTapHighlightColor: 'transparent',
-      }}
     >
       {/* Flame with breathing halo */}
       <span style={{ position: 'relative', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -115,6 +105,6 @@ export function FloatingTorch({ inventory, onClick }: Props) {
           }} />
         </span>
       </span>
-    </button>
+    </Button>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { Button } from '@/components/ui/button'
 
 const ROMAN: [number, string][] = [
   [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
@@ -192,14 +193,15 @@ export function TarotCard({
                   {numeral} · {subtitle}
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 onClick={onToggle}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bone-muted)', fontSize: 13, lineHeight: 1, padding: '2px 4px', flexShrink: 0, opacity: 0.6 }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '0.6')}
+                aria-label="Fechar"
+                className="text-muted-foreground shrink-0 text-[13px] leading-none opacity-60 hover:bg-transparent hover:opacity-100"
               >
                 ✕
-              </button>
+              </Button>
             </div>
 
             <div style={{ padding: '12px 14px 16px' }}>

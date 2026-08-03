@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { FieldError } from '@/components/ui/field'
 
 interface Props {
   characterId: string
@@ -319,17 +320,12 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
 
       {/* Error message */}
       {error && (
-        <p role="alert" style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 10,
-          color: 'var(--blood-bright)',
-          textAlign: 'center',
-          maxWidth: size,
-          lineHeight: 1.4,
-          margin: 0,
-        }}>
+        <FieldError
+          className="text-center text-[10px] leading-snug text-[var(--blood-bright)]"
+          style={{ maxWidth: size }}
+        >
           {error}
-        </p>
+        </FieldError>
       )}
     </div>
   )
