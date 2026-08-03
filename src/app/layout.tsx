@@ -1,11 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { Inter, Lora } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const loraHeading = Lora({subsets:['latin'],variable:'--font-heading'});
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: 'Torchlight — Shadowdark VTT',
@@ -19,20 +13,20 @@ export const viewport: Viewport = {
   themeColor: '#0D0A05',
 }
 
+// `style-lyra` scopes the shadcn component styles; `dark` switches the
+// library's dark variants on — Torchlight has no light mode.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={cn("font-sans", inter.variable, loraHeading.variable)}>
-      <body style={{ background: '#18140C', color: 'var(--bone-white)', height: '100%' }}>
+    <html lang="pt-BR" className="style-lyra dark font-sans">
+      <body className="h-full">
         {children}
         {/* Global grain texture overlay */}
         <div
           aria-hidden
+          className="pointer-events-none fixed inset-0 z-[9999] opacity-45 mix-blend-overlay"
           style={{
-            position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999,
             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
             backgroundSize: '320px 320px',
-            opacity: 0.45,
-            mixBlendMode: 'overlay',
           }}
         />
       </body>
