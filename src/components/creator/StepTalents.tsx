@@ -3,6 +3,19 @@
 import { useState } from 'react'
 import type { Talent } from '@/types/talent.types'
 import { rollClassTalent, getClass } from '@/data/classes/index'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from '@/components/ui/item'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 interface Props {
   classId: string
@@ -36,159 +49,161 @@ export function StepTalents({ classId, talents, onChange }: Props) {
   }
 
   if (!classData) {
-    return (
-      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)' }}>
-        Classe não encontrada.
-      </p>
-    )
-  }
-
-  const btnBase: React.CSSProperties = {
-    fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.1em',
-    textTransform: 'uppercase', padding: '5px 12px', cursor: 'pointer',
-    borderRadius: 1, transition: 'all 220ms', whiteSpace: 'nowrap',
+    return <p className="text-muted-foreground text-xs italic">Classe não encontrada.</p>
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Roll controls */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <button
-          onClick={() => setTableOpen(o => !o)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', ...btnBase, color: 'var(--bone-muted)', padding: 0, letterSpacing: '0.12em' }}
-        >
-          {tableOpen ? '▲ ocultar tabela' : '▼ ver tabela de talentos'}
-        </button>
-        <button
-          onClick={rollAndAdd}
-          style={{ ...btnBase, background: 'rgba(106,58,10,0.3)', border: '1px solid #6B3A0A', color: 'var(--bone-white)' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.55)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'rgba(106,58,10,0.3)')}
-        >
-          ✦ Rolar 2d6 — {classData.name}
-        </button>
-      </div>
+    <div className="flex flex-col gap-4">
+      <Collapsible open={tableOpen} onOpenChange={setTableOpen} className="flex flex-col gap-4">
+        {/* Roll controls */}
+        <div className="flex items-center justify-between gap-2">
+          <CollapsibleTrigger
+            render={
+              <Button
+                variant="link"
+                className="text-muted-foreground h-auto p-0 text-[8px] tracking-[0.12em] no-underline"
+              />
+            }
+          >
+            {tableOpen ? '▲ ocultar tabela' : '▼ ver tabela de talentos'}
+          </CollapsibleTrigger>
 
-      {/* Talent table */}
-      {tableOpen && (
-        <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.7)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
-            {['2D6', 'Efeito'].map((h, i) => (
-              <div key={h} style={{
-                fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em',
-                textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px',
-                borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none',
-              }}>
-                {h}
-              </div>
-            ))}
-          </div>
-          {classData.talentTable.map((entry, i) => {
-            const isLast = lastRoll !== null && lastRoll.roll >= entry.min && lastRoll.roll <= entry.max
-            return (
-              <div key={entry.roll} style={{
-                display: 'grid', gridTemplateColumns: '48px 1fr',
-                background: isLast ? 'rgba(106,58,10,0.28)' : i % 2 === 0 ? 'rgba(42,34,16,0.22)' : 'rgba(42,34,16,0.08)',
-                borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none',
-                transition: 'background 200ms',
-              }}>
-                <div style={{
-                  fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-                  color: isLast ? 'var(--candle-amber)' : 'var(--bone-muted)',
-                  padding: '6px 10px', borderRight: '1px solid rgba(139,112,48,0.18)',
-                  display: 'flex', alignItems: 'center',
-                }}>
-                  {entry.roll}
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5,
-                  color: isLast ? 'var(--parchment-light)' : 'var(--bone-muted)',
-                  padding: '6px 10px', lineHeight: 1.4,
-                }}>
-                  {entry.effect}
-                </div>
-              </div>
-            )
-          })}
+          <Button
+            onClick={rollAndAdd}
+            variant="outline"
+            size="sm"
+            className="text-foreground rounded-[1px] border-[#6B3A0A] bg-[rgba(106,58,10,0.3)] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[rgba(106,58,10,0.55)]"
+          >
+            ✦ Rolar 2d6 — {classData.name}
+          </Button>
         </div>
-      )}
+
+        {/* Talent table */}
+        <CollapsibleContent className="animate-ink-spread overflow-hidden rounded-[1px] border border-[rgba(139,112,48,0.2)]">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b-[rgba(139,112,48,0.22)] bg-[rgba(42,34,16,0.7)]">
+                <TableHead className="font-heading text-muted-foreground w-12 border-r border-[rgba(139,112,48,0.18)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
+                  2D6
+                </TableHead>
+                <TableHead className="font-heading text-muted-foreground px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
+                  Efeito
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {classData.talentTable.map((entry, i) => {
+                const isLast = lastRoll !== null && lastRoll.roll >= entry.min && lastRoll.roll <= entry.max
+                return (
+                  <TableRow
+                    key={entry.roll}
+                    data-state={isLast ? 'selected' : undefined}
+                    className={cn(
+                      'border-b-[rgba(139,112,48,0.1)] transition-colors duration-200',
+                      isLast
+                        ? 'bg-[rgba(106,58,10,0.28)]'
+                        : i % 2 === 0
+                          ? 'bg-[rgba(42,34,16,0.22)]'
+                          : 'bg-[rgba(42,34,16,0.08)]',
+                    )}
+                  >
+                    <TableCell
+                      className={cn(
+                        'font-mono border-r border-[rgba(139,112,48,0.18)] px-2.5 py-1.5 text-[10px] font-bold',
+                        isLast ? 'text-[var(--candle-amber)]' : 'text-muted-foreground',
+                      )}
+                    >
+                      {entry.roll}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        'px-2.5 py-1.5 text-[10.5px] leading-snug italic',
+                        isLast ? 'text-[var(--parchment-light)]' : 'text-muted-foreground',
+                      )}
+                    >
+                      {entry.effect}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Last roll result */}
       {lastRoll && (
-        <div className="worn-border animate-ink-spread" style={{
-          background: 'rgba(106,58,10,0.15)', border: '1px solid rgba(139,112,48,0.35)',
-          padding: '8px 12px', display: 'flex', alignItems: 'flex-start', gap: 10,
-        }}>
-          <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--candle-amber)', lineHeight: 1 }}>
+        <Item
+          variant="outline"
+          size="sm"
+          className="worn-border animate-ink-spread items-start gap-2.5 border-[rgba(139,112,48,0.35)] bg-[rgba(106,58,10,0.15)] px-3 py-2"
+        >
+          <div className="shrink-0 text-center">
+            <div className="font-heading text-[22px] leading-none font-bold text-[var(--candle-amber)]">
               {lastRoll.roll}
             </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+            <div className="font-mono text-muted-foreground mt-px text-[7.5px]">
               ({lastRoll.die1}+{lastRoll.die2})
             </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--parchment-light)', lineHeight: 1.5, marginTop: 2 }}>
+          <ItemContent className="gap-1">
+            <ItemDescription className="mt-0.5 text-[11px] leading-normal text-[var(--parchment-light)] italic">
               {lastRoll.effect}
-            </p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--verdigris-light)', marginTop: 4 }}>
+            </ItemDescription>
+            <ItemDescription className="font-mono text-[8px] text-[var(--verdigris-light)]">
               ✦ Adicionado aos talentos de classe
-            </p>
-          </div>
-        </div>
+            </ItemDescription>
+          </ItemContent>
+        </Item>
       )}
 
       {/* Acquired talents */}
       <div>
-        <div style={{
-          fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.14em',
-          textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 8,
-        }}>
+        <div className="font-heading text-muted-foreground mb-2 text-[7.5px] tracking-[0.14em] uppercase">
           Talentos de classe adquiridos ({classTalents.length})
         </div>
 
         {classTalents.length === 0 ? (
-          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)' }}>
-            Nenhum talento de classe ainda. Use "Rolar 2d6" em cada nível ímpar.
+          <p className="text-muted-foreground text-[11px] italic">
+            Nenhum talento de classe ainda. Use &quot;Rolar 2d6&quot; em cada nível ímpar.
           </p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="flex flex-col gap-1">
             {classTalents.map(talent => (
-              <div key={talent.id} className="worn-border" style={{
-                display: 'flex', alignItems: 'flex-start', gap: 8,
-                background: 'rgba(42,34,16,0.35)', border: '1px solid rgba(139,112,48,0.2)',
-                padding: '7px 10px', borderRadius: 1,
-              }}>
-                <span style={{
-                  fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase',
-                  color: 'var(--candle-amber)', background: 'rgba(196,120,42,0.12)',
-                  border: '1px solid rgba(196,120,42,0.25)', padding: '1px 5px', borderRadius: 1, flexShrink: 0, marginTop: 1,
-                }}>
-                  Classe
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 10.5, color: 'var(--parchment-light)', lineHeight: 1.3 }}>
-                    {talent.name}
-                  </div>
-                  {talent.description && (
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(139,112,48,0.5)', marginTop: 2 }}>
-                      {talent.description}
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => remove(talent.id)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'rgba(139,21,21,0.45)', fontSize: 11, padding: '0 2px', lineHeight: 1,
-                    transition: 'color 180ms', flexShrink: 0,
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--blood-bright)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(139,21,21,0.45)')}
+              <Item
+                key={talent.id}
+                variant="outline"
+                size="sm"
+                className="worn-border items-start gap-2 rounded-[1px] border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.35)] px-2.5 py-[7px]"
+              >
+                <Badge
+                  variant="outline"
+                  className="font-heading mt-px shrink-0 rounded-[1px] border-[rgba(196,120,42,0.25)] bg-[rgba(196,120,42,0.12)] px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
                 >
-                  ✕
-                </button>
-              </div>
+                  Classe
+                </Badge>
+                <ItemContent className="gap-0">
+                  <ItemTitle className="font-heading text-[10.5px] leading-snug text-[var(--parchment-light)]">
+                    {talent.name}
+                  </ItemTitle>
+                  {talent.description && (
+                    <ItemDescription className="font-mono mt-0.5 text-[8px] text-[rgba(139,112,48,0.5)]">
+                      {talent.description}
+                    </ItemDescription>
+                  )}
+                </ItemContent>
+                <ItemActions>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => remove(talent.id)}
+                    aria-label={`Remover ${talent.name}`}
+                    className="text-[rgba(139,21,21,0.45)] transition-colors duration-[180ms] hover:text-[var(--blood-bright)]"
+                  >
+                    ✕
+                  </Button>
+                </ItemActions>
+              </Item>
             ))}
           </div>
         )}

@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { modifier, modifierStr } from '@/lib/dice'
 import { getClass } from '@/data/classes/index'
+import { Button } from '@/components/ui/button'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Item, ItemContent, ItemDescription, ItemTitle } from '@/components/ui/item'
+import { cn } from '@/lib/utils'
 
 interface Props {
   classId: string
@@ -11,6 +16,9 @@ interface Props {
   onRoll: (hp: number) => void
   editMode?: boolean
 }
+
+const CAPTION_CLASS =
+  'font-heading block text-[8px] tracking-[0.18em] text-[var(--candle-amber)]/70 uppercase'
 
 export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
   const cls = getClass(classId)
@@ -31,91 +39,56 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center' }}>
+    <div className="flex flex-col items-center gap-5">
       {cls && (
-        <div style={{
-          width: '100%',
-          padding: '14px 18px',
-          background: 'rgba(20,14,6,0.5)',
-          border: '1px solid rgba(139,112,48,0.2)',
-          borderRadius: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <div>
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 8,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--candle-amber)',
-              opacity: 0.7,
-              display: 'block',
-              marginBottom: 4,
-            }}>
-              Dado de Vida
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 22,
-              color: 'var(--parchment-pale)',
-              letterSpacing: '0.04em',
-            }}>
+        <Item
+          variant="outline"
+          className="w-full justify-between rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] px-4.5 py-3.5"
+        >
+          <ItemContent className="gap-1">
+            <ItemDescription className={CAPTION_CLASS}>Dado de Vida</ItemDescription>
+            <ItemTitle className="font-heading text-[22px] tracking-[0.04em] text-[var(--parchment-pale)]">
               d{cls.hitDie}
-            </span>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 8,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: 'var(--candle-amber)',
-              opacity: 0.7,
-              display: 'block',
-              marginBottom: 4,
-            }}>
-              Mod. CON
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 22,
-              color: conMod >= 0 ? 'var(--verdigris-light)' : 'var(--blood-mid)',
-            }}>
+            </ItemTitle>
+          </ItemContent>
+          <ItemContent className="items-end gap-1 text-right">
+            <ItemDescription className={CAPTION_CLASS}>Mod. CON</ItemDescription>
+            <ItemTitle
+              className={cn(
+                'font-heading text-[22px]',
+                conMod >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--blood-mid)]',
+              )}
+            >
               {modifierStr(con)}
-            </span>
-          </div>
-        </div>
+            </ItemTitle>
+          </ItemContent>
+        </Item>
       )}
 
-      <button
+      <Button
         onClick={rollHP}
         disabled={rolling || !cls}
-        style={{
-          width: '100%',
-          background: rolling ? 'rgba(139,21,21,0.1)' : 'rgba(139,21,21,0.18)',
-          border: `1px solid ${rolling ? 'rgba(139,21,21,0.2)' : 'rgba(196,32,32,0.4)'}`,
-          borderRadius: 2,
-          padding: '14px 20px',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 11,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: rolling ? 'var(--bone-muted)' : 'var(--blood-bright)',
-          cursor: rolling ? 'wait' : 'pointer',
-          transition: 'all 200ms',
-        }}
+        variant="outline"
+        className={cn(
+          'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
+          rolling
+            ? 'text-muted-foreground cursor-wait border-[rgba(139,21,21,0.2)] bg-[rgba(139,21,21,0.1)]'
+            : 'border-[rgba(196,32,32,0.4)] bg-[rgba(139,21,21,0.18)] text-[var(--blood-bright)]',
+        )}
       >
         {rolling ? '⟳ Rolando...' : hpMax > 0 ? '⟳ Rolar novamente' : '✦ Rolar HP Inicial'}
-      </button>
+      </Button>
 
       {editMode && (
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--blood-mid)', opacity: 0.7 }}>
+        <Field className="w-full items-center gap-2">
+          <FieldLabel
+            htmlFor="hp-max"
+            className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase"
+          >
             HP Máximo
-          </div>
-          <input
+          </FieldLabel>
+          <Input
+            id="hp-max"
             type="number"
             value={hpMax || ''}
             min={1}
@@ -124,62 +97,20 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
               const n = parseInt(e.target.value)
               onRoll(isNaN(n) ? 1 : Math.min(999, Math.max(1, n)))
             }}
-            style={{
-              width: 120,
-              background: 'var(--ink-deep)',
-              border: '1px solid rgba(139,21,21,0.4)',
-              color: 'var(--parchment-pale)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 48,
-              fontWeight: 700,
-              textAlign: 'center',
-              padding: '8px 12px',
-              outline: 'none',
-              borderRadius: 2,
-              boxSizing: 'border-box',
-              MozAppearance: 'textfield',
-            } as React.CSSProperties}
+            className="font-heading h-auto w-[120px] rounded-sm border-[rgba(139,21,21,0.4)] bg-[var(--ink-deep)] px-3 py-2 text-center text-5xl font-bold text-[var(--parchment-pale)] [-moz-appearance:textfield]"
           />
-        </div>
+        </Field>
       )}
 
       {!editMode && hpMax > 0 && rawRoll !== null && (
-        <div style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 8,
-          padding: '24px 16px',
-          background: 'rgba(61,6,6,0.2)',
-          border: '1px solid rgba(139,21,21,0.35)',
-          borderRadius: 2,
-        }}>
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 8,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: 'var(--blood-mid)',
-            opacity: 0.7,
-          }}>
+        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[rgba(139,21,21,0.35)] bg-[rgba(61,6,6,0.2)] px-4 py-6">
+          <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase">
             HP Máximo
           </span>
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 64,
-            fontWeight: 700,
-            color: 'var(--parchment-pale)',
-            lineHeight: 1,
-          }}>
+          <span className="font-heading text-[64px] leading-none font-bold text-[var(--parchment-pale)]">
             {hpMax}
           </span>
-          <span style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 11,
-            color: 'var(--bone-muted)',
-          }}>
+          <span className="text-muted-foreground text-[11px] italic">
             {rawRoll} (d{cls?.hitDie}) {conMod >= 0 ? '+' : ''}{conMod} (CON)
             {hpMax < rawRoll + conMod ? ' → mínimo 1' : ''}
           </span>

@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { classes } from '@/data/classes/index'
 import type { ClassTechnique } from '@/types/class.types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { cn } from '@/lib/utils'
 
 interface Props {
   classId: string
@@ -28,6 +33,9 @@ const TECH_KIND_LABEL: Record<string, string> = {
   spell_like:  'Ativação',
 }
 
+const CHIP_CLASS =
+  'rounded-[1px] border-[rgba(139,112,48,0.15)] bg-black/25 px-2 py-0.5 text-[10px] text-muted-foreground italic'
+
 export function StepClass({ classId, onChange }: Props) {
   const [expanded, setExpanded] = useState<string | null>(classId)
 
@@ -37,178 +45,106 @@ export function StepClass({ classId, onChange }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div className="flex flex-col gap-1.5">
       {classes.map(c => {
         const active = c.id === classId
         const open = expanded === c.id
         const techniques = (c.techniques ?? []).filter((t): t is ClassTechnique => t !== null)
 
         return (
-          <div
+          <Card
             key={c.id}
-            style={{
-              background: active ? 'rgba(139,112,48,0.1)' : 'rgba(20,14,6,0.5)',
-              border: `1px solid ${active ? 'rgba(196,120,42,0.5)' : 'rgba(139,112,48,0.18)'}`,
-              borderRadius: 2,
-              overflow: 'hidden',
-              transition: 'border-color 250ms',
-            }}
+            className={cn(
+              'gap-0 overflow-hidden rounded-sm border py-0 ring-0 transition-colors duration-[250ms]',
+              active
+                ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.1)]'
+                : 'border-[rgba(139,112,48,0.18)] bg-[rgba(20,14,6,0.5)]',
+            )}
           >
-            {/* Class header row */}
-            <button
-              onClick={() => handleSelect(c.id)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                gap: 12,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: active ? 'var(--candle-amber)' : 'rgba(139,112,48,0.2)',
-                    border: `1px solid ${active ? 'var(--candle-amber)' : 'rgba(139,112,48,0.3)'}`,
-                    flexShrink: 0,
-                    transition: 'all 200ms',
-                    boxShadow: active ? 'var(--glow-candle)' : 'none',
-                  }}
-                />
-                <span style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 15,
-                  color: active ? 'var(--parchment-pale)' : 'var(--parchment-light)',
-                  letterSpacing: '0.04em',
-                  textAlign: 'left',
-                }}>
-                  {c.name}
-                </span>
-                {c.spellcasting && (
-                  <span style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 7,
-                    color: 'var(--mist-bright)',
-                    letterSpacing: '0.08em',
-                    background: 'rgba(74,48,104,0.3)',
-                    border: '1px solid rgba(107,78,138,0.3)',
-                    padding: '1px 5px',
-                    borderRadius: 1,
-                    flexShrink: 0,
-                  }}>
-                    ARCANO
+            <Collapsible open={open} onOpenChange={() => handleSelect(c.id)}>
+              {/* Class header row */}
+              <CollapsibleTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className="h-auto w-full justify-between gap-3 px-4 py-3 normal-case hover:bg-transparent"
+                  />
+                }
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <div
+                    className={cn(
+                      'size-2 shrink-0 rounded-full border transition-all duration-200',
+                      active
+                        ? 'border-[var(--candle-amber)] bg-[var(--candle-amber)] shadow-[var(--glow-candle)]'
+                        : 'border-[rgba(139,112,48,0.3)] bg-[rgba(139,112,48,0.2)]',
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'font-heading text-left text-[15px] tracking-[0.04em]',
+                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                    )}
+                  >
+                    {c.name}
                   </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 9,
-                  color: 'var(--bone-muted)',
-                  letterSpacing: '0.06em',
-                }}>
-                  d{c.hitDie} HD
-                </span>
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  color: 'var(--bone-muted)',
-                  lineHeight: 1,
-                }}>
-                  {open ? '▲' : '▼'}
-                </span>
-              </div>
-            </button>
+                  {c.spellcasting && (
+                    <Badge
+                      variant="outline"
+                      className="font-mono shrink-0 rounded-[1px] border-[rgba(107,78,138,0.3)] bg-[rgba(74,48,104,0.3)] px-[5px] py-px text-[7px] tracking-[0.08em] text-[var(--mist-bright)]"
+                    >
+                      ARCANO
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="font-mono text-muted-foreground text-[9px] tracking-[0.06em]">
+                    d{c.hitDie} HD
+                  </span>
+                  <span className="font-mono text-muted-foreground text-[10px] leading-none">
+                    {open ? '▲' : '▼'}
+                  </span>
+                </div>
+              </CollapsibleTrigger>
 
-            {/* Expanded detail */}
-            {open && (
-              <div style={{
-                borderTop: '1px solid rgba(139,112,48,0.15)',
-                padding: '12px 16px 14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-              }}>
+              {/* Expanded detail */}
+              <CollapsibleContent className="flex flex-col gap-3 border-t border-[rgba(139,112,48,0.15)] px-4 pt-3 pb-3.5">
                 {CLASS_FLAVOR[c.id] && (
-                  <p style={{
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 11,
-                    color: 'var(--bone-muted)',
-                    lineHeight: 1.6,
-                    borderLeft: '2px solid rgba(139,112,48,0.25)',
-                    paddingLeft: 10,
-                  }}>
+                  <p className="text-muted-foreground border-l-2 border-[rgba(139,112,48,0.25)] pl-2.5 text-[11px] leading-relaxed italic">
                     {CLASS_FLAVOR[c.id]}
                   </p>
                 )}
 
                 {/* Proficiencies */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={chipStyle}>{c.armorProficiency}</span>
-                  <span style={chipStyle}>{c.weaponProficiency}</span>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className={CHIP_CLASS}>{c.armorProficiency}</Badge>
+                  <Badge variant="outline" className={CHIP_CLASS}>{c.weaponProficiency}</Badge>
                 </div>
 
                 {/* Techniques */}
                 {techniques.length > 0 && (
                   <div>
-                    <div style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: 7,
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                      color: 'var(--candle-amber)',
-                      marginBottom: 6,
-                      opacity: 0.7,
-                    }}>
+                    <div className="font-heading mb-1.5 text-[7px] tracking-[0.18em] text-[var(--candle-amber)]/70 uppercase">
                       Técnicas
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div className="flex flex-col gap-1">
                       {techniques.map(t => (
-                        <div key={t.id} style={{
-                          display: 'flex',
-                          gap: 8,
-                          alignItems: 'flex-start',
-                          padding: '6px 10px',
-                          background: 'rgba(0,0,0,0.2)',
-                          borderRadius: 1,
-                        }}>
-                          <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: 7,
-                            color: 'var(--gold-oxidized)',
-                            letterSpacing: '0.06em',
-                            background: 'rgba(139,112,48,0.12)',
-                            padding: '2px 5px',
-                            borderRadius: 1,
-                            flexShrink: 0,
-                            marginTop: 1,
-                          }}>
+                        <div
+                          key={t.id}
+                          className="flex items-start gap-2 rounded-[1px] bg-black/20 px-2.5 py-1.5"
+                        >
+                          <Badge
+                            variant="outline"
+                            className="font-mono mt-px shrink-0 rounded-[1px] border-0 bg-[rgba(139,112,48,0.12)] px-[5px] py-0.5 text-[7px] tracking-[0.06em] text-[var(--gold-oxidized)]"
+                          >
                             {TECH_KIND_LABEL[t.kind ?? 'passive']}
-                          </span>
+                          </Badge>
                           <div>
-                            <span style={{
-                              fontFamily: 'var(--font-heading)',
-                              fontSize: 11,
-                              color: 'var(--parchment-light)',
-                              letterSpacing: '0.03em',
-                            }}>
+                            <span className="font-heading text-[11px] tracking-[0.03em] text-[var(--parchment-light)]">
                               {t.name}
                             </span>
                             {t.spellLike && (
-                              <span style={{
-                                fontFamily: 'var(--font-mono)',
-                                fontSize: 7,
-                                color: 'var(--mist-bright)',
-                                marginLeft: 6,
-                              }}>
+                              <span className="font-mono ml-1.5 text-[7px] text-[var(--mist-bright)]">
                                 {t.spellLike.abilities.length} habilidades
                               </span>
                             )}
@@ -218,22 +154,11 @@ export function StepClass({ classId, onChange }: Props) {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-          </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
         )
       })}
     </div>
   )
-}
-
-const chipStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-body)',
-  fontStyle: 'italic',
-  fontSize: 10,
-  color: 'var(--bone-muted)',
-  background: 'rgba(0,0,0,0.25)',
-  border: '1px solid rgba(139,112,48,0.15)',
-  borderRadius: 1,
-  padding: '2px 8px',
 }
