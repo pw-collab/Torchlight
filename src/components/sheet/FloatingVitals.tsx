@@ -107,8 +107,8 @@ export function FloatingVitals({
         onClick={e => e.stopPropagation()}
         style={{
           width: 'min(360px, 100%)',
-          background: '#18140C',
-          border: '2px solid rgba(200,184,144,0.25)',
+          background: 'var(--background)',
+          border: '2px solid var(--border)',
           borderRadius: 0,
           boxShadow: '0 12px 48px rgba(0,0,0,0.9)',
           padding: '18px 18px 20px',
@@ -118,7 +118,7 @@ export function FloatingVitals({
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c8b890' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
             Pontos de Vida
           </span>
           <Button
@@ -126,7 +126,7 @@ export function FloatingVitals({
             size="icon-sm"
             onClick={() => setOpen(false)}
             aria-label="Fechar"
-            className="text-[15px] leading-none text-[rgba(200,184,144,0.6)] hover:bg-transparent hover:text-[var(--bone-dim)]"
+            className="text-[15px] leading-none text-[var(--border)] hover:bg-transparent hover:text-[var(--bone-dim)]"
           >
             ✕
           </Button>
@@ -135,17 +135,17 @@ export function FloatingVitals({
         {/* XP bar */}
         <div>
           <Progress value={xpPct} className="gap-0" aria-label="Progresso de XP">
-            <ProgressTrack className="h-2 rounded-none border border-[rgba(200,184,144,0.18)] bg-black/50">
+            <ProgressTrack className="h-2 rounded-none border border-[var(--border)] bg-black/50">
               <ProgressIndicator
                 className={cn(
                   'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
-                  xpReady ? 'bg-[var(--bone-dim)] shadow-[0_0_6px_#c8b890]' : 'bg-[#4FA98C]',
+                  xpReady ? 'bg-[var(--bone-dim)] shadow-[0_0_6px_color-mix(in_oklch,var(--muted-foreground),transparent_60%)]' : 'bg-[var(--chart-2)]',
                 )}
               />
             </ProgressTrack>
           </Progress>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(200,184,144,0.6)' }}>XP</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--border)' }}>XP</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Input
                 type="number"
@@ -156,10 +156,10 @@ export function FloatingVitals({
                 className={cn(
                   'h-auto w-11 cursor-text border-none bg-transparent p-0 text-right text-base',
                   'font-[var(--font-numeral)]',
-                  xpReady ? 'text-[var(--bone-dim)]' : 'text-[rgba(200,184,144,0.6)]',
+                  xpReady ? 'text-[var(--bone-dim)]' : 'text-[var(--border)]',
                 )}
               />
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'rgba(200,184,144,0.45)' }}>/ {nextXp}</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'var(--border)' }}>/ {nextXp}</span>
             </span>
           </div>
         </div>
@@ -170,7 +170,7 @@ export function FloatingVitals({
             onClick={() => applyHp(-step)}
             title="Aplicar dano"
             aria-label="Aplicar dano"
-            className="tactile bg-primary h-auto min-h-13 w-16 shrink-0 border-none px-0 text-2xl leading-none text-[#0a0805]"
+            className="tactile bg-primary h-auto min-h-13 w-16 shrink-0 border-none px-0 text-2xl leading-none text-[var(--secondary)]"
           >
             ↓
           </Button>
@@ -188,7 +188,7 @@ export function FloatingVitals({
             onClick={() => applyHp(step)}
             title="Curar"
             aria-label="Curar"
-            className="tactile h-auto min-h-13 w-16 shrink-0 border-none bg-[#4FA98C] px-0 text-2xl leading-none text-[#0a0805]"
+            className="tactile h-auto min-h-13 w-16 shrink-0 border-none bg-[var(--chart-2)] px-0 text-2xl leading-none text-[var(--secondary)]"
           >
             ↑
           </Button>
@@ -209,16 +209,16 @@ export function FloatingVitals({
 
         {/* Heading: class/ancestry + character name */}
         <div style={{ paddingTop: 8 }}>
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: '#6e5e35', letterSpacing: '1px', lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--muted-foreground)', letterSpacing: '1px', lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {className} · {ancestryName}
           </p>
-          <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 30, color: '#ff444c', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 30, color: 'var(--primary)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {characterName}
           </p>
         </div>
 
         {/* Portrait container with AC badge + HP bar overlays */}
-        <div style={{ position: 'relative', width: 268, height: 356, background: '#18140c', border: '1px solid rgba(200,184,144,0.25)', flexShrink: 0 }}>
+        <div style={{ position: 'relative', width: 268, height: 356, background: 'var(--background)', border: '1px solid var(--border)', flexShrink: 0 }}>
           <AvatarUpload
             characterId={characterId}
             portraitUrl={portraitUrl}
@@ -228,9 +228,9 @@ export function FloatingVitals({
           />
 
           {/* AC badge — top-right overlay */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: '#c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
+          <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary)', lineHeight: 1 }}>AC</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--secondary)', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom overlay */}
@@ -240,24 +240,24 @@ export function FloatingVitals({
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
           >
             {/* Gold base */}
-            <div style={{ position: 'absolute', inset: 0, background: '#c8b890' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--muted-foreground)' }} />
             {/* HP fill (red from left) */}
             <div
               key={flash ?? 'idle'}
-              style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: '#ff444c', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
+              style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
             />
             {/* Text */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: '#0a0805', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--secondary)', lineHeight: 1 }}>
                 <span
                   key={`flash-${flash ?? 'idle'}`}
                   className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
                   style={{ display: 'inline' }}
                 >{hpCurrent}</span>
-                <span style={{ color: 'rgba(10,9,5,0.7)' }}>/{hpMax}</span>
+                <span style={{ color: 'var(--secondary)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 9, color: '#0a0805', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
+              <span style={{ fontSize: 9, color: 'var(--secondary)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
             </div>
           </div>
         </div>
@@ -274,13 +274,13 @@ export function FloatingVitals({
                 onClick={() => rollStat(key)}
                 className={cn(
                   'h-auto flex-col items-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
-                  'hover:bg-[rgba(200,184,144,0.07)]',
+                  'hover:bg-[var(--border)]',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
               </Button>
             ))}
           </div>
@@ -288,13 +288,13 @@ export function FloatingVitals({
 
         {/* Control: LV + Fortuna + Editar, unified on one row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 32 }}>
-          <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '1px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box', flexShrink: 0 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: '#ff444c', lineHeight: 1 }}>{level}</span>
+          <div style={{ background: 'var(--secondary)', border: '1px solid var(--primary)', padding: '1px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--primary)', lineHeight: 1 }}>LV</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--primary)', lineHeight: 1 }}>{level}</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#c8b890', lineHeight: 1 }}>Fortuna</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>Fortuna</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
                 <Button
@@ -305,7 +305,7 @@ export function FloatingVitals({
                   aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
                   className={cn(
                     'font-sans h-5 w-auto p-0 text-2xl leading-5 transition-colors duration-300 hover:bg-transparent',
-                    i < luckTokens ? 'text-primary' : 'text-[rgba(255,68,76,0.25)]',
+                    i < luckTokens ? 'text-primary' : 'text-[var(--primary)]',
                   )}
                 >
                   ✦
@@ -316,7 +316,7 @@ export function FloatingVitals({
 
           <Link
             href={editHref}
-            style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 32, display: 'flex', alignItems: 'center', flexShrink: 0 }}
+            style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--primary)', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 32, display: 'flex', alignItems: 'center', flexShrink: 0 }}
             onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
             onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
           >
@@ -338,10 +338,10 @@ export function FloatingVitals({
 
       {/* Character heading */}
       <div style={{ paddingTop: 12 }}>
-        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: '#6e5e35', letterSpacing: '0.07em', lineHeight: 1.4 }}>
+        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--muted-foreground)', letterSpacing: '0.07em', lineHeight: 1.4 }}>
           {className} · {ancestryName}
         </p>
-        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: '#ff444c', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: 'var(--primary)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {characterName}
         </p>
       </div>
@@ -350,7 +350,7 @@ export function FloatingVitals({
       <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
 
         {/* Portrait */}
-        <div style={{ position: 'relative', width: 160, height: 213, flexShrink: 0, background: '#18140c', border: '1px solid rgba(200,184,144,0.25)' }}>
+        <div style={{ position: 'relative', width: 160, height: 213, flexShrink: 0, background: 'var(--background)', border: '1px solid var(--border)' }}>
           <AvatarUpload
             characterId={characterId}
             portraitUrl={portraitUrl}
@@ -360,9 +360,9 @@ export function FloatingVitals({
           />
 
           {/* AC badge — top-right */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: '#c8b890', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: '#0a0805', lineHeight: 1 }}>{ac}</span>
+          <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary)', lineHeight: 1 }}>AC</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: 'var(--secondary)', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom */}
@@ -371,15 +371,15 @@ export function FloatingVitals({
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
           >
-            <div style={{ position: 'absolute', inset: 0, background: '#c8b890' }} />
-            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: '#ff444c', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--muted-foreground)' }} />
+            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 6px', gap: 3 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: '#0a0805', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--secondary)', lineHeight: 1 }}>
                 <span key={`f-${flash ?? 'idle'}`} className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''} style={{ display: 'inline' }}>{hpCurrent}</span>
-                <span style={{ color: 'rgba(10,9,5,0.7)' }}>/{hpMax}</span>
+                <span style={{ color: 'var(--secondary)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 10, color: '#0a0805', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
+              <span style={{ fontSize: 10, color: 'var(--secondary)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
             </div>
           </div>
         </div>
@@ -396,13 +396,13 @@ export function FloatingVitals({
                 onClick={() => rollStat(key)}
                 className={cn(
                   'h-auto flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
-                  'hover:bg-[rgba(200,184,144,0.07)]',
+                  'hover:bg-[var(--border)]',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: '#c8b890', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: '#6e5e35', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
               </Button>
             ))}
           </div>
@@ -411,21 +411,21 @@ export function FloatingVitals({
 
       {/* LV + EDITAR — full-width row, mirroring the desktop control row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ background: '#0a0805', border: '1px solid #ff444c', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#ff444c', lineHeight: 1 }}>LV</span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: '#ff444c', lineHeight: 1 }}>{level}</span>
+        <div style={{ background: 'var(--secondary)', border: '1px solid var(--primary)', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--primary)', lineHeight: 1 }}>LV</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--primary)', lineHeight: 1 }}>{level}</span>
         </div>
         <Link
           href={editHref}
           onClick={e => e.stopPropagation()}
-          style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: '#ff444c', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
+          style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--primary)', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
         >
           Editar
         </Link>
       </div>
 
       {/* Luck bar */}
-      <div style={{ background: '#c8b890', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
+      <div style={{ background: 'var(--muted-foreground)', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
         <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
           {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
             <Button
@@ -436,7 +436,7 @@ export function FloatingVitals({
               aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
               className={cn(
                 'font-sans h-auto min-h-[30px] w-auto px-0.5 text-[22px] leading-5 transition-colors duration-300 hover:bg-transparent',
-                i < luckTokens ? 'text-primary' : 'text-[rgba(255,68,76,0.25)]',
+                i < luckTokens ? 'text-primary' : 'text-[var(--primary)]',
               )}
             >
               ✦
@@ -444,7 +444,7 @@ export function FloatingVitals({
           ))}
         </div>
         <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 60 }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#0a0805', lineHeight: 1 }}>Fortuna</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary)', lineHeight: 1 }}>Fortuna</span>
         </div>
       </div>
 

@@ -21,7 +21,7 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
 
   return (
     <Card className="worn-border bg-transparent p-10 ring-0">
-      <CardHeader className="border-b border-[rgba(139,112,48,0.18)] px-0 pb-[7px]">
+      <CardHeader className="border-b border-[var(--border)] px-0 pb-[7px]">
         <OrnateTitle>Tesouro</OrnateTitle>
       </CardHeader>
 
@@ -29,7 +29,7 @@ export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
         {coins.map(({ key, label, color, value }) => (
           <div
             key={key}
-            className="worn-border border border-[rgba(139,112,48,0.22)] bg-[rgba(42,34,16,0.4)] px-2.5 py-2 text-center"
+            className="worn-border border border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-center"
           >
             <Label
               htmlFor={`currency-${key}`}

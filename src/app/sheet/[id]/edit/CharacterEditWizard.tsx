@@ -195,7 +195,7 @@ export function CharacterEditWizard({ character }: Props) {
           >
             ← Voltar à ficha
           </Link>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#3A2E18', letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)', letterSpacing: '0.1em' }}>
             EDITAR · {current.chapter}/{totalSteps}
           </span>
         </div>
@@ -206,8 +206,8 @@ export function CharacterEditWizard({ character }: Props) {
           className="gap-0"
           aria-label={`Passo ${current.chapter} de ${totalSteps}`}
         >
-          <ProgressTrack className="h-0.5 rounded-[1px] bg-[rgba(139,112,48,0.1)]">
-            <ProgressIndicator className="bg-[linear-gradient(90deg,#4A3520,var(--candle-amber))] shadow-[0_0_8px_rgba(196,120,42,0.4)] transition-[width] duration-500 ease-[var(--ease-ritual)]" />
+          <ProgressTrack className="h-0.5 rounded-[1px] bg-[var(--border)]">
+            <ProgressIndicator className="bg-[linear-gradient(90deg,var(--muted-foreground),var(--candle-amber))] shadow-[0_0_8px_color-mix(in_oklch,var(--primary),transparent_70%)] transition-[width] duration-500 ease-[var(--ease-ritual)]" />
           </ProgressTrack>
         </Progress>
 
@@ -232,7 +232,7 @@ export function CharacterEditWizard({ character }: Props) {
                 className={cn(
                   'block h-2 rounded-[4px] transition-all duration-300 ease-[var(--ease-ritual)]',
                   i === stepIdx
-                    ? 'w-5 bg-[var(--candle-amber)] shadow-[0_0_8px_rgba(196,120,42,0.5)]'
+                    ? 'w-5 bg-[var(--candle-amber)] shadow-[0_0_8px_color-mix(in_oklch,var(--primary),transparent_70%)]'
                     : 'w-2 bg-[var(--gold-oxidized)]',
                 )}
               />
@@ -278,9 +278,9 @@ export function CharacterEditWizard({ character }: Props) {
 
       {/* Decorative rule */}
       <div style={{ width: '100%', maxWidth: 640, display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-        <div style={{ flex: 1, height: 1, background: 'rgba(139,112,48,0.14)' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: '#3A2E18', letterSpacing: '0.14em' }}>✦</span>
-        <div style={{ flex: 1, height: 1, background: 'rgba(139,112,48,0.14)' }} />
+        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: 'var(--muted-foreground)', letterSpacing: '0.14em' }}>✦</span>
+        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
       </div>
 
       {/* Step content */}
@@ -372,9 +372,9 @@ export function CharacterEditWizard({ character }: Props) {
             onClick={prev}
             disabled={stepSaving}
             className={cn(
-              'text-muted-foreground h-auto flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-transparent',
+              'text-muted-foreground h-auto flex-1 rounded-sm border-[var(--border)] bg-transparent',
               'px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
-              'hover:border-[rgba(139,112,48,0.4)] hover:text-[var(--parchment-light)]',
+              'hover:border-[var(--border)] hover:text-[var(--parchment-light)]',
               stepSaving && 'cursor-wait opacity-50',
             )}
           >
@@ -390,8 +390,8 @@ export function CharacterEditWizard({ character }: Props) {
               'h-auto rounded-sm px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
               stepIdx === 0 ? 'flex-1' : 'flex-[2]',
               canNext() && !stepSaving
-                ? 'border-[rgba(196,120,42,0.45)] bg-[rgba(139,112,48,0.16)] text-[var(--parchment-light)] shadow-[0_0_10px_rgba(196,120,42,0.08)]'
-                : 'text-muted-foreground cursor-not-allowed border-[rgba(139,112,48,0.12)] bg-[rgba(139,112,48,0.05)]',
+                ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_10px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]',
             )}
           >
             {stepSaving ? '⟳ Salvando...' : 'Próximo →'}
@@ -405,8 +405,8 @@ export function CharacterEditWizard({ character }: Props) {
             className={cn(
               'h-auto flex-[2] rounded-sm px-4 py-3.5 text-[9px] tracking-[0.2em] transition-all duration-200',
               saving
-                ? 'text-muted-foreground cursor-not-allowed border-[rgba(61,112,96,0.25)] bg-[rgba(42,80,69,0.2)]'
-                : 'border-[rgba(61,112,96,0.55)] bg-[rgba(42,80,69,0.28)] text-[var(--verdigris-light)] shadow-[0_0_12px_rgba(61,112,96,0.15)]',
+                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]'
+                : 'border-[var(--chart-2)] bg-[var(--chart-2)] text-[var(--verdigris-light)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
             )}
           >
             {saving ? '⟳ Salvando...' : '✦ Selar Alterações'}
@@ -418,8 +418,8 @@ export function CharacterEditWizard({ character }: Props) {
       <div style={{
         position: 'fixed',
         bottom: 0, left: 0, right: 0,
-        background: 'rgba(8,5,3,0.97)',
-        borderTop: '1px solid rgba(139,112,48,0.15)',
+        background: 'var(--background)',
+        borderTop: '1px solid var(--border)',
         padding: `8px 20px calc(8px + var(--safe-bottom))`,
         display: 'flex',
         alignItems: 'center',
@@ -431,7 +431,7 @@ export function CharacterEditWizard({ character }: Props) {
         <span style={{
           fontFamily: 'var(--font-heading)',
           fontSize: 13,
-          color: name ? 'var(--parchment-light)' : '#3A2E18',
+          color: name ? 'var(--parchment-light)' : 'var(--muted-foreground)',
           transition: 'color 300ms',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -441,7 +441,7 @@ export function CharacterEditWizard({ character }: Props) {
         }}>
           {name || 'Sem nome'}
         </span>
-        <span style={{ color: 'rgba(139,112,48,0.25)', fontSize: 10, flexShrink: 0 }}>·</span>
+        <span style={{ color: 'var(--border)', fontSize: 10, flexShrink: 0 }}>·</span>
         <span style={{
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
@@ -459,7 +459,7 @@ export function CharacterEditWizard({ character }: Props) {
         <span style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 8,
-          color: '#3A2E18',
+          color: 'var(--muted-foreground)',
           letterSpacing: '0.1em',
           flexShrink: 0,
         }}>

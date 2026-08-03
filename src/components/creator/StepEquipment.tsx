@@ -79,7 +79,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
             className="gap-0"
             aria-label={`Slots de carga: ${used} de ${max}`}
           >
-            <ProgressTrack className="h-[3px] rounded-sm bg-[rgba(139,112,48,0.12)]">
+            <ProgressTrack className="h-[3px] rounded-sm bg-[var(--border)]">
               <ProgressIndicator
                 className={cn(
                   'transition-[width] duration-300',
@@ -100,7 +100,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
                 key={i}
                 variant="outline"
                 size="sm"
-                className="justify-between rounded-sm border-[rgba(139,112,48,0.15)] bg-[rgba(20,14,6,0.5)] px-3 py-2.5"
+                className="justify-between rounded-sm border-[var(--border)] bg-[var(--card)] px-3 py-2.5"
               >
                 <ItemContent className="gap-0">
                   <ItemTitle className="text-xs font-normal text-[var(--parchment-light)]">
@@ -131,7 +131,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
                 key={i}
                 variant="outline"
                 size="sm"
-                className="gap-2.5 rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] px-3 py-2"
+                className="gap-2.5 rounded-sm border-[var(--border)] bg-[var(--card)] px-3 py-2"
               >
                 <ItemContent className="gap-0">
                   <ItemTitle className="text-xs font-normal text-[var(--parchment-light)]">
@@ -171,7 +171,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
             onKeyDown={e => e.key === 'Enter' && addArea()}
             placeholder="ex.: Herbalismo, Ferraria..."
             aria-label="Nome da área de conhecimento"
-            className="h-auto flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-[rgba(13,10,5,0.7)] px-2.5 py-2 text-xs text-[var(--parchment-pale)] focus-visible:border-[rgba(196,120,42,0.5)]"
+            className="h-auto flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-xs text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
           />
           <div className="flex items-center gap-1">
             <Button
@@ -204,7 +204,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
           <Button
             variant="outline"
             onClick={addArea}
-            className="h-auto rounded-sm border-[rgba(139,112,48,0.3)] bg-[rgba(139,112,48,0.14)] px-3 py-2 text-[9px] tracking-[0.1em] text-[var(--parchment-light)]"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3 py-2 text-[9px] tracking-[0.1em] text-[var(--parchment-light)]"
           >
             + Add
           </Button>
@@ -220,4 +220,4 @@ const SECTION_LABEL_CLASS =
 const SECTION_NOTE_CLASS = 'text-muted-foreground text-[10px] leading-normal italic'
 
 const BONUS_BTN_CLASS =
-  'font-mono rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(13,10,5,0.6)] text-xs text-[var(--parchment-light)]'
+  'font-mono rounded-sm border-[var(--border)] bg-[var(--card)] text-xs text-[var(--parchment-light)]'

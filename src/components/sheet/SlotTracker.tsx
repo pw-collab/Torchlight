@@ -42,9 +42,9 @@ export function SlotTracker({ str, equipment }: Props) {
                 'size-2.5 rounded-[1px] border',
                 i < used
                   ? overEncumbered
-                    ? 'border-[var(--blood-mid)] bg-[rgba(139,21,21,0.4)]'
-                    : 'border-[#8B7030] bg-[rgba(139,112,48,0.3)]'
-                  : 'border-[rgba(139,112,48,0.25)] bg-black/30',
+                    ? 'border-[var(--blood-mid)] bg-[var(--destructive)]'
+                    : 'border-[var(--muted-foreground)] bg-[var(--border)]'
+                  : 'border-[var(--border)] bg-black/30',
               )}
             />
           ))}

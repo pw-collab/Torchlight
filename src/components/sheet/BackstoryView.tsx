@@ -43,7 +43,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-2 py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-2 py-[5px] text-[11px] text-[var(--parchment-light)]'
 
 const TEXTAREA_CLASS = `${INPUT_CLASS} resize-y leading-normal`
 
@@ -53,8 +53,8 @@ const chip: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 4,
-  background: 'rgba(42,34,16,0.5)',
-  border: '1px solid rgba(139,112,48,0.32)',
+  background: 'var(--card)',
+  border: '1px solid var(--border)',
   borderRadius: 2,
   padding: '3px 7px 3px 9px',
   fontFamily: 'var(--font-body)',
@@ -75,7 +75,7 @@ function RemoveBtn({ onClick }: { onClick: () => void }) {
       size="icon-xs"
       onClick={onClick}
       aria-label="Remover"
-      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
     >
       ✕
     </Button>
@@ -107,8 +107,8 @@ function AddRow({
         className={cn(
           'h-auto rounded-[1px] px-2.5 text-[7.5px] tracking-[0.1em] transition-all duration-200',
           active
-            ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.3)]'
-            : 'text-muted-foreground border-[rgba(42,80,69,0.2)] bg-[rgba(42,80,69,0.12)]',
+            ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
+            : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
         )}
       >
         ✦ Adicionar
@@ -263,7 +263,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
                   key={l}
                   variant="outline"
                   onClick={() => addLang(l)}
-                  className="font-sans text-muted-foreground h-auto rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.3)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[rgba(106,58,10,0.3)] hover:text-[var(--candle-amber)]"
+                  className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[var(--primary)] hover:text-[var(--candle-amber)]"
                 >
                   + {l}
                 </Button>

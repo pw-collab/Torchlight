@@ -64,7 +64,7 @@ function isValid(form: EditForm): boolean {
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -90,7 +90,7 @@ function SectionDivider({ children }: { children: React.ReactNode }) {
       textTransform: 'uppercase',
       color: 'var(--bone-muted)',
       paddingBottom: 7,
-      borderBottom: '1px solid rgba(139,112,48,0.18)',
+      borderBottom: '1px solid var(--border)',
       marginBottom: 12,
     }}>
       {children}
@@ -210,10 +210,10 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
     <Dialog open onOpenChange={open => { if (!open) handleClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="worn-border flex max-h-[88vh] w-full max-w-[560px] min-w-[460px] flex-col gap-3.5 overflow-y-auto border-t-2 border-t-[#7A6030] bg-[#2E2210] px-6 py-5.5"
+        className="worn-border flex max-h-[88vh] w-full max-w-[560px] min-w-[460px] flex-col gap-3.5 overflow-y-auto border-t-2 border-t-[var(--border)] bg-[var(--card)] px-6 py-5.5"
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
-        <DialogHeader className="flex-row items-center justify-between border-b border-[rgba(139,112,48,0.22)] pb-3.5">
+        <DialogHeader className="flex-row items-center justify-between border-b border-[var(--border)] pb-3.5">
           <DialogTitle className="font-heading text-[11px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
             ✦ Editar Personagem
           </DialogTitle>
@@ -295,8 +295,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <div
                 key={key}
                 style={{
-                  background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.16) 100%), var(--parchment-mid)',
-                  border: '1px solid rgba(139,112,48,0.22)',
+                  background: 'var(--card), var(--parchment-mid)',
+                  border: '1px solid var(--border)',
                   borderRadius: 1,
                   padding: '6px 4px',
                   textAlign: 'center',
@@ -315,7 +315,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                   min={1} max={20}
                   onChange={numField(key, 1, 20)}
                   aria-label={STAT_LABELS[key]}
-                  className="font-mono h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-[13px] font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
+                  className="font-mono h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-[13px] font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
                 />
                 <div style={{
                   fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 3,
@@ -348,7 +348,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <Button
                 variant="outline"
                 onClick={rollAndAdd}
-                className="text-foreground h-auto rounded-[1px] border-[#6B3A0A] bg-[rgba(106,58,10,0.3)] px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[rgba(106,58,10,0.55)]"
+                className="text-foreground h-auto rounded-[1px] border-[var(--primary)] bg-[var(--primary)] px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
               >
                 ✦ Rolar 2d6
               </Button>
@@ -358,15 +358,15 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             {tableOpen && (
               <div
                 className="animate-ink-spread"
-                style={{ border: '1px solid rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden', marginBottom: 10 }}
+                style={{ border: '1px solid var(--border)', borderRadius: 1, overflow: 'hidden', marginBottom: 10 }}
               >
                 {/* Header row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.7)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
                   {['2D6', 'Efeito'].map((h, i) => (
                     <div key={h} style={{
                       fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em',
                       textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px',
-                      borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none',
+                      borderRight: i === 0 ? '1px solid var(--border)' : 'none',
                     }}>
                       {h}
                     </div>
@@ -382,16 +382,16 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         display: 'grid',
                         gridTemplateColumns: '48px 1fr',
                         background: isLastRoll
-                          ? 'rgba(106,58,10,0.28)'
-                          : i % 2 === 0 ? 'rgba(42,34,16,0.22)' : 'rgba(42,34,16,0.08)',
-                        borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none',
+                          ? 'var(--primary)'
+                          : i % 2 === 0 ? 'var(--card)' : 'var(--card)',
+                        borderBottom: i < classData.talentTable.length - 1 ? '1px solid var(--border)' : 'none',
                         transition: 'background 200ms',
                       }}
                     >
                       <div style={{
                         fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
                         color: isLastRoll ? 'var(--candle-amber)' : 'var(--bone-muted)',
-                        padding: '6px 10px', borderRight: '1px solid rgba(139,112,48,0.18)',
+                        padding: '6px 10px', borderRight: '1px solid var(--border)',
                         display: 'flex', alignItems: 'center',
                       }}>
                         {entry.roll}
@@ -414,8 +414,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <div
                 className="worn-border animate-ink-spread"
                 style={{
-                  background: 'rgba(106,58,10,0.15)',
-                  border: '1px solid rgba(139,112,48,0.35)',
+                  background: 'var(--primary)',
+                  border: '1px solid var(--border)',
                   padding: '8px 12px',
                   marginBottom: 10,
                   display: 'flex',
@@ -468,8 +468,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 8,
-                        background: 'rgba(42,34,16,0.35)',
-                        border: '1px solid rgba(139,112,48,0.2)',
+                        background: 'var(--card)',
+                        border: '1px solid var(--border)',
                         padding: '7px 10px',
                         borderRadius: 1,
                       }}
@@ -478,8 +478,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         fontFamily: 'var(--font-heading)', fontSize: 7,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: 'var(--candle-amber)',
-                        background: 'rgba(196,120,42,0.12)',
-                        border: '1px solid rgba(196,120,42,0.25)',
+                        background: 'var(--primary)',
+                        border: '1px solid var(--primary)',
                         padding: '1px 5px', borderRadius: 1, flexShrink: 0, marginTop: 1,
                       }}>
                         Classe
@@ -494,7 +494,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         {talent.description && (
                           <div style={{
                             fontFamily: 'var(--font-mono)', fontSize: 8,
-                            color: 'rgba(139,112,48,0.5)', marginTop: 2,
+                            color: 'var(--border)', marginTop: 2,
                           }}>
                             {talent.description}
                           </div>
@@ -506,7 +506,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         onClick={() => removeClassTalent(talent.id)}
                         title="Remover talento"
                         aria-label="Remover talento"
-                        className="h-auto w-auto shrink-0 px-0.5 text-[11px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[180ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+                        className="h-auto w-auto shrink-0 px-0.5 text-[11px] leading-none text-[var(--destructive)] transition-colors duration-[180ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
                       >
                         ✕
                       </Button>
@@ -569,8 +569,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                   key={lang}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 4,
-                    background: 'rgba(42,34,16,0.5)',
-                    border: '1px solid rgba(139,112,48,0.35)',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
                     borderRadius: 2,
                     padding: '3px 7px 3px 9px',
                     fontFamily: 'var(--font-body)',
@@ -585,7 +585,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                     onClick={() => removeLang(lang)}
                     title={`Remover ${lang}`}
                     aria-label={`Remover ${lang}`}
-                    className="h-auto w-auto px-px text-[10px] leading-none text-[rgba(139,21,21,0.45)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+                    className="h-auto w-auto px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
                   >
                     ✕
                   </Button>
@@ -620,7 +620,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       key={lang}
                       variant="outline"
                       onClick={() => addLang(lang)}
-                      className="font-sans text-muted-foreground h-auto rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.3)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:border-[rgba(139,112,48,0.5)] hover:bg-[rgba(106,58,10,0.3)] hover:text-[var(--candle-amber)]"
+                      className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:border-[var(--border)] hover:bg-[var(--primary)] hover:text-[var(--candle-amber)]"
                     >
                       + {lang}
                     </Button>
@@ -649,8 +649,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               className={cn(
                 'h-auto rounded-[1px] px-3 text-[7.5px] tracking-[0.1em] transition-all duration-200',
                 langInput.trim()
-                  ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.3)]'
-                  : 'text-muted-foreground border-[rgba(42,80,69,0.2)] bg-[rgba(42,80,69,0.12)]',
+                  ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
+                  : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
               )}
             >
               ✦ Adicionar
@@ -667,8 +667,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             className={cn(
               'h-auto flex-[2] rounded-[1px] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300',
               valid
-                ? 'text-foreground border-[#2A5045] bg-[rgba(42,80,69,0.35)]'
-                : 'text-muted-foreground border-[rgba(42,80,69,0.3)] bg-[rgba(42,80,69,0.15)]',
+                ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]'
+                : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]',
               saving && 'opacity-60',
             )}
           >
@@ -678,7 +678,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             variant="outline"
             onClick={handleClose}
             disabled={saving}
-            className="text-muted-foreground h-auto flex-1 rounded-[1px] border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300"
+            className="text-muted-foreground h-auto flex-1 rounded-[1px] border-[var(--border)] bg-[var(--card)] py-2.5 text-[9px] tracking-[0.12em] transition-all duration-300"
           >
             Cancelar
           </Button>

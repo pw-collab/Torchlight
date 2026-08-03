@@ -185,9 +185,9 @@ export default function CharacterCreatorPage() {
       display: 'flex',
       flexDirection: 'column',
       background: `
-        radial-gradient(130% 80% at 50% -12%, rgba(74,40,14,0.30) 0%, transparent 58%),
-        radial-gradient(90% 70% at 100% 110%, rgba(48,24,8,0.22) 0%, transparent 70%),
-        radial-gradient(70% 60% at 0% 100%, rgba(30,16,8,0.20) 0%, transparent 70%),
+        radial-gradient(130% 80% at 50% -12%, color-mix(in oklch, var(--card), transparent 70%) 0%, transparent 58%),
+        radial-gradient(90% 70% at 100% 110%, color-mix(in oklch, var(--card), transparent 78%) 0%, transparent 70%),
+        radial-gradient(70% 60% at 0% 100%, color-mix(in oklch, var(--card), transparent 80%) 0%, transparent 70%),
         var(--ink-black)`,
     }}>
 
@@ -197,7 +197,7 @@ export default function CharacterCreatorPage() {
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
         padding: `calc(16px + var(--safe-top)) 24px 14px`,
-        borderBottom: '1px solid rgba(139,112,48,0.14)',
+        borderBottom: '1px solid var(--border)',
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--candle-amber)', opacity: 0.75 }}>
           <Flame size={12} />
@@ -264,12 +264,12 @@ export default function CharacterCreatorPage() {
               const nodeColor =
                 state === 'current' ? 'var(--candle-glow)'
                   : state === 'done' ? 'var(--gold-oxidized)'
-                    : 'rgba(139,112,48,0.28)'
+                    : 'var(--border)'
 
               const labelColor =
                 state === 'current' ? 'var(--parchment-pale)'
                   : state === 'done' ? 'var(--parchment-light)'
-                    : '#5A4A2E'
+                    : 'var(--muted-foreground)'
 
               return (
                 <Button
@@ -295,7 +295,7 @@ export default function CharacterCreatorPage() {
                     <div style={{
                       width: 1.5,
                       flex: '0 0 14px',
-                      background: isFirst ? 'transparent' : (state === 'todo' ? 'rgba(139,112,48,0.15)' : 'var(--gold-oxidized)'),
+                      background: isFirst ? 'transparent' : (state === 'todo' ? 'var(--border)' : 'var(--gold-oxidized)'),
                     }} />
                     {/* node */}
                     <div
@@ -309,9 +309,9 @@ export default function CharacterCreatorPage() {
                         justifyContent: 'center',
                         flexShrink: 0,
                         color: nodeColor,
-                        background: state === 'current' ? 'radial-gradient(circle, rgba(196,120,42,0.28), rgba(196,120,42,0.05))'
-                          : state === 'todo' ? 'rgba(139,112,48,0.14)' : 'rgba(139,112,48,0.06)',
-                        border: state === 'todo' ? 'none' : `1.5px solid ${state === 'current' ? 'rgba(224,160,64,0.7)' : 'rgba(139,112,48,0.45)'}`,
+                        background: state === 'current' ? 'radial-gradient(circle, var(--primary), var(--primary))'
+                          : state === 'todo' ? 'var(--border)' : 'var(--border)',
+                        border: state === 'todo' ? 'none' : `1.5px solid ${state === 'current' ? 'var(--primary)' : 'var(--border)'}`,
                         boxShadow: state === 'current' ? 'var(--glow-candle)' : 'none',
                         transition: 'all 300ms var(--ease-ritual)',
                       }}
@@ -322,7 +322,7 @@ export default function CharacterCreatorPage() {
                     <div style={{
                       width: 1.5,
                       flex: '1 0 14px',
-                      background: isLastItem ? 'transparent' : (i < stepIdx ? 'var(--gold-oxidized)' : 'rgba(139,112,48,0.15)'),
+                      background: isLastItem ? 'transparent' : (i < stepIdx ? 'var(--gold-oxidized)' : 'var(--border)'),
                     }} />
                   </div>
 
@@ -379,8 +379,8 @@ export default function CharacterCreatorPage() {
                       borderRadius: 2,
                       background: i < stepIdx ? 'var(--gold-oxidized)'
                         : i === stepIdx ? 'var(--candle-amber)'
-                          : 'rgba(139,112,48,0.14)',
-                      boxShadow: i === stepIdx ? '0 0 8px rgba(196,120,42,0.5)' : 'none',
+                          : 'var(--border)',
+                      boxShadow: i === stepIdx ? '0 0 8px var(--primary)' : 'none',
                       transition: 'all 300ms var(--ease-ritual)',
                     }}
                   />
@@ -432,11 +432,11 @@ export default function CharacterCreatorPage() {
               gap: 12,
               margin: '26px 0 28px',
             }}>
-              <div style={{ flex: 1, height: 1, background: 'rgba(139,112,48,0.16)' }} />
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
               <span style={{ color: 'var(--candle-amber)', opacity: 0.5, display: 'flex' }}>
                 <Flame size={10} />
               </span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(139,112,48,0.16)' }} />
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
             </div>
 
             {/* Step content */}
@@ -522,8 +522,8 @@ export default function CharacterCreatorPage() {
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'rgba(8,5,3,0.94)',
-        borderTop: '1px solid rgba(139,112,48,0.16)',
+        background: 'var(--background)',
+        borderTop: '1px solid var(--border)',
         padding: `16px 28px calc(16px + var(--safe-bottom))`,
         display: 'flex',
         alignItems: 'center',
@@ -541,7 +541,7 @@ export default function CharacterCreatorPage() {
             'tactile h-auto px-2 py-3 text-xs tracking-[0.16em] transition-colors duration-200',
             'hover:bg-transparent',
             stepIdx === 0
-              ? 'cursor-default text-[#3A2E18] opacity-50'
+              ? 'cursor-default text-[var(--muted-foreground)] opacity-50'
               : 'text-muted-foreground hover:text-[var(--parchment-light)]',
           )}
         >
@@ -560,7 +560,7 @@ export default function CharacterCreatorPage() {
           <span style={{
             fontFamily: 'var(--font-heading)',
             fontSize: 13,
-            color: name ? 'var(--parchment-light)' : '#3A2E18',
+            color: name ? 'var(--parchment-light)' : 'var(--muted-foreground)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -568,7 +568,7 @@ export default function CharacterCreatorPage() {
           }}>
             {name || 'Sem nome'}
           </span>
-          <span style={{ color: 'rgba(139,112,48,0.3)', fontSize: 10 }}>·</span>
+          <span style={{ color: 'var(--border)', fontSize: 10 }}>·</span>
           <span style={{
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
@@ -592,8 +592,8 @@ export default function CharacterCreatorPage() {
             className={cn(
               'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.14em] transition-all duration-200',
               canNext()
-                ? 'border-[rgba(224,160,64,0.6)] bg-[linear-gradient(180deg,var(--candle-glow),var(--candle-amber))] text-[var(--ink-black)] shadow-[0_0_16px_rgba(196,120,42,0.35)]'
-                : 'text-muted-foreground cursor-not-allowed border-[rgba(139,112,48,0.15)] bg-[rgba(139,112,48,0.1)]',
+                ? 'border-[var(--primary)] bg-[linear-gradient(180deg,var(--candle-glow),var(--candle-amber))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--primary),transparent_65%)]'
+                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]',
             )}
           >
             Próximo →
@@ -606,8 +606,8 @@ export default function CharacterCreatorPage() {
             className={cn(
               'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.16em] transition-all duration-200',
               saving
-                ? 'text-muted-foreground cursor-not-allowed border-[rgba(61,112,96,0.25)] bg-[rgba(42,80,69,0.2)]'
-                : 'border-[rgba(79,169,140,0.6)] bg-[linear-gradient(180deg,var(--verdigris-bright),var(--verdigris))] text-[var(--ink-black)] shadow-[0_0_16px_rgba(61,112,96,0.35)]',
+                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]'
+                : 'border-[var(--chart-2)] bg-[linear-gradient(180deg,var(--verdigris-bright),var(--verdigris))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--chart-2),transparent_65%)]',
             )}
           >
             {saving ? '⟳ Registrando...' : '✦ Selar o Registro'}

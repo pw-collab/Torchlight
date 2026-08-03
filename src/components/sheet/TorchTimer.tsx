@@ -30,9 +30,9 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
         'worn-border bg-[var(--parchment-mid)] py-3',
         isLit
           ? isLow
-            ? 'border-[rgba(139,21,21,0.45)] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_8px_rgba(139,21,21,0.2)]'
-            : 'border-[rgba(196,120,42,0.35)] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_8px_rgba(196,120,42,0.15)]'
-          : 'border-[rgba(139,112,48,0.33)] shadow-[0_4px_14px_rgba(0,0,0,0.6)]',
+            ? 'border-[var(--destructive)] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_8px_color-mix(in_oklch,var(--destructive),transparent_75%)]'
+            : 'border-[var(--primary)] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_8px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+          : 'border-[var(--border)] shadow-[0_4px_14px_rgba(0,0,0,0.6)]',
       )}
     >
       <CardContent className="px-3.5">
@@ -63,7 +63,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
           <Button
             onClick={lightTorch}
             variant="outline"
-            className="text-foreground w-full border-[#6B3A0A] bg-[rgba(107,58,10,0.3)] text-[9.5px] tracking-[0.14em] transition-all duration-[350ms] hover:bg-[rgba(107,58,10,0.5)]"
+            className="text-foreground w-full border-[var(--primary)] bg-[var(--primary)] text-[9.5px] tracking-[0.14em] transition-all duration-[350ms] hover:bg-[var(--primary)]"
           >
             Acender Tocha
           </Button>
@@ -71,7 +71,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
           <Button
             onClick={extinguishTorch}
             variant="outline"
-            className="text-muted-foreground w-full border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] text-[9.5px] tracking-[0.14em] transition-all duration-[350ms]"
+            className="text-muted-foreground w-full border-[var(--border)] bg-[var(--card)] text-[9.5px] tracking-[0.14em] transition-all duration-[350ms]"
           >
             Apagar Tocha
           </Button>

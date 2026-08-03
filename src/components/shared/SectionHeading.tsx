@@ -46,7 +46,7 @@ export function SectionSubheading({ children, marker = '⁕', trailing, classNam
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 border-b border-[rgba(200,184,144,0.18)] pb-[7px]',
+        'flex items-center justify-between gap-3 border-b border-[var(--border)] pb-[7px]',
         className,
       )}
     >

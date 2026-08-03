@@ -55,7 +55,7 @@ const mdComponents: Components = {
   ul: ({ children }) => <ul className="mb-2 list-disc pl-4">{children}</ul>,
   ol: ({ children }) => <ol className="mb-2 list-decimal pl-4">{children}</ol>,
   li: ({ children }) => <li className="mb-[3px]">{children}</li>,
-  hr: () => <hr className="my-2.5 border-t border-[rgba(139,112,48,0.3)]" />,
+  hr: () => <hr className="my-2.5 border-t border-[var(--border)]" />,
 }
 
 const PAGE_CLASS =
@@ -101,7 +101,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
                 size="sm"
                 variant="outline"
                 onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
-                className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+                className="border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
               >
                 ✎ Editar Conteúdo
               </Button>
@@ -110,7 +110,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
                 variant="outline"
                 onClick={onClose}
                 aria-label="Fechar"
-                className="border-[rgba(196,32,32,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] text-[var(--blood-bright)]"
+                className="border-[var(--destructive)] bg-[var(--card)] text-[10px] text-[var(--blood-bright)]"
               >
                 ✕
               </Button>
@@ -118,33 +118,33 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
           </DialogHeader>
 
           {/* Book spread */}
-          <div className="flex border border-[rgba(139,112,48,0.4)] shadow-[0_16px_60px_rgba(0,0,0,0.85),0_4px_16px_rgba(0,0,0,0.6)]">
+          <div className="flex border border-[var(--border)] shadow-[0_16px_60px_rgba(0,0,0,0.85),0_4px_16px_rgba(0,0,0,0.6)]">
             {/* Left page */}
             <div className={PAGE_CLASS}>
-              <div className="absolute bottom-2.5 left-4 text-[9px] text-[rgba(80,60,20,0.45)] italic">
+              <div className="absolute bottom-2.5 left-4 text-[9px] text-[var(--muted-foreground)] italic">
                 {leftNum}
               </div>
               {leftPage ? (
                 <ReactMarkdown components={mdComponents}>{leftPage}</ReactMarkdown>
               ) : (
-                <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
+                <span className="text-[11px] text-[var(--muted-foreground)] italic">
                   Página em branco.
                 </span>
               )}
             </div>
 
             {/* Spine */}
-            <div className="w-1.5 shrink-0 bg-[linear-gradient(to_right,rgba(80,55,10,0.55),rgba(139,112,48,0.5),rgba(80,55,10,0.55))]" />
+            <div className="w-1.5 shrink-0 bg-[linear-gradient(to_right,var(--border),var(--border),var(--border))]" />
 
             {/* Right page */}
             <div className={PAGE_CLASS}>
-              <div className="absolute right-4 bottom-2.5 text-[9px] text-[rgba(80,60,20,0.45)] italic">
+              <div className="absolute right-4 bottom-2.5 text-[9px] text-[var(--muted-foreground)] italic">
                 {rightPage !== null ? rightNum : ''}
               </div>
               {rightPage !== null ? (
                 <ReactMarkdown components={mdComponents}>{rightPage}</ReactMarkdown>
               ) : (
-                <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
+                <span className="text-[11px] text-[var(--muted-foreground)] italic">
                   {totalPages > 1 ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
                 </span>
               )}
@@ -158,7 +158,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.max(0, s - 1))}
               disabled={spreadIndex === 0}
-              className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
             >
               ← Anterior
             </Button>
@@ -172,7 +172,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.min(totalSpreads - 1, s + 1))}
               disabled={spreadIndex >= totalSpreads - 1}
-              className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
             >
               Próximo →
             </Button>
@@ -182,7 +182,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
 
       {/* Edit content dialog */}
       <Dialog open={editingContent} onOpenChange={setEditingContent}>
-        <DialogContent className="max-w-[540px] border-t-2 border-t-[#7A6030] p-6">
+        <DialogContent className="max-w-[540px] border-t-2 border-t-[var(--border)] p-6">
           <DialogHeader>
             <DialogTitle className="font-heading text-[9px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
               Editar Conteúdo — {item.name}
@@ -198,7 +198,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
             placeholder={'# Título\n\nEscreva aqui em **Markdown**...\n\nPalavras *em itálico*, **negrito**, listas, etc.'}
             className={cn(
               'font-mono h-[360px] resize-y bg-[var(--ink-deep)] text-[11px] leading-normal',
-              'border-[rgba(139,112,48,0.28)] text-[var(--parchment-light)]',
+              'border-[var(--border)] text-[var(--parchment-light)]',
             )}
           />
 
@@ -206,14 +206,14 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
             <Button
               onClick={handleSave}
               variant="outline"
-              className="text-foreground flex-1 border-[#2A5045] bg-[rgba(42,80,69,0.3)] text-[9px] tracking-[0.12em]"
+              className="text-foreground flex-1 border-[var(--chart-2)] bg-[var(--chart-2)] text-[9px] tracking-[0.12em]"
             >
               Salvar
             </Button>
             <Button
               onClick={() => setEditingContent(false)}
               variant="outline"
-              className="text-muted-foreground flex-1 border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] text-[9px] tracking-[0.12em]"
+              className="text-muted-foreground flex-1 border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em]"
             >
               Cancelar
             </Button>

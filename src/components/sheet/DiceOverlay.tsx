@@ -89,16 +89,16 @@ export function DiceOverlay({ phase, roll }: Props) {
   }
 
   const borderColor = isCritical && landed
-    ? 'rgba(201,168,76,0.65)'
+    ? 'var(--chart-1)'
     : isFumble && landed
-    ? 'rgba(196,32,32,0.55)'
-    : 'rgba(139,112,48,0.42)'
+    ? 'var(--destructive)'
+    : 'var(--border)'
 
-  const numberColor = isCritical ? 'var(--gold-bright)' : isFumble ? '#ff444c' : '#c8b890'
+  const numberColor = isCritical ? 'var(--gold-bright)' : isFumble ? 'var(--primary)' : 'var(--muted-foreground)'
   const numberShadow = isCritical
-    ? '0 0 24px rgba(201,168,76,0.7)'
+    ? '0 0 24px var(--chart-1)'
     : isFumble
-    ? '0 0 24px rgba(196,32,32,0.7)'
+    ? '0 0 24px var(--destructive)'
     : 'none'
 
   // Camera reaction on impact: jitter + a small zoom punch, stronger on crits/fumbles.
@@ -183,16 +183,16 @@ export function DiceOverlay({ phase, roll }: Props) {
                   position: 'relative',
                   marginTop: 6,
                   background: isCritical
-                    ? 'linear-gradient(148deg, rgba(201,168,76,.18) 0%, rgba(24,20,12,0) 42%, rgba(10,8,5,.96) 100%), #18140C'
+                    ? 'linear-gradient(148deg, var(--chart-1) 0%, var(--card) 42%, var(--secondary) 100%), var(--background)'
                     : isFumble
-                    ? 'linear-gradient(148deg, rgba(255,68,76,.20) 0%, rgba(24,20,12,0) 42%, rgba(10,8,5,.96) 100%), #18140C'
-                    : '#18140C',
+                    ? 'linear-gradient(148deg, var(--primary) 0%, var(--card) 42%, var(--secondary) 100%), var(--background)'
+                    : 'var(--background)',
                   border: `1px solid ${borderColor}`,
-                  borderTop: `2px solid ${isCritical ? '#C9A84C' : isFumble ? '#C42020' : '#7A6030'}`,
+                  borderTop: `2px solid ${isCritical ? 'var(--chart-1)' : isFumble ? 'var(--destructive)' : 'var(--border)'}`,
                   boxShadow: isCritical
-                    ? '0 8px 40px rgba(201,168,76,0.3), 0 4px 20px rgba(0,0,0,0.8)'
+                    ? '0 8px 40px var(--chart-1), 0 4px 20px rgba(0,0,0,0.8)'
                     : isFumble
-                    ? '0 8px 40px rgba(196,32,32,0.3), 0 4px 20px rgba(0,0,0,0.8)'
+                    ? '0 8px 40px var(--destructive), 0 4px 20px rgba(0,0,0,0.8)'
                     : '0 8px 40px rgba(0,0,0,0.8)',
                   padding: '18px 44px 20px',
                   minWidth: 200,
@@ -261,7 +261,7 @@ export function DiceOverlay({ phase, roll }: Props) {
                         letterSpacing: '0.18em',
                         textTransform: 'uppercase',
                         color: isCritical ? 'var(--gold-bright)' : 'var(--blood-bright)',
-                        textShadow: isCritical ? '0 0 8px rgba(201,168,76,0.5)' : 'none',
+                        textShadow: isCritical ? '0 0 8px var(--chart-1)' : 'none',
                         marginTop: 2,
                       }}
                     >

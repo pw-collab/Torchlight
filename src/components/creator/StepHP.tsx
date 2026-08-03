@@ -43,7 +43,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
       {cls && (
         <Item
           variant="outline"
-          className="w-full justify-between rounded-sm border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] px-4.5 py-3.5"
+          className="w-full justify-between rounded-sm border-[var(--border)] bg-[var(--card)] px-4.5 py-3.5"
         >
           <ItemContent className="gap-1">
             <ItemDescription className={CAPTION_CLASS}>Dado de Vida</ItemDescription>
@@ -72,8 +72,8 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[rgba(139,21,21,0.2)] bg-[rgba(139,21,21,0.1)]'
-            : 'border-[rgba(196,32,32,0.4)] bg-[rgba(139,21,21,0.18)] text-[var(--blood-bright)]',
+            ? 'text-muted-foreground cursor-wait border-[var(--destructive)] bg-[var(--destructive)]'
+            : 'border-[var(--destructive)] bg-[var(--destructive)] text-[var(--blood-bright)]',
         )}
       >
         {rolling ? '⟳ Rolando...' : hpMax > 0 ? '⟳ Rolar novamente' : '✦ Rolar HP Inicial'}
@@ -97,13 +97,13 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
               const n = parseInt(e.target.value)
               onRoll(isNaN(n) ? 1 : Math.min(999, Math.max(1, n)))
             }}
-            className="font-heading h-auto w-[120px] rounded-sm border-[rgba(139,21,21,0.4)] bg-[var(--ink-deep)] px-3 py-2 text-center text-5xl font-bold text-[var(--parchment-pale)] [-moz-appearance:textfield]"
+            className="font-heading h-auto w-[120px] rounded-sm border-[var(--destructive)] bg-[var(--ink-deep)] px-3 py-2 text-center text-5xl font-bold text-[var(--parchment-pale)] [-moz-appearance:textfield]"
           />
         </Field>
       )}
 
       {!editMode && hpMax > 0 && rawRoll !== null && (
-        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[rgba(139,21,21,0.35)] bg-[rgba(61,6,6,0.2)] px-4 py-6">
+        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--destructive)] bg-[var(--destructive)] px-4 py-6">
           <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase">
             HP Máximo
           </span>

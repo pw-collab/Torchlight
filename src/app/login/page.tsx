@@ -31,8 +31,8 @@ function LoginContent() {
       className="flex min-h-screen flex-col items-center justify-center p-8"
       style={{
         background: `
-          radial-gradient(ellipse at 12% 85%, rgba(42,26,58,0.2) 0%, transparent 50%),
-          radial-gradient(ellipse at 88% 12%, rgba(139,21,21,0.12) 0%, transparent 40%),
+          radial-gradient(ellipse at 12% 85%, color-mix(in oklch, var(--muted), transparent 80%) 0%, transparent 50%),
+          radial-gradient(ellipse at 88% 12%, color-mix(in oklch, var(--destructive), transparent 88%) 0%, transparent 40%),
           var(--ink-black)
         `,
       }}
@@ -43,7 +43,7 @@ function LoginContent() {
         <img
           src="/skull-icon.png"
           alt="Torchlight"
-          className="animate-flicker size-18 object-contain drop-shadow-[0_0_16px_rgba(196,32,32,0.6)]"
+          className="animate-flicker size-18 object-contain drop-shadow-[0_0_16px_color-mix(in_oklch,var(--destructive),transparent_65%)]"
         />
       </div>
 
@@ -59,7 +59,7 @@ function LoginContent() {
       {error && (
         <Alert
           variant="destructive"
-          className="worn-border animate-ink-spread mb-5 w-full max-w-[360px] border-[rgba(139,21,21,0.5)] bg-[rgba(61,6,6,0.45)] px-5 py-2.5 text-center"
+          className="worn-border animate-ink-spread mb-5 w-full max-w-[360px] border-[var(--destructive)] bg-[var(--destructive)] px-5 py-2.5 text-center"
         >
           <AlertDescription className="text-[12px] leading-relaxed text-[var(--blood-bright)] italic">
             {ERROR_MESSAGES[error] ?? 'Erro desconhecido. Tentai novamente.'}
@@ -92,8 +92,8 @@ function LoginContent() {
           </Button>
         </CardContent>
 
-        <CardFooter className="mt-4.5 justify-center border-t border-[rgba(139,112,48,0.18)] px-0 pt-3.5">
-          <p className="font-heading text-center text-[7.5px] tracking-[0.14em] text-[#3A2E18] uppercase">
+        <CardFooter className="mt-4.5 justify-center border-t border-[var(--border)] px-0 pt-3.5">
+          <p className="font-heading text-center text-[7.5px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
             Acesso restrito — apenas aventureiros autorizados
           </p>
         </CardFooter>

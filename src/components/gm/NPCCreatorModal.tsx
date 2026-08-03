@@ -194,8 +194,8 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={open => { if (!open) onClose() }}>
-      <DialogContent className="flex max-h-[90vh] max-w-[920px] flex-col overflow-hidden border-t-2 border-t-[#7A6030] p-0">
-        <DialogHeader className="border-b border-[rgba(139,112,48,0.22)] px-5 py-3.5">
+      <DialogContent className="flex max-h-[90vh] max-w-[920px] flex-col overflow-hidden border-t-2 border-t-[var(--border)] p-0">
+        <DialogHeader className="border-b border-[var(--border)] px-5 py-3.5">
           <DialogTitle className="font-heading text-[10px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
             {isEditing ? '✎ Editar Ficha de NPC' : '✦ Nova Ficha de NPC'}
           </DialogTitle>
@@ -207,7 +207,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
         {/* Split pane */}
         <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* Left: Markdown input */}
-          <Field className="flex flex-[0_0_48%] flex-col gap-2 border-r border-[rgba(139,112,48,0.18)] px-4 py-3.5">
+          <Field className="flex flex-[0_0_48%] flex-col gap-2 border-r border-[var(--border)] px-4 py-3.5">
             <FieldLabel
               htmlFor="npc-markdown"
               className="text-muted-foreground font-heading mb-0.5 text-[8px] tracking-[0.16em] uppercase"
@@ -218,7 +218,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
               id="npc-markdown"
               value={md}
               onChange={e => setMd(e.target.value)}
-              className="font-mono min-h-[400px] flex-1 resize-none border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
+              className="font-mono min-h-[400px] flex-1 resize-none border-[var(--border)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
             />
             <FieldDescription className="text-muted-foreground text-[10px] leading-normal italic">
               Dica: use <Kbd className="text-[var(--candle-amber)]">**negrito**</Kbd> nas descrições
@@ -237,7 +237,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
           </ScrollArea>
         </div>
 
-        <DialogFooter className="flex-row items-center gap-2.5 border-t border-[rgba(139,112,48,0.18)] px-5 py-3">
+        <DialogFooter className="flex-row items-center gap-2.5 border-t border-[var(--border)] px-5 py-3">
           {error && (
             <span className="flex-1 text-[11px] text-[var(--blood-bright)] italic">{error}</span>
           )}

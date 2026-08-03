@@ -44,10 +44,10 @@ const FIELD_LABEL_CLASS =
   'font-heading text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
 
 const TEXTAREA_CLASS =
-  'h-auto resize-y rounded-sm border-[rgba(139,112,48,0.22)] bg-[rgba(13,10,5,0.7)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--parchment-pale)] italic transition-colors duration-200 focus-visible:border-[rgba(196,120,42,0.5)]'
+  'h-auto resize-y rounded-sm border-[var(--border)] bg-[var(--card)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--parchment-pale)] italic transition-colors duration-200 focus-visible:border-[var(--primary)]'
 
 const INPUT_CLASS =
-  'h-auto w-full flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-[rgba(13,10,5,0.7)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] transition-colors duration-200 focus-visible:border-[rgba(196,120,42,0.5)]'
+  'h-auto w-full flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] transition-colors duration-200 focus-visible:border-[var(--primary)]'
 
 export function StepNarrative({
   backgroundDetails, relations, impulses,
@@ -124,7 +124,7 @@ export function StepNarrative({
                         aria-label={`Remover ${v}`}
                       />
                     }
-                    className="cursor-pointer rounded-[10px] border-[rgba(139,112,48,0.3)] bg-[rgba(20,14,6,0.6)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)] transition-all duration-150"
+                    className="cursor-pointer rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)] transition-all duration-150"
                   >
                     {v} ×
                   </Badge>
@@ -144,7 +144,7 @@ export function StepNarrative({
                 <Button
                   variant="outline"
                   onClick={() => addRelItem(key)}
-                  className="h-auto rounded-sm border-[rgba(139,112,48,0.28)] bg-[rgba(139,112,48,0.12)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
+                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
                 >
                   + Add
                 </Button>

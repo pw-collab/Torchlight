@@ -164,7 +164,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
             flexWrap: 'wrap',
             gap: 12,
             padding: '24px 0 18px',
-            borderBottom: '1px solid rgba(139,112,48,0.22)',
+            borderBottom: '1px solid var(--border)',
           }}
         >
           <div>
@@ -186,7 +186,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 fontFamily: 'var(--font-body)',
                 fontStyle: 'italic',
                 fontSize: 12,
-                color: '#6A5A3A',
+                color: 'var(--muted-foreground)',
               }}
             >
               Visão geral dos aventureiros e do estado da campanha
@@ -201,8 +201,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: 'var(--verdigris-light)',
-                background: 'rgba(42,80,69,0.15)',
-                border: '1px solid rgba(42,80,69,0.35)',
+                background: 'var(--chart-2)',
+                border: '1px solid var(--chart-2)',
                 padding: '4px 12px',
                 borderRadius: 1,
                 alignSelf: 'flex-start',
@@ -218,7 +218,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         <Tabs
           value={tab}
           onValueChange={value => setTab(value as 'session' | 'npcs')}
-          className="col-span-12 border-b border-[rgba(139,112,48,0.22)]"
+          className="col-span-12 border-b border-[var(--border)]"
         >
           <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
             {([
@@ -231,7 +231,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 className={cn(
                   'tactile font-heading text-muted-foreground min-h-11 flex-none border-b-2 border-transparent',
                   'px-4.5 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
-                  'data-active:border-b-[rgba(139,112,48,0.6)] data-active:bg-[rgba(139,112,48,0.12)]',
+                  'data-active:border-b-[var(--border)] data-active:bg-[var(--border)]',
                   'data-active:text-[var(--parchment-light)]',
                 )}
               >
@@ -281,12 +281,12 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   onKeyDown={e => e.key === 'Enter' && createSession()}
                   placeholder="Nome da sessão..."
                   aria-label="Nome da sessão"
-                  className="mb-3.5 h-auto rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-3 py-2.5 text-[13px] text-[var(--parchment-light)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
+                  className="mb-3.5 h-auto rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-3 py-2.5 text-[13px] text-[var(--parchment-light)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
                 />
 
                 <div
                   style={{
-                    borderTop: '1px solid rgba(139,112,48,0.15)',
+                    borderTop: '1px solid var(--border)',
                     marginBottom: 14,
                   }}
                 />
@@ -299,7 +299,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                     'h-auto rounded-[1px] px-5.5 py-2.5 text-[10px] font-semibold tracking-[0.14em]',
                     'text-[var(--parchment-pale)] transition-all duration-[var(--duration-base)] ease-[var(--ease-ritual)]',
                     creating
-                      ? 'border-[rgba(139,112,48,0.22)] bg-[var(--parchment-mid)]'
+                      ? 'border-[var(--border)] bg-[var(--parchment-mid)]'
                       : 'border-[var(--blood-bright)] bg-[var(--blood-mid)] shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
                   )}
                 >
@@ -311,8 +311,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 <div
                   className="worn-border"
                   style={{
-                    background: 'rgba(28,21,8,0.6)',
-                    border: '1px solid rgba(139,112,48,0.22)',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
                     padding: '12px 18px',
                     marginBottom: 16,
                     display: 'flex',
@@ -326,7 +326,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                       height: 6,
                       borderRadius: '50%',
                       background: 'var(--verdigris-light)',
-                      boxShadow: '0 0 6px rgba(61,112,96,0.6)',
+                      boxShadow: '0 0 6px var(--chart-2)',
                       flexShrink: 0,
                     }}
                   />
@@ -346,7 +346,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: 7.5,
-                      color: '#3A2E18',
+                      color: 'var(--muted-foreground)',
                       letterSpacing: '0.1em',
                       marginLeft: 'auto',
                     }}
@@ -371,7 +371,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               <Button
                 onClick={openCreator}
                 variant="outline"
-                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[rgba(139,21,21,0.25)] px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
+                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[var(--destructive)] px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
               >
                 + Nova Ficha
               </Button>
@@ -387,8 +387,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 style={{
                   padding: '40px 24px',
                   textAlign: 'center',
-                  background: 'rgba(28,21,8,0.35)',
-                  border: '1px dashed rgba(139,112,48,0.3)',
+                  background: 'var(--card)',
+                  border: '1px dashed var(--border)',
                   borderRadius: 1,
                 }}
               >

@@ -134,8 +134,8 @@ export function StepOrigin({
                     'h-auto justify-start truncate rounded-sm px-2.5 py-[7px] text-[11px] normal-case',
                     'font-sans tracking-normal transition-all duration-200',
                     active
-                      ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.14)] text-[var(--parchment-light)]'
-                      : 'text-muted-foreground border-[rgba(139,112,48,0.18)] bg-[rgba(13,10,5,0.5)]',
+                      ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]'
+                      : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
                   )}
                 >
                   {d.name}
@@ -191,10 +191,10 @@ export function StepOrigin({
                       className={cn(
                         PICK_CHIP_CLASS,
                         sel
-                          ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.2)] text-[var(--parchment-light)]'
+                          ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]'
                           : full
-                            ? 'cursor-default border-[rgba(139,112,48,0.2)] bg-[rgba(13,10,5,0.5)] text-[#3A2E18]'
-                            : 'text-muted-foreground border-[rgba(139,112,48,0.2)] bg-[rgba(13,10,5,0.5)]',
+                            ? 'cursor-default border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]'
+                            : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
                       )}
                     >
                       {l}
@@ -206,7 +206,7 @@ export function StepOrigin({
           )}
 
           {domainPickCount > 0 && !selectedDomain && hasDomainChoice && (
-            <p className="mb-2.5 text-[10px] text-[#3A2E18] italic">
+            <p className="mb-2.5 text-[10px] text-[var(--muted-foreground)] italic">
               Escolha um domínio acima para ver as opções de idiomas.
             </p>
           )}
@@ -234,7 +234,7 @@ export function StepOrigin({
                     }
                     className={cn(
                       PICK_CHIP_CLASS,
-                      'border-[rgba(196,120,42,0.4)] bg-[rgba(139,112,48,0.18)] text-[var(--parchment-light)]',
+                      'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]',
                     )}
                   >
                     {l} ×
@@ -250,12 +250,12 @@ export function StepOrigin({
                     onKeyDown={e => e.key === 'Enter' && addFreeLang()}
                     placeholder="Nome do idioma..."
                     aria-label="Nome do idioma"
-                    className="h-auto flex-1 rounded-sm border-[rgba(139,112,48,0.25)] bg-[rgba(13,10,5,0.7)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] focus-visible:border-[rgba(196,120,42,0.5)]"
+                    className="h-auto flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
                   />
                   <Button
                     variant="outline"
                     onClick={addFreeLang}
-                    className="h-auto rounded-sm border-[rgba(139,112,48,0.3)] bg-[rgba(139,112,48,0.14)] px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+                    className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)] px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
                   >
                     + Adicionar
                   </Button>
@@ -283,8 +283,8 @@ export function StepOrigin({
                   'h-auto justify-start rounded-sm px-3.5 py-2.5 text-left text-xs normal-case',
                   'font-sans tracking-normal transition-all duration-200',
                   active
-                    ? 'border-[rgba(107,78,138,0.5)] bg-[rgba(74,48,104,0.2)] text-[var(--parchment-light)] not-italic'
-                    : 'text-muted-foreground border-[rgba(139,112,48,0.15)] bg-[rgba(13,10,5,0.4)] italic',
+                    ? 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--parchment-light)] not-italic'
+                    : 'text-muted-foreground border-[var(--border)] bg-[var(--card)] italic',
                 )}
               >
                 {f}
@@ -306,7 +306,7 @@ const SUB_LABEL_CLASS =
   'font-heading text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
 
 const CHIP_CLASS =
-  'rounded-[10px] border-[rgba(139,112,48,0.3)] bg-[rgba(20,14,6,0.6)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]'
+  'rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]'
 
 const PICK_CHIP_CLASS =
   'cursor-pointer rounded-[10px] border px-2.5 py-[3px] text-[11px] transition-all duration-150'

@@ -36,7 +36,7 @@ const diceTap = {
 
 // Shared label treatment for the popover's form rows.
 const LABEL_CLASS =
-  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[rgba(200,184,144,0.55)] uppercase'
+  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--border)] uppercase'
 const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
 
@@ -60,9 +60,9 @@ export function DiceRoller({ onRoll }: Props) {
   }
 
   const d20Modes = [
-    { mode: 'normal'       as RollMode, label: '✦ Normal',      color: '#c8b890'  },
-    { mode: 'advantage'    as RollMode, label: '↑ Vantagem',    color: '#4FA98C'  },
-    { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: '#ff444c'  },
+    { mode: 'normal'       as RollMode, label: '✦ Normal',      color: 'var(--muted-foreground)'  },
+    { mode: 'advantage'    as RollMode, label: '↑ Vantagem',    color: 'var(--chart-2)'  },
+    { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: 'var(--primary)'  },
   ] as const
 
   return (
@@ -90,8 +90,8 @@ export function DiceRoller({ onRoll }: Props) {
           className="animate-die-idle"
           sides={20}
           size={30}
-          shapeColor={open ? '#0a0805' : '#ff444c'}
-          numberColor={open ? '#ff444c' : '#0a0805'}
+          shapeColor={open ? 'var(--secondary)' : 'var(--primary)'}
+          numberColor={open ? 'var(--primary)' : 'var(--secondary)'}
         />
       </PopoverTrigger>
 
@@ -123,9 +123,9 @@ export function DiceRoller({ onRoll }: Props) {
               title={`d${d}`}
               aria-label={`Rolar d${d}`}
               variant="hollow"
-              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[rgba(255,68,76,0.7)] hover:bg-[#1a140a]"
+              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[var(--primary)] hover:bg-[var(--accent)]"
             >
-              <DieGlyph sides={d} size={28} shapeColor="#ff444c" numberColor="#0a0805" />
+              <DieGlyph sides={d} size={28} shapeColor="var(--primary)" numberColor="var(--secondary)" />
             </Button>
           ))}
         </div>
@@ -143,7 +143,7 @@ export function DiceRoller({ onRoll }: Props) {
           />
         </div>
 
-        <Separator className="bg-[rgba(200,184,144,0.18)]" />
+        <Separator className="bg-[var(--border)]" />
 
         {/* d20 section */}
         <div className="flex flex-col gap-2">
@@ -171,10 +171,10 @@ export function DiceRoller({ onRoll }: Props) {
                 className={cn(
                   'font-heading bg-secondary border-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
                   'text-[11px] font-bold tracking-[0.04em] normal-case',
-                  'hover:border-[rgba(200,184,144,0.5)] hover:bg-[#1a140a]',
+                  'hover:border-[var(--border)] hover:bg-[var(--accent)]',
                 )}
               >
-                <DieGlyph sides={20} size={26} shapeColor="#ff444c" numberColor="#0a0805" />
+                <DieGlyph sides={20} size={26} shapeColor="var(--primary)" numberColor="var(--secondary)" />
                 <span>{label}</span>
               </Button>
             ))}

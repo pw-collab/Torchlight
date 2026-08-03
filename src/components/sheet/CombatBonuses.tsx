@@ -22,7 +22,7 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
 
   return (
     <Card className="worn-border bg-[var(--parchment-mid)] py-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)]">
-      <CardHeader className="border-b border-[rgba(139,112,48,0.18)] px-3.5 pb-[7px]">
+      <CardHeader className="border-b border-[var(--border)] px-3.5 pb-[7px]">
         <OrnateTitle>Bônus de Combate</OrnateTitle>
       </CardHeader>
 
@@ -30,7 +30,7 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
         {items.map(({ label, key, value }) => (
           <div
             key={key}
-            className="worn-border border border-[rgba(139,112,48,0.22)] bg-[rgba(42,34,16,0.4)] px-2.5 py-2 text-center"
+            className="worn-border border border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-center"
           >
             <Label
               htmlFor={`combat-${key}`}

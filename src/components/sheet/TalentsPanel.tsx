@@ -26,9 +26,9 @@ const ORIGIN_LABEL: Record<TalentOrigin, string> = {
 }
 
 const ORIGIN_ACCENT: Record<TalentOrigin, { color: string; soft: string }> = {
-  class:    { color: '#a56fde', soft: 'rgba(165,111,222,0.12)' },
-  general:  { color: '#c8b890', soft: 'rgba(200,184,144,0.10)' },
-  ancestry: { color: '#4fa98c', soft: 'rgba(79,169,140,0.12)' },
+  class:    { color: 'var(--chart-4)', soft: 'var(--chart-4)' },
+  general:  { color: 'var(--muted-foreground)', soft: 'var(--border)' },
+  ancestry: { color: 'var(--chart-2)', soft: 'var(--chart-2)' },
 }
 
 const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
@@ -38,7 +38,7 @@ const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
 }
 
 const FIELD_LABEL_CLASS =
-  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[rgba(200,184,144,0.6)] uppercase'
+  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[var(--border)] uppercase'
 
 interface Props {
   talents: Talent[]
@@ -165,7 +165,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
 
         {/* List */}
         {talents.length === 0 && !formOpen ? (
-          <p className="mt-4 text-[13px] text-[rgba(200,184,144,0.5)] italic">
+          <p className="mt-4 text-[13px] text-[var(--border)] italic">
             Nenhum talento registrado nos arquivos.
           </p>
         ) : (
@@ -205,14 +205,14 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
           <Button
             type="button"
             variant="secondary"
-            className="tactile h-auto w-full justify-start gap-2 bg-[#14110a] p-1.5 text-left normal-case"
+            className="tactile h-auto w-full justify-start gap-2 bg-[var(--secondary)] p-1.5 text-left normal-case"
             style={{ borderColor: accent }}
           />
         }
       >
         {/* Icon */}
         <span
-          className="bg-secondary flex size-8 shrink-0 items-center justify-center border text-lg leading-none text-[#eee9dd]"
+          className="bg-secondary flex size-8 shrink-0 items-center justify-center border text-lg leading-none text-[var(--foreground)]"
           style={{ borderColor: accent }}
         >
           {ORIGIN_GLYPH[talent.origin]}
@@ -227,7 +227,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
         </span>
 
         {/* Trailing: category + expand affordance */}
-        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[#0a0805] pl-1.5">
+        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[var(--secondary)] pl-1.5">
           <span
             className="flex items-center font-[var(--font-stat)] text-[10px] tracking-[1.2px] whitespace-nowrap uppercase"
             style={{ color: accent }}
@@ -238,7 +238,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
             aria-hidden
             className={cn(
               'font-heading flex aspect-square items-center justify-center self-stretch border',
-              'border-[#0a0805] text-base leading-none text-[#0a0805] transition-transform duration-200',
+              'border-[var(--secondary)] text-base leading-none text-[var(--secondary)] transition-transform duration-200',
               expanded && 'rotate-90',
             )}
             style={{ background: accent }}
@@ -253,7 +253,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
         className="animate-ink-spread flex flex-col gap-3 border border-t-0 px-3.5 py-3"
         style={{ background: soft, borderColor: accent }}
       >
-        <p className="text-[13.5px] leading-relaxed text-[#d8cdb0]">
+        <p className="text-[13.5px] leading-relaxed text-[var(--foreground)]">
           <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
         </p>
         <div className="flex gap-2">

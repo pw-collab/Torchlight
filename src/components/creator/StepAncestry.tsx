@@ -41,7 +41,7 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
           value={name}
           onChange={e => onNameChange(e.target.value)}
           placeholder="Como te chamam nas Terras das Névoas?"
-          className="h-auto rounded-sm border-[rgba(139,112,48,0.3)] bg-[rgba(13,10,5,0.8)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[rgba(196,120,42,0.6)]"
+          className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
         />
       </Field>
 
@@ -61,8 +61,8 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
                 className={cn(
                   'cursor-pointer gap-0 rounded-sm border px-3.5 py-3 text-left ring-0 transition-all duration-[250ms]',
                   active
-                    ? 'border-[rgba(196,120,42,0.55)] bg-[rgba(139,112,48,0.14)] shadow-[0_0_14px_rgba(196,120,42,0.12)]'
-                    : 'border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] hover:border-[rgba(139,112,48,0.4)]',
+                    ? 'border-[var(--primary)] bg-[var(--border)] shadow-[0_0_14px_color-mix(in_oklch,var(--primary),transparent_80%)]'
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)]',
                 )}
               >
                 <div className="mb-1 flex items-center justify-between">
@@ -107,7 +107,7 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
 
       {/* Ancestry flavor */}
       {selected && ANCESTRY_FLAVOR[selected.id] && (
-        <div className="-mt-2 border-l-2 border-[rgba(139,112,48,0.3)] pl-3.5">
+        <div className="-mt-2 border-l-2 border-[var(--border)] pl-3.5">
           <p className="text-muted-foreground text-[11px] leading-relaxed italic">
             {ANCESTRY_FLAVOR[selected.id]}
           </p>

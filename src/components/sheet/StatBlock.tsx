@@ -114,7 +114,7 @@ export function StatBlock({ stats, onRoll }: Props) {
                   key={opt.id}
                   onClick={() => handleRollType(key, opt.id)}
                   className={cn(
-                    'px-3.5 py-2.5 text-[13px] italic not-last:border-b not-last:border-[rgba(139,112,48,0.15)]',
+                    'px-3.5 py-2.5 text-[13px] italic not-last:border-b not-last:border-[var(--border)]',
                     opt.className,
                   )}
                 >

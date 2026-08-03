@@ -93,36 +93,36 @@ export function TarotCard({
 
   // ── Cream-face derived values ────────────────────────────────────────────
   const cardBg = isCream
-    ? 'linear-gradient(168deg, #E2D4AC 0%, #C8B880 100%)'
-    : 'linear-gradient(168deg, rgba(74,54,28,0.28) 0%, rgba(24,17,7,0.96) 52%, rgba(12,8,2,0.99) 100%), #1C1305'
+    ? 'linear-gradient(168deg, var(--card) 0%, var(--card) 100%)'
+    : 'linear-gradient(168deg, var(--card) 0%, var(--card) 52%, var(--card) 100%), var(--card)'
 
   const cardBorder = isCream
-    ? (expanded ? `2px solid var(--blood-bright)` : `1px solid rgba(42,30,10,0.32)`)
-    : (expanded ? `1px solid ${accent}` : `1px solid ${dimmed ? 'rgba(139,112,48,0.18)' : accentSoft}`)
+    ? (expanded ? `2px solid var(--blood-bright)` : `1px solid var(--border)`)
+    : (expanded ? `1px solid ${accent}` : `1px solid ${dimmed ? 'var(--border)' : accentSoft}`)
 
   const cardShadow = isCream
     ? (expanded
-        ? '0 6px 22px rgba(0,0,0,0.7), 0 0 14px rgba(196,32,32,0.3)'
+        ? '0 6px 22px rgba(0,0,0,0.7), 0 0 14px var(--destructive)'
         : `0 4px 14px rgba(0,0,0,0.65)`)
     : (expanded
         ? `0 6px 22px rgba(0,0,0,0.6), 0 0 16px ${accentSoft}`
         : `0 3px 10px rgba(0,0,0,0.55)${dimmed ? '' : `, 0 0 8px ${accentSoft}`}`)
 
   const innerBorder = isCream
-    ? 'rgba(42,30,10,0.18)'
-    : (dimmed ? 'rgba(139,112,48,0.18)' : accentSoft)
+    ? 'var(--border)'
+    : (dimmed ? 'var(--border)' : accentSoft)
 
-  const starColor   = isCream ? 'rgba(42,30,10,0.35)'    : accent
-  const numeralColor = isCream ? 'rgba(42,30,10,0.50)'    : accent
+  const starColor   = isCream ? 'var(--border)'    : accent
+  const numeralColor = isCream ? 'var(--border)'    : accent
   const titleColor  = isCream ? 'var(--ink-on-cream)'     : (dimmed ? 'var(--bone-muted)' : 'var(--parchment-pale)')
-  const dividerColor = isCream ? 'rgba(42,30,10,0.30)'    : accent
-  const captionColor = isCream ? 'rgba(42,30,10,0.45)'    : accent
+  const dividerColor = isCream ? 'var(--border)'    : accent
+  const captionColor = isCream ? 'var(--border)'    : accent
 
   // Hex window: cream → ink ring + light interior; dark → accent-glow + near-black
-  const hexOuter   = isCream ? 'rgba(42,30,10,0.25)' : (dimmed ? 'rgba(139,112,48,0.18)' : accentSoft)
+  const hexOuter   = isCream ? 'var(--border)' : (dimmed ? 'var(--border)' : accentSoft)
   const hexInnerBg = isCream
-    ? `radial-gradient(circle at 50% 60%, rgba(42,30,10,0.08) 0%, transparent 72%), #D8C9A0`
-    : `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), #150F06`
+    ? `radial-gradient(circle at 50% 60%, var(--border) 0%, transparent 72%), var(--card)`
+    : `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), var(--card)`
   const hexGlyphShadow = isCream ? 'none' : (dimmed ? 'none' : `0 0 12px ${accentSoft}`)
 
   // Dimmed: cream → ash-gray card; dark → darkened
@@ -146,11 +146,11 @@ export function TarotCard({
               left: pos.left,
               width: POPOVER_WIDTH,
               zIndex: 141,
-              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
-              border: `1px solid ${isCream ? 'rgba(196,32,32,0.45)' : accentSoft}`,
+              background: 'linear-gradient(168deg, var(--card) 0%, var(--background) 100%)',
+              border: `1px solid ${isCream ? 'var(--destructive)' : accentSoft}`,
               borderTop: `2px solid ${isCream ? 'var(--blood-bright)' : accent}`,
               borderRadius: 6,
-              boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${isCream ? 'rgba(196,32,32,0.18)' : accentSoft}`,
+              boxShadow: `0 10px 40px rgba(0,0,0,0.80), 0 0 20px ${isCream ? 'var(--destructive)' : accentSoft}`,
               overflow: 'hidden',
               maxHeight: 'calc(100vh - 32px)',
               overflowY: 'auto',
@@ -162,9 +162,9 @@ export function TarotCard({
               alignItems: 'center',
               gap: 8,
               padding: '10px 14px 8px',
-              borderBottom: `1px solid ${isCream ? 'rgba(196,32,32,0.2)' : accentSoft}`,
+              borderBottom: `1px solid ${isCream ? 'var(--destructive)' : accentSoft}`,
               background: isCream
-                ? 'linear-gradient(90deg, rgba(196,32,32,0.06) 0%, rgba(196,32,32,0.12) 100%)'
+                ? 'linear-gradient(90deg, var(--destructive) 0%, var(--destructive) 100%)'
                 : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
             }}>
               <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
@@ -340,7 +340,7 @@ export function TarotCard({
             role={onToggle ? 'button' : undefined}
             style={{
               background: cardBg,
-              border: isCream ? `1px solid rgba(42,30,10,0.32)` : `1px solid ${dimmed ? 'rgba(139,112,48,0.18)' : accentSoft}`,
+              border: isCream ? `1px solid var(--border)` : `1px solid ${dimmed ? 'var(--border)' : accentSoft}`,
               borderRadius: 7,
               boxShadow: cardShadow,
               padding: 5,
@@ -357,11 +357,11 @@ export function TarotCard({
             className="tarot-flip-face tarot-flip-face--back"
             onClick={onToggle}
             style={{
-              background: 'linear-gradient(168deg, rgba(20,8,4,0.98) 0%, rgba(8,6,4,0.99) 100%)',
-              border: `1px solid ${isCream ? 'rgba(196,32,32,0.45)' : accentSoft}`,
+              background: 'linear-gradient(168deg, var(--card) 0%, var(--background) 100%)',
+              border: `1px solid ${isCream ? 'var(--destructive)' : accentSoft}`,
               borderTop: `2px solid ${isCream ? 'var(--blood-bright)' : accent}`,
               borderRadius: 7,
-              boxShadow: `0 6px 22px rgba(0,0,0,0.7), 0 0 14px ${isCream ? 'rgba(196,32,32,0.22)' : accentSoft}`,
+              boxShadow: `0 6px 22px rgba(0,0,0,0.7), 0 0 14px ${isCream ? 'var(--destructive)' : accentSoft}`,
               cursor: onToggle ? 'pointer' : 'default',
               display: 'flex',
               flexDirection: 'column',
@@ -376,9 +376,9 @@ export function TarotCard({
               gap: 7,
               padding: '8px 10px 7px',
               flexShrink: 0,
-              borderBottom: `1px solid ${isCream ? 'rgba(196,32,32,0.2)' : accentSoft}`,
+              borderBottom: `1px solid ${isCream ? 'var(--destructive)' : accentSoft}`,
               background: isCream
-                ? 'linear-gradient(90deg, rgba(196,32,32,0.06) 0%, rgba(196,32,32,0.12) 100%)'
+                ? 'linear-gradient(90deg, var(--destructive) 0%, var(--destructive) 100%)'
                 : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
             }}>
               <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
