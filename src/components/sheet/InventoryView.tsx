@@ -180,7 +180,7 @@ function renderTypeIcon(item: InventoryItem, size = 44) {
   if (item.isLight) {
     const fallback = item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch']
     const lightStyle: React.CSSProperties = item.isLit
-      ? { filter: 'drop-shadow(0 0 6px var(--primary)) saturate(1.3)' }
+      ? { filter: 'drop-shadow(0 0 6px color-mix(in oklch, var(--chart-1), transparent 35%)) saturate(1.3)' }
       : { opacity: 0.5, filter: 'saturate(0.4)' }
     return <TypeIcon src={LIGHT_ICON_SRC} fallback={fallback} size={size} style={lightStyle} />
   }
@@ -362,13 +362,13 @@ const TYPE_LABEL: Record<ItemType, string> = {
   gear: 'Equipamento', treasure: 'Tesouro', document: 'Documento',
 }
 
-const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
-  weapon:   { color: 'var(--blood-bright)',    soft: 'var(--destructive)' },
-  armor:    { color: 'var(--verdigris-light)', soft: 'var(--chart-2)' },
-  shield:   { color: 'var(--verdigris-light)', soft: 'var(--chart-2)' },
-  gear:     { color: 'var(--bone-muted)',      soft: 'var(--border)' },
-  treasure: { color: 'var(--gold-bright)',     soft: 'var(--chart-1)' },
-  document: { color: 'var(--muted-foreground)',  soft: 'var(--chart-4)' },
+const TYPE_ACCENT: Record<ItemType, { color: string }> = {
+  weapon:   { color: 'var(--blood-bright)' },
+  armor:    { color: 'var(--verdigris-light)' },
+  shield:   { color: 'var(--verdigris-light)' },
+  gear:     { color: 'var(--bone-muted)' },
+  treasure: { color: 'var(--gold-bright)' },
+  document: { color: 'var(--muted-foreground)' },
 }
 
 /** Occupied grid cell ("Default" state, Figma 91-1044) — icon + item name, gold border. */
@@ -386,7 +386,7 @@ function ItemIconSlot({ item, selected, onSelect }: {
       className={cn(
         'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
         'bg-[var(--background)] hover:bg-[var(--background)]',
-        selected ? 'z-[2] border-[var(--primary)]' : 'z-[1] border-[var(--bone-dim)]',
+        selected ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--bone-dim)]',
       )}
     >
       {item.equipped && (
@@ -438,11 +438,11 @@ function GridAvailableTile({ onClick }: { onClick: () => void }) {
       variant="outline"
       className={cn(
         'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
-        'border-[var(--primary)] bg-[var(--background)] transition-colors duration-200',
-        'hover:border-[var(--primary)] hover:bg-[var(--primary)]',
+        'border-[var(--destructive)]/25 bg-[var(--background)] transition-colors duration-200',
+        'hover:border-[var(--destructive)]/55 hover:bg-[var(--destructive)]/5',
       )}
     >
-      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--primary)]">+</span>
+      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--destructive)]/40">+</span>
     </Button>
   )
 }
@@ -574,12 +574,12 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       {(item.equipped || item.isLit) && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {item.equipped && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'var(--chart-2)', border: '1px solid var(--chart-2)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'color-mix(in oklch, var(--chart-2), transparent 80%)', border: '1px solid color-mix(in oklch, var(--chart-2), transparent 65%)', padding: '1px 5px' }}>
               Equipado
             </span>
           )}
           {item.isLit && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'var(--primary)', border: '1px solid var(--primary)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)', padding: '1px 5px' }}>
               Acesa
             </span>
           )}
@@ -1038,7 +1038,7 @@ export function InventoryView({
             <Button
               variant="link"
               onClick={() => unequipItem(item.id)}
-              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--blood-mid)] no-underline"
+              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--destructive)] no-underline"
             >
               Desequipar
             </Button>
@@ -1065,13 +1065,13 @@ export function InventoryView({
           <div className="grid-12">
           <div className="col-span-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--primary)', lineHeight: 1, flexShrink: 0 }}>⪧</span>
+              <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1, flexShrink: 0 }}>⪧</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? 'var(--primary)' : 'var(--muted-foreground)', lineHeight: 1 }}>
-                  {usedSlots}<span style={{ color: isEncumbered ? 'var(--primary)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
+                  {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
                 </span>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? 'var(--primary)' : 'var(--muted-foreground)', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                   {isEncumbered ? 'Sobrecarregado' : 'Carga'}
                 </span>
               </span>
@@ -1120,8 +1120,8 @@ export function InventoryView({
             <div className="col-span-12">
               <SectionSubheading
                 trailing={
-                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--primary)' : 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>
-                    {usedSlots}<span style={{ color: isEncumbered ? 'var(--primary)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
+                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>
+                    {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
                   </span>
                 }
               >
@@ -1200,7 +1200,7 @@ export function InventoryView({
                         value > 0
                           ? 'text-[var(--chart-2)]'
                           : value < 0
-                            ? 'text-primary'
+                            ? 'text-destructive'
                             : 'text-secondary-foreground',
                       )}
                     />

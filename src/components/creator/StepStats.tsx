@@ -144,7 +144,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     isHigh
                       ? 'text-[var(--verdigris-light)]'
                       : isLow
-                        ? 'text-[var(--blood-mid)]'
+                        ? 'text-[var(--destructive)]'
                         : 'text-[var(--parchment-light)]',
                   )}
                 >
@@ -156,7 +156,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     mod > 0
                       ? 'text-[var(--verdigris-light)]'
                       : mod < 0
-                        ? 'text-[var(--blood-mid)]'
+                        ? 'text-[var(--destructive)]'
                         : 'text-muted-foreground',
                   )}
                 >

@@ -66,7 +66,7 @@ export function StatBlock({ stats, onRoll }: Props) {
               isInteractive ? 'cursor-pointer' : 'cursor-default',
             )}
           >
-            <div className="font-mono mb-0.5 text-[10px] tracking-[0.12em] text-[var(--parchment-light)] uppercase transition-colors duration-300 group-data-popup-open/stat:text-[var(--parchment-mid)]">
+            <div className="font-mono mb-0.5 text-[10px] tracking-[0.12em] text-[var(--parchment-light)] uppercase transition-colors duration-300 group-data-popup-open/stat:text-[var(--background)]">
               {STAT_LABELS[key]}
             </div>
 
@@ -74,6 +74,7 @@ export function StatBlock({ stats, onRoll }: Props) {
               key={pulsedStat === key ? 'pulse' : 'idle'}
               className={cn(
                 'font-heading text-2xl leading-none font-bold',
+                'group-data-popup-open/stat:text-[var(--background)]',
                 pulsedStat === key && 'animate-value-pulse',
                 mod > 0
                   ? 'text-[var(--verdigris-light)]'
@@ -85,7 +86,7 @@ export function StatBlock({ stats, onRoll }: Props) {
               {mod > 0 ? `+${mod}` : mod}
             </div>
 
-            <div className="font-mono mt-0.5 text-[10px] text-[var(--gold-bright)] group-data-popup-open/stat:text-[var(--parchment-mid)]">
+            <div className="font-mono mt-0.5 text-[10px] text-[var(--gold-bright)] group-data-popup-open/stat:text-[var(--background)]">
               {stats[key]}
             </div>
           </div>

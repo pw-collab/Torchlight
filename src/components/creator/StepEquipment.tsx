@@ -141,7 +141,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
                 <span
                   className={cn(
                     'font-mono min-w-[28px] text-right text-[10px]',
-                    ka.bonus >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--blood-mid)]',
+                    ka.bonus >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--destructive)]',
                   )}
                 >
                   {ka.bonus >= 0 ? `+${ka.bonus}` : `${ka.bonus}`}
@@ -186,7 +186,7 @@ export function StepEquipment({ classId, str, knowledgeAreas, onKnowledgeAreasCh
             <span
               className={cn(
                 'font-mono min-w-[28px] text-center text-[11px]',
-                kaBonus >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--blood-mid)]',
+                kaBonus >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--destructive)]',
               )}
             >
               {kaBonus >= 0 ? `+${kaBonus}` : `${kaBonus}`}

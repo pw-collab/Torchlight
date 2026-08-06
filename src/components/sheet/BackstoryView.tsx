@@ -263,7 +263,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
                   key={l}
                   variant="outline"
                   onClick={() => addLang(l)}
-                  className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[var(--primary)] hover:text-[var(--candle-amber)]"
+                  className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
                 >
                   + {l}
                 </Button>

@@ -69,7 +69,7 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
                   <span
                     className={cn(
                       'font-heading text-sm tracking-[0.04em]',
-                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                      active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                     )}
                   >
                     {a.name}
@@ -82,7 +82,7 @@ export function StepAncestry({ name, ancestryId, onNameChange, onAncestryChange 
                         a.pariahLevel === '0/6'
                           ? 'text-[var(--verdigris-light)]'
                           : a.pariahLevel === '6/6'
-                            ? 'text-[var(--blood-mid)]'
+                            ? 'text-[var(--destructive)]'
                             : 'text-muted-foreground',
                       )}
                     >

@@ -25,10 +25,12 @@ const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   general: 'Geral',
 }
 
+// `soft` fills a panel behind --foreground text, so it has to stay a wash of
+// the accent rather than the accent itself — the originals were 10–12% alpha.
 const ORIGIN_ACCENT: Record<TalentOrigin, { color: string; soft: string }> = {
-  class:    { color: 'var(--muted-foreground)', soft: 'var(--chart-4)' },
-  general:  { color: 'var(--muted-foreground)', soft: 'var(--border)' },
-  ancestry: { color: 'var(--chart-2)', soft: 'var(--chart-2)' },
+  class:    { color: 'var(--chart-1)',          soft: 'color-mix(in oklch, var(--chart-1), transparent 88%)' },
+  general:  { color: 'var(--muted-foreground)', soft: 'color-mix(in oklch, var(--muted-foreground), transparent 90%)' },
+  ancestry: { color: 'var(--foreground)',       soft: 'color-mix(in oklch, var(--foreground), transparent 92%)' },
 }
 
 const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
@@ -227,7 +229,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
         </span>
 
         {/* Trailing: category + expand affordance */}
-        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[var(--secondary)] pl-1.5">
+        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[var(--background)] pl-1.5">
           <span
             className="flex items-center font-[var(--font-stat)] text-[10px] tracking-[1.2px] whitespace-nowrap uppercase"
             style={{ color: accent }}
@@ -238,7 +240,7 @@ function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
             aria-hidden
             className={cn(
               'font-heading flex aspect-square items-center justify-center self-stretch border',
-              'border-[var(--secondary)] text-base leading-none text-[var(--secondary)] transition-transform duration-200',
+              'border-[var(--background)] text-base leading-none text-[var(--background)] transition-transform duration-200',
               expanded && 'rotate-90',
             )}
             style={{ background: accent }}

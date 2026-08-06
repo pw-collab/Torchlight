@@ -309,9 +309,10 @@ export default function CharacterCreatorPage() {
                         justifyContent: 'center',
                         flexShrink: 0,
                         color: nodeColor,
-                        background: state === 'current' ? 'radial-gradient(circle, var(--primary), var(--primary))'
-                          : state === 'todo' ? 'var(--border)' : 'var(--border)',
-                        border: state === 'todo' ? 'none' : `1.5px solid ${state === 'current' ? 'var(--primary)' : 'var(--border)'}`,
+                        background: state === 'current'
+                          ? 'radial-gradient(circle, color-mix(in oklch, var(--chart-1), transparent 72%), color-mix(in oklch, var(--chart-1), transparent 95%))'
+                          : state === 'todo' ? 'var(--border)' : 'color-mix(in oklch, var(--border), transparent 50%)',
+                        border: state === 'todo' ? 'none' : `1.5px solid ${state === 'current' ? 'color-mix(in oklch, var(--chart-1), transparent 30%)' : 'var(--border)'}`,
                         boxShadow: state === 'current' ? 'var(--glow-candle)' : 'none',
                         transition: 'all 300ms var(--ease-ritual)',
                       }}
@@ -377,10 +378,10 @@ export default function CharacterCreatorPage() {
                       height: 3,
                       flex: 1,
                       borderRadius: 2,
-                      background: i < stepIdx ? 'var(--gold-oxidized)'
-                        : i === stepIdx ? 'var(--candle-amber)'
+                      background: i < stepIdx ? 'var(--muted-foreground)'
+                        : i === stepIdx ? 'var(--chart-1)'
                           : 'var(--border)',
-                      boxShadow: i === stepIdx ? '0 0 8px var(--primary)' : 'none',
+                      boxShadow: i === stepIdx ? '0 0 8px color-mix(in oklch, var(--chart-1), transparent 50%)' : 'none',
                       transition: 'all 300ms var(--ease-ritual)',
                     }}
                   />

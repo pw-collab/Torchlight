@@ -62,7 +62,7 @@ export function DiceRoller({ onRoll }: Props) {
   const d20Modes = [
     { mode: 'normal'       as RollMode, label: '✦ Normal',      color: 'var(--muted-foreground)'  },
     { mode: 'advantage'    as RollMode, label: '↑ Vantagem',    color: 'var(--chart-2)'  },
-    { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: 'var(--primary)'  },
+    { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: 'var(--destructive)'  },
   ] as const
 
   return (
@@ -82,7 +82,7 @@ export function DiceRoller({ onRoll }: Props) {
                 transition={DICE_SPRING.tap}
               />
             }
-            className="bg-secondary data-popup-open:bg-primary h-12 min-h-12 w-14 px-0 transition-colors duration-[250ms]"
+            className="bg-secondary data-popup-open:bg-destructive h-12 min-h-12 w-14 px-0 transition-colors duration-[250ms]"
           />
         }
       >
@@ -90,8 +90,8 @@ export function DiceRoller({ onRoll }: Props) {
           className="animate-die-idle"
           sides={20}
           size={30}
-          shapeColor={open ? 'var(--secondary)' : 'var(--primary)'}
-          numberColor={open ? 'var(--primary)' : 'var(--secondary)'}
+          shapeColor={open ? 'var(--background)' : 'var(--destructive)'}
+          numberColor={open ? 'var(--destructive)' : 'var(--background)'}
         />
       </PopoverTrigger>
 
@@ -123,9 +123,9 @@ export function DiceRoller({ onRoll }: Props) {
               title={`d${d}`}
               aria-label={`Rolar d${d}`}
               variant="hollow"
-              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[var(--primary)] hover:bg-[var(--accent)]"
+              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[var(--destructive)] hover:bg-[var(--accent)]"
             >
-              <DieGlyph sides={d} size={28} shapeColor="var(--primary)" numberColor="var(--secondary)" />
+              <DieGlyph sides={d} size={28} shapeColor="var(--destructive)" numberColor="var(--background)" />
             </Button>
           ))}
         </div>
@@ -174,7 +174,7 @@ export function DiceRoller({ onRoll }: Props) {
                   'hover:border-[var(--border)] hover:bg-[var(--accent)]',
                 )}
               >
-                <DieGlyph sides={20} size={26} shapeColor="var(--primary)" numberColor="var(--secondary)" />
+                <DieGlyph sides={20} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
                 <span>{label}</span>
               </Button>
             ))}

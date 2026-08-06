@@ -72,7 +72,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
             onClick={rollAndAdd}
             variant="outline"
             size="sm"
-            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
+            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]/40"
           >
             ✦ Rolar 2d6 — {classData.name}
           </Button>
@@ -110,7 +110,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     <TableCell
                       className={cn(
                         'font-mono border-r border-[var(--border)] px-2.5 py-1.5 text-[10px] font-bold',
-                        isLast ? 'text-[var(--candle-amber)]' : 'text-muted-foreground',
+                        isLast ? 'text-[var(--foreground)]' : 'text-muted-foreground',
                       )}
                     >
                       {entry.roll}
@@ -139,7 +139,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
           className="worn-border animate-ink-spread items-start gap-2.5 border-[var(--border)] bg-[var(--primary)]/15 px-3 py-2"
         >
           <div className="shrink-0 text-center">
-            <div className="font-heading text-[22px] leading-none font-bold text-[var(--candle-amber)]">
+            <div className="font-heading text-[22px] leading-none font-bold text-[var(--chart-1)]">
               {lastRoll.roll}
             </div>
             <div className="font-mono text-muted-foreground mt-px text-[7.5px]">

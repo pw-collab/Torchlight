@@ -232,8 +232,8 @@ export function CharacterEditWizard({ character }: Props) {
                 className={cn(
                   'block h-2 rounded-[4px] transition-all duration-300 ease-[var(--ease-ritual)]',
                   i === stepIdx
-                    ? 'w-5 bg-[var(--candle-amber)] shadow-[0_0_8px_color-mix(in_oklch,var(--primary),transparent_70%)]'
-                    : 'w-2 bg-[var(--gold-oxidized)]',
+                    ? 'w-5 bg-[var(--chart-1)] shadow-[0_0_8px_color-mix(in_oklch,var(--chart-1),transparent_70%)]'
+                    : 'w-2 bg-[var(--muted-foreground)]/40',
                 )}
               />
             </Button>
@@ -406,7 +406,7 @@ export function CharacterEditWizard({ character }: Props) {
               'h-auto flex-[2] rounded-sm px-4 py-3.5 text-[9px] tracking-[0.2em] transition-all duration-200',
               saving
                 ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]/15'
-                : 'border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--verdigris-light)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
+                : 'border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--foreground)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
             )}
           >
             {saving ? '⟳ Salvando...' : '✦ Selar Alterações'}

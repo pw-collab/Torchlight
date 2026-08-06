@@ -105,7 +105,7 @@ export function StepReview(props: Props) {
               <p style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 9,
-                color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--blood-mid)' : 'var(--bone-muted)',
+                color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--destructive)' : 'var(--bone-muted)',
                 marginTop: 2,
               }}>
                 {modifierStr(val)}

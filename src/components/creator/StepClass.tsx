@@ -83,7 +83,7 @@ export function StepClass({ classId, onChange }: Props) {
                   <span
                     className={cn(
                       'font-heading text-left text-[15px] tracking-[0.04em]',
-                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                      active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                     )}
                   >
                     {c.name}
@@ -91,7 +91,7 @@ export function StepClass({ classId, onChange }: Props) {
                   {c.spellcasting && (
                     <Badge
                       variant="outline"
-                      className="font-mono shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-[5px] py-px text-[7px] tracking-[0.08em] text-[var(--mist-bright)]"
+                      className="font-mono shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-[5px] py-px text-[7px] tracking-[0.08em] text-[var(--muted-foreground)]"
                     >
                       ARCANO
                     </Badge>
@@ -144,7 +144,7 @@ export function StepClass({ classId, onChange }: Props) {
                               {t.name}
                             </span>
                             {t.spellLike && (
-                              <span className="font-mono ml-1.5 text-[7px] text-[var(--mist-bright)]">
+                              <span className="font-mono ml-1.5 text-[7px] text-[var(--muted-foreground)]">
                                 {t.spellLike.abilities.length} habilidades
                               </span>
                             )}

@@ -390,7 +390,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                     >
                       <div style={{
                         fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-                        color: isLastRoll ? 'var(--candle-amber)' : 'var(--bone-muted)',
+                        color: isLastRoll ? 'var(--foreground)' : 'var(--muted-foreground)',
                         padding: '6px 10px', borderRight: '1px solid var(--border)',
                         display: 'flex', alignItems: 'center',
                       }}>
@@ -620,7 +620,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       key={lang}
                       variant="outline"
                       onClick={() => addLang(lang)}
-                      className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:border-[var(--border)] hover:bg-[var(--primary)] hover:text-[var(--candle-amber)]"
+                      className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:border-[var(--border)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
                     >
                       + {lang}
                     </Button>

@@ -146,8 +146,8 @@ function ChoiceSection({
                 fontSize: 14,
                 fontWeight: 700,
                 color: 'var(--candle-amber)',
-                background: 'var(--primary)',
-                border: '1px solid var(--primary)',
+                background: 'color-mix(in oklch, var(--primary), transparent 82%)',
+                border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)',
                 padding: '2px 8px',
               }}>
                 {currentLabel}
@@ -302,7 +302,7 @@ function SpellLikeSection({
         const abilityCastStat = ability.castStat ?? cfg.castStat
         const abilityStatScore = stats[abilityCastStat] ?? 10
         const abilityCastMod = modifier(abilityStatScore)
-        const statusColor = isExpended ? 'var(--primary)' : 'var(--primary)'
+        const statusColor = isExpended ? 'var(--destructive)' : 'var(--chart-1)'
         return (
           <div key={ability.id} style={{ background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
             <div style={{ border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
@@ -333,7 +333,7 @@ function SpellLikeSection({
                 <Button
                   onClick={() => restore(ability.id)}
                   variant="hollow"
-                  className="tactile w-full border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                  className="tactile w-full border-[var(--destructive)] text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
                 >
                   Restaurar
                 </Button>
@@ -355,11 +355,14 @@ function SpellLikeSection({
 
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
-const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: 'var(--muted-foreground)', soft: 'var(--chart-4)', glyph: '☿' },
-  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', soft: 'var(--border)', glyph: '⚖' },
-  limited_use:  { label: 'Usos',     color: 'var(--primary)', soft: 'var(--primary)',   glyph: '⌛' },
-  spell_like:   { label: 'Ativação', color: 'var(--chart-2)', soft: 'var(--chart-2)',  glyph: '☽' },
+// The four kinds used to be told apart by hue (purple / parchment / red /
+// verdigris). This theme is monochrome apart from the reds, so they are told
+// apart by lightness instead — every value still clears 4.5:1 on --card.
+const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; glyph: string }> = {
+  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          glyph: '☿' },
+  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', glyph: '⚖' },
+  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      glyph: '⌛' },
+  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       glyph: '☽' },
 }
 
 function TechniqueCard({
@@ -630,7 +633,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--primary)', lineHeight: 1 }}>⪧</span>
+          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1 }}>⪧</span>
           <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {classData.name}
           </span>
@@ -688,7 +691,7 @@ function SectionSubheading({ children, trailing }: { children: React.ReactNode; 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid var(--border)' }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--primary)', lineHeight: 1 }}>⁕</span>
+        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--destructive)', lineHeight: 1 }}>⁕</span>
         <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: 'var(--muted-foreground)', lineHeight: 1 }}>{children}</span>
       </span>
       {trailing}

@@ -77,7 +77,7 @@ export function PlayerCard({ character, onClick, expanded }: Props) {
           <span
             className={cn(
               'font-mono text-[9px]',
-              torchLow ? 'text-[var(--destructive)]' : torchActive ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)]',
+              torchLow ? 'text-[var(--destructive)]' : torchActive ? 'text-[var(--chart-1)]' : 'text-[var(--muted-foreground)]/40',
             )}
           >
             {torchActive ? (torchLow ? `⚠ ${torchMins}min` : `🕯 ${torchMins}min`) : '🌑'}

@@ -361,7 +361,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                 <Button
                   variant="outline"
                   onClick={() => router.push('/gm')}
-                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-4 text-[13px] tracking-normal text-[var(--muted-foreground)] normal-case italic transition-all duration-200 hover:border-[var(--chart-1)] hover:bg-[var(--accent)] hover:text-[var(--candle-amber)]"
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-4 text-[13px] tracking-normal text-[var(--muted-foreground)] normal-case italic transition-all duration-200 hover:border-[var(--chart-1)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
                 >
                   Painel do Mestre
                 </Button>

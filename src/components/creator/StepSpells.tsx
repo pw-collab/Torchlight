@@ -50,14 +50,14 @@ export function StepSpells({ classId, selectedSpells, onChange }: Props) {
                 <span
                   className={cn(
                     'font-heading text-[13px] tracking-[0.03em]',
-                    selected ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                    selected ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                   )}
                 >
                   {spell.name}
                 </span>
                 <Badge
                   variant="outline"
-                  className="font-mono mt-px shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-1.5 py-0.5 text-[7px] text-[var(--mist-bright)]"
+                  className="font-mono mt-px shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-1.5 py-0.5 text-[7px] text-[var(--muted-foreground)]"
                 >
                   NÍVEL {spell.tier}
                 </Badge>
@@ -73,7 +73,7 @@ export function StepSpells({ classId, selectedSpells, onChange }: Props) {
       </div>
 
       {selectedSpells.length > 0 && (
-        <div className="rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] px-3 py-2 text-[10px] text-[var(--mist-bright)] italic">
+        <div className="rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] px-3 py-2 text-[10px] text-[var(--muted-foreground)] italic">
           {selectedSpells.length} magia{selectedSpells.length !== 1 ? 's' : ''} selecionada{selectedSpells.length !== 1 ? 's' : ''}
         </div>
       )}

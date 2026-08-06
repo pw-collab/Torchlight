@@ -65,10 +65,12 @@
   --parchment-light:  var(--foreground);
   --parchment-pale:   var(--foreground);
 
-  --parchment-face:   var(--card);
-  --parchment-paper:  var(--card);
-  --ink-on-cream:     var(--card-foreground);
-  --ink-border:       var(--border);
+  /* The cream card face is a *light* surface in both themes, so its ink has to
+     come from --background rather than the dark side's foreground tokens. */
+  --parchment-face:   var(--foreground);
+  --parchment-paper:  var(--muted-foreground);
+  --ink-on-cream:     var(--background);
+  --ink-border:       color-mix(in oklch, var(--background), transparent 72%);
 
   --bone-white:       var(--foreground);
   --bone-dim:         var(--muted-foreground);
@@ -173,9 +175,9 @@ html, body {
 
 /* Raised card face — used on TarotCard when face="cream" */
 .face-cream {
-  background: var(--card);
-  border: 1px solid var(--border);
-  color: var(--card-foreground);
+  background: var(--parchment-face);
+  border: 1px solid var(--ink-border);
+  color: var(--ink-on-cream);
 }
 
 /* Red accent glow (hover) */

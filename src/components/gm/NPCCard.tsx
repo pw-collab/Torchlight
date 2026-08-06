@@ -13,16 +13,19 @@ interface Props {
   onRoll?: (r: RollResult) => void
 }
 
-const BORDER = '1px solid var(--border)'
+const BORDER = '1px solid var(--ink-border)'
+/** Ink tones for the cream sheet — the dark-side tokens disappear on it. */
+const INK_MUTED = 'var(--chart-3)'
+const INK_RULE  = 'color-mix(in oklch, var(--ink-deep), transparent 72%)'
 
 function StatPair({ label, value }: { label: string; value: string | number | undefined }) {
   if (value == null || value === '') return null
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: 'var(--parchment-light)' }}>
+      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED }}>
         {label}
       </span>
-      <span style={{ color: 'var(--muted-foreground)', fontSize: 10, margin: '0 1px' }}>|</span>
+      <span style={{ color: INK_RULE, fontSize: 10, margin: '0 1px' }}>|</span>
       <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
         {value}
       </span>
@@ -40,8 +43,8 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       fontFamily: 'var(--font-body)',
       maxWidth: 480,
       border: BORDER,
-      background: 'var(--parchment-light, var(--foreground))',
-      color: 'var(--ink-deep, var(--card-foreground))',
+      background: 'var(--parchment-face)',
+      color: 'var(--ink-on-cream)',
       position: 'relative',
     }}>
       {/* Action buttons */}
@@ -87,7 +90,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       {/* Body */}
       <div style={{ padding: '10px 14px' }}>
         {npc.flavorText && (
-          <p style={{ fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)', margin: '0 0 8px', lineHeight: 1.5 }}>
+          <p style={{ fontStyle: 'italic', fontSize: 12, color: INK_MUTED, margin: '0 0 8px', lineHeight: 1.5 }}>
             <RollableText text={npc.flavorText} label={npc.name} onRoll={onRoll} />
           </p>
         )}
@@ -101,10 +104,10 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
 
         {/* Stats box */}
         <div style={{
-          border: '1px solid var(--border)',
+          border: `1px solid ${INK_RULE}`,
           padding: '7px 10px',
           margin: '0 0 10px',
-          background: 'var(--foreground)',
+          background: 'var(--parchment-face)',
           fontSize: 11.5,
         }}>
           {/* Row 1: Combat stats */}
@@ -116,7 +119,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
             {npc.weaponDesc && <StatPair label="Weapon" value={npc.weaponDesc} />}
           </div>
 
-          <hr style={{ border: 'none', borderTop: '0.5px solid var(--border)', margin: '4px 0' }} />
+          <hr style={{ border: 'none', borderTop: `0.5px solid ${INK_RULE}`, margin: '4px 0' }} />
 
           {/* Row 2: Level + ability modifiers */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 4, alignItems: 'baseline' }}>
@@ -133,9 +136,9 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
 
           {npc.experience && (
             <>
-              <hr style={{ border: 'none', borderTop: '0.5px solid var(--border)', margin: '4px 0' }} />
+              <hr style={{ border: 'none', borderTop: `0.5px solid ${INK_RULE}`, margin: '4px 0' }} />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: 'var(--parchment-light)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED, whiteSpace: 'nowrap' }}>
                   Experience:
                 </span>
                 <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>

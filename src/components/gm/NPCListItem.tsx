@@ -21,7 +21,7 @@ export function NPCListItem({ npc, selected, onSelect }: Props) {
         'border-l-transparent px-3 py-2.5 text-left transition-colors duration-200',
         selected
           ? 'border-[var(--primary)] bg-[var(--border)]'
-          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)] hover:bg-[var(--accent)]',
+          : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--border)] hover:bg-[var(--accent)] hover:*:text-[var(--accent-foreground)]',
       )}
     >
       {/* Selection bar — grows vertically when selected */}
@@ -38,7 +38,7 @@ export function NPCListItem({ npc, selected, onSelect }: Props) {
         <ItemTitle
           className={cn(
             'font-heading mb-[3px] block truncate text-sm leading-tight tracking-[0.03em]',
-            selected ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+            selected ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
           )}
         >
           {npc.name}

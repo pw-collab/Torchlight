@@ -91,13 +91,18 @@ export function TarotCard({
     return () => window.removeEventListener('keydown', handler)
   }, [expanded, onToggle])
 
+  // Ink at a given transparency — the cream face's rules, stars and numerals
+  // were all low-alpha ink in the original palette.
+  const INK = (transparent: number) =>
+    `color-mix(in oklch, var(--ink-on-cream), transparent ${transparent}%)`
+
   // ── Cream-face derived values ────────────────────────────────────────────
   const cardBg = isCream
-    ? 'linear-gradient(168deg, var(--card) 0%, var(--card) 100%)'
+    ? 'linear-gradient(168deg, var(--parchment-face) 0%, var(--parchment-paper) 100%)'
     : 'linear-gradient(168deg, var(--card) 0%, var(--card) 52%, var(--card) 100%), var(--card)'
 
   const cardBorder = isCream
-    ? (expanded ? `2px solid var(--blood-bright)` : `1px solid var(--border)`)
+    ? (expanded ? `2px solid var(--blood-bright)` : `1px solid ${INK(68)}`)
     : (expanded ? `1px solid ${accent}` : `1px solid ${dimmed ? 'var(--border)' : accentSoft}`)
 
   const cardShadow = isCream
@@ -109,19 +114,19 @@ export function TarotCard({
         : `0 3px 10px rgba(0,0,0,0.55)${dimmed ? '' : `, 0 0 8px ${accentSoft}`}`)
 
   const innerBorder = isCream
-    ? 'var(--border)'
+    ? INK(82)
     : (dimmed ? 'var(--border)' : accentSoft)
 
-  const starColor   = isCream ? 'var(--border)'    : accent
-  const numeralColor = isCream ? 'var(--border)'    : accent
+  const starColor   = isCream ? INK(65)    : accent
+  const numeralColor = isCream ? INK(50)    : accent
   const titleColor  = isCream ? 'var(--ink-on-cream)'     : (dimmed ? 'var(--bone-muted)' : 'var(--parchment-pale)')
-  const dividerColor = isCream ? 'var(--border)'    : accent
-  const captionColor = isCream ? 'var(--border)'    : accent
+  const dividerColor = isCream ? INK(70)    : accent
+  const captionColor = isCream ? INK(55)    : accent
 
   // Hex window: cream → ink ring + light interior; dark → accent-glow + near-black
-  const hexOuter   = isCream ? 'var(--border)' : (dimmed ? 'var(--border)' : accentSoft)
+  const hexOuter   = isCream ? INK(75) : (dimmed ? 'var(--border)' : accentSoft)
   const hexInnerBg = isCream
-    ? `radial-gradient(circle at 50% 60%, var(--border) 0%, transparent 72%), var(--card)`
+    ? `radial-gradient(circle at 50% 60%, ${INK(92)} 0%, transparent 72%), var(--parchment-face)`
     : `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), var(--card)`
   const hexGlyphShadow = isCream ? 'none' : (dimmed ? 'none' : `0 0 12px ${accentSoft}`)
 
@@ -340,7 +345,7 @@ export function TarotCard({
             role={onToggle ? 'button' : undefined}
             style={{
               background: cardBg,
-              border: isCream ? `1px solid var(--border)` : `1px solid ${dimmed ? 'var(--border)' : accentSoft}`,
+              border: isCream ? `1px solid ${INK(82)}` : `1px solid ${dimmed ? 'var(--border)' : accentSoft}`,
               borderRadius: 7,
               boxShadow: cardShadow,
               padding: 5,

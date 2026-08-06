@@ -89,7 +89,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       >
         {/* Header */}
         <div>
-          <OrnateTitle color="var(--chart-4)" fontSize={10}>☽ Aprender Magia</OrnateTitle>
+          <OrnateTitle color="var(--chart-1)" fontSize={10}>☽ Aprender Magia</OrnateTitle>
         </div>
 
         {/* Search */}
@@ -187,8 +187,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
 // ─── Spell Card (replicates ClassPanel's TechniqueCard grid + popover) ────────
 
 const SPELL_STYLE = {
-  normal: 'var(--chart-4)',
-  failed: 'var(--primary)',
+  normal: 'var(--chart-1)',
+  failed: 'var(--destructive)',
 }
 
 function SpellCard({
@@ -300,7 +300,7 @@ function SpellCard({
                 )}
                 {isFailed && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--primary)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid var(--primary)', padding: '2px 7px', letterSpacing: '0.1em' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--destructive)', background: 'color-mix(in oklch, var(--destructive), transparent 85%)', border: '1px solid var(--destructive)', padding: '2px 7px', letterSpacing: '0.1em' }}>
                       FALHOU
                     </span>
                     <Button
@@ -319,7 +319,7 @@ function SpellCard({
                   {spell && onRoll && stats && !isFailed && (
                     <Button
                       onClick={cast}
-                      className="tactile flex-1 border-[var(--secondary)] text-[var(--secondary)]"
+                      className="tactile flex-1 border-[var(--background)] text-[var(--background)]"
                       style={{ background: color }}
                     >
                       Conjurar
@@ -458,7 +458,7 @@ export function Spells({
     >
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid var(--chart-4)', flexWrap: 'wrap' }}>
-        <OrnateTitle color="var(--chart-4)" className="flex-1">☽ Magias</OrnateTitle>
+        <OrnateTitle color="var(--chart-1)" className="flex-1">☽ Magias</OrnateTitle>
 
         {/* Learn button */}
         {onSpellsChange && (

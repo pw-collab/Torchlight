@@ -82,7 +82,7 @@ function LogoMenu({
                 {playerName}
               </span>
               {playerRole && (
-                <span className="text-primary text-[10px] leading-tight tracking-[0.06em] italic">
+                <span className="text-destructive text-[10px] leading-tight tracking-[0.06em] italic">
                   {playerRole}
                 </span>
               )}
@@ -143,7 +143,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                   return (
                     <BreadcrumbItem key={i} className="min-w-0 gap-1.5 overflow-hidden">
                       {(i > 0 || isMobile) && (
-                        <BreadcrumbSeparator className="text-primary shrink-0 font-bold">
+                        <BreadcrumbSeparator className="text-destructive shrink-0 font-bold">
                           ›
                         </BreadcrumbSeparator>
                       )}

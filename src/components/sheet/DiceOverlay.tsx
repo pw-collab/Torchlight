@@ -94,7 +94,7 @@ export function DiceOverlay({ phase, roll }: Props) {
     ? 'var(--destructive)'
     : 'var(--border)'
 
-  const numberColor = isCritical ? 'var(--gold-bright)' : isFumble ? 'var(--primary)' : 'var(--muted-foreground)'
+  const numberColor = isCritical ? 'var(--gold-bright)' : isFumble ? 'var(--destructive)' : 'var(--muted-foreground)'
   const numberShadow = isCritical
     ? '0 0 24px var(--chart-1)'
     : isFumble

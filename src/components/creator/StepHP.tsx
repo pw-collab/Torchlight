@@ -56,7 +56,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
             <ItemTitle
               className={cn(
                 'font-heading text-[22px]',
-                conMod >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--blood-mid)]',
+                conMod >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--destructive)]',
               )}
             >
               {modifierStr(con)}
@@ -83,7 +83,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         <Field className="w-full items-center gap-2">
           <FieldLabel
             htmlFor="hp-max"
-            className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase"
+            className="font-heading text-[8px] tracking-[0.22em] text-[var(--destructive)]/70 uppercase"
           >
             HP Máximo
           </FieldLabel>
@@ -104,7 +104,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
 
       {!editMode && hpMax > 0 && rawRoll !== null && (
         <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--destructive)] bg-[var(--destructive)]/15 px-4 py-6">
-          <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--blood-mid)]/70 uppercase">
+          <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--destructive)]/70 uppercase">
             HP Máximo
           </span>
           <span className="font-heading text-[64px] leading-none font-bold text-[var(--parchment-pale)]">
