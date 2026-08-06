@@ -368,7 +368,7 @@ const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
   shield:   { color: 'var(--verdigris-light)', soft: 'var(--chart-2)' },
   gear:     { color: 'var(--bone-muted)',      soft: 'var(--border)' },
   treasure: { color: 'var(--gold-bright)',     soft: 'var(--chart-1)' },
-  document: { color: 'var(--chart-4)',  soft: 'var(--chart-4)' },
+  document: { color: 'var(--muted-foreground)',  soft: 'var(--chart-4)' },
 }
 
 /** Occupied grid cell ("Default" state, Figma 91-1044) — icon + item name, gold border. */
@@ -491,7 +491,7 @@ function ItemDetailSkeleton() {
       <div style={line('100%')} />
       <div style={line('85%')} />
       <div style={line('92%')} />
-      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--border)', textAlign: 'center', margin: '10px 0 4px' }}>
+      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', textAlign: 'center', margin: '10px 0 4px' }}>
         Selecione um item para ver os detalhes
       </p>
     </div>

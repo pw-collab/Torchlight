@@ -36,7 +36,7 @@ const diceTap = {
 
 // Shared label treatment for the popover's form rows.
 const LABEL_CLASS =
-  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--border)] uppercase'
+  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--muted-foreground)] uppercase'
 const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
 

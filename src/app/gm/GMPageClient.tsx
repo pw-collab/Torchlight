@@ -371,7 +371,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               <Button
                 onClick={openCreator}
                 variant="outline"
-                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[var(--destructive)] px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
+                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[var(--destructive)]/25 px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
               >
                 + Nova Ficha
               </Button>

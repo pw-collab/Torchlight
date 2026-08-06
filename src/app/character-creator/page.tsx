@@ -568,7 +568,7 @@ export default function CharacterCreatorPage() {
           }}>
             {name || 'Sem nome'}
           </span>
-          <span style={{ color: 'var(--border)', fontSize: 10 }}>·</span>
+          <span style={{ color: 'var(--muted-foreground)', fontSize: 10 }}>·</span>
           <span style={{
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',

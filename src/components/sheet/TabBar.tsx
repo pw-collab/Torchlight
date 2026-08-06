@@ -63,7 +63,7 @@ export function TabBar<K extends string>({ tabs, active, onChange, trailing }: P
                 value={t.key}
                 className={cn(
                   'tactile font-heading h-12 border border-transparent font-extrabold whitespace-nowrap',
-                  'text-[var(--border)] hover:text-[var(--bone-dim)]',
+                  'text-[var(--muted-foreground)] hover:text-[var(--bone-dim)]',
                   'data-active:bg-primary data-active:text-secondary-foreground data-active:border-[var(--bone-dim)]',
                   isMobile
                     ? 'flex-1 px-1.5 text-[11px] tracking-[0.04em]'

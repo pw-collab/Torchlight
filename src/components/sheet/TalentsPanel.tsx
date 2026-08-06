@@ -26,7 +26,7 @@ const ORIGIN_LABEL: Record<TalentOrigin, string> = {
 }
 
 const ORIGIN_ACCENT: Record<TalentOrigin, { color: string; soft: string }> = {
-  class:    { color: 'var(--chart-4)', soft: 'var(--chart-4)' },
+  class:    { color: 'var(--muted-foreground)', soft: 'var(--chart-4)' },
   general:  { color: 'var(--muted-foreground)', soft: 'var(--border)' },
   ancestry: { color: 'var(--chart-2)', soft: 'var(--chart-2)' },
 }
@@ -38,7 +38,7 @@ const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
 }
 
 const FIELD_LABEL_CLASS =
-  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[var(--border)] uppercase'
+  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
 
 interface Props {
   talents: Talent[]
@@ -165,7 +165,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
 
         {/* List */}
         {talents.length === 0 && !formOpen ? (
-          <p className="mt-4 text-[13px] text-[var(--border)] italic">
+          <p className="mt-4 text-[13px] text-[var(--muted-foreground)] italic">
             Nenhum talento registrado nos arquivos.
           </p>
         ) : (

@@ -22,7 +22,7 @@ function StatPair({ label, value }: { label: string; value: string | number | un
       <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: 'var(--parchment-light)' }}>
         {label}
       </span>
-      <span style={{ color: 'var(--border)', fontSize: 10, margin: '0 1px' }}>|</span>
+      <span style={{ color: 'var(--muted-foreground)', fontSize: 10, margin: '0 1px' }}>|</span>
       <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
         {value}
       </span>

@@ -72,7 +72,7 @@ export function PlayerCard({ character, onClick, expanded }: Props) {
           <span className="font-mono text-[9px] text-[var(--foreground)]">
             PV {character.hpCurrent}/{character.hpMax}
           </span>
-          <span className="font-mono text-[9px] text-[var(--border)]">CA {character.ac}</span>
+          <span className="font-mono text-[9px] text-[var(--muted-foreground)]">CA {character.ac}</span>
           <span className="font-heading text-[8.5px] text-[var(--chart-1)]">✦ {character.luckTokens}</span>
           <span
             className={cn(

@@ -126,7 +126,7 @@ export function FloatingVitals({
             size="icon-sm"
             onClick={() => setOpen(false)}
             aria-label="Fechar"
-            className="text-[15px] leading-none text-[var(--border)] hover:bg-transparent hover:text-[var(--bone-dim)]"
+            className="text-[15px] leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--bone-dim)]"
           >
             ✕
           </Button>
@@ -145,7 +145,7 @@ export function FloatingVitals({
             </ProgressTrack>
           </Progress>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--border)' }}>XP</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>XP</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Input
                 type="number"
@@ -156,10 +156,10 @@ export function FloatingVitals({
                 className={cn(
                   'h-auto w-11 cursor-text border-none bg-transparent p-0 text-right text-base',
                   'font-[var(--font-numeral)]',
-                  xpReady ? 'text-[var(--bone-dim)]' : 'text-[var(--border)]',
+                  xpReady ? 'text-[var(--bone-dim)]' : 'text-[var(--muted-foreground)]',
                 )}
               />
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'var(--border)' }}>/ {nextXp}</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'var(--muted-foreground)' }}>/ {nextXp}</span>
             </span>
           </div>
         </div>
@@ -188,7 +188,7 @@ export function FloatingVitals({
             onClick={() => applyHp(step)}
             title="Curar"
             aria-label="Curar"
-            className="tactile h-auto min-h-13 w-16 shrink-0 border-none bg-[var(--chart-2)] px-0 text-2xl leading-none text-[var(--secondary)]"
+            className="tactile text-background h-auto min-h-13 w-16 shrink-0 border-none bg-[var(--chart-2)] px-0 text-2xl leading-none"
           >
             ↑
           </Button>

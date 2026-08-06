@@ -152,7 +152,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                           render={
                             <button type="button" onClick={() => router.push(crumb.href!)} />
                           }
-                          className="max-w-[180px] cursor-pointer truncate text-[var(--border)] underline underline-offset-2 hover:text-[var(--bone-dim)]"
+                          className="max-w-[180px] cursor-pointer truncate text-[var(--muted-foreground)] underline underline-offset-2 hover:text-[var(--bone-dim)]"
                         >
                           {crumb.label}
                         </BreadcrumbLink>
@@ -162,7 +162,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                             'truncate',
                             isLast
                               ? 'text-secondary-foreground'
-                              : 'text-[var(--border)]',
+                              : 'text-[var(--muted-foreground)]',
                           )}
                         >
                           {crumb.label}

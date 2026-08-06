@@ -64,7 +64,7 @@ export function NPCListItem({ npc, selected, onSelect }: Props) {
 function Chip({ label, value }: { label: string; value: number }) {
   return (
     <span className="font-mono text-muted-foreground text-[9px] tracking-[0.06em]">
-      <span className="text-[var(--border)]">{label}</span> {value}
+      <span className="text-[var(--muted-foreground)]">{label}</span> {value}
     </span>
   )
 }

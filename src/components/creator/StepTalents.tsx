@@ -101,7 +101,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     className={cn(
                       'border-b-[var(--border)] transition-colors duration-200',
                       isLast
-                        ? 'bg-[var(--primary)]'
+                        ? 'bg-[var(--primary)]/15'
                         : i % 2 === 0
                           ? 'bg-[var(--card)]'
                           : 'bg-transparent',
@@ -136,7 +136,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
         <Item
           variant="outline"
           size="sm"
-          className="worn-border animate-ink-spread items-start gap-2.5 border-[var(--border)] bg-[var(--primary)] px-3 py-2"
+          className="worn-border animate-ink-spread items-start gap-2.5 border-[var(--border)] bg-[var(--primary)]/15 px-3 py-2"
         >
           <div className="shrink-0 text-center">
             <div className="font-heading text-[22px] leading-none font-bold text-[var(--candle-amber)]">
@@ -187,7 +187,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     {talent.name}
                   </ItemTitle>
                   {talent.description && (
-                    <ItemDescription className="font-mono mt-0.5 text-[8px] text-[var(--border)]">
+                    <ItemDescription className="font-mono mt-0.5 text-[8px] text-[var(--muted-foreground)]">
                       {talent.description}
                     </ItemDescription>
                   )}

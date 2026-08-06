@@ -319,7 +319,7 @@ function SpellLikeSection({
                 <span style={{ flex: 1, height: 1, background: statusColor }} />
               </div>
               {/* Roll line */}
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--border)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
                 DC {dc} · d20{abilityCastMod >= 0 ? `+${abilityCastMod}` : abilityCastMod} ({STAT_SHORT[abilityCastStat]})
               </p>
               {/* Description */}
@@ -340,7 +340,7 @@ function SpellLikeSection({
               ) : (
                 <Button
                   onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
-                  className="tactile w-full border-[var(--secondary)] bg-[var(--primary)] text-[var(--secondary)] hover:bg-[var(--primary)]/80"
+                  className="tactile text-primary-foreground w-full border-[var(--primary)] bg-[var(--primary)] hover:bg-[var(--primary)]/80"
                 >
                   Ativar
                 </Button>
@@ -356,7 +356,7 @@ function SpellLikeSection({
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
 const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: 'var(--chart-4)', soft: 'var(--chart-4)', glyph: '☿' },
+  passive:      { label: 'Passivo',  color: 'var(--muted-foreground)', soft: 'var(--chart-4)', glyph: '☿' },
   choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', soft: 'var(--border)', glyph: '⚖' },
   limited_use:  { label: 'Usos',     color: 'var(--primary)', soft: 'var(--primary)',   glyph: '⌛' },
   spell_like:   { label: 'Ativação', color: 'var(--chart-2)', soft: 'var(--chart-2)',  glyph: '☽' },
@@ -440,7 +440,7 @@ function TechniqueCard({
                     size="icon-xs"
                     onClick={() => setOpen(false)}
                     aria-label="Fechar"
-                    className="shrink-0 text-sm leading-none text-[var(--border)] hover:bg-transparent hover:text-[var(--foreground)]"
+                    className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
                   >
                     ✕
                   </Button>
@@ -509,10 +509,10 @@ function TechniqueCard({
         }}>
           {/* Corner marks + roll arrow */}
           <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span><span>✦</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: style.color, lineHeight: 1 }}>↝</span>
               <span>✦</span>
@@ -566,7 +566,7 @@ function TalentTable({ classData }: { classData: Class }) {
     <div>
       <SectionSubheading trailing={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--border)' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)' }}>
             Role no modal de edição
           </span>
           <Button

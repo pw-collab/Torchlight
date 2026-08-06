@@ -494,7 +494,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         {talent.description && (
                           <div style={{
                             fontFamily: 'var(--font-mono)', fontSize: 8,
-                            color: 'var(--border)', marginTop: 2,
+                            color: 'var(--muted-foreground)', marginTop: 2,
                           }}>
                             {talent.description}
                           </div>

@@ -121,14 +121,14 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         </div>
 
         {/* Count */}
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-4)', marginTop: -4 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)', marginTop: -4 }}>
           {filtered.length} magia{filtered.length !== 1 ? 's' : ''} disponíve{filtered.length !== 1 ? 'is' : 'l'}
         </div>
 
         {/* Spell list */}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filtered.length === 0 && (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--chart-4)', padding: '8px 0' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', padding: '8px 0' }}>
               Nenhuma magia encontrada.
             </p>
           )}
@@ -148,7 +148,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 fontFamily: 'var(--font-mono)',
                 fontSize: 8,
                 fontWeight: 700,
-                color: 'var(--chart-4)',
+                color: 'var(--muted-foreground)',
                 background: 'color-mix(in oklch, var(--chart-4), transparent 85%)',
                 border: '1px solid var(--chart-4)',
                 padding: '1px 5px',
@@ -159,10 +159,10 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 {TIER_LABEL[spell.tier - 1] ?? spell.tier}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--chart-4)', letterSpacing: '0.03em', marginBottom: 2 }}>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--muted-foreground)', letterSpacing: '0.03em', marginBottom: 2 }}>
                   {spell.name}
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-4)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>
                   {spell.school && `${spell.school} · `}DC {10 + spell.tier}
                   {spell.range && ` · ${spell.range}`}
                   {spell.duration && ` · ${spell.duration}`}
@@ -266,7 +266,7 @@ function SpellCard({
                   size="icon-xs"
                   onClick={() => setOpen(false)}
                   aria-label="Fechar"
-                  className="shrink-0 text-sm leading-none text-[var(--border)] hover:bg-transparent hover:text-[var(--foreground)]"
+                  className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
                 >
                   ✕
                 </Button>
@@ -368,10 +368,10 @@ function SpellCard({
         }}>
           {/* Corner marks + roll arrow */}
           <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span><span>✦</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color, lineHeight: 1 }}>↝</span>
               <span>✦</span>
@@ -470,7 +470,7 @@ export function Spells({
         {/* Casting controls */}
         {onUpdate && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--chart-4)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
               Bônus
             </span>
             <NumInput
@@ -486,7 +486,7 @@ export function Spells({
                     : 'text-[var(--bone-white)]',
               )}
             />
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--chart-4)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
               Atrib.
             </span>
             <NativeSelect
