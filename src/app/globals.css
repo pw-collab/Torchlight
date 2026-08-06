@@ -397,6 +397,16 @@ html, body {
 
 /* ============================================================
    Responsive layout utilities
+
+   Breakpoint scale (documented convention — CSS media queries can't
+   reference custom properties, so these are literal values reused
+   consistently rather than a shared token):
+     400px   xs           smallest phones
+     640px   mobile       phone ceiling — matches useIsMobile()'s default
+     768px   tablet       tablet-portrait floor
+     900px / 1000px       existing creator/sheet collapse points
+     1024px  tablet-lg    tablet-landscape floor
+     1440px  content-max  large-screen content-width cap
    ============================================================ */
 
 /* Stat block on the 12-col system: stats span 2 (6-up) → span 4 (3-up) mobile */
@@ -407,19 +417,8 @@ html, body {
 }
 .grid-stats > * { grid-column: span 2 / span 2; }
 
-/* NPC grid */
-.grid-npcs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-  gap: 20px;
-}
-
 @media (max-width: 640px) {
   .grid-stats > * { grid-column: span 4 / span 4; }
-
-  .grid-npcs {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ============================================================
@@ -472,16 +471,6 @@ html, body {
   .creator-mobile-steps { display: flex; }
 }
 
-/* Class / ancestry-style selection card grid inside the creator */
-.creator-card-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-@media (min-width: 560px) {
-  .creator-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
 .dice-formula {
   color: var(--candle-amber);
@@ -526,8 +515,9 @@ html, body {
    12 auto-width columns · 24px gutter · content placed via span.
    Page shell: 48px margin, 24px padding (--center keeps the shell
    horizontally centered under a max-width). Spacing scale: ×6.
-   Responsive spans: .col-md-* (≤900px), .col-sm-* (≤640px),
-   .col-xs-* (≤400px) override the base span at that breakpoint.
+   Responsive spans: .col-md-* (≤900px), .col-sm-6 (≤640px),
+   .col-sm-12 (≤767px — the tablet-portrait floor), .col-xs-*
+   (≤400px) override the base span at that breakpoint.
    ============================================================ */
 .grid-12 {
   display: grid;
@@ -538,6 +528,13 @@ html, body {
 .grid-12-page {
   margin: 48px;
   padding: 24px;
+  max-width: 1440px;
+}
+/* Auto side-margins only take effect once the cap is actually clamping the
+   box (viewport ≥ 1440px content + 2×48px margin) — gated behind a media
+   query so viewports below that keep the original fixed 48px margin. */
+@media (min-width: 1536px) {
+  .grid-12-page { margin-inline: auto; }
 }
 .grid-12-page--center {
   margin: 48px auto;
@@ -553,12 +550,20 @@ html, body {
 @media (max-width: 900px) {
   .col-md-12 { grid-column: span 12 / span 12; }
 }
+/* .col-sm-12's only consumers today (npc-master-list/npc-detail-pane,
+   InventoryView's equipment/mochila split) previously stacked at the same
+   640px cliff as everything else, which left tablet-portrait widths
+   (641-767px) squeezed into a cramped 2-column layout with no room to
+   breathe. Stacking a tier earlier, at the tablet-portrait floor, fixes
+   that without touching .col-sm-6 (used elsewhere) or any other class. */
+@media (max-width: 767px) {
+  .col-sm-12 { grid-column: span 12 / span 12; }
+}
 @media (max-width: 640px) {
   .grid-12 { gap: 12px; }
   .grid-12-page { margin: 12px; padding: 12px; }
   .grid-12-page--center { margin: 12px auto; padding: 12px; }
   .col-sm-6  { grid-column: span 6 / span 6; }
-  .col-sm-12 { grid-column: span 12 / span 12; }
 }
 @media (max-width: 400px) {
   .col-xs-12 { grid-column: span 12 / span 12; }
