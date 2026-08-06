@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -59,22 +60,28 @@ const mdComponents: Components = {
 }
 
 const PAGE_CLASS =
-  'relative w-[340px] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--parchment-light)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--ink-deep)]'
+  'relative w-[min(340px,calc(100vw-3rem))] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--parchment-light)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--ink-deep)]'
 
 export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
+  // Two pages side by side need ~760-800px of viewport before the spread
+  // clips — below that, page one at a time instead.
+  const singlePage = useIsMobile(899)
+  const pagesPerView = singlePage ? 1 : 2
+
   const [spreadIndex, setSpreadIndex] = useState(0)
   const [editingContent, setEditingContent] = useState(false)
   const [draft, setDraft] = useState(item.content ?? '')
 
   const pages = paginateMarkdown(item.content ?? '')
   const totalPages = pages.length
-  const totalSpreads = Math.ceil(totalPages / 2)
+  const totalSpreads = Math.max(1, Math.ceil(totalPages / pagesPerView))
+  const clampedIndex = Math.min(spreadIndex, totalSpreads - 1)
 
-  const leftPage  = pages[spreadIndex * 2]     ?? ''
-  const rightPage = pages[spreadIndex * 2 + 1] ?? null
+  const leftPage  = pages[clampedIndex * pagesPerView]     ?? ''
+  const rightPage = singlePage ? null : (pages[clampedIndex * pagesPerView + 1] ?? null)
 
-  const leftNum  = spreadIndex * 2 + 1
-  const rightNum = spreadIndex * 2 + 2
+  const leftNum  = clampedIndex * pagesPerView + 1
+  const rightNum = clampedIndex * pagesPerView + 2
 
   function handleSave() {
     onSaveContent(draft)
@@ -88,8 +95,9 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
           showCloseButton={false}
           className="flex w-auto max-w-full flex-col items-center gap-4 border-none bg-transparent p-6 shadow-none"
         >
-          {/* Header */}
-          <DialogHeader className="flex w-full max-w-[736px] flex-row items-center justify-between gap-3">
+          {/* Header — wraps below the title on narrow viewports instead of
+              forcing the (shrink-to-fit) dialog wider than the screen. */}
+          <DialogHeader className="flex w-full max-w-[736px] flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <DialogTitle className="font-heading text-[11px] tracking-[0.16em] text-[var(--parchment-warm)] uppercase">
               📖 {item.name}
             </DialogTitle>
@@ -133,45 +141,51 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               )}
             </div>
 
-            {/* Spine */}
-            <div className="w-1.5 shrink-0 bg-[linear-gradient(to_right,rgba(80,55,10,0.55),rgba(139,112,48,0.5),rgba(80,55,10,0.55))]" />
+            {!singlePage && (
+              <>
+                {/* Spine */}
+                <div className="w-1.5 shrink-0 bg-[linear-gradient(to_right,rgba(80,55,10,0.55),rgba(139,112,48,0.5),rgba(80,55,10,0.55))]" />
 
-            {/* Right page */}
-            <div className={PAGE_CLASS}>
-              <div className="absolute right-4 bottom-2.5 text-[9px] text-[rgba(80,60,20,0.45)] italic">
-                {rightPage !== null ? rightNum : ''}
-              </div>
-              {rightPage !== null ? (
-                <ReactMarkdown components={mdComponents}>{rightPage}</ReactMarkdown>
-              ) : (
-                <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
-                  {totalPages > 1 ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
-                </span>
-              )}
-            </div>
+                {/* Right page */}
+                <div className={PAGE_CLASS}>
+                  <div className="absolute right-4 bottom-2.5 text-[9px] text-[rgba(80,60,20,0.45)] italic">
+                    {rightPage !== null ? rightNum : ''}
+                  </div>
+                  {rightPage !== null ? (
+                    <ReactMarkdown components={mdComponents}>{rightPage}</ReactMarkdown>
+                  ) : (
+                    <span className="text-[11px] text-[rgba(80,60,20,0.35)] italic">
+                      {totalPages > 1 ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer navigation */}
-          <DialogFooter className="flex-row items-center justify-center gap-4">
+          <DialogFooter className="flex-row flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <Button
               size="sm"
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.max(0, s - 1))}
-              disabled={spreadIndex === 0}
+              disabled={clampedIndex === 0}
               className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
             >
               ← Anterior
             </Button>
-            <span className="text-muted-foreground min-w-[120px] text-center text-[11px] italic">
+            <span className="text-muted-foreground text-center text-[11px] italic">
               {totalPages <= 1
                 ? 'Página 1'
-                : `Págs. ${leftNum}–${Math.min(rightNum, totalPages)} de ${totalPages}`}
+                : singlePage
+                  ? `Pág. ${leftNum} de ${totalPages}`
+                  : `Págs. ${leftNum}–${Math.min(rightNum, totalPages)} de ${totalPages}`}
             </span>
             <Button
               size="sm"
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.min(totalSpreads - 1, s + 1))}
-              disabled={spreadIndex >= totalSpreads - 1}
+              disabled={clampedIndex >= totalSpreads - 1}
               className="border-[rgba(139,112,48,0.4)] bg-[rgba(42,34,16,0.55)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
             >
               Próximo →

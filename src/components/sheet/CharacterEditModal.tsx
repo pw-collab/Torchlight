@@ -210,7 +210,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
     <Dialog open onOpenChange={open => { if (!open) handleClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="worn-border flex max-h-[88vh] w-full max-w-[560px] min-w-[460px] flex-col gap-3.5 overflow-y-auto border-t-2 border-t-[#7A6030] bg-[#2E2210] px-6 py-5.5"
+        className="worn-border flex max-h-[88vh] w-full max-w-[560px] flex-col gap-3.5 overflow-y-auto border-t-2 border-t-[#7A6030] bg-[#2E2210] px-6 py-5.5"
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <DialogHeader className="flex-row items-center justify-between border-b border-[rgba(139,112,48,0.22)] pb-3.5">

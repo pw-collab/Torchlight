@@ -17,7 +17,10 @@ import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Kbd } from '@/components/ui/kbd'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Spinner } from '@/components/ui/spinner'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { useBreakpoint } from '@/hooks/useBreakpoint'
+import { cn } from '@/lib/utils'
 
 const TEMPLATE = `# Nome do NPC
 Tipo — Raça, Alinhamento
@@ -156,6 +159,8 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
   const [md, setMd] = useState(editNpc ? npcToMarkdown(editNpc) : TEMPLATE)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [activePane, setActivePane] = useState<'md' | 'preview'>('md')
+  const stacked = useBreakpoint() === 'mobile'
 
   const parsed: Partial<NPC> = md.trim() ? parseNPCMarkdown(md) : EMPTY_NPC
   const previewNpc: NPC = {
@@ -204,37 +209,73 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Split pane */}
+        {/* Below 768px there's no room for a side-by-side split — switch to
+            a tab-per-pane layout instead. */}
+        {stacked && (
+          <Tabs
+            value={activePane}
+            onValueChange={value => setActivePane(value as 'md' | 'preview')}
+            className="border-b border-[rgba(139,112,48,0.18)] px-4 pt-2"
+          >
+            <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
+              <TabsTrigger
+                value="md"
+                className="font-heading text-[9px] tracking-[0.12em] uppercase"
+              >
+                Markdown
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                className="font-heading text-[9px] tracking-[0.12em] uppercase"
+              >
+                Pré-visualização
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+
+        {/* Split pane — side-by-side above 768px, single active pane below */}
         <div className="flex min-h-0 flex-1 overflow-hidden">
           {/* Left: Markdown input */}
-          <Field className="flex flex-[0_0_48%] flex-col gap-2 border-r border-[rgba(139,112,48,0.18)] px-4 py-3.5">
-            <FieldLabel
-              htmlFor="npc-markdown"
-              className="text-muted-foreground font-heading mb-0.5 text-[8px] tracking-[0.16em] uppercase"
+          {(!stacked || activePane === 'md') && (
+            <Field
+              className={cn(
+                'flex flex-col gap-2 px-4 py-3.5',
+                stacked
+                  ? 'flex-1'
+                  : 'flex-[0_0_48%] border-r border-[rgba(139,112,48,0.18)]',
+              )}
             >
-              Markdown — cole ou edite abaixo
-            </FieldLabel>
-            <Textarea
-              id="npc-markdown"
-              value={md}
-              onChange={e => setMd(e.target.value)}
-              className="font-mono min-h-[400px] flex-1 resize-none border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
-            />
-            <FieldDescription className="text-muted-foreground text-[10px] leading-normal italic">
-              Dica: use <Kbd className="text-[var(--candle-amber)]">**negrito**</Kbd> nas descrições
-              de features. Stats separados por <Kbd className="text-[var(--candle-amber)]">|</Kbd>.
-            </FieldDescription>
-          </Field>
+              <FieldLabel
+                htmlFor="npc-markdown"
+                className="text-muted-foreground font-heading mb-0.5 text-[8px] tracking-[0.16em] uppercase"
+              >
+                Markdown — cole ou edite abaixo
+              </FieldLabel>
+              <Textarea
+                id="npc-markdown"
+                value={md}
+                onChange={e => setMd(e.target.value)}
+                className="font-mono min-h-[400px] flex-1 resize-none border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
+              />
+              <FieldDescription className="text-muted-foreground text-[10px] leading-normal italic">
+                Dica: use <Kbd className="text-[var(--candle-amber)]">**negrito**</Kbd> nas descrições
+                de features. Stats separados por <Kbd className="text-[var(--candle-amber)]">|</Kbd>.
+              </FieldDescription>
+            </Field>
+          )}
 
           {/* Right: Live preview */}
-          <ScrollArea className="flex-1 bg-black/15">
-            <div className="px-5 py-3.5">
-              <div className="text-muted-foreground font-heading mb-2.5 text-[8px] tracking-[0.16em] uppercase">
-                Pré-visualização
+          {(!stacked || activePane === 'preview') && (
+            <ScrollArea className="flex-1 bg-black/15">
+              <div className="px-5 py-3.5">
+                <div className="text-muted-foreground font-heading mb-2.5 text-[8px] tracking-[0.16em] uppercase">
+                  Pré-visualização
+                </div>
+                <NPCCard npc={previewNpc} />
               </div>
-              <NPCCard npc={previewNpc} />
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          )}
         </div>
 
         <DialogFooter className="flex-row items-center gap-2.5 border-t border-[rgba(139,112,48,0.18)] px-5 py-3">
