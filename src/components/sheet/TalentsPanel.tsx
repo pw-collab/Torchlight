@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
-import { GlyphCard } from '@/components/shared/GlyphCard'
+import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button } from '@/components/ui/button'
@@ -218,7 +218,7 @@ function TalentCard({ talent, expanded, onOpenChange, onRemove, onEdit, onRoll }
         </>
       }
     >
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+      <p style={POPOVER_BODY}>
         <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
       </p>
     </GlyphCard>

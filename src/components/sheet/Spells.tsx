@@ -8,7 +8,7 @@ import type { Spell } from '@/data/spells/index'
 import { rollDie, modifier } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
-import { FACE_CLEARANCE, FACE_FADE } from '@/components/shared/GlyphCard'
+import { FACE_CLEARANCE, FACE_FADE, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { Button } from '@/components/ui/button'
@@ -295,7 +295,7 @@ function SpellCard({
                   </div>
                 )}
                 {spell && (
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0, whiteSpace: 'pre-line' }}>
+                  <p style={{ ...POPOVER_BODY, whiteSpace: 'pre-line' }}>
                     <RollableText text={spell.description} label={spell.name} onRoll={onRoll} />
                   </p>
                 )}

@@ -15,6 +15,17 @@ export const FACE_CLEARANCE = 10
 export const FACE_FADE =
   `linear-gradient(to bottom, #000 calc(100% - 26px), transparent calc(100% - ${FACE_CLEARANCE}px))`
 
+/** Prose inside a popover. Shared so the three surfaces stay in step. */
+export const POPOVER_BODY: React.CSSProperties = {
+  fontFamily: 'var(--font-body)',
+  fontSize: 14,
+  letterSpacing: 'normal',
+  color: 'var(--foreground)',
+  lineHeight: 1.5,
+  textAlign: 'left',
+  margin: 0,
+}
+
 interface Props {
   /** Symbol drawn in the arch window on the face and in the popover badge. */
   glyph: ReactNode

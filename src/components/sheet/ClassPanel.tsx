@@ -5,7 +5,7 @@ import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.t
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
-import { GlyphCard } from '@/components/shared/GlyphCard'
+import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -416,7 +416,7 @@ function TechniqueCard({
         ) : null
       }
     >
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+      <p style={POPOVER_BODY}>
         <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
       </p>
       {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
