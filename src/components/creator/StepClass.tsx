@@ -34,7 +34,7 @@ const TECH_KIND_LABEL: Record<string, string> = {
 }
 
 const CHIP_CLASS =
-  'rounded-[1px] border-[rgba(139,112,48,0.15)] bg-black/25 px-2 py-0.5 text-[10px] text-muted-foreground italic'
+  'rounded-[1px] border-[var(--border)] bg-black/25 px-2 py-0.5 text-[10px] text-muted-foreground italic'
 
 export function StepClass({ classId, onChange }: Props) {
   const [expanded, setExpanded] = useState<string | null>(classId)
@@ -57,8 +57,8 @@ export function StepClass({ classId, onChange }: Props) {
             className={cn(
               'gap-0 overflow-hidden rounded-sm border py-0 ring-0 transition-colors duration-[250ms]',
               active
-                ? 'border-[rgba(196,120,42,0.5)] bg-[rgba(139,112,48,0.1)]'
-                : 'border-[rgba(139,112,48,0.18)] bg-[rgba(20,14,6,0.5)]',
+                ? 'border-[var(--primary)] bg-[var(--border)]'
+                : 'border-[var(--border)] bg-[var(--card)]',
             )}
           >
             <Collapsible open={open} onOpenChange={() => handleSelect(c.id)}>
@@ -76,14 +76,14 @@ export function StepClass({ classId, onChange }: Props) {
                     className={cn(
                       'size-2 shrink-0 rounded-full border transition-all duration-200',
                       active
-                        ? 'border-[var(--candle-amber)] bg-[var(--candle-amber)] shadow-[var(--glow-candle)]'
-                        : 'border-[rgba(139,112,48,0.3)] bg-[rgba(139,112,48,0.2)]',
+                        ? 'border-[var(--candle-amber)] bg-[var(--candle-amber)]/15 shadow-[var(--glow-candle)]'
+                        : 'border-[var(--border)] bg-[var(--border)]/15',
                     )}
                   />
                   <span
                     className={cn(
                       'font-heading text-left text-[15px] tracking-[0.04em]',
-                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--parchment-light)]',
+                      active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                     )}
                   >
                     {c.name}
@@ -91,7 +91,7 @@ export function StepClass({ classId, onChange }: Props) {
                   {c.spellcasting && (
                     <Badge
                       variant="outline"
-                      className="font-mono shrink-0 rounded-[1px] border-[rgba(107,78,138,0.3)] bg-[rgba(74,48,104,0.3)] px-[5px] py-px text-[7px] tracking-[0.08em] text-[var(--mist-bright)]"
+                      className="font-mono shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-[5px] py-px text-[7px] tracking-[0.08em] text-[var(--muted-foreground)]"
                     >
                       ARCANO
                     </Badge>
@@ -108,9 +108,9 @@ export function StepClass({ classId, onChange }: Props) {
               </CollapsibleTrigger>
 
               {/* Expanded detail */}
-              <CollapsibleContent className="flex flex-col gap-3 border-t border-[rgba(139,112,48,0.15)] px-4 pt-3 pb-3.5">
+              <CollapsibleContent className="flex flex-col gap-3 border-t border-[var(--border)] px-4 pt-3 pb-3.5">
                 {CLASS_FLAVOR[c.id] && (
-                  <p className="text-muted-foreground border-l-2 border-[rgba(139,112,48,0.25)] pl-2.5 text-[11px] leading-relaxed italic">
+                  <p className="text-muted-foreground border-l-2 border-[var(--border)] pl-2.5 text-[11px] leading-relaxed italic">
                     {CLASS_FLAVOR[c.id]}
                   </p>
                 )}
@@ -135,7 +135,7 @@ export function StepClass({ classId, onChange }: Props) {
                         >
                           <Badge
                             variant="outline"
-                            className="font-mono mt-px shrink-0 rounded-[1px] border-0 bg-[rgba(139,112,48,0.12)] px-[5px] py-0.5 text-[7px] tracking-[0.06em] text-[var(--gold-oxidized)]"
+                            className="font-mono mt-px shrink-0 rounded-[1px] border-0 bg-[var(--border)] px-[5px] py-0.5 text-[7px] tracking-[0.06em] text-[var(--gold-oxidized)]"
                           >
                             {TECH_KIND_LABEL[t.kind ?? 'passive']}
                           </Badge>
@@ -144,7 +144,7 @@ export function StepClass({ classId, onChange }: Props) {
                               {t.name}
                             </span>
                             {t.spellLike && (
-                              <span className="font-mono ml-1.5 text-[7px] text-[var(--mist-bright)]">
+                              <span className="font-mono ml-1.5 text-[7px] text-[var(--muted-foreground)]">
                                 {t.spellLike.abilities.length} habilidades
                               </span>
                             )}

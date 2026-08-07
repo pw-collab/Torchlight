@@ -54,8 +54,8 @@ export function StepStats({ stats, onChange, editMode }: Props) {
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[rgba(139,112,48,0.2)] bg-[rgba(139,112,48,0.06)]'
-            : 'border-[rgba(196,120,42,0.45)] bg-[rgba(139,112,48,0.14)] text-[var(--parchment-light)] shadow-[0_0_12px_rgba(196,120,42,0.1)]',
+            ? 'text-muted-foreground cursor-wait border-[var(--border)] bg-[var(--border)]/15'
+            : 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_12px_var(--primary)]',
         )}
       >
         {rolling ? '⟳ Rolando os dados...' : allSet ? '⟳ Rolar novamente' : '✦ Rolar 3d6 por atributo'}
@@ -69,7 +69,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
             return (
               <div
                 key={key}
-                className="rounded-sm border border-[rgba(139,112,48,0.2)] bg-[rgba(20,14,6,0.5)] px-1 py-2.5 text-center"
+                className="rounded-sm border border-[var(--border)] bg-[var(--card)] px-1 py-2.5 text-center"
               >
                 <Label
                   htmlFor={`stat-${key}`}
@@ -87,7 +87,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     const n = parseInt(e.target.value)
                     onChange({ ...stats, [key]: isNaN(n) ? 1 : Math.min(20, Math.max(1, n)) })
                   }}
-                  className="font-mono h-auto rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-sm font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
+                  className="font-mono h-auto rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-sm font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
                 />
                 <div
                   className={cn(
@@ -108,7 +108,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
       )}
 
       {eligible && (
-        <Alert className="rounded-[1px] border-[rgba(196,120,42,0.2)] bg-[rgba(196,120,42,0.06)] px-3 py-2">
+        <Alert className="rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-2">
           <AlertDescription className="text-center text-[11px] text-[var(--candle-amber)] italic">
             Nenhum atributo excede 14 — o destino permite um novo lançamento.
           </AlertDescription>
@@ -129,12 +129,12 @@ export function StepStats({ stats, onChange, editMode }: Props) {
               <div
                 key={key}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 rounded-sm border bg-[rgba(20,14,6,0.5)] px-2.5 py-3.5',
+                  'flex flex-col items-center gap-0.5 rounded-sm border bg-[var(--card)] px-2.5 py-3.5',
                   isHigh
-                    ? 'border-[rgba(61,112,96,0.4)]'
+                    ? 'border-[var(--chart-2)]'
                     : isLow
-                      ? 'border-[rgba(139,21,21,0.35)]'
-                      : 'border-[rgba(139,112,48,0.2)]',
+                      ? 'border-[var(--destructive)]'
+                      : 'border-[var(--border)]',
                 )}
               >
                 <span className={STAT_CAPTION_CLASS}>{STAT_META[key].label}</span>
@@ -144,7 +144,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     isHigh
                       ? 'text-[var(--verdigris-light)]'
                       : isLow
-                        ? 'text-[var(--blood-mid)]'
+                        ? 'text-[var(--destructive)]'
                         : 'text-[var(--parchment-light)]',
                   )}
                 >
@@ -156,7 +156,7 @@ export function StepStats({ stats, onChange, editMode }: Props) {
                     mod > 0
                       ? 'text-[var(--verdigris-light)]'
                       : mod < 0
-                        ? 'text-[var(--blood-mid)]'
+                        ? 'text-[var(--destructive)]'
                         : 'text-muted-foreground',
                   )}
                 >

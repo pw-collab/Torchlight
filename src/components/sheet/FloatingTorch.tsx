@@ -39,16 +39,16 @@ export function FloatingTorch({ inventory, onClick }: Props) {
   const isLow = mins <= 10
 
   const accent = isLow ? 'var(--blood-bright)' : 'var(--candle-amber)'
-  const haloColor = isLow ? 'rgba(196,32,32,0.35)' : 'rgba(224,160,64,0.35)'
+  const haloColor = isLow ? 'var(--destructive)' : 'var(--primary)'
 
   return (
     <Button
       onClick={onClick}
       variant="outline"
       className={cn(
-        'animate-drop-in fixed z-90 flex h-auto items-center gap-2.5 rounded-sm bg-[#2E2210] px-3 py-2',
+        'animate-drop-in fixed z-90 flex h-auto items-center gap-2.5 rounded-sm bg-[var(--card)] px-3 py-2',
         isMobile ? 'top-[58px] left-2.5' : 'top-[70px] right-6',
-        isLow ? 'border-[rgba(196,32,32,0.45)]' : 'border-[rgba(196,120,42,0.4)]',
+        isLow ? 'border-[var(--destructive)]' : 'border-[var(--primary)]',
         onClick ? 'cursor-pointer' : 'cursor-default',
       )}
       style={{ boxShadow: `0 4px 16px rgba(0,0,0,0.6), 0 0 14px ${haloColor}` }}
@@ -94,7 +94,7 @@ export function FloatingTorch({ inventory, onClick }: Props) {
           {mins}min
         </span>
         {/* Burn-down bar */}
-        <span aria-hidden style={{ width: '100%', height: 2, background: 'rgba(139,112,48,0.2)', borderRadius: 1, overflow: 'hidden', display: 'block' }}>
+        <span aria-hidden style={{ width: '100%', height: 2, background: 'var(--border)', borderRadius: 1, overflow: 'hidden', display: 'block' }}>
           <span style={{
             display: 'block',
             height: '100%',

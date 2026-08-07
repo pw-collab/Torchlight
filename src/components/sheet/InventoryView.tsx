@@ -120,7 +120,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[rgba(139,112,48,0.28)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
 
 type BtnVariant = 'blood' | 'mist' | 'amber' | 'dark' | 'danger' | 'green'
 
@@ -141,15 +141,15 @@ function isLightSource(name: string): boolean {
 
 /** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
 const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
-  blood: 'border-[#8b1515] bg-[rgba(139,21,21,0.35)]',
-  mist:  'border-[rgba(107,78,138,0.5)] bg-[rgba(42,26,58,0.35)]',
-  amber: 'border-[#6B3A0A] bg-[rgba(106,58,10,0.35)]',
-  dark:  'border-[rgba(200,184,144,0.25)] bg-[rgba(24,20,12,0.6)]',
+  blood: 'border-[var(--destructive)] bg-[var(--destructive)]/15',
+  mist:  'border-[var(--chart-4)] bg-[var(--muted)]',
+  amber: 'border-[var(--primary)] bg-[var(--primary)]/15',
+  dark:  'border-[var(--border)] bg-[var(--card)]',
 }
 
 function combatPill(tone: keyof typeof COMBAT_PILL_TONE): string {
   return cn(
-    'h-auto rounded-[1px] px-3 py-1.5 text-[8px] tracking-[0.8px] text-[#f0e8d0]',
+    'h-auto rounded-[1px] px-3 py-1.5 text-[8px] tracking-[0.8px] text-[var(--foreground)]',
     COMBAT_PILL_TONE[tone],
   )
 }
@@ -180,7 +180,7 @@ function renderTypeIcon(item: InventoryItem, size = 44) {
   if (item.isLight) {
     const fallback = item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch']
     const lightStyle: React.CSSProperties = item.isLit
-      ? { filter: 'drop-shadow(0 0 6px rgba(224,160,64,0.65)) saturate(1.3)' }
+      ? { filter: 'drop-shadow(0 0 6px color-mix(in oklch, var(--chart-1), transparent 35%)) saturate(1.3)' }
       : { opacity: 0.5, filter: 'saturate(0.4)' }
     return <TypeIcon src={LIGHT_ICON_SRC} fallback={fallback} size={size} style={lightStyle} />
   }
@@ -210,7 +210,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
           <div
             key={key}
             className="worn-border"
-            style={{ background: 'rgba(42,34,16,0.4)', border: '1px solid rgba(139,112,48,0.22)', padding: 12, textAlign: 'center' }}
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 12, textAlign: 'center' }}
           >
             <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 6 }}>
               {label}
@@ -270,9 +270,9 @@ function CatalogPickerModal({ onAdd, onClose }: {
         onClick={e => e.stopPropagation()}
         className="worn-border animate-ink-spread"
         style={{
-          background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-          border: '1px solid rgba(139,112,48,0.42)',
-          borderTop: '2px solid #7A6030',
+          background: 'var(--card), var(--card)',
+          border: '1px solid var(--border)',
+          borderTop: '2px solid var(--border)',
           boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
           padding: 18,
           minWidth: 340,
@@ -294,10 +294,10 @@ function CatalogPickerModal({ onAdd, onClose }: {
           value={query}
           onChange={e => setQuery(e.target.value)}
           aria-label="Buscar no catálogo"
-          className="mb-2.5 h-auto rounded-sm border-[rgba(139,112,48,0.35)] bg-[rgba(14,10,3,0.8)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
+          className="mb-2.5 h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
         />
 
-        <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid rgba(139,112,48,0.2)', marginBottom: 0 }}>
+        <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', marginBottom: 0 }}>
           {(Object.keys(CATALOG_TABS) as CatalogTab[]).map(t => (
             <Button
               key={t}
@@ -308,7 +308,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
                 '-mb-px h-auto rounded-none border-b-2 px-2.5 pt-1.5 pb-1 text-[8px] tracking-[0.14em]',
                 'transition-all duration-[250ms]',
                 tab === t
-                  ? 'border-b-[var(--gold-oxidized)] bg-[rgba(139,112,48,0.15)] text-[var(--parchment-light)]'
+                  ? 'border-b-[var(--gold-oxidized)] bg-[var(--border)] text-[var(--parchment-light)]'
                   : 'text-muted-foreground border-b-transparent',
               )}
             >
@@ -328,7 +328,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
               key={cat.id}
               variant="ghost"
               onClick={() => { onAdd(catalogToInventoryItem(cat)); onClose() }}
-              className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.1)] px-1 py-2 text-left normal-case transition-colors duration-[180ms] hover:bg-[rgba(139,112,48,0.08)]"
+              className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-1 py-2 text-left normal-case transition-colors duration-[180ms] hover:bg-[var(--border)]"
             >
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', flex: 1 }}>
@@ -362,13 +362,13 @@ const TYPE_LABEL: Record<ItemType, string> = {
   gear: 'Equipamento', treasure: 'Tesouro', document: 'Documento',
 }
 
-const TYPE_ACCENT: Record<ItemType, { color: string; soft: string }> = {
-  weapon:   { color: 'var(--blood-bright)',    soft: 'rgba(139,21,21,0.38)' },
-  armor:    { color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)' },
-  shield:   { color: 'var(--verdigris-light)', soft: 'rgba(61,112,96,0.4)' },
-  gear:     { color: 'var(--bone-muted)',      soft: 'rgba(139,112,48,0.35)' },
-  treasure: { color: 'var(--gold-bright)',     soft: 'rgba(201,168,76,0.35)' },
-  document: { color: 'rgba(155,120,190,0.9)',  soft: 'rgba(107,78,138,0.38)' },
+const TYPE_ACCENT: Record<ItemType, { color: string }> = {
+  weapon:   { color: 'var(--blood-bright)' },
+  armor:    { color: 'var(--verdigris-light)' },
+  shield:   { color: 'var(--verdigris-light)' },
+  gear:     { color: 'var(--bone-muted)' },
+  treasure: { color: 'var(--gold-bright)' },
+  document: { color: 'var(--muted-foreground)' },
 }
 
 /** Occupied grid cell ("Default" state, Figma 91-1044) — icon + item name, gold border. */
@@ -385,22 +385,22 @@ function ItemIconSlot({ item, selected, onSelect }: {
       aria-pressed={selected}
       className={cn(
         'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
-        'bg-[#18140c] hover:bg-[#18140c]',
-        selected ? 'z-[2] border-[#ff444c]' : 'z-[1] border-[var(--bone-dim)]',
+        'bg-[var(--background)] hover:bg-[var(--background)]',
+        selected ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--bone-dim)]',
       )}
     >
       {item.equipped && (
         <span aria-hidden style={{
           position: 'absolute', top: 4, left: 4,
           width: 5, height: 5, borderRadius: '50%',
-          background: '#4fa98c',
+          background: 'var(--chart-2)',
         }} />
       )}
       {item.quantity > 1 && (
         <span style={{
           position: 'absolute', top: 4, right: 4,
           fontFamily: 'var(--font-numeral)', fontSize: 11,
-          color: '#c8b890', lineHeight: 1,
+          color: 'var(--muted-foreground)', lineHeight: 1,
         }}>
           ×{item.quantity}
         </span>
@@ -413,7 +413,7 @@ function ItemIconSlot({ item, selected, onSelect }: {
         fontSize: 8,
         letterSpacing: '0.3px',
         textTransform: 'uppercase',
-        color: '#8a7a5a',
+        color: 'var(--muted-foreground)',
         textAlign: 'center',
         lineHeight: 1.2,
         width: '100%',
@@ -438,11 +438,11 @@ function GridAvailableTile({ onClick }: { onClick: () => void }) {
       variant="outline"
       className={cn(
         'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
-        'border-[rgba(255,68,76,0.25)] bg-[#18140c] transition-colors duration-200',
-        'hover:border-[rgba(255,68,76,0.55)] hover:bg-[rgba(255,68,76,0.05)]',
+        'border-[var(--destructive)]/25 bg-[var(--background)] transition-colors duration-200',
+        'hover:border-[var(--destructive)]/55 hover:bg-[var(--destructive)]/5',
       )}
     >
-      <span aria-hidden className="font-heading text-[32px] leading-none text-[rgba(255,68,76,0.25)]">+</span>
+      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--destructive)]/40">+</span>
     </Button>
   )
 }
@@ -457,8 +457,8 @@ function GridEmptyTile() {
         aspectRatio: '1 / 1',
         boxSizing: 'border-box',
         margin: '-1px 0 0 -1px',
-        border: '1px dashed rgba(200,184,144,0.25)',
-        background: 'repeating-linear-gradient(45deg, rgba(200,184,144,0.10) 0px, rgba(200,184,144,0.10) 1px, transparent 1px, transparent 7px), #18140c',
+        border: '1px dashed var(--border)',
+        background: 'repeating-linear-gradient(45deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 7px), var(--background)',
         position: 'relative',
         zIndex: 0,
       }}
@@ -471,15 +471,15 @@ function ItemDetailSkeleton() {
   const line = (w: string, h = 8): React.CSSProperties => ({
     width: w,
     height: h,
-    background: 'rgba(200,184,144,0.08)',
+    background: 'var(--border)',
     borderRadius: 2,
   })
   return (
     <div aria-hidden style={{
       width: '100%',
       boxSizing: 'border-box',
-      background: 'rgba(8,6,4,0.5)',
-      border: '1px dashed rgba(200,184,144,0.18)',
+      background: 'var(--background)',
+      border: '1px dashed var(--border)',
       padding: 12,
       display: 'flex',
       flexDirection: 'column',
@@ -487,11 +487,11 @@ function ItemDetailSkeleton() {
     }}>
       <div style={line('70%', 12)} />
       <div style={line('40%', 7)} />
-      <div style={{ height: 1, background: 'rgba(200,184,144,0.1)' }} />
+      <div style={{ height: 1, background: 'var(--border)' }} />
       <div style={line('100%')} />
       <div style={line('85%')} />
       <div style={line('92%')} />
-      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(200,184,144,0.35)', textAlign: 'center', margin: '10px 0 4px' }}>
+      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', textAlign: 'center', margin: '10px 0 4px' }}>
         Selecione um item para ver os detalhes
       </p>
     </div>
@@ -516,8 +516,8 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
     <div className="animate-ink-spread" style={{
       width: '100%',
       boxSizing: 'border-box',
-      background: 'rgba(8,6,4,0.95)',
-      border: '1px solid rgba(196,32,32,0.25)',
+      background: 'var(--background)',
+      border: '1px solid var(--destructive)',
       borderTop: '2px solid var(--blood-bright)',
       padding: 12,
       display: 'flex',
@@ -574,12 +574,12 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       {(item.equipped || item.isLit) && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {item.equipped && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'rgba(42,80,69,0.2)', border: '1px solid rgba(42,80,69,0.35)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'color-mix(in oklch, var(--chart-2), transparent 80%)', border: '1px solid color-mix(in oklch, var(--chart-2), transparent 65%)', padding: '1px 5px' }}>
               Equipado
             </span>
           )}
           {item.isLit && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'rgba(196,120,42,0.12)', border: '1px solid rgba(196,120,42,0.3)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)', padding: '1px 5px' }}>
               Acesa
             </span>
           )}
@@ -736,8 +736,8 @@ function AddItemForm({ onAdd, onCancel, initialForm }: {
     <div
       className="worn-border animate-ink-spread"
       style={{
-        background: 'rgba(42,34,16,0.4)',
-        border: '1px solid rgba(139,112,48,0.28)',
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
         padding: 12,
         display: 'flex',
         flexDirection: 'column',
@@ -767,8 +767,8 @@ function EditItemForm({ item, onSave, onCancel }: {
     <div
       className="worn-border animate-ink-spread"
       style={{
-        background: 'rgba(42,34,16,0.4)',
-        border: '1px solid rgba(139,112,48,0.28)',
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
         padding: 12,
         display: 'flex',
         flexDirection: 'column',
@@ -958,8 +958,8 @@ export function InventoryView({
       <div
         className={spanClass}
         style={{
-          background: item ? 'rgba(12,8,4,0.7)' : 'rgba(8,6,4,0.5)',
-          border: '2px solid rgba(200,184,144,0.25)',
+          background: item ? 'var(--card)' : 'var(--background)',
+          border: '2px solid var(--border)',
           padding: 12,
           boxSizing: 'border-box',
           ...(shape === 'square' ? { aspectRatio: '1 / 1' } : { minHeight: 110 }),
@@ -975,12 +975,12 @@ export function InventoryView({
         {item ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#f0e8d0', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
                 {item.isLight
                   ? (item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch'])
                   : ITEM_ICON[item.type] ?? '⚗'}
               </span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: '#c4a96a', flex: 1, lineHeight: 1.3 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
                 {item.name}
               </span>
             </div>
@@ -1038,7 +1038,7 @@ export function InventoryView({
             <Button
               variant="link"
               onClick={() => unequipItem(item.id)}
-              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--blood-mid)] no-underline"
+              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--destructive)] no-underline"
             >
               Desequipar
             </Button>
@@ -1047,7 +1047,7 @@ export function InventoryView({
           <Button
             variant="outline"
             onClick={() => setSelectingSlot(slot)}
-            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[rgba(196,32,32,0.25)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--parchment-warm)] transition-all duration-300"
+            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--destructive)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--parchment-warm)] transition-all duration-300"
           >
             <span aria-hidden style={{ fontSize: shape === 'square' ? 18 : 22, lineHeight: 1, opacity: 0.3, filter: 'saturate(0.3)' }}>{emptyIcon}</span>
             <span>+ Equipar</span>
@@ -1063,23 +1063,23 @@ export function InventoryView({
         {/* Inventário — grid takes emphasis, Carga inline in the header */}
         <div className="worn-border col-span-12" style={{ padding: 24 }}>
           <div className="grid-12">
-          <div className="col-span-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: '2px solid rgba(200,184,144,0.25)' }}>
+          <div className="col-span-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1, flexShrink: 0 }}>⪧</span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
+              <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1, flexShrink: 0 }}>⪧</span>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? '#ff444c' : '#8a7a5a', lineHeight: 1 }}>
-                  {usedSlots}<span style={{ color: isEncumbered ? 'rgba(255,68,76,0.7)' : 'rgba(138,122,90,0.7)' }}>/{maxSlots}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
+                  {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
                 </span>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? '#ff444c' : '#8a7a5a', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                   {isEncumbered ? 'Sobrecarregado' : 'Carga'}
                 </span>
               </span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: '#8a7a5a', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: 'var(--muted-foreground)', lineHeight: 1 }}>
                   {inventory.length}
                 </span>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: '#8a7a5a', lineHeight: 1 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
                   {inventory.length === 1 ? 'Item' : 'Itens'}
                 </span>
               </span>
@@ -1120,8 +1120,8 @@ export function InventoryView({
             <div className="col-span-12">
               <SectionSubheading
                 trailing={
-                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? '#ff444c' : '#8a7a5a', lineHeight: 1, flexShrink: 0 }}>
-                    {usedSlots}<span style={{ color: isEncumbered ? 'rgba(255,68,76,0.7)' : 'rgba(138,122,90,0.7)' }}>/{maxSlots}</span>
+                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>
+                    {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
                   </span>
                 }
               >
@@ -1131,7 +1131,7 @@ export function InventoryView({
 
             {/* Item grid — occupied / available / empty-filler cells. Fluid:
                 fills the column width, tiles stay square via aspect-ratio. */}
-            <div className="col-span-12" style={{ border: '1px solid rgba(200,184,144,0.25)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
+            <div className="col-span-12" style={{ border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
                 {inventory.map(item => (
                   <ItemIconSlot
                     key={item.id}
@@ -1188,7 +1188,7 @@ export function InventoryView({
                   { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
                 ] as const).map(({ key, label, value }) => (
                   <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6e5e35', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
                       {label}
                     </span>
                     <NumInput
@@ -1198,9 +1198,9 @@ export function InventoryView({
                         'bg-secondary border-border h-auto w-[46px] rounded-sm p-1 text-sm',
                         'font-[var(--font-numeral)]',
                         value > 0
-                          ? 'text-[#4fa98c]'
+                          ? 'text-[var(--chart-2)]'
                           : value < 0
-                            ? 'text-primary'
+                            ? 'text-destructive'
                             : 'text-secondary-foreground',
                       )}
                     />
@@ -1228,9 +1228,9 @@ export function InventoryView({
           <div
             className="worn-border animate-ink-spread"
             style={{
-              background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-              border: '1px solid rgba(139,112,48,0.42)',
-              borderTop: '2px solid #7A6030',
+              background: 'var(--card), var(--card)',
+              border: '1px solid var(--border)',
+              borderTop: '2px solid var(--border)',
               boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
               padding: 24,
               minWidth: 280,
@@ -1254,7 +1254,7 @@ export function InventoryView({
                   key={item.id}
                   variant="ghost"
                   onClick={() => equipItem(item.id, selectingSlot!)}
-                  className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.12)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[rgba(139,112,48,0.08)]"
+                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--border)]"
                 >
                   <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
                     {item.isLight ? LIGHT_ICON[item.lightKind ?? 'torch'] : ITEM_ICON[item.type] ?? '⚗'} {item.name}
@@ -1282,9 +1282,9 @@ export function InventoryView({
           <div
             className="worn-border animate-ink-spread"
             style={{
-              background: 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210',
-              border: '1px solid rgba(139,112,48,0.42)',
-              borderTop: '2px solid #7A6030',
+              background: 'var(--card), var(--card)',
+              border: '1px solid var(--border)',
+              borderTop: '2px solid var(--border)',
               boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
               padding: 24,
               minWidth: 280,
@@ -1307,7 +1307,7 @@ export function InventoryView({
                   key={slot}
                   variant="ghost"
                   onClick={() => equipItem(replaceFor, slot)}
-                  className="block h-auto w-full rounded-none border-b border-b-[rgba(139,112,48,0.12)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[rgba(139,112,48,0.08)]"
+                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--border)]"
                 >
                   <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
                     {item!.isLight ? LIGHT_ICON[item!.lightKind ?? 'torch'] : ITEM_ICON[item!.type] ?? '⚗'} {item!.name}

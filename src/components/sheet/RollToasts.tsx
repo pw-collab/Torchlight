@@ -40,16 +40,16 @@ export function RollToasts({ rolls }: Props) {
         const isFumble = roll.isFumble
 
         const borderColor = isCritical
-          ? 'rgba(201,168,76,0.5)'
+          ? 'var(--chart-1)'
           : isFumble
-          ? 'rgba(196,32,32,0.45)'
-          : 'rgba(139,112,48,0.32)'
+          ? 'var(--destructive)'
+          : 'var(--border)'
 
         const bg = isCritical
-          ? 'linear-gradient(148deg, rgba(201,168,76,.15) 0%, rgba(14,10,3,.97) 100%), #2E2210'
+          ? 'linear-gradient(148deg, var(--chart-1) 0%, var(--card) 100%), var(--card)'
           : isFumble
-          ? 'linear-gradient(148deg, rgba(139,21,21,.18) 0%, rgba(14,10,3,.97) 100%), #2E2210'
-          : 'linear-gradient(148deg, rgba(74,54,28,.22) 0%, rgba(14,10,3,.97) 100%), #2E2210'
+          ? 'linear-gradient(148deg, var(--destructive) 0%, var(--card) 100%), var(--card)'
+          : 'var(--card), var(--card)'
 
         const numColor = isCritical
           ? 'var(--gold-bright)'
@@ -74,9 +74,9 @@ export function RollToasts({ rolls }: Props) {
               background: bg,
               border: `1px solid ${borderColor}`,
               boxShadow: isCritical
-                ? '0 4px 20px rgba(201,168,76,0.2), 0 2px 12px rgba(0,0,0,0.6)'
+                ? '0 4px 20px var(--chart-1), 0 2px 12px rgba(0,0,0,0.6)'
                 : isFumble
-                ? '0 4px 20px rgba(196,32,32,0.2), 0 2px 12px rgba(0,0,0,0.6)'
+                ? '0 4px 20px var(--destructive), 0 2px 12px rgba(0,0,0,0.6)'
                 : '0 2px 12px rgba(0,0,0,0.6)',
               padding: '10px 14px',
               minWidth: isMobile ? 140 : 160,
@@ -140,14 +140,14 @@ export function RollToasts({ rolls }: Props) {
                 fontWeight: 700,
                 color: numColor,
                 lineHeight: 1,
-                textShadow: isCritical ? '0 0 10px rgba(201,168,76,0.5)' : 'none',
+                textShadow: isCritical ? '0 0 10px var(--chart-1)' : 'none',
               }}>
                 {roll.total}
               </span>
             </div>
 
             {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(139,112,48,0.15)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
                 <span style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: 8,
