@@ -1,16 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
+import { GlyphCard } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
 
 type ButtonVariants = VariantProps<typeof buttonVariants>
 
@@ -380,18 +379,6 @@ function TechniqueCard({
 }) {
   const kind: TechniqueKind = technique.kind ?? 'passive'
   const style = KIND_STYLE[kind]
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    if (!open) return
-    document.body.style.overflow = 'hidden'
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    window.addEventListener('keydown', handler)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', handler)
-    }
-  }, [open])
 
   // Compact status indicator shown inside the hex
   const statusLine = (() => {
@@ -412,151 +399,41 @@ function TechniqueCard({
     return null
   })()
 
-  const popover = open
-    ? createPortal(
-        <div
-          onClick={() => setOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', padding: 16 }}
-        >
-            {/* Central card — centered both axes, fixed height */}
-            <div
-              onClick={e => e.stopPropagation()}
-              className="animate-ink-spread"
-              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(360px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
-            >
-              <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
-                {/* Heading */}
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
-                  <span style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${style.color}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: style.color, lineHeight: 1 }}>
-                    {style.glyph}
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
-                    <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: style.color, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {technique.name}
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: style.color, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1 }}>
-                      {style.label}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={() => setOpen(false)}
-                    aria-label="Fechar"
-                    className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
-                  >
-                    ✕
-                  </Button>
-                </div>
-                {/* Divider */}
-                <div style={{ height: 1, background: style.color, flexShrink: 0 }} />
-                {/* Scrollable content */}
-                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
-                    <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
-                  </p>
-                  {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
-                  {kind === 'choice' && technique.choice && <ChoiceSection technique={technique} state={state} onChange={onStateChange} />}
-                  {kind === 'limited_use' && technique.uses && (
-                    <UsePips
-                      max={technique.uses.max}
-                      remaining={state.usesRemaining ?? technique.uses.max}
-                      perLabel={technique.uses.perLabel}
-                      onUse={() => {
-                        const cur = state.usesRemaining ?? technique.uses!.max
-                        if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
-                      }}
-                      onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-          {/* Ability cards — activation techniques, pinned to the bottom of the screen */}
-          {kind === 'spell_like' && technique.spellLike && (
-            <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', left: 0, right: 0, bottom: 16 }}>
-              <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
-            </div>
-          )}
-        </div>,
-        document.body,
-      )
-    : null
-
   return (
-    <>
-      <Button
-        onClick={() => setOpen(o => !o)}
-        title={technique.name}
-        variant="secondary"
-        aria-expanded={open}
-        className={cn(
-          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
-          'transition-[border-color] duration-[250ms]',
-        )}
-        style={{ borderColor: open ? style.color : 'var(--border)' }}
-      >
-        <div style={{
-          position: 'relative',
-          flex: 1,
-          width: '100%',
-          border: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 6,
-          padding: '10px 9px 12px',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        }}>
-          {/* Corner marks + roll arrow */}
-          <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
-              <span>✦</span><span>✦</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
-              <span>✦</span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: style.color, lineHeight: 1 }}>↝</span>
-              <span>✦</span>
-            </div>
+    <GlyphCard
+      glyph={style.glyph}
+      title={technique.name}
+      caption={style.label}
+      accent={style.color}
+      description={technique.description}
+      status={statusLine}
+      overlay={
+        // Ability cards — activation techniques, pinned to the bottom of the screen
+        kind === 'spell_like' && technique.spellLike ? (
+          <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', left: 0, right: 0, bottom: 16 }}>
+            <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
           </div>
-
-          {/* Arch icon */}
-          <div style={{ width: 56, height: 56, border: '1px solid var(--border)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: 'var(--foreground)', lineHeight: 1, userSelect: 'none' }}>{style.glyph}</span>
-            {statusLine && (
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: statusLine.color, lineHeight: 1, letterSpacing: '0.04em' }}>{statusLine.text}</span>
-            )}
-          </div>
-
-          {/* Title */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {technique.name}
-          </p>
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
-            <span style={{ flex: 1, height: 1, background: style.color }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: style.color, lineHeight: 1 }}>⨝</span>
-            <span style={{ flex: 1, height: 1, background: style.color }} />
-          </div>
-
-          {/* Kind label */}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: style.color, letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center', width: '100%' }}>
-            {style.label}
-          </p>
-
-          {/* Description */}
-          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {technique.description}
-            </p>
-          </div>
-        </div>
-      </Button>
-      {popover}
-    </>
+        ) : null
+      }
+    >
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+        <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
+      </p>
+      {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
+      {kind === 'choice' && technique.choice && <ChoiceSection technique={technique} state={state} onChange={onStateChange} />}
+      {kind === 'limited_use' && technique.uses && (
+        <UsePips
+          max={technique.uses.max}
+          remaining={state.usesRemaining ?? technique.uses.max}
+          perLabel={technique.uses.perLabel}
+          onUse={() => {
+            const cur = state.usesRemaining ?? technique.uses!.max
+            if (cur > 0) onStateChange({ ...state, usesRemaining: cur - 1 })
+          }}
+          onReset={() => onStateChange({ ...state, usesRemaining: technique.uses!.max })}
+        />
+      )}
+    </GlyphCard>
   )
 }
 

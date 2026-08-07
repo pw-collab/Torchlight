@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
+import { GlyphCard } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
 
 const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   ancestry: 'Ancestralidade',
@@ -25,12 +24,12 @@ const ORIGIN_LABEL: Record<TalentOrigin, string> = {
   general: 'Geral',
 }
 
-// `soft` fills a panel behind --foreground text, so it has to stay a wash of
-// the accent rather than the accent itself — the originals were 10–12% alpha.
-const ORIGIN_ACCENT: Record<TalentOrigin, { color: string; soft: string }> = {
-  class:    { color: 'var(--chart-1)',          soft: 'color-mix(in oklch, var(--chart-1), transparent 88%)' },
-  general:  { color: 'var(--muted-foreground)', soft: 'color-mix(in oklch, var(--muted-foreground), transparent 90%)' },
-  ancestry: { color: 'var(--foreground)',       soft: 'color-mix(in oklch, var(--foreground), transparent 92%)' },
+// Mirrors the class block's technique palette — every value clears 4.5:1 on
+// the card face.
+const ORIGIN_ACCENT: Record<TalentOrigin, string> = {
+  class:    'var(--chart-1)',
+  general:  'var(--muted-foreground)',
+  ancestry: 'var(--foreground)',
 }
 
 const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
@@ -171,13 +170,13 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             Nenhum talento registrado nos arquivos.
           </p>
         ) : (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] items-start gap-2.5">
             {talents.map(t => (
-              <TalentRow
+              <TalentCard
                 key={t.id}
                 talent={t}
                 expanded={expandedId === t.id}
-                onToggle={() => setExpandedId(expandedId === t.id ? null : t.id)}
+                onOpenChange={open => setExpandedId(open ? t.id : null)}
                 onRemove={() => removeTalent(t.id)}
                 onEdit={() => startEdit(t)}
                 onRoll={onRoll}
@@ -190,83 +189,38 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   )
 }
 
-function TalentRow({ talent, expanded, onToggle, onRemove, onEdit, onRoll }: {
+function TalentCard({ talent, expanded, onOpenChange, onRemove, onEdit, onRoll }: {
   talent: Talent
   expanded: boolean
-  onToggle: () => void
+  onOpenChange: (open: boolean) => void
   onRemove: () => void
   onEdit: () => void
   onRoll?: (r: RollResult) => void
 }) {
-  const { color: accent, soft } = ORIGIN_ACCENT[talent.origin]
-
   return (
-    <Collapsible open={expanded} onOpenChange={onToggle} className="flex flex-col">
-      <CollapsibleTrigger
-        render={
-          <Button
-            type="button"
-            variant="secondary"
-            className="tactile h-auto w-full justify-start gap-2 bg-[var(--secondary)] p-1.5 text-left normal-case"
-            style={{ borderColor: accent }}
-          />
-        }
-      >
-        {/* Icon */}
-        <span
-          className="bg-secondary flex size-8 shrink-0 items-center justify-center border text-lg leading-none text-[var(--foreground)]"
-          style={{ borderColor: accent }}
-        >
-          {ORIGIN_GLYPH[talent.origin]}
-        </span>
-
-        {/* Name */}
-        <span
-          className="font-heading min-w-0 flex-1 truncate text-base tracking-normal"
-          style={{ color: accent }}
-        >
-          {talent.name}
-        </span>
-
-        {/* Trailing: category + expand affordance */}
-        <span className="bg-background flex shrink-0 items-stretch gap-2 self-stretch border border-[var(--background)] pl-1.5">
-          <span
-            className="flex items-center font-[var(--font-stat)] text-[10px] tracking-[1.2px] whitespace-nowrap uppercase"
-            style={{ color: accent }}
-          >
-            {ORIGIN_LABEL[talent.origin]}
-          </span>
-          <span
-            aria-hidden
-            className={cn(
-              'font-heading flex aspect-square items-center justify-center self-stretch border',
-              'border-[var(--background)] text-base leading-none text-[var(--background)] transition-transform duration-200',
-              expanded && 'rotate-90',
-            )}
-            style={{ background: accent }}
-          >
-            ↝
-          </span>
-        </span>
-      </CollapsibleTrigger>
-
-      {/* Expanded detail */}
-      <CollapsibleContent
-        className="animate-ink-spread flex flex-col gap-3 border border-t-0 px-3.5 py-3"
-        style={{ background: soft, borderColor: accent }}
-      >
-        <p className="text-[13.5px] leading-relaxed text-[var(--foreground)]">
-          <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
-        </p>
-        <div className="flex gap-2">
-          <Button variant="secondary" className="tactile" onClick={onEdit}>
+    <GlyphCard
+      glyph={ORIGIN_GLYPH[talent.origin]}
+      title={talent.name}
+      caption={ORIGIN_LABEL[talent.origin]}
+      accent={ORIGIN_ACCENT[talent.origin]}
+      description={talent.description}
+      dividerGlyph="✦"
+      open={expanded}
+      onOpenChange={onOpenChange}
+      footer={
+        <>
+          <Button variant="secondary" className="tactile flex-1" onClick={onEdit}>
             ✎ Editar
           </Button>
-          <Button variant="hollow" className="tactile" onClick={onRemove}>
+          <Button variant="hollow" className="tactile flex-1" onClick={onRemove}>
             ✕ Excluir
           </Button>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+        </>
+      }
+    >
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+        <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
+      </p>
+    </GlyphCard>
   )
 }

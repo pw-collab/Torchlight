@@ -194,9 +194,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     <>
       {tab === 'stats' && (
         <div className="grid-12">
-          <div className="col-span-12">
-            <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
-          </div>
           {cls && (
             <div className="col-span-12">
               <ClassPanel
@@ -208,6 +205,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               />
             </div>
           )}
+          <div className="col-span-12">
+            <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+          </div>
         </div>
       )}
 

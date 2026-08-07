@@ -245,7 +245,7 @@ function SpellCard({
           <div
             onClick={e => e.stopPropagation()}
             className="animate-ink-spread"
-            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(400px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
+            style={{ position: 'absolute', inset: 0, margin: 'auto', background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(400px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
           >
             <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
               {/* Heading */}
