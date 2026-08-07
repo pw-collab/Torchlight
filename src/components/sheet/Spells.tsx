@@ -8,6 +8,7 @@ import type { Spell } from '@/data/spells/index'
 import { rollDie, modifier } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
+import { FACE_CLEARANCE, FACE_FADE } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { Button } from '@/components/ui/button'
@@ -349,6 +350,8 @@ function SpellCard({
         className={cn(
           'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
+          // Same as GlyphCard: the face is prose, not a button label.
+          'whitespace-normal normal-case',
           isFailed && 'opacity-70',
         )}
         style={{ borderColor: open ? color : 'var(--border)' }}
@@ -386,8 +389,8 @@ function SpellCard({
             </span>
           </div>
 
-          {/* Title */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {/* Title — wraps onto a second line, then clamps */}
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', flexShrink: 0 }}>
             {name}
           </p>
 
@@ -403,9 +406,9 @@ function SpellCard({
             {school}
           </p>
 
-          {/* Description */}
-          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {/* Description — fills whatever the title left, fading at the cut */}
+          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {spell?.description ?? ''}
             </p>
           </div>

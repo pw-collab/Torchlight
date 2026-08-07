@@ -5,6 +5,16 @@ import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+/**
+ * The description runs until it hits the bottom of the card, so the cut lands
+ * mid-line. Fading it out reads as "there is more here" rather than as a
+ * rendering glitch. The bottom `FACE_CLEARANCE` px stay clear of the ✦ ↝ ✦
+ * corner marks, which the text would otherwise run straight into.
+ */
+export const FACE_CLEARANCE = 10
+export const FACE_FADE =
+  `linear-gradient(to bottom, #000 calc(100% - 26px), transparent calc(100% - ${FACE_CLEARANCE}px))`
+
 interface Props {
   /** Symbol drawn in the arch window on the face and in the popover badge. */
   glyph: ReactNode
@@ -134,6 +144,9 @@ export function GlyphCard({
         className={cn(
           'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
+          // Button's base is a label: nowrap + uppercase. The face holds prose,
+          // so it wraps and keeps the casing the text was written in.
+          'whitespace-normal normal-case',
         )}
         style={{ borderColor: open ? accent : 'var(--border)' }}
       >
@@ -170,8 +183,8 @@ export function GlyphCard({
             )}
           </div>
 
-          {/* Title */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {/* Title — wraps onto a second line, then clamps */}
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', flexShrink: 0 }}>
             {title}
           </p>
 
@@ -187,9 +200,9 @@ export function GlyphCard({
             {caption}
           </p>
 
-          {/* Description */}
-          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          {/* Description — fills whatever the title left, fading at the cut */}
+          <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {description}
             </p>
           </div>
