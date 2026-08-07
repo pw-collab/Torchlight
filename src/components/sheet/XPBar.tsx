@@ -23,7 +23,7 @@ export function XPBar({ level, xp, onUpdate }: Props) {
             className={cn(
               'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
               ready
-                ? 'bg-[var(--gold-bright)] shadow-[0_0_5px_var(--gold-bright)]'
+                ? 'bg-[var(--gold-bright)] shadow-[0_0_5px_color-mix(in_oklch,var(--chart-1),transparent_60%)]'
                 : 'bg-[var(--verdigris-light)]',
             )}
           />

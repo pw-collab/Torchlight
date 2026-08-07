@@ -69,7 +69,7 @@ function CharacterCard({
             fontFamily: 'var(--font-mono)',
             fontSize: 7,
             letterSpacing: '0.12em',
-            color: '#3A2E18',
+            color: 'var(--muted-foreground)',
             marginBottom: 10,
           }}
         >
@@ -93,7 +93,7 @@ function CharacterCard({
             fontFamily: 'var(--font-body)',
             fontStyle: 'italic',
             fontSize: 12,
-            color: '#6A5A3A',
+            color: 'var(--muted-foreground)',
             marginBottom: isGm && char.ownerName ? 8 : 14,
             lineHeight: 1.5,
           }}
@@ -107,8 +107,10 @@ function CharacterCard({
               fontSize: 7,
               letterSpacing: '0.1em',
               color: char.isOwnCharacter ? 'var(--verdigris-light)' : 'var(--candle-amber)',
-              background: char.isOwnCharacter ? 'rgba(42,80,69,0.18)' : 'rgba(106,80,10,0.18)',
-              border: `1px solid ${char.isOwnCharacter ? 'rgba(42,80,69,0.35)' : 'rgba(139,112,48,0.3)'}`,
+              background: char.isOwnCharacter
+                ? 'color-mix(in oklch, var(--chart-2), transparent 85%)'
+                : 'color-mix(in oklch, var(--muted-foreground), transparent 88%)',
+              border: `1px solid ${char.isOwnCharacter ? 'var(--chart-2)' : 'var(--border)'}`,
               padding: '2px 6px',
               borderRadius: 1,
               textTransform: 'uppercase' as const,
@@ -158,7 +160,7 @@ function CharacterCard({
             title="Editar ficha"
             aria-label="Editar ficha"
             onClick={onEdit}
-            className={cn(CARD_ACTION_CLASS, 'hover:border-[rgba(139,112,48,0.55)] hover:text-[var(--parchment-light)]')}
+            className={cn(CARD_ACTION_CLASS, 'hover:border-[var(--border)] hover:text-[var(--parchment-light)]')}
           >
             ✏
           </Button>
@@ -168,7 +170,7 @@ function CharacterCard({
             title="Excluir ficha"
             aria-label="Excluir ficha"
             onClick={onDelete}
-            className={cn(CARD_ACTION_CLASS, 'text-[var(--blood-bright)] hover:border-[rgba(196,32,32,0.55)]')}
+            className={cn(CARD_ACTION_CLASS, 'text-[var(--blood-bright)] hover:border-[var(--destructive)]')}
           >
             ✕
           </Button>
@@ -179,7 +181,7 @@ function CharacterCard({
 }
 
 const CARD_ACTION_CLASS =
-  'tactile text-muted-foreground size-11 min-h-11 min-w-11 rounded-[1px] border-[rgba(139,112,48,0.35)] bg-[rgba(13,10,5,0.92)] text-[13px] leading-none transition-all duration-200'
+  'tactile text-muted-foreground size-11 min-h-11 min-w-11 rounded-[1px] border-[var(--border)] bg-[var(--card)] text-[13px] leading-none transition-all duration-200'
 
 function CreateCard() {
   return (
@@ -194,20 +196,20 @@ function CreateCard() {
         minHeight: 160,
         padding: 24,
         textDecoration: 'none',
-        border: '1px dashed rgba(139,112,48,0.35)',
-        background: 'rgba(28,21,8,0.35)',
+        border: '1px dashed var(--border)',
+        background: 'var(--card)',
         transition: 'all 300ms',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'rgba(196,169,106,0.5)'
-        e.currentTarget.style.background = 'rgba(42,34,16,0.45)'
+        e.currentTarget.style.borderColor = 'var(--border)'
+        e.currentTarget.style.background = 'var(--card)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'rgba(139,112,48,0.35)'
-        e.currentTarget.style.background = 'rgba(28,21,8,0.35)'
+        e.currentTarget.style.borderColor = 'var(--border)'
+        e.currentTarget.style.background = 'var(--card)'
       }}
     >
-      <span style={{ fontSize: 28, color: '#4A3520', marginBottom: 12, lineHeight: 1 }}>+</span>
+      <span style={{ fontSize: 28, color: 'var(--muted-foreground)', marginBottom: 12, lineHeight: 1 }}>+</span>
       <span
         style={{
           fontFamily: 'var(--font-heading)',
@@ -309,7 +311,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
       playerRole={isGm ? 'MESTRE' : 'ARQUIVISTA'}
     >
       <div className="grid-12 grid-12-page--center" style={{ maxWidth: 960 }}>
-        <header className="col-span-12" style={{ paddingBottom: 18, borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <header className="col-span-12" style={{ paddingBottom: 18, borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
@@ -331,8 +333,8 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
                     color: 'var(--blood-bright)',
-                    background: 'rgba(139,21,21,0.18)',
-                    border: '1px solid rgba(196,32,32,0.35)',
+                    background: 'var(--destructive)',
+                    border: '1px solid var(--destructive)',
                     padding: '3px 8px',
                     borderRadius: 1,
                     alignSelf: 'center',
@@ -346,7 +348,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                   fontFamily: 'var(--font-body)',
                   fontStyle: 'italic',
                   fontSize: 13,
-                  color: '#6A5A3A',
+                  color: 'var(--muted-foreground)',
                 }}
               >
                 {isGm
@@ -359,7 +361,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                 <Button
                   variant="outline"
                   onClick={() => router.push('/gm')}
-                  className="font-sans h-11 min-h-11 rounded-[1px] border-[rgba(139,112,48,0.3)] bg-[rgba(42,34,16,0.4)] px-4 text-[13px] tracking-normal text-[#8B7030] normal-case italic transition-all duration-200 hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(60,46,18,0.55)] hover:text-[var(--candle-amber)]"
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-4 text-[13px] tracking-normal text-[var(--muted-foreground)] normal-case italic transition-all duration-200 hover:border-[var(--chart-1)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
                 >
                   Painel do Mestre
                 </Button>
@@ -368,7 +370,7 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
                 <Button
                   variant="outline"
                   onClick={() => router.push('/character-creator')}
-                  className="font-sans h-11 min-h-11 rounded-[1px] border-[rgba(196,32,32,0.4)] bg-[rgba(80,20,20,0.35)] px-4.5 text-[13px] tracking-normal text-[var(--blood-bright)] normal-case italic transition-all duration-200 hover:border-[rgba(196,32,32,0.65)] hover:bg-[rgba(110,25,25,0.5)] hover:text-[#E84040]"
+                  className="font-sans h-11 min-h-11 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-4.5 text-[13px] tracking-normal text-[var(--blood-bright)] normal-case italic transition-all duration-200 hover:border-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-[var(--primary)]"
                 >
                   + Criar Personagem
                 </Button>

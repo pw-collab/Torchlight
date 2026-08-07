@@ -10,7 +10,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0D0A05',
+  themeColor: 'var(--background)',
 }
 
 // `style-lyra` scopes the shadcn component styles; `dark` switches the

@@ -13,7 +13,7 @@ interface Props {
 export function Equipment({ equipment }: Props) {
   return (
     <Card className="worn-border bg-[var(--parchment-mid)] py-3.5 shadow-[0_4px_14px_rgba(0,0,0,0.6)]">
-      <CardHeader className="border-b border-[rgba(139,112,48,0.18)] px-4 pb-[7px]">
+      <CardHeader className="border-b border-[var(--border)] px-4 pb-[7px]">
         <OrnateTitle>⚗ Equipamento</OrnateTitle>
       </CardHeader>
 
@@ -32,7 +32,7 @@ export function Equipment({ equipment }: Props) {
                 <Item
                   key={i}
                   size="sm"
-                  className="justify-between gap-2 px-0 py-[7px] not-last:border-b not-last:border-[rgba(139,112,48,0.1)]"
+                  className="justify-between gap-2 px-0 py-[7px] not-last:border-b not-last:border-[var(--border)]"
                 >
                   <ItemContent className="gap-0">
                     <ItemTitle className="font-heading text-[11px] font-medium tracking-[0.03em] text-[var(--parchment-light)]">

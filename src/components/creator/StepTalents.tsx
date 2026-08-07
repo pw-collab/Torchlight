@@ -72,18 +72,18 @@ export function StepTalents({ classId, talents, onChange }: Props) {
             onClick={rollAndAdd}
             variant="outline"
             size="sm"
-            className="text-foreground rounded-[1px] border-[#6B3A0A] bg-[rgba(106,58,10,0.3)] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[rgba(106,58,10,0.55)]"
+            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]/40"
           >
             ✦ Rolar 2d6 — {classData.name}
           </Button>
         </div>
 
         {/* Talent table */}
-        <CollapsibleContent className="animate-ink-spread overflow-hidden rounded-[1px] border border-[rgba(139,112,48,0.2)]">
+        <CollapsibleContent className="animate-ink-spread overflow-hidden rounded-[1px] border border-[var(--border)]">
           <Table>
             <TableHeader>
-              <TableRow className="border-b-[rgba(139,112,48,0.22)] bg-[rgba(42,34,16,0.7)]">
-                <TableHead className="font-heading text-muted-foreground w-12 border-r border-[rgba(139,112,48,0.18)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
+              <TableRow className="border-b-[var(--border)] bg-[var(--card)]">
+                <TableHead className="font-heading text-muted-foreground w-12 border-r border-[var(--border)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
                   2D6
                 </TableHead>
                 <TableHead className="font-heading text-muted-foreground px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
@@ -99,18 +99,18 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     key={entry.roll}
                     data-state={isLast ? 'selected' : undefined}
                     className={cn(
-                      'border-b-[rgba(139,112,48,0.1)] transition-colors duration-200',
+                      'border-b-[var(--border)] transition-colors duration-200',
                       isLast
-                        ? 'bg-[rgba(106,58,10,0.28)]'
+                        ? 'bg-[var(--primary)]/15'
                         : i % 2 === 0
-                          ? 'bg-[rgba(42,34,16,0.22)]'
-                          : 'bg-[rgba(42,34,16,0.08)]',
+                          ? 'bg-[var(--card)]'
+                          : 'bg-transparent',
                     )}
                   >
                     <TableCell
                       className={cn(
-                        'font-mono border-r border-[rgba(139,112,48,0.18)] px-2.5 py-1.5 text-[10px] font-bold',
-                        isLast ? 'text-[var(--candle-amber)]' : 'text-muted-foreground',
+                        'font-mono border-r border-[var(--border)] px-2.5 py-1.5 text-[10px] font-bold',
+                        isLast ? 'text-[var(--foreground)]' : 'text-muted-foreground',
                       )}
                     >
                       {entry.roll}
@@ -136,10 +136,10 @@ export function StepTalents({ classId, talents, onChange }: Props) {
         <Item
           variant="outline"
           size="sm"
-          className="worn-border animate-ink-spread items-start gap-2.5 border-[rgba(139,112,48,0.35)] bg-[rgba(106,58,10,0.15)] px-3 py-2"
+          className="worn-border animate-ink-spread items-start gap-2.5 border-[var(--border)] bg-[var(--primary)]/15 px-3 py-2"
         >
           <div className="shrink-0 text-center">
-            <div className="font-heading text-[22px] leading-none font-bold text-[var(--candle-amber)]">
+            <div className="font-heading text-[22px] leading-none font-bold text-[var(--chart-1)]">
               {lastRoll.roll}
             </div>
             <div className="font-mono text-muted-foreground mt-px text-[7.5px]">
@@ -174,11 +174,11 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                 key={talent.id}
                 variant="outline"
                 size="sm"
-                className="worn-border items-start gap-2 rounded-[1px] border-[rgba(139,112,48,0.2)] bg-[rgba(42,34,16,0.35)] px-2.5 py-[7px]"
+                className="worn-border items-start gap-2 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px]"
               >
                 <Badge
                   variant="outline"
-                  className="font-heading mt-px shrink-0 rounded-[1px] border-[rgba(196,120,42,0.25)] bg-[rgba(196,120,42,0.12)] px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
+                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
                 >
                   Classe
                 </Badge>
@@ -187,7 +187,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     {talent.name}
                   </ItemTitle>
                   {talent.description && (
-                    <ItemDescription className="font-mono mt-0.5 text-[8px] text-[rgba(139,112,48,0.5)]">
+                    <ItemDescription className="font-mono mt-0.5 text-[8px] text-[var(--muted-foreground)]">
                       {talent.description}
                     </ItemDescription>
                   )}
@@ -198,7 +198,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
                     size="icon-xs"
                     onClick={() => remove(talent.id)}
                     aria-label={`Remover ${talent.name}`}
-                    className="text-[rgba(139,21,21,0.45)] transition-colors duration-[180ms] hover:text-[var(--blood-bright)]"
+                    className="text-[var(--destructive)] transition-colors duration-[180ms] hover:text-[var(--blood-bright)]"
                   >
                     ✕
                   </Button>

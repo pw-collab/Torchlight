@@ -13,16 +13,19 @@ interface Props {
   onRoll?: (r: RollResult) => void
 }
 
-const BORDER = '1px solid rgba(139,112,48,0.33)'
+const BORDER = '1px solid var(--ink-border)'
+/** Ink tones for the cream sheet — the dark-side tokens disappear on it. */
+const INK_MUTED = 'var(--chart-3)'
+const INK_RULE  = 'color-mix(in oklch, var(--ink-deep), transparent 72%)'
 
 function StatPair({ label, value }: { label: string; value: string | number | undefined }) {
   if (value == null || value === '') return null
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: 'var(--parchment-light)' }}>
+      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED }}>
         {label}
       </span>
-      <span style={{ color: 'rgba(139,112,48,0.6)', fontSize: 10, margin: '0 1px' }}>|</span>
+      <span style={{ color: INK_RULE, fontSize: 10, margin: '0 1px' }}>|</span>
       <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
         {value}
       </span>
@@ -40,8 +43,8 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       fontFamily: 'var(--font-body)',
       maxWidth: 480,
       border: BORDER,
-      background: 'var(--parchment-light, #f0e8d0)',
-      color: 'var(--ink-deep, #1a1408)',
+      background: 'var(--parchment-face)',
+      color: 'var(--ink-on-cream)',
       position: 'relative',
     }}>
       {/* Action buttons */}
@@ -53,7 +56,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               title="Editar ficha"
               aria-label="Editar ficha"
               variant="outline"
-              className="tactile text-foreground h-9 min-h-9 min-w-10 rounded-[1px] border-[rgba(139,112,48,0.45)] bg-[rgba(42,34,16,0.75)] px-3 text-[13px] tracking-[0.1em]"
+              className="tactile text-foreground h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-3 text-[13px] tracking-[0.1em]"
             >
               ✎
             </Button>
@@ -64,7 +67,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               title="Excluir ficha"
               aria-label="Excluir ficha"
               variant="outline"
-              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[rgba(196,32,32,0.45)] bg-[rgba(139,21,21,0.4)] px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
+              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
             >
               ✕
             </Button>
@@ -73,12 +76,12 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       )}
 
       {/* Header */}
-      <div style={{ background: 'var(--ink-deep)', color: '#f5f0e8', padding: '10px 14px 8px' }}>
+      <div style={{ background: 'var(--ink-deep)', color: 'var(--foreground)', padding: '10px 14px 8px' }}>
         <p style={{ fontSize: 18, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
           {npc.name}
         </p>
         {npc.npcType && (
-          <p style={{ fontSize: 11.5, color: '#c0b8a8', margin: '2px 0 0', fontStyle: 'italic' }}>
+          <p style={{ fontSize: 11.5, color: 'var(--muted-foreground)', margin: '2px 0 0', fontStyle: 'italic' }}>
             {npc.npcType}
           </p>
         )}
@@ -87,7 +90,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       {/* Body */}
       <div style={{ padding: '10px 14px' }}>
         {npc.flavorText && (
-          <p style={{ fontStyle: 'italic', fontSize: 12, color: '#5a4a2a', margin: '0 0 8px', lineHeight: 1.5 }}>
+          <p style={{ fontStyle: 'italic', fontSize: 12, color: INK_MUTED, margin: '0 0 8px', lineHeight: 1.5 }}>
             <RollableText text={npc.flavorText} label={npc.name} onRoll={onRoll} />
           </p>
         )}
@@ -101,10 +104,10 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
 
         {/* Stats box */}
         <div style={{
-          border: '1px solid rgba(139,112,48,0.4)',
+          border: `1px solid ${INK_RULE}`,
           padding: '7px 10px',
           margin: '0 0 10px',
-          background: 'rgba(240,232,208,0.6)',
+          background: 'var(--parchment-face)',
           fontSize: 11.5,
         }}>
           {/* Row 1: Combat stats */}
@@ -116,7 +119,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
             {npc.weaponDesc && <StatPair label="Weapon" value={npc.weaponDesc} />}
           </div>
 
-          <hr style={{ border: 'none', borderTop: '0.5px solid rgba(139,112,48,0.35)', margin: '4px 0' }} />
+          <hr style={{ border: 'none', borderTop: `0.5px solid ${INK_RULE}`, margin: '4px 0' }} />
 
           {/* Row 2: Level + ability modifiers */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', marginBottom: 4, alignItems: 'baseline' }}>
@@ -133,9 +136,9 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
 
           {npc.experience && (
             <>
-              <hr style={{ border: 'none', borderTop: '0.5px solid rgba(139,112,48,0.35)', margin: '4px 0' }} />
+              <hr style={{ border: 'none', borderTop: `0.5px solid ${INK_RULE}`, margin: '4px 0' }} />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: 'var(--parchment-light)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED, whiteSpace: 'nowrap' }}>
                   Experience:
                 </span>
                 <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
@@ -154,7 +157,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               fontWeight: 500,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              borderBottom: '1.5px solid rgba(26,20,8,0.6)',
+              borderBottom: '1.5px solid var(--card)',
               paddingBottom: 2,
               margin: '0 0 8px',
               fontFamily: 'var(--font-heading)',

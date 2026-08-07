@@ -192,7 +192,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             position: 'absolute',
             inset: 0,
             borderRadius: PORTRAIT_RADIUS,
-            background: displayUrl ? 'transparent' : 'rgba(26,20,8,0.85)',
+            background: displayUrl ? 'transparent' : 'var(--card)',
             overflow: 'hidden',
             transition: 'filter 200ms',
             filter: (hovering || dragging) && editable ? 'brightness(0.55)' : 'none',
@@ -212,7 +212,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundImage: 'repeating-linear-gradient(135deg, rgba(139,112,48,0.04) 0px, rgba(139,112,48,0.04) 1px, transparent 1px, transparent 8px)',
+              backgroundImage: 'repeating-linear-gradient(135deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 8px)',
             }}>
               {!hovering && !dragging && (
                 <span style={{ fontSize: 28, opacity: 0.25, userSelect: 'none', color: 'var(--gold-oxidized)' }}>✦</span>
@@ -241,7 +241,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
               fontSize: 10,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: '#f5f0e8',
+              color: 'var(--foreground)',
               textAlign: 'center',
               lineHeight: 1.4,
               padding: '0 8px',
@@ -282,8 +282,8 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             position: 'absolute',
             inset: 0,
             borderRadius: PORTRAIT_RADIUS,
-            border: '1px solid rgba(139,112,48,0.45)',
-            boxShadow: 'inset 0 0 0 1px rgba(212,170,60,0.12)',
+            border: '1px solid var(--border)',
+            boxShadow: 'inset 0 0 0 1px var(--primary)',
             pointerEvents: 'none',
             zIndex: 4,
           }}
@@ -298,7 +298,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
               inset: -2,
               borderRadius: PORTRAIT_RADIUS + 2,
               border: '2px solid var(--candle-amber)',
-              boxShadow: '0 0 12px rgba(212,170,60,0.5)',
+              boxShadow: '0 0 12px var(--primary)',
               zIndex: 5,
               pointerEvents: 'none',
             }}

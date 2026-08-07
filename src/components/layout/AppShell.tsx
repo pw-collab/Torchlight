@@ -62,7 +62,7 @@ function LogoMenu({
           alt="Torchlight"
           width={logoSize}
           height={logoSize}
-          className="object-contain drop-shadow-[0_0_12px_rgba(196,32,32,0.55)]"
+          className="object-contain drop-shadow-[0_0_12px_var(--destructive)]"
         />
         <span className="text-secondary-foreground inline-block text-[10px] leading-none transition-transform group-data-popup-open/logo:-scale-y-100">
           ▾
@@ -82,7 +82,7 @@ function LogoMenu({
                 {playerName}
               </span>
               {playerRole && (
-                <span className="text-primary text-[10px] leading-tight tracking-[0.06em] italic">
+                <span className="text-destructive text-[10px] leading-tight tracking-[0.06em] italic">
                   {playerRole}
                 </span>
               )}
@@ -143,7 +143,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                   return (
                     <BreadcrumbItem key={i} className="min-w-0 gap-1.5 overflow-hidden">
                       {(i > 0 || isMobile) && (
-                        <BreadcrumbSeparator className="text-primary shrink-0 font-bold">
+                        <BreadcrumbSeparator className="text-destructive shrink-0 font-bold">
                           ›
                         </BreadcrumbSeparator>
                       )}
@@ -152,7 +152,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                           render={
                             <button type="button" onClick={() => router.push(crumb.href!)} />
                           }
-                          className="max-w-[180px] cursor-pointer truncate text-[rgba(200,184,144,0.5)] underline underline-offset-2 hover:text-[var(--bone-dim)]"
+                          className="max-w-[180px] cursor-pointer truncate text-[var(--muted-foreground)] underline underline-offset-2 hover:text-[var(--bone-dim)]"
                         >
                           {crumb.label}
                         </BreadcrumbLink>
@@ -162,7 +162,7 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
                             'truncate',
                             isLast
                               ? 'text-secondary-foreground'
-                              : 'text-[rgba(200,184,144,0.5)]',
+                              : 'text-[var(--muted-foreground)]',
                           )}
                         >
                           {crumb.label}

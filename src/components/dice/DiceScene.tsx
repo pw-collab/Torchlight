@@ -34,15 +34,15 @@ interface Props {
 }
 
 const HALO = {
-  crit:   'radial-gradient(circle, rgba(201,168,76,0.55) 0%, rgba(224,160,64,0.25) 45%, transparent 70%)',
-  fumble: 'radial-gradient(circle, rgba(196,32,32,0.5) 0%, rgba(139,21,21,0.22) 45%, transparent 70%)',
-  normal: 'radial-gradient(circle, rgba(200,184,144,0.32) 0%, transparent 65%)',
+  crit:   'radial-gradient(circle, var(--chart-1) 0%, var(--primary) 45%, transparent 70%)',
+  fumble: 'radial-gradient(circle, var(--destructive) 0%, var(--destructive) 45%, transparent 70%)',
+  normal: 'radial-gradient(circle, var(--border) 0%, transparent 65%)',
 }
 
 function dieColors(hero: HeroKind, landed: boolean, kept: boolean) {
-  if (landed && hero === 'crit' && kept) return { shape: '#C9A84C', num: '#0a0805' }
-  if (landed && hero === 'fumble' && kept) return { shape: '#C42020', num: '#F0E8D0' }
-  return { shape: '#ff444c', num: '#0a0805' }
+  if (landed && hero === 'crit' && kept) return { shape: 'var(--chart-1)', num: 'var(--secondary)' }
+  if (landed && hero === 'fumble' && kept) return { shape: 'var(--destructive)', num: 'var(--foreground)' }
+  return { shape: 'var(--primary)', num: 'var(--secondary)' }
 }
 
 function TumblingDie({ phase, sides, die, hero, seed, index, size, reduced }: {

@@ -22,7 +22,7 @@ const STAT_SHORT: Record<Stat, string> = {
 
 function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
   return {
-    border: '1px solid rgba(139,112,48,0.33)',
+    border: '1px solid var(--border)',
     ...extra,
   }
 }
@@ -71,8 +71,8 @@ function PassiveModifierLine({
       style={{
         marginTop: 6,
         padding: '6px 8px',
-        background: 'rgba(42,34,16,0.4)',
-        border: '1px solid rgba(139,112,48,0.18)',
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
@@ -146,8 +146,8 @@ function ChoiceSection({
                 fontSize: 14,
                 fontWeight: 700,
                 color: 'var(--candle-amber)',
-                background: 'rgba(106,58,10,0.18)',
-                border: '1px solid rgba(196,120,42,0.3)',
+                background: 'color-mix(in oklch, var(--primary), transparent 82%)',
+                border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)',
                 padding: '2px 8px',
               }}>
                 {currentLabel}
@@ -177,7 +177,7 @@ function ChoiceSection({
               onKeyDown={e => { if (e.key === 'Enter') commit(draft); if (e.key === 'Escape') setEditing(false) }}
               placeholder={cfg.prompt}
               aria-label={cfg.prompt}
-              className="h-auto min-w-[120px] flex-1 border-[rgba(139,112,48,0.4)] bg-[var(--ink-deep)] px-2 py-1 text-sm text-[var(--parchment-light)]"
+              className="h-auto min-w-[120px] flex-1 border-[var(--border)] bg-[var(--ink-deep)] px-2 py-1 text-sm text-[var(--parchment-light)]"
             />
           ) : (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -228,8 +228,8 @@ function UsePips({
             key={i}
             style={{
               fontSize: 13,
-              color: i < remaining ? 'var(--candle-amber)' : 'rgba(139,112,48,0.2)',
-              filter: i < remaining ? 'drop-shadow(0 0 3px rgba(196,120,42,0.5))' : 'none',
+              color: i < remaining ? 'var(--candle-amber)' : 'var(--border)',
+              filter: i < remaining ? 'drop-shadow(0 0 3px var(--primary))' : 'none',
               transition: 'all 250ms',
               lineHeight: 1,
             }}
@@ -302,12 +302,12 @@ function SpellLikeSection({
         const abilityCastStat = ability.castStat ?? cfg.castStat
         const abilityStatScore = stats[abilityCastStat] ?? 10
         const abilityCastMod = modifier(abilityStatScore)
-        const statusColor = isExpended ? '#ff6044' : '#e0a040'
+        const statusColor = isExpended ? 'var(--destructive)' : 'var(--chart-1)'
         return (
-          <div key={ability.id} style={{ background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
-            <div style={{ border: '1px solid rgba(238,233,221,0.25)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
+          <div key={ability.id} style={{ background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
+            <div style={{ border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
               {/* Title */}
-              <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.1, opacity: isExpended ? 0.25 : 1 }}>
+              <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.1, opacity: isExpended ? 0.25 : 1 }}>
                 {ability.name}
               </p>
               {/* Status divider */}
@@ -319,12 +319,12 @@ function SpellLikeSection({
                 <span style={{ flex: 1, height: 1, background: statusColor }} />
               </div>
               {/* Roll line */}
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'rgba(238,233,221,0.25)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
                 DC {dc} · d20{abilityCastMod >= 0 ? `+${abilityCastMod}` : abilityCastMod} ({STAT_SHORT[abilityCastStat]})
               </p>
               {/* Description */}
               {ability.description && (
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, width: '100%', textAlign: 'left', margin: 0, opacity: isExpended ? 0.25 : 1 }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, width: '100%', textAlign: 'left', margin: 0, opacity: isExpended ? 0.25 : 1 }}>
                   {ability.description}
                 </p>
               )}
@@ -333,14 +333,14 @@ function SpellLikeSection({
                 <Button
                   onClick={() => restore(ability.id)}
                   variant="hollow"
-                  className="tactile w-full border-[#ff6044] text-[#ff6044] hover:bg-[#ff6044]/10"
+                  className="tactile w-full border-[var(--destructive)] text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
                 >
                   Restaurar
                 </Button>
               ) : (
                 <Button
                   onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
-                  className="tactile w-full border-[#0a0805] bg-[#e0a040] text-[#0a0805] hover:bg-[#e0a040]/80"
+                  className="tactile text-primary-foreground w-full border-[var(--primary)] bg-[var(--primary)] hover:bg-[var(--primary)]/80"
                 >
                   Ativar
                 </Button>
@@ -355,11 +355,14 @@ function SpellLikeSection({
 
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
-const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; soft: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: '#a56fde', soft: 'rgba(165,111,222,0.35)', glyph: '☿' },
-  choice:       { label: 'Escolha',  color: '#c8b890', soft: 'rgba(200,184,144,0.35)', glyph: '⚖' },
-  limited_use:  { label: 'Usos',     color: '#ff444c', soft: 'rgba(255,68,76,0.35)',   glyph: '⌛' },
-  spell_like:   { label: 'Ativação', color: '#4fa98c', soft: 'rgba(79,169,140,0.35)',  glyph: '☽' },
+// The four kinds used to be told apart by hue (purple / parchment / red /
+// verdigris). This theme is monochrome apart from the reds, so they are told
+// apart by lightness instead — every value still clears 4.5:1 on --card.
+const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; glyph: string }> = {
+  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          glyph: '☿' },
+  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', glyph: '⚖' },
+  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      glyph: '⌛' },
+  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       glyph: '☽' },
 }
 
 function TechniqueCard({
@@ -419,9 +422,9 @@ function TechniqueCard({
             <div
               onClick={e => e.stopPropagation()}
               className="animate-ink-spread"
-              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(360px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(360px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ border: '1px solid rgba(238,233,221,0.25)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
+              <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
                 {/* Heading */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
                   <span style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${style.color}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: style.color, lineHeight: 1 }}>
@@ -440,7 +443,7 @@ function TechniqueCard({
                     size="icon-xs"
                     onClick={() => setOpen(false)}
                     aria-label="Fechar"
-                    className="shrink-0 text-sm leading-none text-[rgba(238,233,221,0.45)] hover:bg-transparent hover:text-[#eee9dd]"
+                    className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
                   >
                     ✕
                   </Button>
@@ -449,7 +452,7 @@ function TechniqueCard({
                 <div style={{ height: 1, background: style.color, flexShrink: 0 }} />
                 {/* Scrollable content */}
                 <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#eee9dd', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0 }}>
                     <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
                   </p>
                   {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
@@ -492,13 +495,13 @@ function TechniqueCard({
           'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
         )}
-        style={{ borderColor: open ? style.color : 'rgba(238,233,221,0.25)' }}
+        style={{ borderColor: open ? style.color : 'var(--border)' }}
       >
         <div style={{
           position: 'relative',
           flex: 1,
           width: '100%',
-          border: '1px solid rgba(238,233,221,0.25)',
+          border: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -509,10 +512,10 @@ function TechniqueCard({
         }}>
           {/* Corner marks + roll arrow */}
           <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span><span>✦</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: style.color, lineHeight: 1 }}>↝</span>
               <span>✦</span>
@@ -520,15 +523,15 @@ function TechniqueCard({
           </div>
 
           {/* Arch icon */}
-          <div style={{ width: 56, height: 56, border: '1px solid rgba(238,233,221,0.25)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: '#eee9dd', lineHeight: 1, userSelect: 'none' }}>{style.glyph}</span>
+          <div style={{ width: 56, height: 56, border: '1px solid var(--border)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: 'var(--foreground)', lineHeight: 1, userSelect: 'none' }}>{style.glyph}</span>
             {statusLine && (
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: statusLine.color, lineHeight: 1, letterSpacing: '0.04em' }}>{statusLine.text}</span>
             )}
           </div>
 
           {/* Title */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {technique.name}
           </p>
 
@@ -546,7 +549,7 @@ function TechniqueCard({
 
           {/* Description */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {technique.description}
             </p>
           </div>
@@ -566,7 +569,7 @@ function TalentTable({ classData }: { classData: Class }) {
     <div>
       <SectionSubheading trailing={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(200,184,144,0.45)' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)' }}>
             Role no modal de edição
           </span>
           <Button
@@ -582,17 +585,17 @@ function TalentTable({ classData }: { classData: Class }) {
       </SectionSubheading>
 
       {open && (
-        <div className="animate-ink-spread" style={{ border: '1px solid rgba(139,112,48,0.2)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'rgba(42,34,16,0.6)', borderBottom: '1px solid rgba(139,112,48,0.22)' }}>
+        <div className="animate-ink-spread" style={{ border: '1px solid var(--border)', overflow: 'hidden' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
             {['2D6', 'Efeito'].map((h, i) => (
-              <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid rgba(139,112,48,0.18)' : 'none' }}>
+              <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid var(--border)' : 'none' }}>
                 {h}
               </div>
             ))}
           </div>
           {classData.talentTable.map((entry, i) => (
-            <div key={entry.roll} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: i % 2 === 0 ? 'rgba(42,34,16,0.2)' : 'rgba(42,34,16,0.08)', borderBottom: i < classData.talentTable.length - 1 ? '1px solid rgba(139,112,48,0.1)' : 'none' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--bone-muted)', padding: '7px 10px', borderRight: '1px solid rgba(139,112,48,0.18)', display: 'flex', alignItems: 'center' }}>
+            <div key={entry.roll} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: i % 2 === 0 ? 'var(--card)' : 'var(--card)', borderBottom: i < classData.talentTable.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--bone-muted)', padding: '7px 10px', borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
                 {entry.roll}
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', padding: '7px 10px', lineHeight: 1.4 }}>
@@ -628,14 +631,14 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
   return (
     <div className="worn-border" style={panelStyle({ padding: 42 })}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid rgba(200,184,144,0.25)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: '#ff444c', lineHeight: 1 }}>⪧</span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: '#c8b890', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1 }}>⪧</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {classData.name}
           </span>
         </span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#c8b890', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--muted-foreground)', flexShrink: 0 }}>
           d{classData.hitDie}
         </span>
       </div>
@@ -647,10 +650,10 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
           { label: 'Armaduras', value: classData.armorProficiency },
         ].map(({ label, value }) => (
           <div key={label}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6e5e35', marginBottom: 3 }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 3 }}>
               {label}
             </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: '#c8b890', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1.4 }}>
               {value}
             </div>
           </div>
@@ -686,10 +689,10 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
 function SectionSubheading({ children, trailing }: { children: React.ReactNode; trailing?: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid rgba(200,184,144,0.18)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid var(--border)' }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#ff444c', lineHeight: 1 }}>⁕</span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: '#c8b890', lineHeight: 1 }}>{children}</span>
+        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--destructive)', lineHeight: 1 }}>⁕</span>
+        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: 'var(--muted-foreground)', lineHeight: 1 }}>{children}</span>
       </span>
       {trailing}
     </div>

@@ -43,8 +43,8 @@ export function StepReview(props: Props) {
       {/* Identity header */}
       <div style={{
         padding: '16px 18px',
-        background: 'rgba(20,14,6,0.6)',
-        border: '1px solid rgba(139,112,48,0.3)',
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
         borderRadius: 2,
       }}>
         <h3 style={{
@@ -78,8 +78,8 @@ export function StepReview(props: Props) {
             <div key={k} style={{
               textAlign: 'center',
               padding: '10px 4px',
-              background: 'rgba(20,14,6,0.5)',
-              border: `1px solid ${mod > 1 ? 'rgba(61,112,96,0.35)' : mod < 0 ? 'rgba(139,21,21,0.3)' : 'rgba(139,112,48,0.18)'}`,
+              background: 'var(--card)',
+              border: `1px solid ${mod > 1 ? 'var(--chart-2)' : mod < 0 ? 'var(--destructive)' : 'var(--border)'}`,
               borderRadius: 2,
             }}>
               <p style={{
@@ -105,7 +105,7 @@ export function StepReview(props: Props) {
               <p style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 9,
-                color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--blood-mid)' : 'var(--bone-muted)',
+                color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--destructive)' : 'var(--bone-muted)',
                 marginTop: 2,
               }}>
                 {modifierStr(val)}
@@ -156,8 +156,8 @@ export function StepReview(props: Props) {
       {(backgroundDetails.concept || backgroundDetails.backstory || impulses.objectives) && (
         <div style={{
           padding: '14px 16px',
-          background: 'rgba(20,14,6,0.4)',
-          border: '1px solid rgba(139,112,48,0.15)',
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
           borderRadius: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -191,7 +191,7 @@ export function StepReview(props: Props) {
         fontSize: 10,
         color: 'var(--bone-muted)',
         padding: '8px 0',
-        borderTop: '1px solid rgba(139,112,48,0.12)',
+        borderTop: '1px solid var(--border)',
       }}>
         Confirme os detalhes acima e sele o registro para entrar nas Terras das Névoas.
       </div>
@@ -203,8 +203,8 @@ function ReviewBlock({ title, children }: { title: string; children: React.React
   return (
     <div style={{
       padding: '12px 14px',
-      background: 'rgba(20,14,6,0.45)',
-      border: '1px solid rgba(139,112,48,0.18)',
+      background: 'var(--card)',
+      border: '1px solid var(--border)',
       borderRadius: 2,
     }}>
       <p style={{

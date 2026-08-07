@@ -51,8 +51,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       'font-mono h-auto shrink-0 rounded-sm border px-2.5 py-[3px] text-[9px] font-bold',
       'tracking-normal normal-case transition-all duration-[180ms]',
       active
-        ? 'border-[rgba(107,78,138,0.6)] bg-[rgba(107,78,138,0.3)] text-[var(--parchment-light)]'
-        : 'border-[rgba(107,78,138,0.2)] bg-[rgba(42,26,58,0.4)] text-[rgba(139,110,170,0.7)]',
+        ? 'border-[var(--chart-4)] bg-[var(--chart-4)]/15 text-[var(--parchment-light)]'
+        : 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--muted-foreground)]',
     )
 
   return (
@@ -74,9 +74,9 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         onClick={e => e.stopPropagation()}
         className="worn-border"
         style={{
-          background: 'linear-gradient(148deg, rgba(42,26,58,.3) 0%, rgba(14,10,3,.97) 100%), #1E1228',
-          border: '1px solid rgba(107,78,138,0.45)',
-          borderTop: '2px solid rgba(107,78,138,0.7)',
+          background: 'linear-gradient(148deg, var(--muted) 0%, var(--card) 100%), var(--card)',
+          border: '1px solid var(--chart-4)',
+          borderTop: '2px solid var(--chart-4)',
           boxShadow: '0 8px 40px rgba(0,0,0,0.85)',
           padding: '18px 20px',
           width: '100%',
@@ -89,7 +89,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       >
         {/* Header */}
         <div>
-          <OrnateTitle color="#8B6AAA" fontSize={10}>☽ Aprender Magia</OrnateTitle>
+          <OrnateTitle color="var(--chart-1)" fontSize={10}>☽ Aprender Magia</OrnateTitle>
         </div>
 
         {/* Search */}
@@ -100,7 +100,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
           value={query}
           onChange={e => setQuery(e.target.value)}
           aria-label="Buscar magia"
-          className="h-auto rounded-sm border-[rgba(107,78,138,0.35)] bg-[rgba(14,10,3,0.8)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
+          className="h-auto rounded-sm border-[var(--chart-4)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
         />
 
         {/* Tier filter pills */}
@@ -121,14 +121,14 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         </div>
 
         {/* Count */}
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(107,78,138,0.6)', marginTop: -4 }}>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)', marginTop: -4 }}>
           {filtered.length} magia{filtered.length !== 1 ? 's' : ''} disponíve{filtered.length !== 1 ? 'is' : 'l'}
         </div>
 
         {/* Spell list */}
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
           {filtered.length === 0 && (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'rgba(107,78,138,0.5)', padding: '8px 0' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', padding: '8px 0' }}>
               Nenhuma magia encontrada.
             </p>
           )}
@@ -140,17 +140,17 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
               size="sm"
               className={cn(
                 'w-full cursor-pointer items-start gap-2 rounded-sm px-2.5 py-2 text-left',
-                'border-[rgba(107,78,138,0.18)] bg-[rgba(42,26,58,0.25)] transition-all duration-[160ms]',
-                'hover:border-[rgba(107,78,138,0.45)] hover:bg-[rgba(107,78,138,0.22)]',
+                'border-[var(--chart-4)] bg-[var(--muted)] transition-all duration-[160ms]',
+                'hover:border-[var(--chart-4)] hover:bg-[var(--chart-4)]',
               )}
             >
               <span style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 8,
                 fontWeight: 700,
-                color: '#6B4E8A',
-                background: 'rgba(107,78,138,0.15)',
-                border: '1px solid rgba(107,78,138,0.3)',
+                color: 'var(--muted-foreground)',
+                background: 'color-mix(in oklch, var(--chart-4), transparent 85%)',
+                border: '1px solid var(--chart-4)',
                 padding: '1px 5px',
                 borderRadius: 1,
                 flexShrink: 0,
@@ -159,10 +159,10 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 {TIER_LABEL[spell.tier - 1] ?? spell.tier}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: '#8B6AAA', letterSpacing: '0.03em', marginBottom: 2 }}>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--muted-foreground)', letterSpacing: '0.03em', marginBottom: 2 }}>
                   {spell.name}
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'rgba(107,78,138,0.55)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>
                   {spell.school && `${spell.school} · `}DC {10 + spell.tier}
                   {spell.range && ` · ${spell.range}`}
                   {spell.duration && ` · ${spell.duration}`}
@@ -175,7 +175,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         <Button
           variant="outline"
           onClick={onClose}
-          className="h-auto w-full rounded-sm border-[rgba(107,78,138,0.25)] bg-[rgba(42,26,58,0.4)] py-[7px] text-[8px] tracking-[0.12em] text-[rgba(139,110,170,0.7)]"
+          className="h-auto w-full rounded-sm border-[var(--chart-4)] bg-[var(--muted)] py-[7px] text-[8px] tracking-[0.12em] text-[var(--muted-foreground)]"
         >
           Fechar
         </Button>
@@ -187,8 +187,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
 // ─── Spell Card (replicates ClassPanel's TechniqueCard grid + popover) ────────
 
 const SPELL_STYLE = {
-  normal: '#8B6AAA',
-  failed: '#ff444c',
+  normal: 'var(--chart-1)',
+  failed: 'var(--destructive)',
 }
 
 function SpellCard({
@@ -245,9 +245,9 @@ function SpellCard({
           <div
             onClick={e => e.stopPropagation()}
             className="animate-ink-spread"
-            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#0a0805', border: '1px solid rgba(238,233,221,0.25)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(400px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
+            style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 'min(340px, calc(100vw - 32px))', height: 'min(400px, calc(100dvh - 32px))', display: 'flex', flexDirection: 'column' }}
           >
-            <div style={{ border: '1px solid rgba(238,233,221,0.25)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
+            <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
               {/* Heading */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
                 <span style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${color}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-heading)', fontSize: 13, color, lineHeight: 1 }}>
@@ -266,7 +266,7 @@ function SpellCard({
                   size="icon-xs"
                   onClick={() => setOpen(false)}
                   aria-label="Fechar"
-                  className="shrink-0 text-sm leading-none text-[rgba(238,233,221,0.45)] hover:bg-transparent hover:text-[#eee9dd]"
+                  className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
                 >
                   ✕
                 </Button>
@@ -286,7 +286,7 @@ function SpellCard({
                         <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, marginBottom: 1 }}>
                           {label}
                         </div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#eee9dd' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--foreground)' }}>
                           {value}
                         </div>
                       </div>
@@ -294,19 +294,19 @@ function SpellCard({
                   </div>
                 )}
                 {spell && (
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#eee9dd', lineHeight: 1.5, textAlign: 'left', margin: 0, whiteSpace: 'pre-line' }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--foreground)', lineHeight: 1.5, textAlign: 'left', margin: 0, whiteSpace: 'pre-line' }}>
                     <RollableText text={spell.description} label={spell.name} onRoll={onRoll} />
                   </p>
                 )}
                 {isFailed && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: '#ff444c', background: 'rgba(255,68,76,0.12)', border: '1px solid rgba(255,68,76,0.35)', padding: '2px 7px', letterSpacing: '0.1em' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--destructive)', background: 'color-mix(in oklch, var(--destructive), transparent 85%)', border: '1px solid var(--destructive)', padding: '2px 7px', letterSpacing: '0.1em' }}>
                       FALHOU
                     </span>
                     <Button
                       onClick={onRecover}
                       variant="hollow"
-                      className="tactile border-[#4fa98c] text-[#4fa98c] hover:bg-[#4fa98c]/10"
+                      className="tactile border-[var(--chart-2)] text-[var(--chart-2)] hover:bg-[var(--chart-2)]/10"
                     >
                       Recuperar
                     </Button>
@@ -319,7 +319,7 @@ function SpellCard({
                   {spell && onRoll && stats && !isFailed && (
                     <Button
                       onClick={cast}
-                      className="tactile flex-1 border-[#0a0805] text-[#0a0805]"
+                      className="tactile flex-1 border-[var(--background)] text-[var(--background)]"
                       style={{ background: color }}
                     >
                       Conjurar
@@ -351,13 +351,13 @@ function SpellCard({
           'transition-[border-color] duration-[250ms]',
           isFailed && 'opacity-70',
         )}
-        style={{ borderColor: open ? color : 'rgba(238,233,221,0.25)' }}
+        style={{ borderColor: open ? color : 'var(--border)' }}
       >
         <div style={{
           position: 'relative',
           flex: 1,
           width: '100%',
-          border: '1px solid rgba(238,233,221,0.25)',
+          border: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -368,10 +368,10 @@ function SpellCard({
         }}>
           {/* Corner marks + roll arrow */}
           <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span><span>✦</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'rgba(238,233,221,0.25)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
               <span>✦</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color, lineHeight: 1 }}>↝</span>
               <span>✦</span>
@@ -379,15 +379,15 @@ function SpellCard({
           </div>
 
           {/* Arch — tier numeral */}
-          <div style={{ width: 56, height: 56, border: '1px solid rgba(238,233,221,0.25)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: '#eee9dd', lineHeight: 1, userSelect: 'none' }}>{tier}</span>
+          <div style={{ width: 56, height: 56, border: '1px solid var(--border)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--foreground)', lineHeight: 1, userSelect: 'none' }}>{tier}</span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color, lineHeight: 1, letterSpacing: '0.04em' }}>
               {isFailed ? 'FALHOU' : dc != null ? `DC ${dc}` : ''}
             </span>
           </div>
 
           {/* Title */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: '#eee9dd', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {name}
           </p>
 
@@ -405,7 +405,7 @@ function SpellCard({
 
           {/* Description */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: '#a69d85', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {spell?.description ?? ''}
             </p>
           </div>
@@ -452,13 +452,13 @@ export function Spells({
     <div
       className="worn-border"
       style={{
-        border: '1px solid rgba(107,78,138,0.3)',
+        border: '1px solid var(--chart-4)',
         padding: 40,
       }}
     >
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid rgba(107,78,138,0.2)', flexWrap: 'wrap' }}>
-        <OrnateTitle color="#6B4E8A" className="flex-1">☽ Magias</OrnateTitle>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid var(--chart-4)', flexWrap: 'wrap' }}>
+        <OrnateTitle color="var(--chart-1)" className="flex-1">☽ Magias</OrnateTitle>
 
         {/* Learn button */}
         {onSpellsChange && (
@@ -470,7 +470,7 @@ export function Spells({
         {/* Casting controls */}
         {onUpdate && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
               Bônus
             </span>
             <NumInput
@@ -478,7 +478,7 @@ export function Spells({
               onCommit={n => onUpdate?.({ spellcastingBonus: n })}
               className={cn(
                 'font-mono h-auto w-[46px] rounded-sm px-1 py-[3px] text-[13px] font-bold',
-                'border-[rgba(107,78,138,0.35)] bg-[rgba(42,26,58,0.5)]',
+                'border-[var(--chart-4)] bg-[var(--muted)]',
                 spellcastingBonus > 0
                   ? 'text-[var(--verdigris-light)]'
                   : spellcastingBonus < 0
@@ -486,7 +486,7 @@ export function Spells({
                     : 'text-[var(--bone-white)]',
               )}
             />
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(107,78,138,0.7)', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
               Atrib.
             </span>
             <NativeSelect
@@ -494,7 +494,7 @@ export function Spells({
               value={castingAttr}
               onChange={e => onUpdate({ castingAttr: e.target.value })}
               aria-label="Atributo de conjuração"
-              className="font-mono cursor-pointer rounded-sm border border-[rgba(107,78,138,0.35)] bg-[rgba(42,26,58,0.5)] text-[10px] font-bold text-[var(--parchment-light)]"
+              className="font-mono cursor-pointer rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] text-[10px] font-bold text-[var(--parchment-light)]"
             >
               {STAT_OPTIONS.map(o => (
                 <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>

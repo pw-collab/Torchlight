@@ -17,9 +17,9 @@ import { seededRandom, type HeroKind } from '@/lib/diceMotion'
    ============================================================ */
 
 const COLORS: Record<'crit' | 'fumble' | 'normal', string[]> = {
-  crit:   ['#C9A84C', '#E0A040', '#F0E8D0'],
-  fumble: ['#C42020', '#8B1515', '#FF444C'],
-  normal: ['#C8B890', '#C4782A', '#8A7A5A'],
+  crit:   ['var(--chart-1)', 'var(--primary)', 'var(--foreground)'],
+  fumble: ['var(--destructive)', 'var(--destructive)', 'var(--primary)'],
+  normal: ['var(--muted-foreground)', 'var(--primary)', 'var(--muted-foreground)'],
 }
 
 interface Props {
@@ -47,12 +47,12 @@ export function ResultBurst({ hero, seed }: Props) {
     })
   }, [seed, count, hero, kind])
 
-  const ringColor = kind === 'crit' ? 'rgba(201,168,76,0.8)' : kind === 'fumble' ? 'rgba(196,32,32,0.75)' : 'rgba(200,184,144,0.55)'
+  const ringColor = kind === 'crit' ? 'var(--chart-1)' : kind === 'fumble' ? 'var(--destructive)' : 'var(--border)'
   const flash = kind === 'crit'
-    ? 'radial-gradient(circle, rgba(240,232,208,0.9) 0%, rgba(201,168,76,0.45) 40%, transparent 70%)'
+    ? 'radial-gradient(circle, var(--foreground) 0%, var(--chart-1) 40%, transparent 70%)'
     : kind === 'fumble'
-    ? 'radial-gradient(circle, rgba(255,68,76,0.7) 0%, rgba(139,21,21,0.35) 40%, transparent 70%)'
-    : 'radial-gradient(circle, rgba(240,232,208,0.6) 0%, rgba(196,120,42,0.25) 40%, transparent 70%)'
+    ? 'radial-gradient(circle, var(--primary) 0%, var(--destructive) 40%, transparent 70%)'
+    : 'radial-gradient(circle, var(--foreground) 0%, var(--primary) 40%, transparent 70%)'
 
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', overflow: 'visible' }}>

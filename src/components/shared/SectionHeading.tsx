@@ -26,7 +26,7 @@ export function SectionHeading({ children, marker = '⪧', trailing, className }
       )}
     >
       <span className="inline-flex min-w-0 items-center gap-2">
-        <span aria-hidden className="font-heading text-primary shrink-0 text-2xl leading-none">
+        <span aria-hidden className="font-heading text-destructive shrink-0 text-2xl leading-none">
           {marker}
         </span>
         <span className="font-heading text-secondary-foreground truncate text-2xl leading-none font-semibold">
@@ -46,12 +46,12 @@ export function SectionSubheading({ children, marker = '⁕', trailing, classNam
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 border-b border-[rgba(200,184,144,0.18)] pb-[7px]',
+        'flex items-center justify-between gap-3 border-b border-[var(--border)] pb-[7px]',
         className,
       )}
     >
       <span className="inline-flex min-w-0 items-center gap-2">
-        <span aria-hidden className="font-heading text-primary shrink-0 text-base leading-none">
+        <span aria-hidden className="font-heading text-destructive shrink-0 text-base leading-none">
           {marker}
         </span>
         <span className="font-heading text-secondary-foreground text-[17px] leading-none font-semibold">
