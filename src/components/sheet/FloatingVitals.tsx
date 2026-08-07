@@ -199,33 +199,29 @@ export function FloatingVitals({
   )
 
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — flows inside the sticky sidebar column the parent page lays out
-  // (see CharacterSheetClient), so it's genuinely anchored to that column's
-  // left edge rather than pinned to a viewport-relative pixel offset.
+  // DESKTOP — fills the two-column vitals track the parent page lays out to
+  // the right of the main block (see CharacterSheetClient). Identity (name,
+  // class, ancestry) and the Editar link live in the main block's header, so
+  // this column carries only the portrait, its overlays and the stats.
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
-      <div style={{ width: '100%', flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto', paddingBottom: 16, boxSizing: 'border-box' }}>
+      <div className="vitals-stack">
 
-        {/* Heading: class/ancestry + character name */}
-        <div style={{ paddingTop: 8 }}>
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 14, color: 'var(--muted-foreground)', letterSpacing: '1px', lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {className} · {ancestryName}
-          </p>
-          <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 30, color: 'var(--destructive)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {characterName}
-          </p>
-        </div>
-
-        {/* Portrait container with AC badge + HP bar overlays */}
-        <div style={{ position: 'relative', width: 268, height: 356, background: 'var(--background)', border: '1px solid var(--border)', flexShrink: 0 }}>
+        {/* Portrait container with LV / AC badges + HP bar overlays */}
+        <div className="vitals-portrait">
           <AvatarUpload
             characterId={characterId}
             portraitUrl={portraitUrl}
-            size={268}
-            height={356}
+            fluid
             onUpload={onAvatarUpload}
           />
+
+          {/* LV badge — top-left overlay */}
+          <div style={{ position: 'absolute', top: 5, left: 5, height: 34, background: 'var(--secondary)', border: '1px solid var(--destructive)', padding: '0 10px', display: 'flex', alignItems: 'center', gap: 4, boxSizing: 'border-box', zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--destructive)', lineHeight: 1 }}>LV</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 22, color: 'var(--destructive)', lineHeight: 1 }}>{level}</span>
+          </div>
 
           {/* AC badge — top-right overlay */}
           <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
@@ -262,40 +258,38 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Stats 2×3 grid */}
-        {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', height: 156 }}>
-            {STAT_KEYS.map(key => (
-              <Button
-                key={key}
-                type="button"
-                variant="secondary"
-                title={`Rolar ${STAT_FULL[key]}`}
-                onClick={() => rollStat(key)}
-                className={cn(
-                  'h-auto flex-col items-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
-                  'hover:bg-[var(--border)]',
-                  onRoll ? 'cursor-pointer' : 'cursor-default',
-                )}
-              >
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
-              </Button>
-            ))}
-          </div>
-        )}
+        {/* Stats + Fortuna: stacked under the portrait on wide screens, beside
+            it once the column goes full-width (see .vitals-* in globals.css) */}
+        <div className="vitals-meta">
+          {/* Stats 2×3 grid */}
+          {stats && (
+            <div className="vitals-stats">
+              {STAT_KEYS.map(key => (
+                <Button
+                  key={key}
+                  type="button"
+                  variant="secondary"
+                  title={`Rolar ${STAT_FULL[key]}`}
+                  onClick={() => rollStat(key)}
+                  className={cn(
+                    'h-auto min-w-0 flex-col items-center justify-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
+                    'hover:bg-[var(--border)]',
+                    onRoll ? 'cursor-pointer' : 'cursor-default',
+                  )}
+                >
+                  <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
+                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                  <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
+                </Button>
+              ))}
+            </div>
+          )}
 
-        {/* Control: LV + Fortuna + Editar, unified on one row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 32 }}>
-          <div style={{ background: 'var(--secondary)', border: '1px solid var(--destructive)', padding: '1px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box', flexShrink: 0 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--destructive)', lineHeight: 1 }}>LV</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--destructive)', lineHeight: 1 }}>{level}</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>Fortuna</span>
-            <div style={{ display: 'flex', gap: 6 }}>
+          {/* Fortuna — the only survivor of the old control row: LV moved onto
+              the portrait and Editar onto the main block's header. */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: 'var(--secondary)', border: '1px solid var(--border)', padding: '4px 8px', boxSizing: 'border-box' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>Fortuna</span>
+            <div style={{ display: 'flex', gap: 2, minWidth: 0 }}>
               {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
                 <Button
                   key={i}
@@ -304,7 +298,7 @@ export function FloatingVitals({
                   title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
                   aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
                   className={cn(
-                    'font-sans h-5 w-auto p-0 text-2xl leading-5 transition-colors duration-300 hover:bg-transparent',
+                    'font-sans h-6 w-auto min-w-0 px-1 text-xl leading-6 transition-colors duration-300 hover:bg-transparent',
                     i < luckTokens ? 'text-destructive' : 'text-[var(--destructive)]/25',
                   )}
                 >
@@ -313,15 +307,6 @@ export function FloatingVitals({
               ))}
             </div>
           </div>
-
-          <Link
-            href={editHref}
-            style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--destructive)', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 32, display: 'flex', alignItems: 'center', flexShrink: 0 }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-          >
-            Editar
-          </Link>
         </div>
 
         {/* HP / XP overlay */}

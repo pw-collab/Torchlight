@@ -21,10 +21,11 @@ export function RollToasts({ rolls }: Props) {
 
   const visible = rolls.filter(r => now - r.timestamp < 15000)
 
-  // On mobile: stack in the top-right so they don't overlap the dice bar
+  // On mobile: stack in the top-right so they don't overlap the dice bar.
+  // On desktop: stack upward from just above the floating dice button.
   const positionStyle: React.CSSProperties = isMobile
     ? { top: 58, right: 10, bottom: 'auto', flexDirection: 'column' }
-    : { bottom: 80, right: 24, top: 'auto', flexDirection: 'column-reverse' }
+    : { bottom: 96, right: 24, top: 'auto', flexDirection: 'column-reverse' }
 
   return (
     <div style={{

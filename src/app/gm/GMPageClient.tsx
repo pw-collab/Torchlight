@@ -148,7 +148,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
   return (
     <AppShell
-      breadcrumbs={[{ label: 'Painel do Mestre' }]}
+      backHref="/home"
       playerName={gmName}
       playerRole="MESTRE · CAMPANHA ATIVA"
     >

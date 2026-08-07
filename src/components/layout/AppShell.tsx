@@ -2,16 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,16 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
-export interface BreadcrumbItem {
-  label: string
-  href?: string
-}
-
 interface Props {
   children: React.ReactNode
   playerName?: string
   playerRole?: string
-  breadcrumbs?: BreadcrumbItem[]
+  /** Where the "‹ Voltar" link goes. Omit it on Meus arquivos itself. */
+  backHref?: string
 }
 
 /**
@@ -99,7 +88,7 @@ function LogoMenu({
   )
 }
 
-export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }: Props) {
+export function AppShell({ children, playerName, playerRole, backHref }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -109,25 +98,18 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
     router.push('/login')
   }
 
-  // Mobile keeps only the trailing crumb; desktop shows the full trail.
-  const visibleCrumbs = isMobile ? breadcrumbs.slice(-1) : breadcrumbs
-
   return (
     <div className="bg-background h-dvh">
-      {/* Condensed top bar — logo menu + breadcrumb only. Nav tabs and the dice
-          roller now live in the bottom bar (see TabBar / DiceRoller). */}
+      {/* Top bar — logo menu and the back link only, sitting straight on the
+          page with no plate behind them. Sheet navigation is the icon rail
+          beside the content (TabRail); the dice roller floats bottom-right. */}
       <div
         className={cn(
-          'fixed inset-x-0 top-0 z-60 flex items-center',
-          isMobile ? 'h-16 px-3' : 'h-20 px-6',
+          'app-header-scrim pointer-events-none fixed inset-x-0 top-0 z-60 flex items-center',
+          isMobile ? 'h-16 px-2' : 'h-20 px-6',
         )}
       >
-        <div
-          className={cn(
-            'bg-secondary border-border flex max-w-full min-w-0 items-center border-2 p-1.5 shadow-[0_6px_6px_rgba(0,0,0,0.2)]',
-            isMobile ? 'gap-1' : 'gap-2.5',
-          )}
-        >
+        <div className="pointer-events-auto flex min-w-0 items-center gap-1">
           <LogoMenu
             playerName={playerName}
             playerRole={playerRole}
@@ -135,50 +117,32 @@ export function AppShell({ children, playerName, playerRole, breadcrumbs = [] }:
             isMobile={isMobile}
           />
 
-          {visibleCrumbs.length > 0 && (
-            <Breadcrumb className="h-11 min-w-0 overflow-hidden pr-2">
-              <BreadcrumbList className="font-heading h-full flex-nowrap gap-1.5 text-xs tracking-[0.11em] uppercase">
-                {visibleCrumbs.map((crumb, i) => {
-                  const isLast = i === visibleCrumbs.length - 1
-                  return (
-                    <BreadcrumbItem key={i} className="min-w-0 gap-1.5 overflow-hidden">
-                      {(i > 0 || isMobile) && (
-                        <BreadcrumbSeparator className="text-destructive shrink-0 font-bold">
-                          ›
-                        </BreadcrumbSeparator>
-                      )}
-                      {crumb.href ? (
-                        <BreadcrumbLink
-                          render={
-                            <button type="button" onClick={() => router.push(crumb.href!)} />
-                          }
-                          className="max-w-[180px] cursor-pointer truncate text-[var(--muted-foreground)] underline underline-offset-2 hover:text-[var(--bone-dim)]"
-                        >
-                          {crumb.label}
-                        </BreadcrumbLink>
-                      ) : (
-                        <BreadcrumbPage
-                          className={cn(
-                            'truncate',
-                            isLast
-                              ? 'text-secondary-foreground'
-                              : 'text-[var(--muted-foreground)]',
-                          )}
-                        >
-                          {crumb.label}
-                        </BreadcrumbPage>
-                      )}
-                    </BreadcrumbItem>
-                  )
-                })}
-              </BreadcrumbList>
-            </Breadcrumb>
+          {backHref && (
+            <Link
+              href={backHref}
+              className={cn(
+                'font-heading flex min-h-11 min-w-0 items-center gap-1.5 px-1.5',
+                'text-xs tracking-[0.11em] uppercase transition-colors',
+                'text-[var(--muted-foreground)] hover:text-[var(--bone-dim)]',
+              )}
+            >
+              <span aria-hidden className="text-destructive font-bold">
+                ‹
+              </span>
+              <span className="truncate underline underline-offset-2">Voltar</span>
+            </Link>
           )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative h-dvh overflow-x-hidden overflow-y-auto">{children}</div>
+      {/* Content — offset by the header's height: with no plate behind the
+          logo any more, page content would otherwise scroll straight over it. */}
+      <div
+        className="relative h-dvh overflow-x-hidden overflow-y-auto"
+        style={{ paddingTop: isMobile ? 'calc(64px + var(--safe-top))' : 'calc(80px + var(--safe-top))' }}
+      >
+        {children}
+      </div>
     </div>
   )
 }

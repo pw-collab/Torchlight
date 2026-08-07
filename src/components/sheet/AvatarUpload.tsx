@@ -12,6 +12,8 @@ interface Props {
   editable?: boolean
   size?: number
   height?: number
+  /** Fills the parent box instead of a fixed size — the parent sets the ratio. */
+  fluid?: boolean
 }
 
 const PORTRAIT_RADIUS = 8
@@ -61,7 +63,7 @@ function errorMessage(err: unknown): string {
   return 'Erro ao salvar retrato. Tente novamente.'
 }
 
-export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height }: Props) {
+export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height, fluid = false }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -164,7 +166,14 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 4,
+      flexShrink: 0,
+      ...(fluid ? { width: '100%', height: '100%' } : null),
+    }}>
       <div
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
@@ -179,11 +188,13 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
         onDrop={handleDrop}
         style={{
           position: 'relative',
-          width: size,
-          height: height ?? size,
           cursor: editable ? 'pointer' : 'default',
           outline: 'none',
-          flexShrink: 0,
+          // Fluid: take the parent's width and whatever height is left after
+          // an error message, so the box never overflows its frame.
+          ...(fluid
+            ? { width: '100%', flex: '1 1 auto', minHeight: 0 }
+            : { width: size, height: height ?? size, flexShrink: 0 }),
         }}
       >
         {/* Image or placeholder */}
@@ -322,7 +333,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
       {error && (
         <FieldError
           className="text-center text-[10px] leading-snug text-[var(--blood-bright)]"
-          style={{ maxWidth: size }}
+          style={{ maxWidth: fluid ? '100%' : size }}
         >
           {error}
         </FieldError>
