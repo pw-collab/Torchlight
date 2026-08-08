@@ -309,7 +309,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
         </div>
 
         {/* Domain + Faith */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid-6-split">
           <div>
             <Label>Domínio de Origem</Label>
             <NativeSelect
@@ -340,7 +340,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
         <SectionHeading marker="✎" className="mb-3.5">Histórico</SectionHeading>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid-6-split">
           {([
             ['concept',         'Conceito',           concept,    setConcept,    3],
             ['origin',          'Origem',             bgOrigin,   setBgOrigin,   3],
@@ -365,7 +365,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
       <section className="worn-border" style={card}>
         <SectionHeading marker="◈" className="mb-3.5">Relações e Conexões</SectionHeading>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="grid-6-split" style={{ gap: 16 }}>
 
           <div>
             <Label>Membro da Família</Label>
@@ -404,7 +404,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
         <SectionHeading marker="⚡" className="mb-3.5">Impulsos</SectionHeading>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="grid-6-split">
           {([
             ['secrets',    'Segredos',  secrets,    setSecrets],
             ['flaws',      'Falhas',    flaws,      setFlaws],

@@ -520,8 +520,8 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
         </span>
       </div>
 
-      {/* Proficiencies */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      {/* Proficiencies — half the block each on the six-column grid */}
+      <div className="grid-6-split" style={{ marginBottom: 20 }}>
         {[
           { label: 'Armas',     value: classData.weaponProficiency },
           { label: 'Armaduras', value: classData.armorProficiency },
@@ -541,7 +541,7 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
       {activeTechniques.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <SectionSubheading>Técnicas</SectionSubheading>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10, alignItems: 'start' }}>
+          <div className="grid-6-cards">
             {activeTechniques.map(t => (
               <TechniqueCard
                 key={t.id}

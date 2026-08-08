@@ -112,8 +112,8 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
         {/* Add / edit form */}
         {formOpen && (
           <div className="animate-ink-spread bg-secondary border-border mt-4 flex flex-col gap-2.5 border px-4 py-3.5">
-            <div className="grid grid-cols-[2fr_1fr] gap-2.5">
-              <Field>
+            <div className="grid-6 grid-6--tight">
+              <Field className="col-span-4 col-sm-full">
                 <FieldLabel htmlFor="talent-name" className={FIELD_LABEL_CLASS}>Nome</FieldLabel>
                 <Input
                   id="talent-name"
@@ -125,7 +125,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
                 />
               </Field>
 
-              <Field>
+              <Field className="col-span-2 col-sm-full">
                 <FieldLabel htmlFor="talent-origin" className={FIELD_LABEL_CLASS}>Origem</FieldLabel>
                 <Select
                   value={form.origin}
@@ -170,7 +170,7 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
             Nenhum talento registrado nos arquivos.
           </p>
         ) : (
-          <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(132px,1fr))] items-start gap-2.5">
+          <div className="grid-6-cards mt-4">
             {talents.map(t => (
               <TalentCard
                 key={t.id}

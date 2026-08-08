@@ -513,7 +513,7 @@ export function Spells({
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10, alignItems: 'start' }}>
+        <div className="grid-6-cards">
           {equippedSpells.map(id => {
             const spell = getSpell(id) ?? available.find(s => s.id === id)
             const isFailed = failedSpells.includes(id)

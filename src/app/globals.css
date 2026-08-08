@@ -653,6 +653,60 @@ html, body {
   .col-xs-12 { grid-column: span 12 / span 12; }
 }
 
+/* ============================================================
+   6-column layout grid (character sheet)
+   The sheet's main block fills six of the page's twelve columns, so
+   everything laid out inside it counts in sixes: .col-span-2 is a
+   third of the block, .col-span-3 a half, .col-span-6 the full width.
+   Spans are plain `grid-column: span n`, so the .col-span-* classes
+   above are shared with the 12-column grid — only spans of 1-6 make
+   sense in here, and a span wider than six would spill the block into
+   implicit columns.
+   ============================================================ */
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 24px;
+}
+.grid-6--tight { gap: 12px; }
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-5 { grid-column: span 5 / span 5; }
+
+/* Card decks (techniques, talents, spells): three to a row on the
+   six-column grid, two once the block narrows to phone width. Placing
+   the span on the children keeps the card components free of layout
+   props, the same way .grid-stats does for the attribute tiles. */
+.grid-6-cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.grid-6-cards > * { grid-column: span 2 / span 2; }
+
+/* Two-up sections (proficiencies, backstory fields): each half spans three
+   of the six columns and takes the whole row once the block narrows. */
+.grid-6-split {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.grid-6-split > * { grid-column: span 3 / span 3; }
+@media (max-width: 767px) {
+  .grid-6-split > * { grid-column: 1 / -1; }
+}
+
+/* Full width whatever the grid's column count — used where a two-up
+   split stacks on small screens. */
+@media (max-width: 767px) {
+  .col-sm-full { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .grid-6 { gap: 12px; }
+  .grid-6-cards > * { grid-column: span 3 / span 3; }
+}
+
 .dark {
   color-scheme: dark;
   --background: oklch(0.148 0.004 228.8);
