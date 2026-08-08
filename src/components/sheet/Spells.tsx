@@ -409,7 +409,7 @@ function SpellCard({
 
           {/* Description — fills whatever the title left, fading at the cut */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {spell?.description ?? ''}
             </p>
           </div>
