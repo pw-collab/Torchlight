@@ -509,7 +509,6 @@ html, body {
   width: 100%;
   aspect-ratio: 268 / 356;
   background: var(--background);
-  border: 1px solid var(--border);
   flex-shrink: 0;
 }
 .vitals-meta {

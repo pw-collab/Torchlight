@@ -16,7 +16,6 @@ interface Props {
   fluid?: boolean
 }
 
-const PORTRAIT_RADIUS = 8
 const MAX_FILE_BYTES = 4 * 1024 * 1024
 const MAX_DIMENSION = 512
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp|gif|avif|bmp)$/i
@@ -202,7 +201,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: PORTRAIT_RADIUS,
             background: displayUrl ? 'transparent' : 'var(--card)',
             overflow: 'hidden',
             transition: 'filter 200ms',
@@ -239,7 +237,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: PORTRAIT_RADIUS,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -274,7 +271,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: PORTRAIT_RADIUS,
               background: 'rgba(0,0,0,0.45)',
               display: 'flex',
               alignItems: 'center',
@@ -286,15 +282,14 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           </div>
         )}
 
-        {/* Square portrait frame */}
+        {/* Square portrait frame — the portrait's only outline, so the boxes
+            that wrap it (see FloatingVitals) draw none of their own. */}
         <div
           aria-hidden
           style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: PORTRAIT_RADIUS,
-            border: '1px solid var(--border)',
-            boxShadow: 'inset 0 0 0 1px var(--primary)',
+            border: '1px solid var(--primary)',
             pointerEvents: 'none',
             zIndex: 4,
           }}
@@ -307,7 +302,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: -2,
-              borderRadius: PORTRAIT_RADIUS + 2,
               border: '2px solid var(--candle-amber)',
               boxShadow: '0 0 12px var(--primary)',
               zIndex: 5,

@@ -335,7 +335,7 @@ export function FloatingVitals({
       <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
 
         {/* Portrait */}
-        <div style={{ position: 'relative', width: 160, height: 213, flexShrink: 0, background: 'var(--background)', border: '1px solid var(--border)' }}>
+        <div style={{ position: 'relative', width: 160, height: 213, flexShrink: 0, background: 'var(--background)' }}>
           <AvatarUpload
             characterId={characterId}
             portraitUrl={portraitUrl}
