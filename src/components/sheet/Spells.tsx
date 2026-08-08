@@ -348,7 +348,8 @@ function SpellCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // Same 3:5 face as GlyphCard.
+          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
           // Same as GlyphCard: the face is prose, not a button label.
           'whitespace-normal normal-case',

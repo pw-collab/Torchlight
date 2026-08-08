@@ -153,7 +153,9 @@ export function GlyphCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // 3:5 face: the card takes its width from the grid column and its
+          // height from that ratio, so the deck keeps its shape at any width.
+          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
           // Button's base is a label: nowrap + uppercase. The face holds prose,
           // so it wraps and keeps the casing the text was written in.
