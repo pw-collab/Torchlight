@@ -348,7 +348,8 @@ function SpellCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // Same 3:5 face as GlyphCard.
+          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
           // Same as GlyphCard: the face is prose, not a button label.
           'whitespace-normal normal-case',
@@ -408,7 +409,7 @@ function SpellCard({
 
           {/* Description — fills whatever the title left, fading at the cut */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {spell?.description ?? ''}
             </p>
           </div>
@@ -513,7 +514,7 @@ export function Spells({
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 10, alignItems: 'start' }}>
+        <div className="grid-6-cards">
           {equippedSpells.map(id => {
             const spell = getSpell(id) ?? available.find(s => s.id === id)
             const isFailed = failedSpells.includes(id)

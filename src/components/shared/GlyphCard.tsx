@@ -153,7 +153,9 @@ export function GlyphCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          'tactile card-lift h-56 w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // 3:5 face: the card takes its width from the grid column and its
+          // height from that ratio, so the deck keeps its shape at any width.
+          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
           // Button's base is a label: nowrap + uppercase. The face holds prose,
           // so it wraps and keeps the casing the text was written in.
@@ -213,7 +215,7 @@ export function GlyphCard({
 
           {/* Description — fills whatever the title left, fading at the cut */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {description}
             </p>
           </div>

@@ -1,6 +1,14 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import type { IconSvgElement } from '@hugeicons/react'
+import {
+  Backpack03Icon,
+  Book02Icon,
+  SparklesIcon,
+  UserIcon,
+} from '@hugeicons/core-free-icons'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -8,6 +16,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { TabBar } from '@/components/sheet/TabBar'
+import { TabRail } from '@/components/sheet/TabRail'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
@@ -26,12 +35,14 @@ import { getAncestry } from '@/data/ancestries/index'
 
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
-const TAB_LABELS: Record<Tab, string> = {
-  stats: 'Atributos',
-  inventory: 'Inventário',
-  spells: 'Grimório',
-  backstory: 'História',
+// Labels drive the mobile bottom bar; the icons drive the desktop rail.
+const TAB_META: Record<Tab, { label: string; icon: IconSvgElement }> = {
+  stats:     { label: 'Atributos',  icon: SparklesIcon },
+  inventory: { label: 'Inventário', icon: Backpack03Icon },
+  spells:    { label: 'Grimório',   icon: Book02Icon },
+  backstory: { label: 'História',   icon: UserIcon },
 }
+const TAB_KEYS = Object.keys(TAB_META) as Tab[]
 
 interface Props {
   characterId: string
@@ -83,7 +94,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   if (loading) {
     return (
-      <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
+      <AppShell backHref="/home" playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <span className="animate-flicker" style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
             ✦ O arquivo está sendo consultado...
@@ -95,7 +106,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   if (!character) {
     return (
-      <AppShell breadcrumbs={[{ label: 'Meus arquivos', href: '/home' }, { label: 'Ficha' }]} playerName={playerName}>
+      <AppShell backHref="/home" playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: 'var(--blood-bright)' }}>
             Personagem não encontrado no arquivo.
@@ -165,7 +176,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     if (!saved) throw new Error('character row update failed')
   }
 
-  const tabItems = (Object.keys(TAB_LABELS) as Tab[]).map(key => ({ key, label: TAB_LABELS[key] }))
+  const tabItems = TAB_KEYS.map(key => ({ key, label: TAB_META[key].label }))
+  const railItems = TAB_KEYS.map(key => ({ key, ...TAB_META[key] }))
+  const editHref = `/sheet/${characterId}/edit`
 
   const vitals = (
     <FloatingVitals
@@ -184,7 +197,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       className={cls?.name ?? character.classId}
       ancestryName={ancestry?.name ?? character.ancestryId}
       onAvatarUpload={handleAvatarUpload}
-      editHref={`/sheet/${characterId}/edit`}
+      editHref={editHref}
       stats={character.stats}
       onRoll={handleRoll}
     />
@@ -193,11 +206,13 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const tabContent = (
     <>
       {tab === 'stats' && (
-        <div className="grid-12">
+        <div className="grid-6">
           {cls && (
-            <div className="col-span-12">
+            <div className="col-span-6">
               <ClassPanel
                 classData={cls}
+                ancestry={ancestry}
+                languages={character.languages}
                 stats={character.stats}
                 techniqueStates={character.techniqueStates}
                 onStateChange={handleTechniqueStatesChange}
@@ -205,7 +220,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               />
             </div>
           )}
-          <div className="col-span-12">
+          <div className="col-span-6">
             <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
           </div>
         </div>
@@ -251,10 +266,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   return (
     <AppShell
-      breadcrumbs={[
-        { label: 'Meus arquivos', href: '/home' },
-        { label: character.name },
-      ]}
+      backHref="/home"
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
     >
@@ -263,50 +275,66 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'stretch',
-          paddingLeft: 12,
-          paddingRight: 12,
-          paddingTop: 12,
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 16,
           paddingBottom: 'calc(76px + var(--safe-bottom))',
         }}>
           {vitals}
           <div style={{ width: '100%', marginBottom: 40 }}>{tabContent}</div>
         </div>
       ) : (
-        // Sidebar + content live on the SAME 12-column grid, so the sidebar is
-        // genuinely anchored to the content's left edge (not a viewport-relative
-        // guess) and the pair centers together as one unit on wide screens.
-        <div className="grid-12" style={{
-          alignItems: 'start',
-          maxWidth: 1200,
-          margin: '0 auto',
-          paddingLeft: 24,
-          paddingRight: 24,
-          paddingTop: 84,
-          paddingBottom: 'calc(90px + var(--safe-bottom))',
-        }}>
-          <div className="sheet-sidebar">
-            {vitals}
+        // Rail, main block and vitals share one 12-column grid: the main block
+        // fills the six centre columns, so it lands on the horizontal centre of
+        // the screen with the icon tabs against its left edge and the vitals
+        // against its right (see .sheet-* in globals.css).
+        <div className="sheet-grid">
+          <div className="sheet-rail">
+            <TabRail tabs={railItems} active={tab} onChange={setTab} />
           </div>
 
-          {/* Content fills the remaining 9 columns beside the sidebar */}
-          <div className="sheet-content" style={{ marginBottom: 42 }}>
+          <div className="sheet-main">
+            {/* Character name left, Editar right */}
+            <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, marginBottom: 20 }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 32, color: 'var(--destructive)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {character.name}
+              </h1>
+              <Link
+                href={editHref}
+                style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--destructive)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+              >
+                Editar
+              </Link>
+            </header>
+
             {tabContent}
           </div>
+
+          <aside className="sheet-vitals">
+            {vitals}
+          </aside>
         </div>
       )}
 
-      {/* Bottom navigation bar — tabs + dice FAB as the last button (desktop & mobile) */}
-      <TabBar tabs={tabItems} active={tab} onChange={setTab} trailing={<DiceRoller onRoll={handleRoll} />} />
+      {/* Navigation: labelled bottom bar on mobile (dice as its trailing
+          button), icon rail + free-floating dice button on desktop. */}
+      {isMobile ? (
+        <TabBar tabs={tabItems} active={tab} onChange={setTab} trailing={<DiceRoller onRoll={handleRoll} />} />
+      ) : (
+        <DiceRoller onRoll={handleRoll} floating />
+      )}
 
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
       <DiceOverlay phase={rollPhase} roll={activeRoll} />
       <RollToasts rolls={rollHistory} />
-      <SaveSeal savedAt={savedAt} />
+      <SaveSeal savedAt={savedAt} isMobile={isMobile} />
     </AppShell>
   )
 }
 
-function SaveSeal({ savedAt }: { savedAt: number }) {
+function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     if (!savedAt) return
@@ -322,8 +350,10 @@ function SaveSeal({ savedAt }: { savedAt: number }) {
       className="animate-seal"
       style={{
         position: 'fixed',
-        bottom: 'calc(72px + var(--safe-bottom))',
-        right: 16,
+        // Mobile sits above the bottom bar; desktop tucks into the bottom-left
+        // so it never collides with the floating dice button.
+        bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 24,
+        ...(isMobile ? { right: 16 } : { left: 24 }),
         zIndex: 120,
         fontFamily: 'var(--font-heading)',
         fontSize: 10,

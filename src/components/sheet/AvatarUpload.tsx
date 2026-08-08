@@ -12,9 +12,10 @@ interface Props {
   editable?: boolean
   size?: number
   height?: number
+  /** Fills the parent box instead of a fixed size — the parent sets the ratio. */
+  fluid?: boolean
 }
 
-const PORTRAIT_RADIUS = 8
 const MAX_FILE_BYTES = 4 * 1024 * 1024
 const MAX_DIMENSION = 512
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp|gif|avif|bmp)$/i
@@ -61,7 +62,7 @@ function errorMessage(err: unknown): string {
   return 'Erro ao salvar retrato. Tente novamente.'
 }
 
-export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height }: Props) {
+export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = true, size = 96, height, fluid = false }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -164,7 +165,14 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 4,
+      flexShrink: 0,
+      ...(fluid ? { width: '100%', height: '100%' } : null),
+    }}>
       <div
         role={editable ? 'button' : undefined}
         tabIndex={editable ? 0 : undefined}
@@ -179,11 +187,13 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
         onDrop={handleDrop}
         style={{
           position: 'relative',
-          width: size,
-          height: height ?? size,
           cursor: editable ? 'pointer' : 'default',
           outline: 'none',
-          flexShrink: 0,
+          // Fluid: take the parent's width and whatever height is left after
+          // an error message, so the box never overflows its frame.
+          ...(fluid
+            ? { width: '100%', flex: '1 1 auto', minHeight: 0 }
+            : { width: size, height: height ?? size, flexShrink: 0 }),
         }}
       >
         {/* Image or placeholder */}
@@ -191,7 +201,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: PORTRAIT_RADIUS,
             background: displayUrl ? 'transparent' : 'var(--card)',
             overflow: 'hidden',
             transition: 'filter 200ms',
@@ -228,7 +237,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: PORTRAIT_RADIUS,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -263,7 +271,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              borderRadius: PORTRAIT_RADIUS,
               background: 'rgba(0,0,0,0.45)',
               display: 'flex',
               alignItems: 'center',
@@ -275,15 +282,14 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           </div>
         )}
 
-        {/* Square portrait frame */}
+        {/* Square portrait frame — the portrait's only outline, so the boxes
+            that wrap it (see FloatingVitals) draw none of their own. */}
         <div
           aria-hidden
           style={{
             position: 'absolute',
             inset: 0,
-            borderRadius: PORTRAIT_RADIUS,
-            border: '1px solid var(--border)',
-            boxShadow: 'inset 0 0 0 1px var(--primary)',
+            border: '1px solid var(--primary)',
             pointerEvents: 'none',
             zIndex: 4,
           }}
@@ -296,7 +302,6 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: -2,
-              borderRadius: PORTRAIT_RADIUS + 2,
               border: '2px solid var(--candle-amber)',
               boxShadow: '0 0 12px var(--primary)',
               zIndex: 5,
@@ -322,7 +327,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
       {error && (
         <FieldError
           className="text-center text-[10px] leading-snug text-[var(--blood-bright)]"
-          style={{ maxWidth: size }}
+          style={{ maxWidth: fluid ? '100%' : size }}
         >
           {error}
         </FieldError>

@@ -1058,13 +1058,18 @@ export function InventoryView({
   }
 
   return (
-    <div className="grid-12 grid-12-page">
+    // Six columns, no page shell: this renders inside the sheet's main block,
+    // which spans six of the page's twelve columns and already carries the
+    // page's margins.
+    <div className="grid-6">
 
         {/* Inventário — grid takes emphasis, Carga inline in the header */}
-        <div className="worn-border col-span-12" style={{ padding: 24 }}>
-          <div className="grid-12">
-          <div className="col-span-12" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <div className="worn-border col-span-6" style={{ padding: 24 }}>
+          <div className="grid-6">
+          {/* Title and actions wrap onto their own lines rather than colliding
+              once the block is too narrow to hold both (phones). */}
+          <div className="col-span-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, minWidth: 0 }}>
               <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1, flexShrink: 0 }}>⪧</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
@@ -1091,7 +1096,7 @@ export function InventoryView({
           </div>
 
           {addingForm !== null && (
-            <div className="col-span-12">
+            <div className="col-span-6">
               <AddItemForm
                 initialForm={addingForm}
                 onAdd={addItem}
@@ -1100,24 +1105,25 @@ export function InventoryView({
             </div>
           )}
 
-          {/* Two-column split on the 12-column grid — Equipamento spans 4,
-              Mochila spans 8; both collapse to span 12 on narrow widths. */}
+          {/* Two-column split on the six-column grid — Equipamento takes a
+              third (span 2), Mochila the rest (span 4); both fill the row on
+              narrow widths. */}
 
-          {/* Equipamento — armor + shield squares (span 6 each), then the two
-              hand slots as wide rectangles (span 12), on a nested 12-col grid. */}
-          <div className="grid-12 grid-12--tight col-span-4 col-sm-12" style={{ alignContent: 'start' }}>
-            <div className="col-span-12">
+          {/* Equipamento — armor + shield squares (half each), then the two
+              hand slots as wide rectangles, on a nested six-column grid. */}
+          <div className="grid-6 grid-6--tight col-span-2 col-sm-full" style={{ alignContent: 'start' }}>
+            <div className="col-span-6">
               <SectionSubheading>Equipamento</SectionSubheading>
             </div>
-            {renderEquipSlot('armor', 'square', 'Armadura', armorItem, '🛡', 'col-span-6')}
-            {renderEquipSlot('offHand', 'square', 'Escudo', shieldCardItem, '🛡', 'col-span-6')}
-            {renderEquipSlot('mainHand', 'wide', SLOT_LABELS.mainHand, equipped('mainHand'), '⚔', 'col-span-12')}
-            {renderEquipSlot('offHand', 'wide', SLOT_LABELS.offHand, weapon2CardItem, '⚔', 'col-span-12')}
+            {renderEquipSlot('armor', 'square', 'Armadura', armorItem, '🛡', 'col-span-3')}
+            {renderEquipSlot('offHand', 'square', 'Escudo', shieldCardItem, '🛡', 'col-span-3')}
+            {renderEquipSlot('mainHand', 'wide', SLOT_LABELS.mainHand, equipped('mainHand'), '⚔', 'col-span-6')}
+            {renderEquipSlot('offHand', 'wide', SLOT_LABELS.offHand, weapon2CardItem, '⚔', 'col-span-6')}
           </div>
 
           {/* Mochila — item grid with the detail pane below it */}
-          <div className="grid-12 grid-12--tight col-span-8 col-sm-12" style={{ alignContent: 'start' }}>
-            <div className="col-span-12">
+          <div className="grid-6 grid-6--tight col-span-4 col-sm-full" style={{ alignContent: 'start' }}>
+            <div className="col-span-6">
               <SectionSubheading
                 trailing={
                   <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>
@@ -1131,7 +1137,7 @@ export function InventoryView({
 
             {/* Item grid — occupied / available / empty-filler cells. Fluid:
                 fills the column width, tiles stay square via aspect-ratio. */}
-            <div className="col-span-12" style={{ border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
+            <div className="col-span-6" style={{ border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
                 {inventory.map(item => (
                   <ItemIconSlot
                     key={item.id}
@@ -1153,7 +1159,7 @@ export function InventoryView({
               </div>
 
               {/* Detail pane — always present so the column height never collapses */}
-              <div className="col-span-12">
+              <div className="col-span-6">
               {editingItem ? (
                 <EditItemForm
                   item={editingItem}
@@ -1180,7 +1186,7 @@ export function InventoryView({
           </div>
 
           {/* Bônus de Combate — inline inputs, spellcasting style */}
-          <div className="col-span-12">
+          <div className="col-span-6">
             <SectionSubheading trailing={
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
                 {([
@@ -1215,7 +1221,7 @@ export function InventoryView({
         </div>
 
         {/* Treasure */}
-        <div className="col-span-12">
+        <div className="col-span-6">
           <TreasureVault gold={gold} silver={silver} copper={copper} onUpdate={onCurrencyUpdate} />
         </div>
 

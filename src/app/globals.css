@@ -403,7 +403,8 @@ html, body {
      1440px  content-max  large-screen content-width cap
    ============================================================ */
 
-/* Stat block on the 12-col system: stats span 2 (6-up) → span 4 (3-up) mobile */
+/* Stat block: six-up on the 12-col system, three-up once phones drop the
+   grid to six columns (see the 6-column section below). */
 .grid-stats {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -412,32 +413,129 @@ html, body {
 .grid-stats > * { grid-column: span 2 / span 2; }
 
 @media (max-width: 640px) {
-  .grid-stats > * { grid-column: span 4 / span 4; }
+  .grid-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* The top bar carries no plate behind the logo any more, so scrolled content
+   would run straight over it. This scrim is the page's own colour — invisible
+   at rest, it simply fades out whatever passes underneath. */
+.app-header-scrim {
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    var(--background) 62%,
+    color-mix(in srgb, var(--background), transparent 100%) 100%
+  );
 }
 
 /* ============================================================
-   Character sheet — sidebar + content on the 12-col grid
+   Character sheet — icon rail · main block · vitals column
+
+   Wide screens follow the design grid: the main block fills the six
+   centre columns (4–9) so it sits on the horizontal centre of the
+   screen, the square icon tabs hug its left edge from column 3, and
+   the vitals take columns 10–11. Below 1280px the empty outer columns
+   are handed back to the content, so the vitals column never gets
+   narrower than the portrait needs; below 1000px the grid collapses to
+   "rail + stacked content".
    ============================================================ */
-.sheet-sidebar {
-  grid-column: span 3 / span 3;
-  position: sticky;
-  top: calc(80px + var(--safe-top));
-  height: calc(100dvh - 80px - var(--safe-top) - 96px);
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+.sheet-grid {
+  /* Self-contained rather than composed with .grid-12: the tablet tier below
+     re-templates the columns, and .grid-12 is declared later in this file. */
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+  max-width: 1760px;
+  margin-inline: auto;
+  /* AppShell already offsets the fixed header; this is the gap below it. */
+  padding: 16px 48px 56px;
 }
-.sheet-content {
-  grid-column: span 9 / span 9;
+/* Sticky offsets are measured from the scroll container's content box, which
+   AppShell has already pushed below the fixed header — so these match the
+   grid's own top padding and land the columns level with the main block. */
+.sheet-rail {
+  grid-column: 3 / span 1;
+  display: flex;
+  justify-content: flex-end;
+  position: sticky;
+  top: 16px;
+}
+.sheet-main {
+  grid-column: 4 / span 6;
   min-width: 0;
 }
+.sheet-vitals {
+  grid-column: 10 / span 2;
+  min-width: 0;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 112px - var(--safe-top));
+  overflow-y: auto;
+}
+
+@media (max-width: 1280px) {
+  .sheet-rail   { grid-column: 1 / span 1; }
+  .sheet-main   { grid-column: 2 / span 8; }
+  .sheet-vitals { grid-column: 10 / span 3; }
+}
+
 @media (max-width: 1000px) {
-  .sheet-sidebar {
-    grid-column: span 12 / span 12;
-    position: static;
-    height: auto;
+  .sheet-grid {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 8px 24px 40px;
   }
-  .sheet-content { grid-column: span 12 / span 12; }
+  .sheet-rail   { grid-column: 1; grid-row: 1 / span 2; justify-content: flex-start; top: 8px; }
+  .sheet-vitals {
+    grid-column: 2;
+    grid-row: 1;
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .sheet-main { grid-column: 2; grid-row: 2; }
+}
+
+/* Phones render the sheet's own mobile layout (see CharacterSheetClient),
+   which is measured in JS — this keeps the gutter at 16px for the frame
+   before that decision lands. */
+@media (max-width: 640px) {
+  .sheet-grid { padding: 8px 16px 40px; }
+}
+
+/* Vitals column internals: portrait over stats while it owns a narrow track,
+   portrait beside stats once the column goes full-width on tablets. */
+.vitals-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+.vitals-portrait {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 268 / 356;
+  background: var(--background);
+  flex-shrink: 0;
+}
+.vitals-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.vitals-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 1000px) {
+  .vitals-stack { flex-direction: row; align-items: stretch; }
+  .vitals-portrait { width: 240px; max-width: 45%; }
+  .vitals-meta { flex: 1 1 auto; }
+  .vitals-stats { flex: 1 1 auto; }
 }
 
 /* ============================================================
@@ -555,12 +653,86 @@ html, body {
 }
 @media (max-width: 640px) {
   .grid-12 { gap: 12px; }
-  .grid-12-page { margin: 12px; padding: 12px; }
-  .grid-12-page--center { margin: 12px auto; padding: 12px; }
+  /* One 16px gutter on phones rather than a 12px margin stacked on 12px of
+     padding — the sheet's mobile container uses the same value. */
+  .grid-12-page { margin: 0; padding: 16px; }
+  .grid-12-page--center { margin: 0 auto; padding: 16px; }
   .col-sm-6  { grid-column: span 6 / span 6; }
+
+  /* Phones count in six columns, like the sheet's main block, so the whole
+     app shares one unit at that width. The spans below are the six-column
+     equivalent of each twelfth (a quarter has no exact match and rounds to
+     a third); "full row" is written 1 / -1 so it holds whatever the column
+     count is. Scoped to .grid-12's own children, which leaves the
+     .col-span-* classes meaning literal sixths inside .grid-6. */
+  .grid-12 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .grid-12 > .col-span-3 { grid-column: span 2 / span 2; }
+  .grid-12 > .col-span-4 { grid-column: span 2 / span 2; }
+  .grid-12 > .col-span-6 { grid-column: span 3 / span 3; }
+  .grid-12 > .col-span-8 { grid-column: span 4 / span 4; }
+  .grid-12 > .col-span-9 { grid-column: span 5 / span 5; }
+  .grid-12 > .col-sm-6   { grid-column: span 3 / span 3; }
+  .grid-12 > .col-span-12,
+  .grid-12 > .col-md-12,
+  .grid-12 > .col-sm-12  { grid-column: 1 / -1; }
 }
 @media (max-width: 400px) {
   .col-xs-12 { grid-column: span 12 / span 12; }
+  .grid-12 > .col-xs-12 { grid-column: 1 / -1; }
+}
+
+/* ============================================================
+   6-column layout grid (character sheet)
+   The sheet's main block fills six of the page's twelve columns, so
+   everything laid out inside it counts in sixes: .col-span-2 is a
+   third of the block, .col-span-3 a half, .col-span-6 the full width.
+   Spans are plain `grid-column: span n`, so the .col-span-* classes
+   above are shared with the 12-column grid — only spans of 1-6 make
+   sense in here, and a span wider than six would spill the block into
+   implicit columns.
+   ============================================================ */
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 24px;
+}
+.grid-6--tight { gap: 12px; }
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-5 { grid-column: span 5 / span 5; }
+
+/* Card decks (techniques, talents, spells): three to a row on the
+   six-column grid, two once the block narrows to phone width. Placing
+   the span on the children keeps the card components free of layout
+   props, the same way .grid-stats does for the attribute tiles. */
+.grid-6-cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.grid-6-cards > * { grid-column: span 2 / span 2; }
+
+/* Two-up sections (proficiencies, backstory fields): each half spans three
+   of the six columns and takes the whole row once the block narrows. */
+.grid-6-split {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.grid-6-split > * { grid-column: span 3 / span 3; }
+@media (max-width: 767px) {
+  .grid-6-split > * { grid-column: 1 / -1; }
+}
+
+/* Full width whatever the grid's column count — used where a two-up
+   split stacks on small screens. */
+@media (max-width: 767px) {
+  .col-sm-full { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .grid-6 { gap: 12px; }
+  .grid-6-cards > * { grid-column: span 3 / span 3; }
 }
 
 .dark {

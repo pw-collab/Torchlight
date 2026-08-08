@@ -24,6 +24,8 @@ type RollMode = 'normal' | 'advantage' | 'disadvantage'
 
 interface Props {
   onRoll?: (result: RollResult) => void
+  /** Anchors the button to the bottom-right of the viewport (desktop layout). */
+  floating?: boolean
 }
 
 // Shared micro-interaction for every dice button: lift on hover,
@@ -43,11 +45,12 @@ const FIELD_CLASS =
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
- * Dice roller as the trailing FAB of the bottom navigation bar (see TabBar).
- * A single squared d20 button that toggles a compact popover anchored just
- * above it — never a fullscreen overlay. Identical on desktop and mobile.
+ * Dice roller: a single squared d20 button that toggles a compact popover
+ * anchored just above it — never a fullscreen overlay. `floating` pins it to
+ * the bottom-right of the screen (desktop); otherwise it renders inline as the
+ * trailing button of the mobile bottom bar (see TabBar).
  */
-export function DiceRoller({ onRoll }: Props) {
+export function DiceRoller({ onRoll, floating = false }: Props) {
   const [mod, setMod] = useState(0)
   const [dc,  setDc]  = useState(14)
   const [open, setOpen] = useState(false)
@@ -67,7 +70,8 @@ export function DiceRoller({ onRoll }: Props) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {/* FAB — the last button in the bottom navigation bar */}
+      {/* Square d20 button — floating bottom-right on desktop, trailing button
+          of the bottom bar on mobile */}
       <PopoverTrigger
         render={
           <Button
@@ -82,7 +86,12 @@ export function DiceRoller({ onRoll }: Props) {
                 transition={DICE_SPRING.tap}
               />
             }
-            className="bg-secondary data-popup-open:bg-destructive h-12 min-h-12 w-14 px-0 transition-colors duration-[250ms]"
+            className={cn(
+              'bg-secondary data-popup-open:bg-destructive px-0 transition-colors duration-[250ms]',
+              floating
+                ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
+                : 'h-12 min-h-12 w-14',
+            )}
           />
         }
       >

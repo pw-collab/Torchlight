@@ -306,7 +306,6 @@ export function MyFilesClient({ characters: initialCharacters, playerName, isGm 
 
   return (
     <AppShell
-      breadcrumbs={[{ label: isGm ? 'Arquivo Geral' : 'Meus arquivos' }]}
       playerName={playerName}
       playerRole={isGm ? 'MESTRE' : 'ARQUIVISTA'}
     >

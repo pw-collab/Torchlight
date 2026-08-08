@@ -47,7 +47,9 @@ export function FloatingTorch({ inventory, onClick }: Props) {
       variant="outline"
       className={cn(
         'animate-drop-in fixed z-90 flex h-auto items-center gap-2.5 rounded-sm bg-[var(--card)] px-3 py-2',
-        isMobile ? 'top-[58px] left-2.5' : 'top-[70px] right-6',
+        // Desktop: the top-right corner is the only strip the sheet layout
+        // leaves free — the header sits left, the vitals column starts below.
+        isMobile ? 'top-[58px] left-2.5' : 'top-6 right-6',
         isLow ? 'border-[var(--destructive)]' : 'border-[var(--primary)]',
         onClick ? 'cursor-pointer' : 'cursor-default',
       )}
