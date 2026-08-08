@@ -496,6 +496,13 @@ html, body {
   .sheet-main { grid-column: 2; grid-row: 2; }
 }
 
+/* Phones render the sheet's own mobile layout (see CharacterSheetClient),
+   which is measured in JS — this keeps the gutter at 16px for the frame
+   before that decision lands. */
+@media (max-width: 640px) {
+  .sheet-grid { padding: 8px 16px 40px; }
+}
+
 /* Vitals column internals: portrait over stats while it owns a narrow track,
    portrait beside stats once the column goes full-width on tablets. */
 .vitals-stack {
@@ -646,8 +653,10 @@ html, body {
 }
 @media (max-width: 640px) {
   .grid-12 { gap: 12px; }
-  .grid-12-page { margin: 12px; padding: 12px; }
-  .grid-12-page--center { margin: 12px auto; padding: 12px; }
+  /* One 16px gutter on phones rather than a 12px margin stacked on 12px of
+     padding — the sheet's mobile container uses the same value. */
+  .grid-12-page { margin: 0; padding: 16px; }
+  .grid-12-page--center { margin: 0 auto; padding: 16px; }
   .col-sm-6  { grid-column: span 6 / span 6; }
 
   /* Phones count in six columns, like the sheet's main block, so the whole

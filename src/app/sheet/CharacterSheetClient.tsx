@@ -273,9 +273,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'stretch',
-          paddingLeft: 12,
-          paddingRight: 12,
-          paddingTop: 12,
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 16,
           paddingBottom: 'calc(76px + var(--safe-bottom))',
         }}>
           {vitals}
