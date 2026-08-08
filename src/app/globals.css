@@ -403,7 +403,8 @@ html, body {
      1440px  content-max  large-screen content-width cap
    ============================================================ */
 
-/* Stat block on the 12-col system: stats span 2 (6-up) → span 4 (3-up) mobile */
+/* Stat block: six-up on the 12-col system, three-up once phones drop the
+   grid to six columns (see the 6-column section below). */
 .grid-stats {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -412,7 +413,7 @@ html, body {
 .grid-stats > * { grid-column: span 2 / span 2; }
 
 @media (max-width: 640px) {
-  .grid-stats > * { grid-column: span 4 / span 4; }
+  .grid-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 /* The top bar carries no plate behind the logo any more, so scrolled content
@@ -648,9 +649,27 @@ html, body {
   .grid-12-page { margin: 12px; padding: 12px; }
   .grid-12-page--center { margin: 12px auto; padding: 12px; }
   .col-sm-6  { grid-column: span 6 / span 6; }
+
+  /* Phones count in six columns, like the sheet's main block, so the whole
+     app shares one unit at that width. The spans below are the six-column
+     equivalent of each twelfth (a quarter has no exact match and rounds to
+     a third); "full row" is written 1 / -1 so it holds whatever the column
+     count is. Scoped to .grid-12's own children, which leaves the
+     .col-span-* classes meaning literal sixths inside .grid-6. */
+  .grid-12 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .grid-12 > .col-span-3 { grid-column: span 2 / span 2; }
+  .grid-12 > .col-span-4 { grid-column: span 2 / span 2; }
+  .grid-12 > .col-span-6 { grid-column: span 3 / span 3; }
+  .grid-12 > .col-span-8 { grid-column: span 4 / span 4; }
+  .grid-12 > .col-span-9 { grid-column: span 5 / span 5; }
+  .grid-12 > .col-sm-6   { grid-column: span 3 / span 3; }
+  .grid-12 > .col-span-12,
+  .grid-12 > .col-md-12,
+  .grid-12 > .col-sm-12  { grid-column: 1 / -1; }
 }
 @media (max-width: 400px) {
   .col-xs-12 { grid-column: span 12 / span 12; }
+  .grid-12 > .col-xs-12 { grid-column: 1 / -1; }
 }
 
 /* ============================================================

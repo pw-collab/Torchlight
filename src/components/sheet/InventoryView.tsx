@@ -1066,8 +1066,10 @@ export function InventoryView({
         {/* Inventário — grid takes emphasis, Carga inline in the header */}
         <div className="worn-border col-span-6" style={{ padding: 24 }}>
           <div className="grid-6">
-          <div className="col-span-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          {/* Title and actions wrap onto their own lines rather than colliding
+              once the block is too narrow to hold both (phones). */}
+          <div className="col-span-6" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, paddingBottom: 12, borderBottom: '2px solid var(--border)' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, minWidth: 0 }}>
               <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1, flexShrink: 0 }}>⪧</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
