@@ -1,5 +1,6 @@
 import type { Stat } from './class.types'
 import type { InventoryItem } from './inventory.types'
+import type { LevelEntry } from './progression.types'
 import type { Talent } from './talent.types'
 import type { TechniqueState } from './technique.types'
 import { getItem } from '@/data/equipment/index'
@@ -34,6 +35,8 @@ export interface Character {
   spellcastingBonus: number
   castingAttr: string
   talents: Talent[]
+  /** One record per level whose reward has been rolled — see the "Progresso" track. */
+  levelProgress: LevelEntry[]
   techniqueStates: TechniqueState[]
   languages: string[]
   knowledgeAreas: KnowledgeArea[]
@@ -136,6 +139,7 @@ export interface CharacterRow {
   spellcasting_bonus?: number
   casting_attr?: string
   talents?: Talent[]
+  level_progress?: LevelEntry[]
   technique_states?: TechniqueState[]
   languages?: string[]
   knowledge_areas?: KnowledgeArea[]
@@ -185,6 +189,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     spellcastingBonus: row.spellcasting_bonus ?? 0,
     castingAttr: row.casting_attr ?? 'int',
     talents: row.talents ?? [],
+    levelProgress: Array.isArray(row.level_progress) ? row.level_progress : [],
     techniqueStates: row.technique_states ?? [],
     languages: row.languages ?? [],
     knowledgeAreas: row.knowledge_areas ?? [],
