@@ -1058,7 +1058,10 @@ export function InventoryView({
   }
 
   return (
-    <div className="grid-12 grid-12-page">
+    // Plain grid, no page shell: this renders inside the sheet's main block,
+    // which already carries the page's margins — grid-12-page inset it by a
+    // further 72px a side and left it out of line with the other tabs.
+    <div className="grid-12">
 
         {/* Inventário — grid takes emphasis, Carga inline in the header */}
         <div className="worn-border col-span-12" style={{ padding: 24 }}>
