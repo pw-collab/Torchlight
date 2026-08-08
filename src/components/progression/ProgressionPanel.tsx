@@ -7,10 +7,12 @@ import {
   MAX_LEVEL,
   MIN_LEVEL,
   buildTrack,
+  clearReward,
   removeEntry,
   sealedCount,
   upsertEntry,
   xpForLevel,
+  type LevelRewardKind,
 } from '@/lib/progression'
 import type { LevelEntry } from '@/types/progression.types'
 import type { Talent } from '@/types/talent.types'
@@ -56,7 +58,7 @@ export function ProgressionPanel({
   onCommit,
 }: Props) {
   const [selected, setSelected] = useState(level)
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<LevelRewardKind | 'level' | null>(null)
 
   const classData = getClass(classId)
   const conMod = modifier(con)
@@ -66,43 +68,45 @@ export function ProgressionPanel({
   const done = sealedCount(level, levelProgress)
 
   /** Short pause so the roll reads as a roll rather than an instant number swap. */
-  function withRollDelay(apply: () => Promise<void>) {
-    setBusy(true)
+  function withRollDelay(kind: LevelRewardKind, apply: () => Promise<void>) {
+    setBusy(kind)
     setTimeout(async () => {
       try {
         await apply()
       } finally {
-        setBusy(false)
+        setBusy(null)
       }
     }, 260)
   }
 
-  function handleRoll() {
-    if (!classData || busy || state.status !== 'open') return
+  function handleRoll(kind: LevelRewardKind) {
+    if (!classData || busy || state.status === 'locked') return
+    if (state.done.includes(kind)) return
 
-    if (state.kind === 'hp') {
-      withRollDelay(async () => {
+    const existing = state.entry ?? { level: state.level }
+
+    if (kind === 'hp') {
+      withRollDelay('hp', async () => {
+        // The raw die is the whole gain — CON was already counted once, in the
+        // base HP rolled at creation.
         const roll = Math.floor(Math.random() * classData.hitDie) + 1
-        const gain = Math.max(1, roll + conMod)
         const entry: LevelEntry = {
-          level: state.level,
-          kind: 'hp',
+          ...existing,
           hpRoll: roll,
           hpDie: classData.hitDie,
-          conMod,
-          hpGain: gain,
+          hpGain: roll,
           sealedAt: new Date().toISOString(),
         }
         await onCommit({
-          hpMax: hpMax + gain,
-          hpGain: gain,
+          hpMax: hpMax + roll,
+          hpGain: roll,
           levelProgress: upsertEntry(levelProgress, entry),
         })
       })
       return
     }
 
-    withRollDelay(async () => {
+    withRollDelay('talent', async () => {
       const result = rollClassTalent(classData.id)
       if (!result) return
       const talent: Talent = {
@@ -112,8 +116,7 @@ export function ProgressionPanel({
         description: `Nível ${state.level} — 2d6: ${result.roll} (${result.die1}+${result.die2}) — ${classData.name}`,
       }
       const entry: LevelEntry = {
-        level: state.level,
-        kind: 'talent',
+        ...existing,
         talentId: talent.id,
         talentRoll: result.roll,
         talentDie1: result.die1,
@@ -128,56 +131,65 @@ export function ProgressionPanel({
     })
   }
 
-  async function handleUndo() {
+  async function handleUndo(kind: LevelRewardKind) {
     const entry = state.entry
     if (!entry || busy) return
-    setBusy(true)
+
+    const trimmed = clearReward(entry, kind)
+    const nextProgress = trimmed
+      ? upsertEntry(levelProgress, trimmed)
+      : removeEntry(levelProgress, entry.level)
+
+    setBusy(kind)
     try {
-      if (entry.kind === 'hp') {
+      if (kind === 'hp') {
         const gain = entry.hpGain ?? 0
         await onCommit({
           hpMax: Math.max(1, hpMax - gain),
           hpGain: -gain,
-          levelProgress: removeEntry(levelProgress, entry.level),
+          levelProgress: nextProgress,
         })
       } else {
         await onCommit({
           talents: talents.filter(t => t.id !== entry.talentId),
-          levelProgress: removeEntry(levelProgress, entry.level),
+          levelProgress: nextProgress,
         })
       }
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
   async function handleAdvance() {
     if (busy || level >= MAX_LEVEL) return
-    setBusy(true)
+    setBusy('level')
     try {
       const next = level + 1
       await onCommit({ level: next })
       setSelected(next)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
   async function handleRegress() {
     if (busy || level <= MIN_LEVEL) return
-    setBusy(true)
+    setBusy('level')
     try {
       const previous = level - 1
       await onCommit({ level: previous })
       setSelected(previous)
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
   return (
     <>
-      <div className="flex w-full flex-col items-center gap-5">
+      {/* `my-auto` rather than the parent centring us: when the card outgrows
+          the viewport the auto margins collapse to 0, so the top stays
+          reachable instead of being clipped above the scroll origin. */}
+      <div className="my-auto flex w-full flex-col items-center gap-5">
         {/* Season header — where the character stands on the whole track */}
         <div className="flex w-full max-w-[520px] items-end justify-between gap-4 border-b border-[var(--border)] pb-3">
           <div className="flex flex-col gap-1">
@@ -199,7 +211,6 @@ export function ProgressionPanel({
         <LevelCard
           state={state}
           classData={classData}
-          con={con}
           conMod={conMod}
           hpMax={hpMax}
           xp={xp}

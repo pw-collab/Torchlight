@@ -282,7 +282,7 @@ export function CharacterEditWizard({ character }: Props) {
 
       {isProgress ? (
         /* The card sits in the middle of whatever height the track leaves over. */
-        <div className="flex w-full max-w-[900px] flex-1 items-center py-6">
+        <div className="flex w-full max-w-[900px] flex-1 py-6">
           <ProgressionPanel
             classId={classId}
             level={level}

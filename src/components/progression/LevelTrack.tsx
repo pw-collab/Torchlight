@@ -10,7 +10,7 @@ import {
   SquareLock01Icon,
   Tick02Icon,
 } from '@hugeicons/core-free-icons'
-import type { LevelState } from '@/lib/progression'
+import type { LevelRewardKind, LevelState } from '@/lib/progression'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -75,7 +75,7 @@ export function LevelTrack({ track, selected, hitDie, currentProgress, onSelect 
               state={state}
               hitDie={hitDie}
               isSelected={state.level === selected}
-              fill={state.status === 'sealed' ? 1 : state.isCurrent ? currentProgress : 0}
+              fill={fillFor(state, currentProgress)}
               onSelect={onSelect}
             />
           ))}
@@ -85,6 +85,18 @@ export function LevelTrack({ track, selected, hitDie, currentProgress, onSelect 
       <TrackArrow direction={1} onClick={() => nudge(1)} />
     </div>
   )
+}
+
+/**
+ * How full the rule under a box reads: a finished level is solid, the level the
+ * character stands on tracks XP, and a half-rolled level (odd levels carry two
+ * rewards) shows how much of it has landed.
+ */
+function fillFor(state: LevelState, currentProgress: number): number {
+  if (state.status === 'sealed') return 1
+  const partial = state.rewards.length > 0 ? state.done.length / state.rewards.length : 0
+  if (state.isCurrent) return Math.max(partial, currentProgress)
+  return partial
 }
 
 function TrackArrow({ direction, onClick }: { direction: -1 | 1; onClick: () => void }) {
@@ -115,7 +127,7 @@ interface BoxProps {
 }
 
 function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) {
-  const { level, kind, status, isCurrent, entry } = state
+  const { level, rewards, done, status, isCurrent, entry } = state
   const locked = status === 'locked'
   const sealed = status === 'sealed'
 
@@ -144,7 +156,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
       <span
         className={cn(
           'flex overflow-hidden border transition-[height,width,background-color,border-color] duration-300 ease-[var(--ease-ritual)]',
-          isSelected ? 'h-[92px] w-[112px] sm:h-[104px] sm:w-[128px]' : 'h-[76px] w-[92px] sm:h-[86px] sm:w-[104px]',
+          isSelected ? 'h-[94px] w-[124px] sm:h-[106px] sm:w-[142px]' : 'h-[78px] w-[104px] sm:h-[88px] sm:w-[116px]',
           locked && 'bg-secondary/60 border-[var(--border)]',
           !locked && !isCurrent && 'bg-secondary border-[var(--border)]',
           isCurrent && 'bg-destructive border-[var(--bone-dim)]',
@@ -185,12 +197,24 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
             />
           </span>
 
-          <RewardChip
-            kind={kind}
-            hitDie={hitDie}
-            sealedLabel={sealed && entry ? (kind === 'hp' ? `+${entry.hpGain ?? 0} PV` : 'TALENTO') : undefined}
-            tone={isCurrent ? 'inverted' : locked ? 'muted' : 'normal'}
-          />
+          {/* One chip per reward — odd levels carry both the die and the talent */}
+          <span className="flex flex-wrap items-center gap-[3px]">
+            {rewards.map(kind => (
+              <RewardChip
+                key={kind}
+                kind={kind}
+                hitDie={hitDie}
+                resolvedLabel={
+                  done.includes(kind)
+                    ? kind === 'hp'
+                      ? `+${entry?.hpGain ?? 0}`
+                      : '✓'
+                    : undefined
+                }
+                tone={isCurrent ? 'inverted' : locked ? 'muted' : 'normal'}
+              />
+            ))}
+          </span>
         </span>
 
         {/* Status gutter — glyph over vertical label, as on the reference strip */}
@@ -247,25 +271,25 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
 function RewardChip({
   kind,
   hitDie,
-  sealedLabel,
+  resolvedLabel,
   tone,
 }: {
-  kind: LevelState['kind']
+  kind: LevelRewardKind
   hitDie: number
-  sealedLabel?: string
+  resolvedLabel?: string
   tone: 'normal' | 'inverted' | 'muted'
 }) {
-  const label = sealedLabel ?? (kind === 'hp' ? `d${hitDie} PV` : '2d6')
+  const label = resolvedLabel ?? (kind === 'hp' ? `d${hitDie}` : '2d6')
   return (
     <span
       className={cn(
-        'font-mono inline-flex max-w-full items-center gap-1 border px-1 py-[1px] text-[7px] tracking-[0.06em]',
+        'font-mono inline-flex max-w-full items-center gap-[3px] border px-[3px] py-[1px] text-[7px] tracking-[0.04em]',
         tone === 'inverted' && 'border-background/40 bg-background/15 text-background',
         tone === 'normal' && 'border-[var(--border)] bg-[var(--background)]/40 text-[var(--bone-dim)]',
         tone === 'muted' && 'border-[var(--border)] text-[var(--muted-foreground)]',
       )}
     >
-      <HugeiconsIcon icon={kind === 'hp' ? FavouriteIcon : SparklesIcon} size={9} strokeWidth={2} />
+      <HugeiconsIcon icon={kind === 'hp' ? FavouriteIcon : SparklesIcon} size={8} strokeWidth={2} />
       <span className="truncate">{label}</span>
     </span>
   )
