@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
+import type { Ancestry } from '@/types/ancestry.types'
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
+import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -490,13 +492,17 @@ function TalentTable({ classData }: { classData: Class }) {
 
 interface Props {
   classData: Class
+  /** Fills the ancestry tag beside the class one. Omitted, the tag is dropped. */
+  ancestry?: Ancestry
+  /** The sheet's languages, listed inside the ancestry tag. */
+  languages?: string[]
   stats: Record<string, number>
   techniqueStates: TechniqueState[]
   onStateChange: (states: TechniqueState[]) => void
   onRoll?: (result: RollResult) => void
 }
 
-export function ClassPanel({ classData, stats, techniqueStates, onStateChange, onRoll }: Props) {
+export function ClassPanel({ classData, ancestry, languages = [], stats, techniqueStates, onStateChange, onRoll }: Props) {
   const activeTechniques = classData.techniques.filter(
     (t): t is ClassTechnique => t !== null,
   )
@@ -507,34 +513,30 @@ export function ClassPanel({ classData, stats, techniqueStates, onStateChange, o
 
   return (
     <div className="worn-border" style={panelStyle({ padding: 42 })}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 24, color: 'var(--destructive)', lineHeight: 1 }}>⪧</span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {classData.name}
-          </span>
-        </span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--muted-foreground)', flexShrink: 0 }}>
-          d{classData.hitDie}
-        </span>
-      </div>
+      {/* Header — class and ancestry condensed into tags, with the
+          proficiencies, traits and languages one hover (or tap) away. */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
+        <DetailChip
+          label={classData.name}
+          trailing={`d${classData.hitDie}`}
+          detailLabel="proficiências da classe"
+        >
+          <ChipDetail label="Armas">{classData.weaponProficiency}</ChipDetail>
+          <ChipDetail label="Armaduras">{classData.armorProficiency}</ChipDetail>
+        </DetailChip>
 
-      {/* Proficiencies — half the block each on the six-column grid */}
-      <div className="grid-6-split" style={{ marginBottom: 20 }}>
-        {[
-          { label: 'Armas',     value: classData.weaponProficiency },
-          { label: 'Armaduras', value: classData.armorProficiency },
-        ].map(({ label, value }) => (
-          <div key={label}>
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 3 }}>
-              {label}
-            </div>
-            <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1.4 }}>
-              {value}
-            </div>
-          </div>
-        ))}
+        {ancestry && (
+          <DetailChip label={ancestry.name} detailLabel="talentos e idiomas da ancestralidade">
+            {ancestry.traits.map(trait => (
+              <ChipDetail key={trait.name} label={trait.name}>
+                {trait.description}
+              </ChipDetail>
+            ))}
+            <ChipDetail label="Idiomas">
+              {languages.length > 0 ? languages.join(', ') : 'Nenhum idioma registrado.'}
+            </ChipDetail>
+          </DetailChip>
+        )}
       </div>
 
       {/* Techniques */}

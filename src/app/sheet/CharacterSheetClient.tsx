@@ -211,6 +211,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             <div className="col-span-6">
               <ClassPanel
                 classData={cls}
+                ancestry={ancestry}
+                languages={character.languages}
                 stats={character.stats}
                 techniqueStates={character.techniqueStates}
                 onStateChange={handleTechniqueStatesChange}
