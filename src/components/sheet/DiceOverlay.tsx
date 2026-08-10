@@ -1,25 +1,40 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion'
 import type { RollResult } from '@/lib/dice'
 import { DICE_SPRING, heroKind, parseDie, type RollPhase } from '@/lib/diceMotion'
+import type { RollMode } from '@/hooks/useDiceRoll'
 import { DiceScene, type SceneDie } from '@/components/dice/DiceScene'
+import { DiceStage } from '@/components/dice/DiceStage'
 import { ResultBurst } from '@/components/dice/ResultBurst'
 
 /* ============================================================
    DiceOverlay — the cinematic layer for a roll.
 
    Owns no timing of its own: it renders whatever phase
-   useDiceRoll says we're in. Charge/tumble/slow-mo show the
-   DiceScene; the landing frame adds the camera shake, the
-   ResultBurst and the spring pop-in of the result panel, so
-   every impact cue hits on the same beat.
+   useDiceRoll says we're in.
+
+   In physics mode the dice are real: DiceStage takes the whole
+   viewport as its table and brings its own impact audio, glow and
+   camera work, so the overlay's job shrinks to the backdrop and a
+   result panel docked along the bottom, clear of the dice.
+
+   In timed mode it plays the hand-animated version — the DiceScene
+   centred, with the camera shake, the ResultBurst and the spring
+   pop-in of the panel all landing on the same beat.
    ============================================================ */
 
 interface Props {
   phase: RollPhase
   roll: RollResult | null
+  mode: RollMode
+  /** The roll DiceStage should throw; null outside a physics roll. */
+  throwRoll: RollResult | null
+  /** DiceStage reporting that the dice stopped. */
+  onSettled: (rollId: string) => void
+  /** DiceStage reporting it can't perform the roll. */
+  onUnavailable: () => void
 }
 
 /** Total counts up from the raw die result to the modified total. */
@@ -65,9 +80,21 @@ function CountUpTotal({ from, to, color, shadow, reduced }: {
   )
 }
 
-export function DiceOverlay({ phase, roll }: Props) {
+export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavailable }: Props) {
   const reduced = !!useReducedMotion()
   const visible = phase !== 'idle' && roll !== null
+
+  // `mode` holds its value between rolls, so this keeps the table — and with
+  // it the WebGL context, which is slow to build and capped per document —
+  // mounted from the first physics roll onwards. It only comes down if the
+  // table reports it can't run, which latches the hook into timed mode too.
+  const [tableFailed, setTableFailed] = useState(false)
+  const handleUnavailable = useCallback(() => {
+    setTableFailed(true)
+    onUnavailable()
+  }, [onUnavailable])
+
+  const physics = mode === 'physics' && !tableFailed
 
   const hero = roll ? heroKind(roll) : null
   const isCritical = hero === 'crit'
@@ -102,7 +129,9 @@ export function DiceOverlay({ phase, roll }: Props) {
     : 'none'
 
   // Camera reaction on impact: jitter + a small zoom punch, stronger on crits/fumbles.
-  const cameraAnimate = !reduced && landed
+  // Physics rolls skip it — the engine shakes its own camera, and jolting the
+  // result panel while the dice sit still reads as a glitch.
+  const cameraAnimate = !reduced && landed && !physics
     ? {
         x: hero ? [0, -10, 9, -7, 5, -3, 0] : [0, -6, 5, -3, 2, 0],
         y: hero ? [0, 5, -4, 3, -2, 0] : [0, 3, -2, 1, 0],
@@ -112,27 +141,67 @@ export function DiceOverlay({ phase, roll }: Props) {
     : { x: 0, y: 0, scale: 1 }
 
   return (
-    <AnimatePresence>
-      {visible && roll && (
+    <>
+      {/* Backdrop, below the dice so they read against it. */}
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            key="dice-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.28, ease: 'easeIn' } }}
+            transition={{ duration: 0.18 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 200,
+              pointerEvents: 'none',
+              background: 'rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(2px)',
+              WebkitBackdropFilter: 'blur(2px)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* The physics table. Mounted for the page's life once used, and always
+          present in the tree so the WebGL context survives between rolls —
+          only its opacity follows the overlay. */}
+      {physics && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 201,
+            pointerEvents: 'none',
+            opacity: visible ? 1 : 0,
+            transition: `opacity ${visible ? 180 : 280}ms ease`,
+          }}
+        >
+          <DiceStage
+            throwRoll={throwRoll}
+            visible={visible}
+            onSettled={onSettled}
+            onUnavailable={handleUnavailable}
+          />
+        </div>
+      )}
+
+      <AnimatePresence>
+        {visible && roll && (
         <motion.div
-          key="dice-overlay"
+          key="dice-hud"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.28, ease: 'easeIn' } }}
           transition={{ duration: 0.18 }}
           style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'fixed', inset: 0, zIndex: 202,
+            display: 'flex', alignItems: 'center',
+            // Real dice own the middle of the screen, so the readout docks
+            // along the bottom instead of landing on top of them.
+            justifyContent: physics ? 'flex-end' : 'center',
+            flexDirection: 'column',
+            paddingBottom: physics ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : 0,
             pointerEvents: 'none',
           }}
         >
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'rgba(0,0,0,0.3)',
-            backdropFilter: 'blur(2px)',
-            WebkitBackdropFilter: 'blur(2px)',
-          }} />
-
           {/* Camera rig — everything inside shakes together on impact */}
           <motion.div
             animate={cameraAnimate}
@@ -142,18 +211,20 @@ export function DiceOverlay({ phase, roll }: Props) {
               willChange: 'transform',
             }}
           >
-            <div style={{ position: 'relative' }}>
-              <DiceScene
-                key={roll.id}
-                phase={phase}
-                sides={sides}
-                dice={dice}
-                hero={hero}
-                seed={roll.id}
-                size={dice.length > 1 ? 88 : 100}
-              />
-              {landed && !reduced && <ResultBurst key={`burst-${roll.id}`} hero={hero} seed={roll.id} />}
-            </div>
+            {!physics && (
+              <div style={{ position: 'relative' }}>
+                <DiceScene
+                  key={roll.id}
+                  phase={phase}
+                  sides={sides}
+                  dice={dice}
+                  hero={hero}
+                  seed={roll.id}
+                  size={dice.length > 1 ? 88 : 100}
+                />
+                {landed && !reduced && <ResultBurst key={`burst-${roll.id}`} hero={hero} seed={roll.id} />}
+              </div>
+            )}
 
             {/* Label chip — present from the first frame so the roll reads as intentional */}
             <motion.span
@@ -273,7 +344,8 @@ export function DiceOverlay({ phase, roll }: Props) {
             )}
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   )
 }

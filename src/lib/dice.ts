@@ -9,8 +9,19 @@ export interface RollResult {
   total: number
   isCritical?: boolean
   isFumble?: boolean
+  /** The advantage/disadvantage pair — both faces, kept and discarded. */
   rolls?: number[]
   advantage?: 'advantage' | 'disadvantage'
+  /**
+   * Every physical die that was thrown, in order, with the face it shows.
+   * One entry per die on the table — the adv/dis pair is two entries, `3d6`
+   * is three. The 3D renderer needs this to give each die a target face;
+   * `rolls` stays the adv/dis pair alone, which is what the roll toasts and
+   * the Discord relay report.
+   */
+  dice?: number[]
+  /** Sides per die, so the renderer doesn't have to re-parse `die`. */
+  sides?: number
 }
 
 export function modifier(stat: number): number {
@@ -66,6 +77,8 @@ export function rollDie(
     isFumble: die === 'd20' && result === 1,
     rolls,
     advantage: advMode,
+    dice: rolls ?? [result],
+    sides,
   }
 }
 
@@ -82,8 +95,13 @@ export function rollFormula(formula: string, label: string, subLabel?: string): 
   const sides = parseInt(match[2])
   const mod = match[3] ? parseInt(match[3]) : 0
 
+  const dice: number[] = []
   let total = 0
-  for (let i = 0; i < count; i++) total += rollSides(sides)
+  for (let i = 0; i < count; i++) {
+    const face = rollSides(sides)
+    dice.push(face)
+    total += face
+  }
 
   return {
     id: Math.random().toString(36).substring(2, 9),
@@ -96,6 +114,8 @@ export function rollFormula(formula: string, label: string, subLabel?: string): 
     total: total + mod,
     isCritical: count === 1 && sides === 20 && total === 20,
     isFumble: count === 1 && sides === 20 && total === 1,
+    dice,
+    sides,
   }
 }
 

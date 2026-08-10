@@ -60,7 +60,15 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const onRollSettled = useCallback((result: RollResult) => {
     setRollHistory(prev => [result, ...prev].slice(0, 20))
   }, [])
-  const { phase: rollPhase, roll: activeRoll, startRoll } = useDiceRoll({ onSettled: onRollSettled })
+  const {
+    phase: rollPhase,
+    roll: activeRoll,
+    mode: rollMode,
+    throwRoll,
+    startRoll,
+    settle: settleRoll,
+    fallBackToTimed,
+  } = useDiceRoll({ onSettled: onRollSettled })
 
   const handleRoll = useCallback((result: RollResult) => {
     startRoll(result)
@@ -327,7 +335,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       )}
 
       <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
-      <DiceOverlay phase={rollPhase} roll={activeRoll} />
+      <DiceOverlay
+        phase={rollPhase}
+        roll={activeRoll}
+        mode={rollMode}
+        throwRoll={throwRoll}
+        onSettled={settleRoll}
+        onUnavailable={fallBackToTimed}
+      />
       <RollToasts rolls={rollHistory} />
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
     </AppShell>
