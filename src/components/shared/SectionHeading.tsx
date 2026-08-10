@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * Main panel heading — red marker glyph + gold Grenze title with a 2px gold
+ * Main panel heading — red marker glyph + gold display title with a 2px gold
  * bottom rule. Matches the `⪧ Talentos & Habilidades` panel headers.
  */
 export function SectionHeading({ children, marker = '⪧', trailing, className }: Props) {
@@ -39,7 +39,7 @@ export function SectionHeading({ children, marker = '⪧', trailing, className }
 }
 
 /**
- * Subsection heading — red marker glyph + gold Grenze title with a 1px gold
+ * Subsection heading — red marker glyph + gold display title with a 1px gold
  * bottom rule. Matches the `⁕ Técnicas` subheaders.
  */
 export function SectionSubheading({ children, marker = '⁕', trailing, className }: Props) {

@@ -18,6 +18,25 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className="style-lyra dark font-sans">
+      {/* React hoists these into <head>. Bricolage Grotesque ships the display
+          roles at wght 800, Libre Franklin the text roles across 100..900.
+
+          Not `next/font/google`: its `getFontAxes` only honours the `axes`
+          option when the weight is `variable`, so pinning Bricolage at 800
+          would drop the `opsz` axis and leave `font-optical-sizing: auto`
+          with nothing to act on. This embed keeps both — wght fixed at 800,
+          opsz live across 12..96.
+
+          The lint rule below is a false positive here: its own `pages` guard
+          never trips outside `pages/`, and a root layout wraps every route,
+          so nothing is "page-only" about these tags. */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet"
+      />
       <body className="h-full">
         {children}
         {/* Global grain texture overlay */}
