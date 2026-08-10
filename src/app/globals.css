@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Courier+Prime:wght@400;700&family=Grenze:wght@400;500;600;700;800;900&family=Jacquard+12&family=Jersey+20&family=Sedgwick+Ave&display=swap');
+/* Bricolage Grotesque and Libre Franklin load from the <link> tags in
+   layout.tsx, not from an @import here: a stylesheet @import is only
+   discovered after this file itself downloads, so the preconnect there wins
+   back a round trip on the Google Fonts handshake. */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -89,11 +92,16 @@
   --mist-purple:      var(--chart-5);
   --mist-bright:      var(--chart-4);
 
-  --font-heading: 'Grenze', serif;
-  --font-body:    'Cormorant Garamond', serif;
-  --font-mono:    'Courier Prime', monospace;
-  --font-stat:    'Jersey 20', sans-serif;   /* stat-grid labels & raw scores */
-  --font-numeral: 'Sedgwick Ave', cursive;   /* inked numerals: modifiers, HP, AC */
+  /* Two families cover every role. Bricolage Grotesque takes the display
+     work; Libre Franklin takes running text and the small technical labels.
+     The embed pins Bricolage's wght axis at 800, so markup asking for 500 or
+     900 on a heading still renders ExtraBold — weight is no longer the lever
+     for hierarchy there, size and letter-spacing are. */
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+  --font-body:    'Libre Franklin', sans-serif;
+  --font-mono:    'Libre Franklin', sans-serif;       /* small caps labels & metadata */
+  --font-stat:    'Bricolage Grotesque', sans-serif;  /* stat-grid labels & raw scores */
+  --font-numeral: 'Bricolage Grotesque', sans-serif;  /* inked numerals: modifiers, HP, AC */
 
   --shadow-sm:    0 2px 6px rgba(0,0,0,0.35);
   --shadow-md:    0 4px 14px rgba(0,0,0,0.45);
@@ -147,6 +155,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Both families are variable, and both settings inherit, so declaring them
+     once here covers every `var(--font-*)` call site. `wdth` is an axis only
+     Bricolage Grotesque exposes — Libre Franklin ignores it. Naming just
+     `wdth` leaves `wght` under the control of `font-weight`. */
+  font-optical-sizing: auto;
+  font-variation-settings: 'wdth' 100;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
