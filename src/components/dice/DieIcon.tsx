@@ -13,6 +13,7 @@ const DIE_ART: Record<number, string> = {
   4: '/dice/d4.png',
   6: '/dice/d6.png',
   8: '/dice/d8.png',
+  10: '/dice/d10.png',
   12: '/dice/d12.png',
   20: '/dice/d20.png',
 }
@@ -30,7 +31,7 @@ export function DieIcon({ sides, size = 32, shapeColor, numberColor, className }
   const [broken, setBroken] = useState(false)
   const src = DIE_ART[sides]
 
-  // No art for this die (d10), or the asset failed to load.
+  // A die with no art of its own, or an asset that failed to load.
   if (!src || broken) {
     return (
       <DieGlyph
