@@ -18,6 +18,12 @@ export const DICE_TIME = {
   linger: 2100,
   /** Shorter linger when the roll skipped the theatrics. */
   lingerReduced: 1700,
+  /**
+   * Physics rolls land when the table says the dice stopped, not on a clock.
+   * This is only the watchdog: if a die wedges against a wall or the render
+   * loop stalls, the result is shown anyway rather than hanging the overlay.
+   */
+  settleTimeout: 9000,
 } as const
 
 /** Cubic-bézier curves (framer-motion `ease` arrays). */

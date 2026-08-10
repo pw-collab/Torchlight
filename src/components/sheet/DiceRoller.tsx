@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
-import { DieGlyph } from '@/components/dice/DieGlyph'
+import { DieIcon } from '@/components/dice/DieIcon'
 import { DICE_SPRING } from '@/lib/diceMotion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,7 +95,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           />
         }
       >
-        <DieGlyph
+        <DieIcon
           className="animate-die-idle"
           sides={20}
           size={30}
@@ -134,7 +134,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               variant="hollow"
               className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[var(--destructive)] hover:bg-[var(--accent)]"
             >
-              <DieGlyph sides={d} size={28} shapeColor="var(--destructive)" numberColor="var(--background)" />
+              <DieIcon sides={d} size={28} shapeColor="var(--destructive)" numberColor="var(--background)" />
             </Button>
           ))}
         </div>
@@ -183,7 +183,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                   'hover:border-[var(--border)] hover:bg-[var(--accent)]',
                 )}
               >
-                <DieGlyph sides={20} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
+                <DieIcon sides={20} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
                 <span>{label}</span>
               </Button>
             ))}
