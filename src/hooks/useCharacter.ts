@@ -22,6 +22,7 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.technique_states !== undefined && { techniqueStates: updates.technique_states }),
     ...(updates.talents !== undefined && { talents: updates.talents }),
     ...(updates.level !== undefined && { level: updates.level }),
+    ...(updates.xp !== undefined && { xp: updates.xp }),
     ...(updates.hp_max !== undefined && { hpMax: updates.hp_max }),
     ...(updates.level_progress !== undefined && { levelProgress: updates.level_progress }),
     ...(updates.languages !== undefined && { languages: updates.languages }),

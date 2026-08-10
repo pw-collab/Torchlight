@@ -7,6 +7,7 @@ import type { Class } from '@/types/class.types'
 import type { LevelEntry } from '@/types/progression.types'
 import type { LevelRewardKind, LevelState } from '@/lib/progression'
 import { MAX_LEVEL, MIN_LEVEL } from '@/lib/progression'
+import { NumInput } from '@/components/sheet/NumInput'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
@@ -29,6 +30,7 @@ interface Props {
   onUndo: (kind: LevelRewardKind) => void
   onAdvance: () => void
   onRegress: () => void
+  onXpChange: (xp: number) => void
 }
 
 /**
@@ -50,6 +52,7 @@ export function LevelCard({
   onUndo,
   onAdvance,
   onRegress,
+  onXpChange,
 }: Props) {
   const { level, rewards, done, status, isCurrent, entry } = state
 
@@ -197,8 +200,22 @@ export function LevelCard({
               />
             </ProgressTrack>
           </Progress>
+
+          {/* XP is the one number on this tab the table edits by hand, so it is
+              a field rather than a readout. Commits on blur/Enter. */}
+          <NumInput
+            value={xp}
+            min={0}
+            onCommit={onXpChange}
+            aria-label="XP atual"
+            className={cn(
+              'font-mono h-7 w-12 shrink-0 rounded-none border-[var(--border)] bg-[var(--background)] px-1',
+              'text-[11px] tabular-nums',
+              xpPct >= 100 ? 'text-[var(--chart-1)]' : 'text-[var(--parchment-light)]',
+            )}
+          />
           <span className="font-mono shrink-0 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)]">
-            {xp} / {xpNeeded} · NVL {characterLevel}
+            / {xpNeeded} · NVL {characterLevel}
           </span>
         </div>
 

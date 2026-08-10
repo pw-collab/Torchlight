@@ -17,10 +17,15 @@ function Progress({
       className={cn("cn-progress-root flex flex-wrap gap-3", className)}
       {...props}
     >
-      {children}
-      <ProgressTrack>
-        <ProgressIndicator />
-      </ProgressTrack>
+      {/* The default track is a fallback, not an addition: appending it
+          unconditionally drew a second, unstyled bar (lyra gives
+          .cn-progress-track a height and .cn-progress-indicator the primary
+          red) underneath every caller that supplies its own track. */}
+      {children ?? (
+        <ProgressTrack>
+          <ProgressIndicator />
+        </ProgressTrack>
+      )}
     </ProgressPrimitive.Root>
   )
 }

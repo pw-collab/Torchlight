@@ -66,6 +66,7 @@ export function CharacterEditWizard({ character }: Props) {
   const [hpMax, setHpMax]           = useState(character.hpMax)
   const [hpCurrent, setHpCurrent]   = useState(character.hpCurrent)
   const [level, setLevel]           = useState(character.level)
+  const [xp, setXp]                 = useState(character.xp)
   const [levelProgress, setLevelProgress] = useState<LevelEntry[]>(character.levelProgress)
   const [domainId, setDomainId]     = useState(character.domainId ?? '')
   const [languages, setLanguages]   = useState<string[]>(character.languages)
@@ -161,6 +162,10 @@ export function CharacterEditWizard({ character }: Props) {
       setLevel(patch.level)
       row.level = patch.level
     }
+    if (patch.xp !== undefined) {
+      setXp(patch.xp)
+      row.xp = patch.xp
+    }
     if (patch.hpMax !== undefined) {
       const gain = patch.hpGain ?? 0
       // A level's HP raises the pool the character is walking around with, not
@@ -208,6 +213,7 @@ export function CharacterEditWizard({ character }: Props) {
       str: stats.str, dex: stats.dex, con: stats.con,
       int: stats.int, wis: stats.wis, cha: stats.cha,
       level,
+      xp,
       hp_max: hpMax,
       hp_current: Math.min(hpCurrent, hpMax),
       domain_id: domainId || null,
@@ -286,7 +292,7 @@ export function CharacterEditWizard({ character }: Props) {
           <ProgressionPanel
             classId={classId}
             level={level}
-            xp={character.xp}
+            xp={xp}
             con={stats.con}
             hpMax={hpMax}
             talents={localTalents}
