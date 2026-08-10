@@ -22,6 +22,7 @@ import { LevelTrack } from './LevelTrack'
 /** Everything a progression action can change. Only the touched keys are sent. */
 export interface ProgressionCommit {
   level?: number
+  xp?: number
   hpMax?: number
   hpGain?: number
   talents?: Talent[]
@@ -172,6 +173,11 @@ export function ProgressionPanel({
     }
   }
 
+  async function handleXpChange(next: number) {
+    if (next === xp) return
+    await onCommit({ xp: Math.max(0, next) })
+  }
+
   async function handleRegress() {
     if (busy || level <= MIN_LEVEL) return
     setBusy('level')
@@ -221,6 +227,7 @@ export function ProgressionPanel({
           onUndo={handleUndo}
           onAdvance={handleAdvance}
           onRegress={handleRegress}
+          onXpChange={handleXpChange}
         />
       </div>
 
