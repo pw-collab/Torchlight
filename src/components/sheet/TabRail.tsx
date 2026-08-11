@@ -26,7 +26,7 @@ interface Props<K extends string> {
  */
 export function TabRail<K extends string>({ tabs, active, onChange }: Props<K>) {
   return (
-    <nav aria-label="Navegação da ficha" className="flex flex-col gap-2">
+    <nav aria-label="Navegação da ficha" className="flex flex-col gap-2 mt-2">
       {tabs.map(t => {
         const isActive = t.key === active
         return (
