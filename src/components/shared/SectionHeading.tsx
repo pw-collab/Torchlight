@@ -5,8 +5,6 @@ import { cn } from '@/lib/utils'
 
 interface Props {
   children: ReactNode
-  /** Leading marker glyph (rendered in red). Defaults to the ⪧ used on the sheet's main panels. */
-  marker?: string
   /** Optional content pinned to the right of the heading (buttons, links, etc.). */
   trailing?: ReactNode
   /** Extra classes merged onto the heading wrapper (e.g. "mb-3"). */
@@ -14,10 +12,10 @@ interface Props {
 }
 
 /**
- * Main panel heading — red marker glyph + gold display title with a 2px gold
- * bottom rule. Matches the `⪧ Talentos & Habilidades` panel headers.
+ * Main panel heading — gold display title with a 2px gold bottom rule.
+ * Matches the `Talentos & Habilidades` panel headers.
  */
-export function SectionHeading({ children, marker = '⪧', trailing, className }: Props) {
+export function SectionHeading({ children, trailing, className }: Props) {
   return (
     <div
       className={cn(
@@ -25,13 +23,8 @@ export function SectionHeading({ children, marker = '⪧', trailing, className }
         className,
       )}
     >
-      <span className="inline-flex min-w-0 items-center gap-2">
-        <span aria-hidden className="font-heading text-destructive shrink-0 text-2xl leading-none">
-          {marker}
-        </span>
-        <span className="font-heading text-secondary-foreground truncate text-2xl leading-none font-semibold">
-          {children}
-        </span>
+      <span className="font-heading text-secondary-foreground min-w-0 truncate text-2xl leading-none font-semibold">
+        {children}
       </span>
       {trailing}
     </div>
@@ -39,10 +32,10 @@ export function SectionHeading({ children, marker = '⪧', trailing, className }
 }
 
 /**
- * Subsection heading — red marker glyph + gold display title with a 1px gold
- * bottom rule. Matches the `⁕ Técnicas` subheaders.
+ * Subsection heading — gold display title with a 1px gold bottom rule.
+ * Matches the `Técnicas` subheaders.
  */
-export function SectionSubheading({ children, marker = '⁕', trailing, className }: Props) {
+export function SectionSubheading({ children, trailing, className }: Props) {
   return (
     <div
       className={cn(
@@ -50,13 +43,8 @@ export function SectionSubheading({ children, marker = '⁕', trailing, classNam
         className,
       )}
     >
-      <span className="inline-flex min-w-0 items-center gap-2">
-        <span aria-hidden className="font-heading text-destructive shrink-0 text-base leading-none">
-          {marker}
-        </span>
-        <span className="font-heading text-secondary-foreground text-[17px] leading-none font-semibold">
-          {children}
-        </span>
+      <span className="font-heading text-secondary-foreground min-w-0 truncate text-[17px] leading-none font-semibold">
+        {children}
       </span>
       {trailing}
     </div>

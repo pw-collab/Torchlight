@@ -243,7 +243,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✦" className="mb-3.5">Conhecimentos</SectionHeading>
+        <SectionHeading className="mb-3.5">Conhecimentos</SectionHeading>
 
         {/* Languages */}
         <div style={{ marginBottom: 18 }}>
@@ -339,7 +339,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="✎" className="mb-3.5">Histórico</SectionHeading>
+        <SectionHeading className="mb-3.5">Histórico</SectionHeading>
         <div className="grid-6-split">
           {([
             ['concept',         'Conceito',           concept,    setConcept,    3],
@@ -364,7 +364,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="◈" className="mb-3.5">Relações e Conexões</SectionHeading>
+        <SectionHeading className="mb-3.5">Relações e Conexões</SectionHeading>
         <div className="grid-6-split" style={{ gap: 16 }}>
 
           <div>
@@ -403,7 +403,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
       <section className="worn-border" style={card}>
-        <SectionHeading marker="⚡" className="mb-3.5">Impulsos</SectionHeading>
+        <SectionHeading className="mb-3.5">Impulsos</SectionHeading>
         <div className="grid-6-split">
           {([
             ['secrets',    'Segredos',  secrets,    setSecrets],

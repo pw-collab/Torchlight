@@ -9,6 +9,7 @@ import type { RollResult } from '@/lib/dice'
 import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
+import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { VariantProps } from 'class-variance-authority'
@@ -446,7 +447,7 @@ function TalentTable({ classData }: { classData: Class }) {
 
   return (
     <div>
-      <SectionSubheading trailing={
+      <SectionSubheading className="mb-3" trailing={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)' }}>
             Role no modal de edição
@@ -542,7 +543,7 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
       {/* Techniques */}
       {activeTechniques.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <SectionSubheading>Técnicas</SectionSubheading>
+          <SectionSubheading className="mb-3">Técnicas</SectionSubheading>
           <div className="grid-6-cards">
             {activeTechniques.map(t => (
               <TechniqueCard
@@ -560,20 +561,6 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
 
       {/* Talent Table */}
       <TalentTable classData={classData} />
-    </div>
-  )
-}
-
-// ─── Section subheading (⁕ Title) ─────────────────────────────────────────────
-
-function SectionSubheading({ children, trailing }: { children: React.ReactNode; trailing?: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12, paddingBottom: 7, borderBottom: '1px solid var(--border)' }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--destructive)', lineHeight: 1 }}>⁕</span>
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 17, color: 'var(--muted-foreground)', lineHeight: 1 }}>{children}</span>
-      </span>
-      {trailing}
     </div>
   )
 }
