@@ -440,55 +440,6 @@ function TechniqueCard({
   )
 }
 
-// ─── Talent Table ─────────────────────────────────────────────────────────────
-
-function TalentTable({ classData }: { classData: Class }) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div>
-      <SectionSubheading className="mb-3" trailing={
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)' }}>
-            Role no modal de edição
-          </span>
-          <Button
-            variant="link"
-            onClick={() => setOpen(o => !o)}
-            className="font-sans text-secondary-foreground h-auto p-0 text-xs tracking-normal normal-case italic no-underline"
-          >
-            {open ? '▲ ocultar' : '▼ ver'}
-          </Button>
-        </div>
-      }>
-        Tabela de Talentos
-      </SectionSubheading>
-
-      {open && (
-        <div className="animate-ink-spread" style={{ border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
-            {['2D6', 'Efeito'].map((h, i) => (
-              <div key={h} style={{ fontFamily: 'var(--font-mono)', fontSize: 7, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px', borderRight: i === 0 ? '1px solid var(--border)' : 'none' }}>
-                {h}
-              </div>
-            ))}
-          </div>
-          {classData.talentTable.map((entry, i) => (
-            <div key={entry.roll} style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: i % 2 === 0 ? 'var(--card)' : 'var(--card)', borderBottom: i < classData.talentTable.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--bone-muted)', padding: '7px 10px', borderRight: '1px solid var(--border)', display: 'flex', alignItems: 'center' }}>
-                {entry.roll}
-              </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', padding: '7px 10px', lineHeight: 1.4 }}>
-                {entry.effect}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface Props {
