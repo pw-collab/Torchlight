@@ -1,6 +1,6 @@
 import type { Class } from '@/types/class.types'
 
-/** Homebrew class from the campaign wiki. Talent table pending. */
+/** Homebrew class from the campaign wiki. */
 export const barbarian: Class = {
   id: 'barbarian',
   name: 'Barbarian',
@@ -30,7 +30,13 @@ export const barbarian: Class = {
     null,
   ],
 
-  talentTable: [],
+  talentTable: [
+    { roll: '2',     min: 2,  max: 2,  effect: 'You score a critical hit on a natural roll of 19 or 20. Reroll if rolled again.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: 'You gain a +2 bonus to your Strength or Constitution score.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: 'You gain a +1 bonus to melee attack rolls.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'You gain a +1 bonus to all checks.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose one option from the table or +2 points to distribute to ability scores.' },
+  ],
 
   startingGear: ['greataxe', 'shield', 'tocha', 'racoes'],
 }

@@ -1,6 +1,6 @@
 import type { Class } from '@/types/class.types'
 
-/** Shadowdark class from the campaign wiki. Talent table pending. */
+/** Shadowdark class from the campaign wiki. */
 export const druid: Class = {
   id: 'druid',
   name: 'Druid',
@@ -36,7 +36,13 @@ export const druid: Class = {
     null,
   ],
 
-  talentTable: [],
+  talentTable: [
+    { roll: '2',     min: 2,  max: 2,  effect: "Your choice from Nature's Bounty lasts one additional round." },
+    { roll: '3-6',   min: 3,  max: 6,  effect: 'You gain a +2 bonus to Wisdom or Charisma.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: 'You gain a +1 bonus to attack rolls.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'You gain a +1 bonus to damage rolls when in Animal Form.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose one option from the table or +2 points to distribute to Ability Scores.' },
+  ],
 
   startingGear: ['staff', 'leather-armor', 'tocha', 'racoes'],
 }

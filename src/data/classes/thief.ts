@@ -31,10 +31,10 @@ export const thief: Class = {
   ],
 
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: '+2 to one stat of your choice.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to attack rolls.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Dexterity or Intelligence stat.' },
-    { roll: '10-11', min: 10, max: 11, effect: '+2 to Backstab damage bonus.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'Gain advantage on initiative rolls. (reroll if duplicate)' },
+    { roll: '3-5',   min: 3,  max: 5,  effect: 'Your Backstab deals +1 dice of damage.' },
+    { roll: '6-9',   min: 6,  max: 9,  effect: '+2 to Strength, Dexterity, or Charisma stat.' },
+    { roll: '10-11', min: 10, max: 11, effect: '+1 to melee and ranged attacks.' },
     { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
   ],
 

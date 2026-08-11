@@ -1,6 +1,6 @@
 import type { Class } from '@/types/class.types'
 
-/** Shadowdark class from the campaign wiki. Talent table pending. */
+/** Shadowdark class from the campaign wiki. */
 export const plagueDoctor: Class = {
   id: 'plague-doctor',
   name: 'Plague Doctor',
@@ -35,7 +35,13 @@ export const plagueDoctor: Class = {
     null,
   ],
 
-  talentTable: [],
+  talentTable: [
+    { roll: '2',     min: 2,  max: 2,  effect: 'Mesmerize one additional insect per day. (reroll duplicates)' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: 'Add an extra die rolled on an elixir you choose.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Intelligence or Dexterity stat, or +1 to elixir checks.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'You gain ADV on elixir checks for an elixir you choose.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+  ],
 
   startingGear: ['stiletto', 'leather-armor', 'kit-primeiros-socorros', 'tocha'],
 }

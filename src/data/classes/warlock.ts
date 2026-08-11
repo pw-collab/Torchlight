@@ -1,6 +1,6 @@
 import type { Class } from '@/types/class.types'
 
-/** Homebrew class from the campaign wiki. Talent table pending. */
+/** Homebrew class from the campaign wiki. */
 export const warlock: Class = {
   id: 'warlock',
   name: 'Warlock',
@@ -28,7 +28,13 @@ export const warlock: Class = {
     null,
   ],
 
-  talentTable: [],
+  talentTable: [
+    { roll: '2',     min: 2,  max: 2,  effect: '1/day, know the desires or fears of a creature in near range.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee or ranged attacks.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity or Constitution stat.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'Roll an additional talent on the Pyromancy Talents table.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose one option or +2 points to distribute to stats.' },
+  ],
 
   startingGear: ['longsword', 'leather-armor', 'tocha', 'racoes'],
 }

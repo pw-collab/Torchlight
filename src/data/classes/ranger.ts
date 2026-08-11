@@ -37,10 +37,10 @@ export const ranger: Class = {
   ],
 
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: '+2 to one stat of your choice.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to ranged attack rolls.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Dexterity or Wisdom stat.' },
-    { roll: '10-11', min: 10, max: 11, effect: 'Your animal companion gains +1 HP per your level.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'You deal d12 damage with one weapon type you choose.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee or ranged attacks and damage.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity, or Intelligence.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'You gain ADV on Herbalism checks for an herb you choose.' },
     { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
   ],
 

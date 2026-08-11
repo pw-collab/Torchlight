@@ -1,9 +1,6 @@
 import type { Class } from '@/types/class.types'
 
-/**
- * Homebrew class from the campaign wiki. The 2d6 talent table has not been
- * written yet, so levelling grants no random talent for now.
- */
+/** Homebrew class from the campaign wiki. */
 export const artificer: Class = {
   id: 'artificer',
   name: 'Artificer',
@@ -37,7 +34,13 @@ export const artificer: Class = {
     null,
   ],
 
-  talentTable: [],
+  talentTable: [
+    { roll: '2',     min: 2,  max: 2,  effect: 'Gain +2 Improvements and 1/day swap or reset all improvements.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee and ranged attacks.' },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Intelligence, Charisma or Strength.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'Spring-Loaded Trap deals an additional dice of damage.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose one option from this table.' },
+  ],
 
   startingGear: ['dagger', 'leather-armor', 'tocha', 'ferramentas-de-reparo'],
 }
