@@ -5,9 +5,14 @@ export type { Archetype, ArchetypeKitItem } from '@/types/archetype.types'
 /**
  * Archetype catalog — mirrors the "Arquétipos" database in the campaign wiki.
  *
- * Entries whose `talent`, `questions` or `connections` are still empty in the
- * wiki are carried here with the concept line alone; the UI renders whatever
- * exists and stays quiet about the rest.
+ * The wiki defines a talent for five archetypes (Cavaleiro Errante, Lutador de
+ * Arena, Metafísico, Necromante, Soldado); the rest were written here, in the
+ * shape those five set: a named rule, one clear trigger, one clear effect.
+ * Every drafted talent is marked with a comment so the table can tell which
+ * lines are the wiki's and which are still up for review.
+ *
+ * Questions and connections stay as the wiki has them — only two archetypes
+ * carry them so far, and the UI stays quiet about the rest.
  */
 export const ARCHETYPES: Archetype[] = [
   {
@@ -16,6 +21,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['plague-doctor', 'witch'],
     glyph: '⚗',
     summary: 'Escolha o Alquimista se você quer moldar corpos e destinos por meio de misturas voláteis.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Mistura instável. Uma vez por descanso, você prepara uma dose volátil com os reagentes que tem à mão: escolha um elixir ou poção que já saiba produzir e prepare-o sem gastar componentes. Se o teste falhar, a mistura estoura nas suas mãos e causa 1d4 de dano.',
     alliesRivals: 0,
   },
   {
@@ -24,6 +32,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['paladin', 'priest'],
     glyph: '✚',
     summary: 'Escolha o Anacoreta se você quer que fé, devoção e dever definam seu caminho.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Voto de reclusão. Você tem vantagem em testes para resistir a tentação, coerção e possessão. Depois de passar um dia inteiro em silêncio — sem falar com ninguém além dos seus companheiros —, seu primeiro teste de conjuração do dia seguinte é feito com vantagem.',
     alliesRivals: 2,
   },
   {
@@ -32,6 +43,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['artificer', 'ranger'],
     glyph: '⚙',
     summary: 'Escolha o Arcabuzeiro se você quer precisão, poder de fogo e inovação no campo de batalha.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Pólvora e paciência. Recarregar uma arma de pólvora não consome sua ação uma vez por rodada. Se gastar uma rodada inteira mirando, seu próximo ataque à distância é feito com vantagem.',
     alliesRivals: 0,
   },
   {
@@ -40,6 +54,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['wizard'],
     glyph: '✶',
     summary: 'Escolha o Arcanista se você quer domínio estruturado sobre forças arcanas.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Método arcano. Escolha uma escola de magia. Você recebe +1 em testes de conjuração de magias dessa escola e tem vantagem em testes para identificar magias e efeitos mágicos da mesma escola.',
     alliesRivals: 1,
   },
   {
@@ -58,6 +75,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['warlock', 'ranger'],
     glyph: '☠',
     summary: 'Escolha o Caçador de Monstros se você quer rastrear, estudar e explorar as fraquezas dos horrores.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Estudo da presa. Após observar uma criatura por uma rodada, faça um teste de INT (DC 12). Em sucesso, você recorda uma fraqueza dela e tem vantagem no primeiro ataque que fizer contra ela nesta cena.',
     alliesRivals: 3,
   },
   {
@@ -66,6 +86,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['druid'],
     glyph: '❧',
     summary: 'Escolha o Companheiro Primevo se você quer um vínculo profundo com uma besta guiada pelo instinto.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Vínculo primevo. Você tem um animal companheiro do tamanho de um lobo ou menor. Ele age no seu turno, tem HP igual ao seu nível mais seu modificador de SAB, e ataca causando 1d6. Se ele morrer, você pode formar um novo vínculo depois de uma noite em terreno selvagem.',
     alliesRivals: 0,
   },
   {
@@ -74,6 +97,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['bard'],
     glyph: '☉',
     summary: 'Escolha o Detetive se você quer revelar segredos através de observação e dedução.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Olhar de investigador. Ao examinar uma cena, pergunte ao mestre um detalhe que passaria despercebido — ele responde com a verdade, mas não com a interpretação. 1/cena, você tem vantagem em um teste para relacionar pistas ou desmascarar uma mentira.',
     alliesRivals: 1,
   },
   {
@@ -82,6 +108,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['wizard', 'plague-doctor'],
     glyph: '✎',
     summary: 'Escolha o Erudito se você quer que o conhecimento profundo seja sua maior arma.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Biblioteca mental. Você tem vantagem em testes de INT para recordar história, heráldica, anatomia ou lendas locais. Uma vez por descanso, ao consultar seus livros por dez minutos, converta um teste de conhecimento falho em sucesso.',
     alliesRivals: 1,
   },
   {
@@ -90,6 +119,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['wizard', 'sorcerer'],
     glyph: '✺',
     summary: 'Escolha o Essencialista se você quer magia bruta e indomada fluindo de dentro de você.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Sangue em brasa. Escolha um tipo de dano elemental. Suas magias que causam esse tipo de dano causam +1 de dano por dado — e, quando você falha em um teste de conjuração delas, sofre 1 de dano.',
     alliesRivals: 1,
   },
   {
@@ -98,6 +130,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['priest', 'monk'],
     glyph: '⚖',
     summary: 'Escolha o Inquisidor se você quer impor fé e julgamento através de disciplina e zelo.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Interrogatório inclemente. Você tem vantagem em testes para detectar mentiras e para intimidar durante um interrogatório. Uma criatura que você acusar em voz alta de heresia ou de pacto sofre −1 em testes contra você até o fim da cena.',
     alliesRivals: 2,
   },
   {
@@ -158,6 +193,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['monk', 'psionicist'],
     glyph: '☾',
     summary: 'Escolha o Ocultista se você quer explorar verdades ocultas que nenhuma mente sã deveria buscar.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Leitura proibida. Você lê qualquer texto ocultista sem precisar de tradução. 1/dia, ao examinar um símbolo, sinal ou ritual sobrenatural, faça um teste de SAB (DC 12): em sucesso, descobre o que ele invoca e o preço que cobra; em falha, faça um teste de horror.',
     alliesRivals: 4,
   },
   {
@@ -166,7 +204,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['bard', 'thief'],
     glyph: '♠',
     summary: 'Escolha o Patife se você quer usar charme, truques e oportunismo para abrir qualquer porta.',
-    talent: 'Charlatão / Contrabandista.',
+    // Talento redigido para a mesa — o wiki traz só o rótulo "Charlatan/Smuggler".
+    talent:
+      'Charlatão e contrabandista. Você tem vantagem em testes para blefar sobre sua identidade e para esconder objetos pequenos de uma revista. Uma vez por cena, você tira do bolso um item mundano e barato que "estava ali o tempo todo".',
     alliesRivals: 2,
   },
   {
@@ -175,6 +215,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['thief'],
     glyph: '⚓',
     summary: 'Escolha o Pirata se você quer viver de riscos, saques e liberdade além da lei.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Pé no cordame. Você tem vantagem em testes de escalada, equilíbrio, natação e para manobrar embarcações. Lutando sobre superfícies instáveis — conveses, telhados, carroças em movimento —, você recebe +1 de CA.',
     alliesRivals: 2,
   },
   {
@@ -194,6 +237,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['witch', 'druid'],
     glyph: '☥',
     summary: 'Escolha o Voodan se você quer extrair poder de espíritos, rituais e laços comunitários.',
+    // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
+    talent:
+      'Barganha com os espíritos. Oferecendo algo de valor, você pode fazer uma pergunta ao espírito de alguém morto há menos de um dia. 1/descanso, invoque um favor: um aliado próximo repete um teste falho.',
     alliesRivals: 1,
   },
 ]
