@@ -11,6 +11,7 @@ import { NumInput } from '@/components/sheet/NumInput'
 import { FACE_CLEARANCE, FACE_FADE, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
+import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Item } from '@/components/ui/item'
@@ -461,52 +462,57 @@ export function Spells({
       }}
     >
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, paddingBottom: 7, borderBottom: '1px solid var(--chart-4)', flexWrap: 'wrap' }}>
-        <OrnateTitle color="var(--chart-1)" className="flex-1">☽ Magias</OrnateTitle>
+      <SectionHeading
+        className="mb-3"
+        trailing={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {/* Learn button */}
+            {onSpellsChange && (
+              <Button variant="secondary" className="tactile" onClick={() => setShowPicker(true)}>
+                + Aprender
+              </Button>
+            )}
 
-        {/* Learn button */}
-        {onSpellsChange && (
-          <Button variant="secondary" className="tactile" onClick={() => setShowPicker(true)}>
-            + Aprender
-          </Button>
-        )}
-
-        {/* Casting controls */}
-        {onUpdate && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
-              Bônus
-            </span>
-            <NumInput
-              value={spellcastingBonus}
-              onCommit={n => onUpdate?.({ spellcastingBonus: n })}
-              className={cn(
-                'font-mono h-auto w-[46px] rounded-sm px-1 py-[3px] text-[13px] font-bold',
-                'border-[var(--chart-4)] bg-[var(--muted)]',
-                spellcastingBonus > 0
-                  ? 'text-[var(--verdigris-light)]'
-                  : spellcastingBonus < 0
-                    ? 'text-[var(--blood-bright)]'
-                    : 'text-[var(--bone-white)]',
-              )}
-            />
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
-              Atrib.
-            </span>
-            <NativeSelect
-              size="sm"
-              value={castingAttr}
-              onChange={e => onUpdate({ castingAttr: e.target.value })}
-              aria-label="Atributo de conjuração"
-              className="font-mono cursor-pointer rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] text-[10px] font-bold text-[var(--parchment-light)]"
-            >
-              {STAT_OPTIONS.map(o => (
-                <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            {/* Casting controls */}
+            {onUpdate && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
+                  Bônus
+                </span>
+                <NumInput
+                  value={spellcastingBonus}
+                  onCommit={n => onUpdate?.({ spellcastingBonus: n })}
+                  className={cn(
+                    'font-mono h-auto w-[46px] rounded-sm px-1 py-[3px] text-[13px] font-bold',
+                    'border-[var(--chart-4)] bg-[var(--muted)]',
+                    spellcastingBonus > 0
+                      ? 'text-[var(--verdigris-light)]'
+                      : spellcastingBonus < 0
+                        ? 'text-[var(--blood-bright)]'
+                        : 'text-[var(--bone-white)]',
+                  )}
+                />
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
+                  Atrib.
+                </span>
+                <NativeSelect
+                  size="sm"
+                  value={castingAttr}
+                  onChange={e => onUpdate({ castingAttr: e.target.value })}
+                  aria-label="Atributo de conjuração"
+                  className="font-mono cursor-pointer rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] text-[10px] font-bold text-[var(--parchment-light)]"
+                >
+                  {STAT_OPTIONS.map(o => (
+                    <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        }
+      >
+        Magias
+      </SectionHeading>
 
       {/* ── Spell grid — replicates ClassPanel's technique card design ── */}
       {equippedSpells.length === 0 ? (
