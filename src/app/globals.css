@@ -552,31 +552,6 @@ html, body {
   .vitals-stats { flex: 1 1 auto; }
 }
 
-/* ============================================================
-   Character creator — two-column stepper shell
-   ============================================================ */
-.creator-shell {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 24px;
-  width: 100%;
-  max-width: 1160px;
-  margin: 0 auto;
-  flex: 1;
-  align-items: start;
-}
-.creator-sidebar { grid-column: span 3 / span 3; position: sticky; top: 0; }
-.creator-mobile-steps { display: none; }
-.creator-main { grid-column: span 9 / span 9; min-width: 0; }
-.creator-content { max-width: 780px; }
-
-@media (max-width: 900px) {
-  .creator-shell { max-width: 780px; gap: 0; }
-  .creator-sidebar { display: none; }
-  .creator-main { grid-column: span 12 / span 12; }
-  .creator-mobile-steps { display: flex; }
-}
-
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
 .dice-formula {
   color: var(--candle-amber);

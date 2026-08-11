@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
+import { textGlyph } from '@/lib/utils'
 
 const ROMAN: [number, string][] = [
   [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
@@ -61,7 +62,7 @@ interface Props {
 
 /** Card face heights for the flip variant (front art vs. revealed detail). */
 const FLIP_FRONT_H = 176
-const FLIP_BACK_H  = 264
+const FLIP_BACK_H  = 320
 
 export function TarotCard({
   numeral, glyph, title, subtitle, accent, accentSoft,
@@ -71,6 +72,10 @@ export function TarotCard({
   const isCream = face === 'cream'
   const cardRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<PopoverPos | null>(null)
+
+  // Symbols default to their colour-emoji face on most platforms; the deck is
+  // monochrome, so plain strings are asked for their typographic form.
+  const mark = typeof glyph === 'string' ? textGlyph(glyph) : glyph
 
   useEffect(() => {
     if (flip || !expanded || !cardRef.current) { setPos(null); return }
@@ -129,6 +134,9 @@ export function TarotCard({
     ? `radial-gradient(circle at 50% 60%, ${INK(92)} 0%, transparent 72%), var(--parchment-face)`
     : `radial-gradient(circle at 50% 60%, ${accentSoft} 0%, transparent 72%), var(--card)`
   const hexGlyphShadow = isCream ? 'none' : (dimmed ? 'none' : `0 0 12px ${accentSoft}`)
+  // The cream face is light: the symbol has to be drawn in ink, not in the
+  // page's bone-white foreground, or it disappears into the card.
+  const hexGlyphColor = isCream ? 'var(--ink-on-cream)' : (dimmed ? 'var(--bone-muted)' : accent)
 
   // Dimmed: cream → ash-gray card; dark → darkened
   const dimFilter = isCream
@@ -172,7 +180,7 @@ export function TarotCard({
                 ? 'linear-gradient(90deg, var(--destructive) 0%, var(--destructive) 100%)'
                 : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
             }}>
-              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{mark}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontFamily: 'var(--font-heading)',
@@ -264,8 +272,9 @@ export function TarotCard({
           lineHeight: 1,
           textShadow: hexGlyphShadow,
           userSelect: 'none',
+          color: hexGlyphColor,
         }}>
-          {glyph}
+          {mark}
         </span>
       </span>
 
@@ -386,7 +395,7 @@ export function TarotCard({
                 ? 'linear-gradient(90deg, var(--destructive) 0%, var(--destructive) 100%)'
                 : `linear-gradient(90deg, rgba(0,0,0,0) 0%, ${accentSoft} 100%)`,
             }}>
-              <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+              <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>{mark}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontFamily: 'var(--font-heading)',

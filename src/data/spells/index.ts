@@ -40,6 +40,29 @@ export function getSpellsByTradition(tradition: SpellTradition): Spell[] {
   return SPELLS.filter((spell) => spell.classes.includes(tradition))
 }
 
+/**
+ * Highest spell tier a character of `level` may learn — one new tier every two
+ * levels, capped at 5 (the top tier a player character reaches).
+ */
+export function maxSpellTier(level: number): number {
+  return Math.min(5, Math.max(1, Math.ceil(level / 2)))
+}
+
+/**
+ * The spells a character may pick from: those on the given list, at or below
+ * the tier their level allows. Both filters are optional — leaving `tradition`
+ * out returns every list, which is what the sheet's editor wants.
+ */
+export function getLearnableSpells(
+  { tradition, maxTier }: { tradition?: SpellTradition; maxTier?: number } = {},
+): Spell[] {
+  return SPELLS.filter((spell) => {
+    if (tradition && !spell.classes.includes(tradition)) return false
+    if (maxTier != null && spell.tier > maxTier) return false
+    return true
+  }).sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name))
+}
+
 export function getSpellsByTier(tier: number): Spell[] {
   return SPELLS.filter((spell) => spell.tier === tier)
 }

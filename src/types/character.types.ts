@@ -14,6 +14,8 @@ export interface Character {
   id: string
   name: string
   classId: string
+  /** Archetype id from the archetype catalog. Empty when none was chosen. */
+  archetypeId: string
   ancestryId: string
   level: number
   xp: number
@@ -113,6 +115,7 @@ export interface CharacterRow {
   session_id: string
   name: string
   class_id: string
+  archetype_id?: string | null
   ancestry_id: string
   level: number
   str: number
@@ -143,8 +146,8 @@ export interface CharacterRow {
   technique_states?: TechniqueState[]
   languages?: string[]
   knowledge_areas?: KnowledgeArea[]
-  domain_id?: string
-  faith?: string
+  domain_id?: string | null
+  faith?: string | null
   background_text?: string | null
   background_details?: Character['backgroundDetails']
   relations?: Character['relations']
@@ -162,6 +165,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     id: row.id,
     name: row.name,
     classId: row.class_id,
+    archetypeId: row.archetype_id ?? '',
     ancestryId: row.ancestry_id,
     level: row.level,
     xp: row.xp ?? 0,

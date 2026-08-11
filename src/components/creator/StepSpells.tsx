@@ -1,82 +1,205 @@
 'use client'
 
-import { getSpellsForClass } from '@/data/spells/index'
+import { useMemo, useState } from 'react'
+import { getLearnableSpells, getSpell, maxSpellTier } from '@/data/spells/index'
+import { getClass } from '@/data/classes/index'
+import { TRADITION_LABEL, type SpellTradition } from '@/types/class.types'
+import { TarotCard, roman } from '@/components/shared/TarotCard'
+import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface Props {
   classId: string
   selectedSpells: string[]
   onChange: (spells: string[]) => void
+  /** Caps the tier on offer and the number of spells known. Defaults to 1. */
+  level?: number
 }
 
-export function StepSpells({ classId, selectedSpells, onChange }: Props) {
-  const available = getSpellsForClass(classId)
+const TRADITIONS: SpellTradition[] = ['Arcane', 'Divine', 'Primal', 'Witchcraft']
+
+const TRADITION_GLYPH: Record<SpellTradition, string> = {
+  Arcane: '✶',
+  Divine: '✚',
+  Primal: '❧',
+  Witchcraft: '☾',
+}
+
+export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Props) {
+  const cls = getClass(classId)
+  const casting = cls?.spellcasting
+  const classTradition = casting?.tradition ?? 'Arcane'
+
+  const [tradition, setTradition] = useState<SpellTradition>(classTradition)
+  const [flipped, setFlipped] = useState<string | null>(null)
+
+  const tierCap = maxSpellTier(level)
+  const known = (casting?.spellsKnown ?? casting?.spellsPerDay ?? [])[level - 1] ?? 0
+  const atLimit = known > 0 && selectedSpells.length >= known
+
+  const available = useMemo(
+    () => getLearnableSpells({ tradition, maxTier: tierCap }),
+    [tradition, tierCap],
+  )
 
   function toggle(id: string) {
     if (selectedSpells.includes(id)) {
       onChange(selectedSpells.filter(s => s !== id))
-    } else {
+    } else if (!atLimit) {
       onChange([...selectedSpells, id])
     }
   }
 
-  return (
-    <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground border-l-2 border-[var(--chart-4)] pl-3 text-[11px] leading-relaxed italic">
-        O grimório começa com as magias que o mestre permitiu carregar.
-        Cada palavra arcana tem um preço — escolha com cuidado.
+  if (!casting) {
+    return (
+      <p className="text-muted-foreground text-[11px] italic">
+        Esta classe não conjura feitiços.
       </p>
+    )
+  }
 
-      <div className="flex flex-col gap-[5px]">
-        {available.map(spell => {
-          const selected = selectedSpells.includes(spell.id)
-          return (
-            <Card
-              key={spell.id}
-              render={
-                <button type="button" onClick={() => toggle(spell.id)} aria-pressed={selected} />
-              }
-              size="sm"
+  return (
+    <div className="flex flex-col gap-5">
+      <StepProse>
+        Algumas classes ganham acesso a feitiços mágicos. A quantidade de magias que você conhece é
+        definida pela tabela da página Lançando Feitiços. As listas são separadas por tipo — Arcano,
+        Divino, Primal e Bruxaria — e a sua classe conjura da lista{' '}
+        {TRADITION_LABEL[classTradition]}.
+      </StepProse>
+
+      {/* Counter + tradition filter */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1">
+          {TRADITIONS.map(t => (
+            <Button
+              key={t}
+              variant="outline"
+              onClick={() => setTradition(t)}
+              aria-pressed={tradition === t}
               className={cn(
-                'cursor-pointer gap-0 rounded-sm border px-3.5 py-2.5 text-left ring-0 transition-all duration-200',
-                selected
-                  ? 'border-[var(--chart-4)] bg-[var(--muted)] shadow-[0_0_10px_var(--chart-4)]'
-                  : 'border-[var(--border)] bg-[var(--card)]',
+                'h-auto rounded-sm px-2.5 py-1.5 text-[9px] tracking-[0.12em] transition-colors duration-150',
+                tradition === t
+                  ? 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--parchment-light)]'
+                  : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
               )}
             >
-              <div className="flex items-start justify-between gap-2.5">
-                <span
+              {TRADITION_GLYPH[t]} {TRADITION_LABEL[t]}
+              {t === classTradition && (
+                <span className="ml-1 text-[7px] text-[var(--gold-oxidized)]">classe</span>
+              )}
+            </Button>
+          ))}
+        </div>
+
+        <span
+          className={cn(
+            'font-mono text-[10px]',
+            atLimit ? 'text-[var(--verdigris-light)]' : 'text-[var(--parchment-light)]',
+          )}
+        >
+          {selectedSpells.length}/{known || '—'} magias
+        </span>
+      </div>
+
+      {/* Chosen spells, including any picked from another list */}
+      {selectedSpells.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedSpells.map(id => {
+            const spell = getSpell(id)
+            return (
+              <Badge
+                key={id}
+                variant="outline"
+                render={
+                  <button type="button" onClick={() => toggle(id)} aria-label={`Remover ${spell?.name ?? id}`} />
+                }
+                className="cursor-pointer rounded-[10px] border-[var(--chart-4)] bg-[var(--muted)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]"
+              >
+                {spell?.name ?? id} ×
+              </Badge>
+            )
+          })}
+        </div>
+      )}
+
+      {atLimit && (
+        <p className="text-[10px] text-[var(--verdigris-light)] italic">
+          Você já conhece todas as magias permitidas no {level}º nível. Remova uma para trocar.
+        </p>
+      )}
+
+      {/* Spell deck — the card flips to reveal the full entry */}
+      <div className="tarot-grid tarot-grid--flip">
+        {available.map(spell => {
+          const learned = selectedSpells.includes(spell.id)
+          return (
+            <TarotCard
+              key={spell.id}
+              flip
+              numeral={roman(spell.tier)}
+              glyph={TRADITION_GLYPH[tradition]}
+              title={spell.name}
+              subtitle={spell.school || spell.type}
+              accent="var(--candle-amber)"
+              accentSoft="var(--border)"
+              expanded={flipped === spell.id}
+              onToggle={() => setFlipped(flipped === spell.id ? null : spell.id)}
+              corner={learned ? <span className="text-[10px] text-[var(--verdigris-light)]">✦</span> : undefined}
+              badges={
+                <Button
+                  variant="outline"
+                  onClick={() => toggle(spell.id)}
+                  disabled={!learned && atLimit}
                   className={cn(
-                    'font-heading text-[13px] tracking-[0.03em]',
-                    selected ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
+                    'h-auto rounded-sm px-2.5 py-1 text-[8px] tracking-[0.12em] transition-colors duration-150',
+                    learned
+                      ? 'border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--verdigris-light)]'
+                      : atLimit
+                        ? 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-transparent'
+                        : 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--parchment-light)]',
                   )}
                 >
-                  {spell.name}
-                </span>
-                <Badge
-                  variant="outline"
-                  className="font-mono mt-px shrink-0 rounded-[1px] border-[var(--chart-4)] bg-[var(--muted)] px-1.5 py-0.5 text-[7px] text-[var(--muted-foreground)]"
-                >
-                  NÍVEL {spell.tier}
-                </Badge>
-              </div>
-              {spell.description && (
-                <p className="text-muted-foreground mt-1 text-[10px] leading-snug italic">
+                  {learned ? '✓ Conhecida' : '+ Aprender'}
+                </Button>
+              }
+            >
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1">
+                  <Badge variant="outline" className={SPELL_CHIP_CLASS}>
+                    Nível {spell.tier}
+                  </Badge>
+                  {spell.castingTime && (
+                    <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.castingTime}</Badge>
+                  )}
+                  {spell.range && (
+                    <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.range}</Badge>
+                  )}
+                  {spell.duration && (
+                    <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.duration}</Badge>
+                  )}
+                </div>
+                <p className="text-[11px] leading-relaxed text-[var(--parchment-light)]">
                   {spell.description}
                 </p>
-              )}
-            </Card>
+                <p className="font-mono text-muted-foreground text-[8px] tracking-[0.08em] uppercase">
+                  {spell.classes.join(' · ')}
+                </p>
+              </div>
+            </TarotCard>
           )
         })}
       </div>
 
-      {selectedSpells.length > 0 && (
-        <div className="rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] px-3 py-2 text-[10px] text-[var(--muted-foreground)] italic">
-          {selectedSpells.length} magia{selectedSpells.length !== 1 ? 's' : ''} selecionada{selectedSpells.length !== 1 ? 's' : ''}
-        </div>
+      {available.length === 0 && (
+        <p className="text-muted-foreground text-[11px] italic">
+          Nenhuma magia de {TRADITION_LABEL[tradition]} disponível até o nível {tierCap} de círculo.
+        </p>
       )}
     </div>
   )
 }
+
+const SPELL_CHIP_CLASS =
+  'font-mono rounded-[1px] border-[var(--border)] bg-black/25 px-1.5 py-0.5 text-[7px] tracking-[0.06em] text-muted-foreground'

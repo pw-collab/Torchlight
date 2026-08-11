@@ -509,9 +509,6 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
           </div>
         </div>
       )}
-
-      {/* Talent Table */}
-      <TalentTable classData={classData} />
     </div>
   )
 }

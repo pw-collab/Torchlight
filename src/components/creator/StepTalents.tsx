@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Talent } from '@/types/talent.types'
 import { rollClassTalent, getClass } from '@/data/classes/index'
+import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -21,17 +22,34 @@ interface Props {
   classId: string
   talents: Talent[]
   onChange: (talents: Talent[]) => void
+  /**
+   * Creation mode: how many rolls the character is owed right now — one for
+   * level 1, plus the human's extra. Left out (sheet editing), rolls are
+   * unlimited, since the GM decides when a talent is granted.
+   */
+  rollBudget?: number
+  /** Shows the setting text above the roller. */
+  showIntro?: boolean
+  /**
+   * Reports the dice behind a roll, so creation can write the level-1
+   * advancement entry the sheet's progress track reads.
+   */
+  onRolled?: (talentId: string, record: { roll: number; die1: number; die2: number; effect: string }) => void
 }
 
-export function StepTalents({ classId, talents, onChange }: Props) {
+export function StepTalents({ classId, talents, onChange, rollBudget, showIntro, onRolled }: Props) {
   const classData = getClass(classId)
   const [lastRoll, setLastRoll] = useState<{ roll: number; die1: number; die2: number; effect: string } | null>(null)
   const [tableOpen, setTableOpen] = useState(false)
 
   const classTalents = talents.filter(t => t.origin === 'class')
+  // Classes whose 2d6 table has not been written in the wiki yet can't roll.
+  const hasTable = (classData?.talentTable.length ?? 0) > 0
+  const remaining = rollBudget != null ? Math.max(0, rollBudget - classTalents.length) : null
+  const spent = remaining === 0 || !hasTable
 
   function rollAndAdd() {
-    if (!classData) return
+    if (!classData || spent) return
     const r = rollClassTalent(classData.id)
     if (!r) return
     setLastRoll({ roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect })
@@ -42,6 +60,7 @@ export function StepTalents({ classId, talents, onChange }: Props) {
       description: `Talento de classe — 2d6: ${r.roll} (${r.die1}+${r.die2}) — ${classData.name}`,
     }
     onChange([...talents, newTalent])
+    onRolled?.(newTalent.id, { roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect })
   }
 
   function remove(id: string) {
@@ -54,6 +73,44 @@ export function StepTalents({ classId, talents, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      {showIntro && (
+        <StepProse>
+          Talentos são as habilidades especiais da sua classe. Os benefícios deles se combinam,
+          mesmo que o mesmo talento seja rolado repetidamente. Você ganha talentos em todo nível
+          ímpar — role cada vez que for habilitado a ganhar um.
+        </StepProse>
+      )}
+
+      {!hasTable && (
+        <p className="text-muted-foreground rounded-sm border border-dashed border-[var(--border)] px-3 py-2.5 text-[11px] italic">
+          A tabela de talentos de {classData.name} ainda não foi publicada — nenhuma rolagem inicial
+          por enquanto. Os talentos de classe listados na etapa de Classe já valem desde o 1º nível.
+        </p>
+      )}
+
+      {remaining != null && hasTable && (
+        <div
+          className={cn(
+            'flex items-center justify-between gap-2 rounded-sm border px-3 py-2',
+            spent
+              ? 'border-[var(--chart-2)] bg-[var(--chart-2)]/10'
+              : 'border-[var(--primary)] bg-[var(--primary)]/15',
+          )}
+        >
+          <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--candle-amber)] uppercase">
+            Rolagens iniciais
+          </span>
+          <span className="font-mono text-[10px] text-[var(--parchment-light)]">
+            {classTalents.length}/{rollBudget}
+            {rollBudget! > 1 && (
+              <span className="text-muted-foreground ml-1.5 text-[9px] italic">
+                inclui a rolagem extra de humano
+              </span>
+            )}
+          </span>
+        </div>
+      )}
+
       <Collapsible open={tableOpen} onOpenChange={setTableOpen} className="flex flex-col gap-4">
         {/* Roll controls */}
         <div className="flex items-center justify-between gap-2">
@@ -70,11 +127,19 @@ export function StepTalents({ classId, talents, onChange }: Props) {
 
           <Button
             onClick={rollAndAdd}
+            disabled={spent}
             variant="outline"
             size="sm"
-            className="text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]/40"
+            className={cn(
+              'text-foreground rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]/40',
+              spent && 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-transparent hover:bg-transparent',
+            )}
           >
-            ✦ Rolar 2d6 — {classData.name}
+            {!hasTable
+              ? '✦ Sem tabela de talentos'
+              : spent
+                ? '✓ Talentos iniciais rolados'
+                : `✦ Rolar 2d6 — ${classData.name}`}
           </Button>
         </div>
 

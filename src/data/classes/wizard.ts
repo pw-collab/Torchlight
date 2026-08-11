@@ -14,6 +14,9 @@ export const wizard: Class = {
   spellcasting: {
     stat: 'int',
     spellsPerDay: [2, 3, 3, 4, 4, 5, 5, 6, 6, 7],
+    tradition: 'Arcane',
+    // Spellcasting (below): three 1st-tier spells at level 1, one more per level.
+    spellsKnown: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   },
 
   techniques: [

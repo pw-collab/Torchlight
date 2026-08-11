@@ -5,8 +5,8 @@ export const thief: Class = {
   name: 'Thief',
   hitDie: 4,
 
-  weaponProficiency: 'Armas simples, adagas, arco curto',
-  armorProficiency: 'Armadura de couro (armaduras leves)',
+  weaponProficiency: 'Clava, besta, adaga, arco curto, espada curta',
+  armorProficiency: 'Armadura de couro, cota de malha de mithral',
 
   armorTraining: ['none', 'light'],
   weaponTraining: ['simple', 'ranged'],

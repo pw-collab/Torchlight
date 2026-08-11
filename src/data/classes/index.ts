@@ -9,10 +9,38 @@ import { bard } from './bard'
 import { monk } from './monk'
 import { paladin } from './paladin'
 import { psionicist } from './psionicist'
+import { artificer } from './artificer'
+import { barbarian } from './barbarian'
+import { druid } from './druid'
+import { plagueDoctor } from './plague-doctor'
+import { sorcerer } from './sorcerer'
+import { warlock } from './warlock'
+import { witch } from './witch'
+import { commoner } from './commoner'
 
 export type { ClassTechnique, TalentTableEntry } from '@/types/class.types'
+export { CLASS_LORE, getClassLore, type ClassLore } from './lore'
 
-export const classes: Class[] = [warrior, thief, wizard, priest, ranger, bard, monk, paladin, psionicist]
+/** Every base class in the campaign wiki, listed the way its table reads. */
+export const classes: Class[] = [
+  commoner,
+  artificer,
+  barbarian,
+  bard,
+  druid,
+  warrior,
+  monk,
+  paladin,
+  plagueDoctor,
+  priest,
+  psionicist,
+  ranger,
+  sorcerer,
+  thief,
+  warlock,
+  witch,
+  wizard,
+]
 
 const byId = new Map(classes.map(c => [c.id, c]))
 

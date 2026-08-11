@@ -1,74 +1,83 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { StepAncestry } from '@/components/creator/StepAncestry'
+import { createClient } from '@/lib/supabase'
+import { StepStats, EMPTY_STATS, type StatRoll } from '@/components/creator/StepStats'
 import { StepClass } from '@/components/creator/StepClass'
-import { StepStats } from '@/components/creator/StepStats'
-import { StepHP } from '@/components/creator/StepHP'
+import { StepArchetype } from '@/components/creator/StepArchetype'
 import { StepOrigin } from '@/components/creator/StepOrigin'
+import { StepHP } from '@/components/creator/StepHP'
+import { StepTalents } from '@/components/creator/StepTalents'
 import { StepEquipment } from '@/components/creator/StepEquipment'
 import { StepSpells } from '@/components/creator/StepSpells'
 import { StepNarrative } from '@/components/creator/StepNarrative'
 import { StepReview } from '@/components/creator/StepReview'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
-import { getItem } from '@/data/equipment/index'
-import { modifier } from '@/lib/dice'
+import { getArchetype, getArchetypesForClass } from '@/data/archetypes/index'
+import { armorClassFor, kitToInventoryItem, startingGearItems } from '@/lib/inventory'
 import type { Stat } from '@/types/class.types'
-import type { KnowledgeArea } from '@/types/character.types'
+import type { CharacterRow, KnowledgeArea } from '@/types/character.types'
+import type { InventoryItem } from '@/types/inventory.types'
+import type { LevelEntry } from '@/types/progression.types'
+import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const EMPTY_STATS: Record<Stat, number> = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }
-
-type StepId = 'ancestry' | 'class' | 'stats' | 'hp' | 'origin' | 'equipment' | 'spells' | 'narrative' | 'review'
+/** The creation chapters, in the order the rulebook lays them out. */
+type StepId =
+  | 'stats' | 'class' | 'archetype' | 'origin' | 'hp'
+  | 'talents' | 'equipment' | 'spells' | 'narrative' | 'review'
 
 interface StepDef {
   id: StepId
-  /** Short label shown in the sidebar timeline. */
+  /** Section number from the creation chapter. */
+  chapter: string
+  /** Short label for the tab strip. */
   label: string
-  /** Descriptive heading shown atop the main content. */
   title: string
-  /** One-line subtitle beneath the heading. */
-  subtitle: string
+  flavor: string
 }
 
 const ALL_STEPS: StepDef[] = [
-  { id: 'ancestry',  label: 'Quem És Tu?',        title: 'Quem És Tu?',          subtitle: 'Teu nome e teu sangue — o princípio de toda lenda.' },
-  { id: 'class',     label: 'Escolha a Vocação',  title: 'Escolha Tua Vocação',  subtitle: 'Tua classe define como lutas, conjuras e contas a história do teu herói.' },
-  { id: 'stats',     label: 'Forja os Atributos', title: 'Forja Teus Atributos', subtitle: 'Corpo e espírito revelados pela sorte do dado.' },
-  { id: 'hp',        label: 'A Chama Vital',       title: 'A Chama Vital',        subtitle: 'A vitalidade que resiste às trevas.' },
-  { id: 'origin',    label: 'Domínio & Fé',        title: 'Domínio & Fé',         subtitle: 'De qual sombra tu emergiste — e no que ainda acreditas.' },
-  { id: 'equipment', label: 'Pertences',          title: 'Pertences Iniciais',   subtitle: 'O que carregas quando partes rumo ao desconhecido.' },
-  { id: 'spells',    label: 'O Arcano',           title: 'O Arcano',             subtitle: 'As palavras proibidas que habitam teu grimório.' },
-  { id: 'narrative', label: 'A Narrativa',        title: 'Tua Narrativa',        subtitle: 'A história que nenhum arquivo pode apagar.' },
-  { id: 'review',    label: 'Revise o Herói',     title: 'Revise Teu Herói',     subtitle: 'O selo final na ficha do viajante.' },
+  { id: 'stats',     chapter: '1.1', label: 'Atributos',  title: 'Atributos',       flavor: 'Corpo e espírito revelados pela sorte do dado.' },
+  { id: 'class',     chapter: '1.2', label: 'Classe',     title: 'Escolha uma Classe', flavor: 'A vocação que define como você luta, conjura e sobrevive.' },
+  { id: 'archetype', chapter: '1.3', label: 'Arquétipo',  title: 'Escolha um Arquétipo', flavor: 'O tipo de pessoa que você é, antes das habilidades.' },
+  { id: 'origin',    chapter: '2',   label: 'Origem',     title: 'Origem',          flavor: 'De qual sombra você emergiu — e no que ainda acredita.' },
+  { id: 'hp',        chapter: '3',   label: 'Vida',       title: 'Pontos de Vida',  flavor: 'A vitalidade que resiste às trevas.' },
+  { id: 'talents',   chapter: '4',   label: 'Talentos',   title: 'Talentos',        flavor: 'As habilidades especiais que o destino concede.' },
+  { id: 'equipment', chapter: '5',   label: 'Pertences',  title: 'Equipamento',     flavor: 'O que você carrega ao partir rumo ao desconhecido.' },
+  { id: 'spells',    chapter: '6',   label: 'Magias',     title: 'Spellcasting',    flavor: 'As palavras proibidas que habitam seu grimório.' },
+  { id: 'narrative', chapter: '7',   label: 'Narrativa',  title: 'Sua Narrativa',   flavor: 'A história que nenhum arquivo pode apagar.' },
+  { id: 'review',    chapter: '8',   label: 'Revisão',    title: 'Revise seu Herói', flavor: 'O selo final na ficha do viajante.' },
 ]
 
-function Flame({ size = 13, color = 'currentColor' }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size * 1.14} viewBox="0 0 12 14" fill="none" aria-hidden>
-      <path
-        d="M6 0.4C6.6 3 9 4.1 9 7.6C9 10.2 7.7 12 6 12C4.3 12 3 10.3 3 8.3C3 6.8 3.9 6 4.5 5.4C4.6 6.7 5.1 7.4 5.8 7.4C6.5 7.4 6.7 6.4 6.4 5.4C6.1 4.4 5.4 3.3 6 0.4Z"
-        fill={color}
-      />
-    </svg>
-  )
+/** The talent roll owed at level 1 — plus the human's extra. */
+function talentBudgetFor(ancestryId: string): number {
+  return ancestryId === 'human' ? 2 : 1
+}
+
+interface TalentRollRecord {
+  roll: number
+  die1: number
+  die2: number
+  effect: string
 }
 
 export default function CharacterCreatorPage() {
   const router = useRouter()
-  const [stepIdx, setStepIdx] = useState(0)
+  const [tab, setTab] = useState<StepId>('stats')
 
-  // Core identity
+  // Identity
   const [name, setName] = useState('')
-  const [ancestryId, setAncestryId] = useState('human')
-  const [classId, setClassId] = useState('warrior')
+  const [classId, setClassId] = useState('')
+  const [archetypeId, setArchetypeId] = useState('')
+  const [ancestryId, setAncestryId] = useState('')
 
-  // Stats & HP
+  // Attributes & vitality
+  const [statRolls, setStatRolls] = useState<StatRoll[]>([])
   const [stats, setStats] = useState<Record<Stat, number>>(EMPTY_STATS)
   const [hpMax, setHpMax] = useState(0)
 
@@ -77,10 +86,11 @@ export default function CharacterCreatorPage() {
   const [languages, setLanguages] = useState<string[]>([])
   const [faith, setFaith] = useState('')
 
-  // Equipment & Knowledge
+  // Talents, gear, spells
+  const [talents, setTalents] = useState<Talent[]>([])
+  const [talentRolls, setTalentRolls] = useState<Record<string, TalentRollRecord>>({})
+  const [extraItems, setExtraItems] = useState<InventoryItem[]>([])
   const [knowledgeAreas, setKnowledgeAreas] = useState<KnowledgeArea[]>([])
-
-  // Spells
   const [spells, setSpells] = useState<string[]>([])
 
   // Narrative
@@ -98,36 +108,134 @@ export default function CharacterCreatorPage() {
 
   const cls = getClass(classId)
   const ancestry = getAncestry(ancestryId)
+  const archetype = archetypeId ? getArchetype(archetypeId) : undefined
   const hasSpells = cls?.spellcasting != null
+  const talentBudget = talentBudgetFor(ancestryId)
 
-  const steps = ALL_STEPS.filter(s => s.id !== 'spells' || hasSpells)
-  const current = steps[stepIdx]
-  const totalSteps = steps.length
-  const isLast = stepIdx === totalSteps - 1
+  const steps = useMemo(
+    () => ALL_STEPS.filter(s => s.id !== 'spells' || hasSpells),
+    [hasSpells],
+  )
+  const tabIdx = Math.max(0, steps.findIndex(s => s.id === tab))
+  const current = steps[tabIdx]
+  const isLast = tabIdx === steps.length - 1
 
-  function canNext(): boolean {
-    if (current.id === 'ancestry') return name.trim().length > 0
-    if (current.id === 'stats') return Object.values(stats).every(v => v > 0)
-    if (current.id === 'hp') return hpMax > 0
-    return true
+  /**
+   * Gear the character carries without having picked it: the class's starting
+   * equipment plus the archetype's kit. Rebuilt only when one of those two
+   * changes, so the rows keep their ids while the player edits other steps.
+   */
+  const grantedItems = useMemo<InventoryItem[]>(() => {
+    const fromClass = startingGearItems(cls?.startingGear ?? [])
+    const fromArchetype = (archetype?.kit ?? []).map(kitToInventoryItem)
+    return [...fromClass, ...fromArchetype]
+  }, [cls, archetype])
+
+  const equipment = useMemo(() => [...grantedItems, ...extraItems], [grantedItems, extraItems])
+
+  // ── Step gating ──────────────────────────────────────────────────────────
+  /** Whether a step has everything it needs before the next one opens. */
+  function isComplete(id: StepId): boolean {
+    switch (id) {
+      case 'stats':     return Object.values(stats).every(v => v > 0)
+      case 'class':     return classId !== ''
+      case 'archetype': return archetypeId !== '' || getArchetypesForClass(classId).length === 0
+      case 'origin':    return ancestryId !== ''
+      case 'hp':        return hpMax > 0
+      // Classes whose 2d6 table is still unwritten have nothing to roll.
+      case 'talents':   return (cls?.talentTable.length ?? 0) === 0
+        || talents.filter(t => t.origin === 'class').length >= talentBudget
+      case 'narrative': return name.trim().length > 0
+      default:          return true
+    }
   }
 
-  function next() { if (stepIdx < totalSteps - 1) setStepIdx(i => i + 1) }
-  function prev() { if (stepIdx > 0) setStepIdx(i => i - 1) }
+  /** The furthest tab reachable right now — the first unfinished step. */
+  const openIdx = useMemo(() => {
+    const blocked = steps.findIndex(s => !isComplete(s.id))
+    return blocked === -1 ? steps.length - 1 : blocked
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps, stats, classId, cls, archetypeId, ancestryId, hpMax, talents, talentBudget, name])
+
+  const canAdvance = isComplete(current.id)
+
+  // The tab strip scrolls on narrow screens; keep the active tab in view.
+  const stripRef = useRef<HTMLDivElement>(null)
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  useEffect(() => {
+    const strip = stripRef.current
+    const el = tabRefs.current[tab]
+    if (!strip || !el) return
+    const target = el.offsetLeft - strip.clientWidth / 2 + el.offsetWidth / 2
+    strip.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
+  }, [tab])
+
+  function goToTab(target: StepId) {
+    const targetIdx = steps.findIndex(s => s.id === target)
+    if (targetIdx < 0 || targetIdx > Math.max(openIdx, tabIdx)) return
+    setTab(target)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function next() { goToTab(steps[Math.min(steps.length - 1, tabIdx + 1)].id) }
+  function prev() { goToTab(steps[Math.max(0, tabIdx - 1)].id) }
+
+  // ── Cascading choices ────────────────────────────────────────────────────
+  function handleClassChange(id: string) {
+    setClassId(id)
+    // Archetypes, talents and spells all hang off the class.
+    setArchetypeId('')
+    setTalents([])
+    setTalentRolls({})
+    setSpells([])
+  }
 
   function handleAncestryChange(id: string) {
     setAncestryId(id)
     const a = getAncestry(id)
-    setDomainId('')
+    // The home domain survives unless the new ancestry cannot come from there.
+    const options = a?.domainOptions
+    const stillNative = domainId !== ''
+      && (!options || options.includes('*') || options.includes(domainId))
+    if (!stillNative) setDomainId('')
     setLanguages(a?.fixedLanguages ?? [])
+    // Losing the human's extra roll must not leave an extra talent behind.
+    const budget = talentBudgetFor(id)
+    setTalents(prev => {
+      const classTalents = prev.filter(t => t.origin === 'class')
+      if (classTalents.length <= budget) return prev
+      const keep = new Set(classTalents.slice(0, budget).map(t => t.id))
+      return prev.filter(t => t.origin !== 'class' || keep.has(t.id))
+    })
   }
 
   function handleDomainChange(id: string) {
     setDomainId(id)
-    const a = getAncestry(ancestryId)
-    const fixed = a?.fixedLanguages ?? []
-    // Keep free langs (not in any domain pool), reset domain selections
-    setLanguages(fixed)
+    setLanguages(getAncestry(ancestryId)?.fixedLanguages ?? [])
+  }
+
+  function handleTalentRolled(talentId: string, record: TalentRollRecord) {
+    setTalentRolls(prev => ({ ...prev, [talentId]: record }))
+  }
+
+  /**
+   * Level 1 is a talent level, so creation already resolves it. The entry lets
+   * the sheet's advancement track open on level 2 instead of re-offering a
+   * roll the character has already made.
+   */
+  function levelOneProgress(): LevelEntry[] {
+    const firstRolled = talents.find(t => t.origin === 'class' && talentRolls[t.id])
+    if (!firstRolled) return []
+    const record = talentRolls[firstRolled.id]
+    return [{
+      level: 1,
+      talentId: firstRolled.id,
+      talentRoll: record.roll,
+      talentDie1: record.die1,
+      talentDie2: record.die2,
+      talentEffect: record.effect,
+      sealedAt: new Date().toISOString(),
+    }]
   }
 
   async function save() {
@@ -137,33 +245,32 @@ export default function CharacterCreatorPage() {
     if (!user) { router.push('/login'); return }
     const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
 
-    const equipment = (cls?.startingGear ?? []).map(id => {
-      const item = getItem(id)
-      return { itemId: id, slots: item?.slots ?? 1 }
-    })
+    // The archetype's advantage rides along as a talent so it shows on the sheet.
+    const allTalents: Talent[] = archetype
+      ? [...talents, {
+          id: `archetype-${archetype.id}`,
+          name: archetype.name,
+          origin: 'general',
+          description: archetype.talent ?? archetype.summary,
+        }]
+      : talents
 
-    let ac = 10 + modifier(stats.dex)
-    for (const e of equipment) {
-      const item = getItem(e.itemId)
-      if (item?.type === 'armor' && item.properties) {
-        const props = item.properties as { baseAC: number; dexModApplies: boolean }
-        ac = props.dexModApplies ? props.baseAC + modifier(stats.dex) : props.baseAC
-      }
-    }
-
-    const { data, error } = await supabase.from('characters').insert({
+    const row: Partial<CharacterRow> = {
       user_id: discordId,
-      name,
+      name: name.trim(),
       class_id: classId,
+      archetype_id: archetypeId || null,
       ancestry_id: ancestryId,
       level: 1,
       str: stats.str, dex: stats.dex, con: stats.con,
       int: stats.int, wis: stats.wis, cha: stats.cha,
       hp_max: hpMax, hp_current: hpMax,
-      ac,
+      ac: armorClassFor(equipment, stats.dex),
       luck_tokens: 0,
       equipment,
       spells,
+      talents: allTalents,
+      level_progress: levelOneProgress(),
       torch_end_at: null,
       xp: 0,
       domain_id: domainId || null,
@@ -173,447 +280,249 @@ export default function CharacterCreatorPage() {
       background_details: backgroundDetails,
       relations,
       impulses,
-    }).select('id').single()
+    }
+
+    const { data, error } = await supabase.from('characters').insert(row).select('id').single()
 
     if (data) router.push(`/sheet/${data.id}`)
     else { console.error(error); setSaving(false) }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      background: `
-        radial-gradient(130% 80% at 50% -12%, color-mix(in oklch, var(--card), transparent 70%) 0%, transparent 58%),
-        radial-gradient(90% 70% at 100% 110%, color-mix(in oklch, var(--card), transparent 78%) 0%, transparent 70%),
-        radial-gradient(70% 60% at 0% 100%, color-mix(in oklch, var(--card), transparent 80%) 0%, transparent 70%),
-        var(--ink-black)`,
-    }}>
-
-      {/* ── Top bar ─────────────────────────────────────────── */}
-      <header style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        alignItems: 'center',
-        padding: `calc(16px + var(--safe-top)) 24px 14px`,
-        borderBottom: '1px solid var(--border)',
-      }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--candle-amber)', opacity: 0.75 }}>
-          <Flame size={12} />
-        </span>
-        <h1 style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 14,
-          fontWeight: 600,
-          letterSpacing: '0.34em',
-          textTransform: 'uppercase',
-          color: 'var(--parchment-light)',
-          textAlign: 'center',
-          paddingLeft: '0.34em',
-        }}>
-          Forjar um Herói
-        </h1>
-        <div style={{ justifySelf: 'end' }}>
-          <Link
-            href="/home"
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 11,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: 'var(--bone-muted)',
-              textDecoration: 'none',
-              transition: 'color 200ms',
-              minHeight: 44,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--parchment-light)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--bone-muted)' }}
-          >
-            Sair
-          </Link>
-        </div>
-      </header>
-
-      {/* ── Two-column shell ────────────────────────────────── */}
-      <div className="creator-shell">
-
-        {/* ── Sidebar stepper ──────────────────────────────── */}
-        <aside className="creator-sidebar" style={{ padding: '48px 28px 40px 40px' }}>
-          <div style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 9,
-            letterSpacing: '0.28em',
-            textTransform: 'uppercase',
-            color: 'var(--bone-muted)',
-            marginBottom: 26,
-            opacity: 0.7,
-          }}>
-            A Forja
+    <div
+      className="flex min-h-screen flex-col items-center bg-[var(--ink-black)] px-5"
+      style={{ paddingBottom: 'calc(84px + var(--safe-bottom))' }}
+    >
+      {/* ── Header: exit link, identity line and the chapter strip ────────── */}
+      <header className="bg-background/95 sticky top-0 z-20 -mx-5 w-[calc(100%+40px)] border-b border-[var(--border)] px-5 pt-3 backdrop-blur-[6px]">
+        <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              href="/home"
+              className="font-heading flex min-h-11 items-center py-2 text-[11px] tracking-[0.12em] text-[var(--bone-muted)] uppercase transition-colors duration-200 hover:text-[var(--parchment-light)]"
+            >
+              ← Sair
+            </Link>
+            <span className="font-mono truncate text-[8px] tracking-[0.1em] text-[var(--muted-foreground)]">
+              FORJAR · {name || 'Sem nome'} · {cls?.name ?? 'sem classe'} · NVL 1
+            </span>
           </div>
 
-          <nav>
+          {/* View switches, not tab panels — the same call TabRail makes on the
+              sheet. A chapter stays locked until the one before it is done. */}
+          <nav
+            ref={stripRef}
+            aria-label="Capítulos da criação"
+            className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {steps.map((s, i) => {
-              const state = i < stepIdx ? 'done' : i === stepIdx ? 'current' : 'todo'
-              const clickable = i < stepIdx
-              const isFirst = i === 0
-              const isLastItem = i === steps.length - 1
-
-              const nodeColor =
-                state === 'current' ? 'var(--candle-glow)'
-                  : state === 'done' ? 'var(--gold-oxidized)'
-                    : 'var(--border)'
-
-              const labelColor =
-                state === 'current' ? 'var(--parchment-pale)'
-                  : state === 'done' ? 'var(--parchment-light)'
-                    : 'var(--muted-foreground)'
-
+              const isActive = s.id === tab
+              const locked = i > Math.max(openIdx, tabIdx)
               return (
-                <Button
+                <button
                   key={s.id}
-                  variant="ghost"
-                  onClick={() => { if (clickable) setStepIdx(i) }}
-                  disabled={!clickable}
-                  aria-current={state === 'current' ? 'step' : undefined}
+                  type="button"
+                  ref={el => { tabRefs.current[s.id] = el }}
+                  onClick={() => goToTab(s.id)}
+                  disabled={locked}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'grid h-auto w-full grid-cols-[32px_1fr] gap-3.5 p-0 text-left',
-                    'hover:bg-transparent disabled:opacity-100',
-                    clickable ? 'cursor-pointer' : 'cursor-default',
+                    'tactile font-heading h-10 shrink-0 border px-3 text-[11px] font-extrabold tracking-[0.06em] whitespace-nowrap uppercase',
+                    'transition-colors duration-150 outline-none',
+                    'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+                    isActive
+                      ? 'bg-destructive text-background border-[var(--bone-dim)]'
+                      : 'bg-secondary border-[var(--border)] text-[var(--muted-foreground)]',
+                    locked
+                      ? 'cursor-not-allowed opacity-40'
+                      : 'cursor-pointer hover:border-[var(--bone-dim)] hover:text-[var(--bone-dim)]',
                   )}
                 >
-                  {/* Node + connector column */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    alignSelf: 'stretch',
-                  }}>
-                    {/* connector above */}
-                    <div style={{
-                      width: 1.5,
-                      flex: '0 0 14px',
-                      background: isFirst ? 'transparent' : (state === 'todo' ? 'var(--border)' : 'var(--gold-oxidized)'),
-                    }} />
-                    {/* node */}
-                    <div
-                      className={state === 'current' ? 'animate-flicker' : undefined}
-                      style={{
-                        width: state === 'todo' ? 10 : 26,
-                        height: state === 'todo' ? 10 : 26,
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        color: nodeColor,
-                        background: state === 'current'
-                          ? 'radial-gradient(circle, color-mix(in oklch, var(--chart-1), transparent 72%), color-mix(in oklch, var(--chart-1), transparent 95%))'
-                          : state === 'todo' ? 'var(--border)' : 'color-mix(in oklch, var(--border), transparent 50%)',
-                        border: state === 'todo' ? 'none' : `1.5px solid ${state === 'current' ? 'color-mix(in oklch, var(--chart-1), transparent 30%)' : 'var(--border)'}`,
-                        boxShadow: state === 'current' ? 'var(--glow-candle)' : 'none',
-                        transition: 'all 300ms var(--ease-ritual)',
-                      }}
-                    >
-                      {state !== 'todo' && <Flame size={11} />}
-                    </div>
-                    {/* connector below */}
-                    <div style={{
-                      width: 1.5,
-                      flex: '1 0 14px',
-                      background: isLastItem ? 'transparent' : (i < stepIdx ? 'var(--gold-oxidized)' : 'var(--border)'),
-                    }} />
-                  </div>
-
-                  {/* Label column */}
-                  <div style={{ paddingTop: 10, paddingBottom: 10, minWidth: 0 }}>
-                    {state === 'current' && (
-                      <div style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 8,
-                        letterSpacing: '0.16em',
-                        textTransform: 'uppercase',
-                        color: 'var(--candle-amber)',
-                        marginBottom: 4,
-                      }}>
-                        Forjando {stepIdx + 1} de {totalSteps}
-                      </div>
-                    )}
-                    <div style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: state === 'current' ? 14 : 12,
-                      fontWeight: state === 'current' ? 600 : 500,
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                      color: labelColor,
-                      lineHeight: 1.3,
-                      transition: 'color 300ms',
-                    }}>
-                      {s.label}
-                    </div>
-                  </div>
-                </Button>
+                  {s.label}
+                </button>
               )
             })}
           </nav>
-        </aside>
+        </div>
+      </header>
 
-        {/* ── Main content ─────────────────────────────────── */}
-        <main className="creator-main" style={{ padding: '40px 28px 140px' }}>
-          <div className="creator-content" style={{ margin: '0 auto' }}>
-
-            {/* Mobile step indicator (sidebar hidden < 900px) */}
-            <div className="creator-mobile-steps" style={{
-              flexDirection: 'column',
-              gap: 10,
-              marginBottom: 22,
-            }}>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                {steps.map((s, i) => (
-                  <span
-                    key={s.id}
-                    style={{
-                      height: 3,
-                      flex: 1,
-                      borderRadius: 2,
-                      background: i < stepIdx ? 'var(--muted-foreground)'
-                        : i === stepIdx ? 'var(--chart-1)'
-                          : 'var(--border)',
-                      boxShadow: i === stepIdx ? '0 0 8px color-mix(in oklch, var(--chart-1), transparent 50%)' : 'none',
-                      transition: 'all 300ms var(--ease-ritual)',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Step header */}
-            <div key={current.id} className="animate-mist-rise">
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 9,
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                color: 'var(--candle-amber)',
-                marginBottom: 12,
-              }}>
-                Passo {stepIdx + 1} de {totalSteps}
-              </div>
-              <h2 style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(28px, 5vw, 40px)',
-                fontWeight: 700,
-                color: 'var(--parchment-pale)',
-                letterSpacing: '0.03em',
-                lineHeight: 1.02,
-                textTransform: 'uppercase',
-                marginBottom: 12,
-              }}>
-                {current.title}
-              </h2>
-              <p style={{
-                fontFamily: 'var(--font-body)',
-                fontStyle: 'italic',
-                fontSize: 15,
-                color: 'var(--bone-muted)',
-                letterSpacing: '0.01em',
-                maxWidth: 620,
-                lineHeight: 1.5,
-              }}>
-                {current.subtitle}
-              </p>
-            </div>
-
-            {/* Rule */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              margin: '26px 0 28px',
-            }}>
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              <span style={{ color: 'var(--candle-amber)', opacity: 0.5, display: 'flex' }}>
-                <Flame size={10} />
-              </span>
-              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-            </div>
-
-            {/* Step content */}
-            <div key={`content-${current.id}`} className="animate-ink-spread">
-              {current.id === 'ancestry' && (
-                <StepAncestry
-                  name={name}
-                  ancestryId={ancestryId}
-                  onNameChange={setName}
-                  onAncestryChange={handleAncestryChange}
-                />
-              )}
-              {current.id === 'class' && (
-                <StepClass
-                  classId={classId}
-                  onChange={id => { setClassId(id); setSpells([]) }}
-                />
-              )}
-              {current.id === 'stats' && (
-                <StepStats stats={stats} onChange={setStats} />
-              )}
-              {current.id === 'hp' && (
-                <StepHP classId={classId} con={stats.con} hpMax={hpMax} onRoll={setHpMax} />
-              )}
-              {current.id === 'origin' && (
-                <StepOrigin
-                  ancestryId={ancestryId}
-                  intStat={stats.int}
-                  domainId={domainId}
-                  languages={languages}
-                  faith={faith}
-                  onDomainChange={handleDomainChange}
-                  onLanguagesChange={setLanguages}
-                  onFaithChange={setFaith}
-                />
-              )}
-              {current.id === 'equipment' && (
-                <StepEquipment
-                  classId={classId}
-                  str={stats.str}
-                  knowledgeAreas={knowledgeAreas}
-                  onKnowledgeAreasChange={setKnowledgeAreas}
-                />
-              )}
-              {current.id === 'spells' && (
-                <StepSpells classId={classId} selectedSpells={spells} onChange={setSpells} />
-              )}
-              {current.id === 'narrative' && (
-                <StepNarrative
-                  backgroundDetails={backgroundDetails}
-                  relations={relations}
-                  impulses={impulses}
-                  onBackgroundChange={setBackgroundDetails}
-                  onRelationsChange={setRelations}
-                  onImpulsesChange={setImpulses}
-                />
-              )}
-              {current.id === 'review' && (
-                <StepReview
-                  name={name}
-                  classId={classId}
-                  ancestryId={ancestryId}
-                  stats={stats}
-                  hpMax={hpMax}
-                  domainId={domainId}
-                  languages={languages}
-                  faith={faith}
-                  knowledgeAreas={knowledgeAreas}
-                  spells={spells}
-                  backgroundDetails={backgroundDetails}
-                  relations={relations}
-                  impulses={impulses}
-                />
-              )}
-            </div>
-          </div>
-        </main>
+      {/* ── Chapter heading ───────────────────────────────────────────────── */}
+      <div key={current.id} className="animate-mist-rise mt-6 mb-5 w-full max-w-[760px] text-center">
+        <div className="font-heading mb-2 text-[9px] tracking-[0.26em] text-[var(--candle-amber)] uppercase opacity-60">
+          ✦ {current.chapter} ✦
+        </div>
+        <h2 className="font-heading mb-2.5 text-[30px] leading-none font-bold tracking-[0.04em] text-[var(--parchment-pale)]">
+          {current.title}
+        </h2>
+        <p className="font-sans text-[12px] tracking-[0.02em] text-[var(--bone-muted)] italic">
+          {current.flavor}
+        </p>
       </div>
 
-      {/* ── Bottom navigation bar ───────────────────────────── */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'var(--background)',
-        borderTop: '1px solid var(--border)',
-        padding: `16px 28px calc(16px + var(--safe-bottom))`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        zIndex: 10,
-        backdropFilter: 'blur(8px)',
-      }}>
-        {/* Back */}
+      {/* Decorative rule */}
+      <div className="mb-6 flex w-full max-w-[760px] items-center gap-2.5">
+        <div className="h-px flex-1 bg-[var(--border)]" />
+        <span className="font-mono text-[7px] tracking-[0.14em] text-[var(--muted-foreground)]">✦</span>
+        <div className="h-px flex-1 bg-[var(--border)]" />
+      </div>
+
+      {/* ── Step content ──────────────────────────────────────────────────── */}
+      <div key={`content-${current.id}`} className="animate-ink-spread w-full max-w-[760px]">
+        {current.id === 'stats' && (
+          <StepStats
+            stats={stats}
+            onChange={setStats}
+            rolls={statRolls}
+            onRollsChange={setStatRolls}
+          />
+        )}
+        {current.id === 'class' && (
+          <StepClass classId={classId} onChange={handleClassChange} />
+        )}
+        {current.id === 'archetype' && (
+          <StepArchetype classId={classId} archetypeId={archetypeId} onChange={setArchetypeId} />
+        )}
+        {current.id === 'origin' && (
+          <StepOrigin
+            ancestryId={ancestryId}
+            intStat={stats.int}
+            domainId={domainId}
+            languages={languages}
+            faith={faith}
+            onAncestryChange={handleAncestryChange}
+            onDomainChange={handleDomainChange}
+            onLanguagesChange={setLanguages}
+            onFaithChange={setFaith}
+          />
+        )}
+        {current.id === 'hp' && (
+          <StepHP classId={classId} con={stats.con} hpMax={hpMax} onRoll={setHpMax} />
+        )}
+        {current.id === 'talents' && (
+          <StepTalents
+            classId={classId}
+            talents={talents}
+            onChange={setTalents}
+            onRolled={handleTalentRolled}
+            rollBudget={talentBudget}
+            showIntro
+          />
+        )}
+        {current.id === 'equipment' && (
+          <StepEquipment
+            classId={classId}
+            str={stats.str}
+            grantedItems={grantedItems}
+            extraItems={extraItems}
+            onExtraItemsChange={setExtraItems}
+            knowledgeAreas={knowledgeAreas}
+            onKnowledgeAreasChange={setKnowledgeAreas}
+          />
+        )}
+        {current.id === 'spells' && (
+          <StepSpells classId={classId} selectedSpells={spells} onChange={setSpells} level={1} />
+        )}
+        {current.id === 'narrative' && (
+          <StepNarrative
+            name={name}
+            onNameChange={setName}
+            hook={archetype?.hook}
+            backgroundDetails={backgroundDetails}
+            relations={relations}
+            impulses={impulses}
+            onBackgroundChange={setBackgroundDetails}
+            onRelationsChange={setRelations}
+            onImpulsesChange={setImpulses}
+          />
+        )}
+        {current.id === 'review' && (
+          <StepReview
+            name={name}
+            classId={classId}
+            archetypeId={archetypeId}
+            ancestryId={ancestryId}
+            stats={stats}
+            hpMax={hpMax}
+            domainId={domainId}
+            languages={languages}
+            faith={faith}
+            knowledgeAreas={knowledgeAreas}
+            equipment={equipment}
+            talents={talents}
+            spells={spells}
+            backgroundDetails={backgroundDetails}
+            relations={relations}
+            impulses={impulses}
+          />
+        )}
+      </div>
+
+      {/* ── Navigation ────────────────────────────────────────────────────── */}
+      <div className="mt-7 flex w-full max-w-[760px] gap-2.5">
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={prev}
-          disabled={stepIdx === 0}
+          disabled={tabIdx === 0}
           className={cn(
-            'tactile h-auto px-2 py-3 text-xs tracking-[0.16em] transition-colors duration-200',
-            'hover:bg-transparent',
-            stepIdx === 0
-              ? 'cursor-default text-[var(--muted-foreground)] opacity-50'
-              : 'text-muted-foreground hover:text-[var(--parchment-light)]',
+            'h-auto flex-1 border-[var(--border)] bg-transparent px-4 py-3.5',
+            'text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] transition-all duration-200',
+            'hover:border-[var(--border)] hover:text-[var(--parchment-light)]',
+            tabIdx === 0 && 'cursor-default opacity-40',
           )}
         >
-          ← Voltar
+          ← Anterior
         </Button>
 
-        {/* Character summary (center, ≥560px) */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          minWidth: 0,
-          flex: 1,
-          justifyContent: 'center',
-        }}>
-          <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 13,
-            color: name ? 'var(--parchment-light)' : 'var(--muted-foreground)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: 160,
-          }}>
-            {name || 'Sem nome'}
-          </span>
-          <span style={{ color: 'var(--muted-foreground)', fontSize: 10 }}>·</span>
-          <span style={{
-            fontFamily: 'var(--font-body)',
-            fontStyle: 'italic',
-            fontSize: 12,
-            color: 'var(--bone-muted)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {ancestry?.name ?? ancestryId} · {cls?.name ?? classId}
-            {hpMax > 0 && ` · ${hpMax} HP`}
-          </span>
-        </div>
-
-        {/* Next / Seal */}
         {!isLast ? (
           <Button
-            onClick={next}
-            disabled={!canNext()}
             variant="outline"
+            onClick={next}
+            disabled={!canAdvance}
             className={cn(
-              'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.14em] transition-all duration-200',
-              canNext()
-                ? 'border-[var(--primary)] bg-[linear-gradient(180deg,var(--candle-glow),var(--candle-amber))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--primary),transparent_65%)]'
-                : 'text-muted-foreground cursor-not-allowed border-[var(--border)] bg-[var(--border)]/15',
+              'h-auto flex-[2] px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
+              canAdvance
+                ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_10px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+                : 'cursor-not-allowed border-[var(--border)] bg-[var(--border)]/15 text-[var(--muted-foreground)]',
             )}
           >
             Próximo →
           </Button>
         ) : (
           <Button
+            variant="outline"
             onClick={save}
             disabled={saving}
-            variant="outline"
             className={cn(
-              'tactile h-auto rounded px-7 py-3 text-xs font-semibold tracking-[0.16em] transition-all duration-200',
+              'h-auto flex-[2] px-4 py-3.5 text-[9px] tracking-[0.2em] transition-all duration-200',
               saving
-                ? 'text-muted-foreground cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]/15'
-                : 'border-[var(--chart-2)] bg-[linear-gradient(180deg,var(--verdigris-bright),var(--verdigris))] text-[var(--ink-black)] shadow-[0_0_16px_color-mix(in_oklch,var(--chart-2),transparent_65%)]',
+                ? 'cursor-not-allowed border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--muted-foreground)]'
+                : 'border-[var(--chart-2)] bg-[var(--chart-2)]/15 text-[var(--foreground)] shadow-[0_0_12px_color-mix(in_oklch,var(--chart-2),transparent_70%)]',
             )}
           >
             {saving ? '⟳ Registrando...' : '✦ Selar o Registro'}
           </Button>
         )}
+      </div>
+
+      {/* ── Bottom preview strip ──────────────────────────────────────────── */}
+      <div className="bg-background/95 fixed inset-x-0 bottom-0 z-10 flex items-center gap-2.5 overflow-hidden border-t border-[var(--border)] px-5 py-2 pb-[calc(8px+var(--safe-bottom))] backdrop-blur-[6px]">
+        <span
+          className={cn(
+            'font-heading max-w-[140px] shrink-0 truncate text-[13px] transition-colors duration-300',
+            name ? 'text-[var(--parchment-light)]' : 'text-[var(--muted-foreground)]',
+          )}
+        >
+          {name || 'Sem nome'}
+        </span>
+        <span className="shrink-0 text-[10px] text-[var(--muted-foreground)]">·</span>
+        <span className="font-sans min-w-0 flex-1 truncate text-[10px] text-[var(--bone-muted)] italic">
+          {ancestry?.name ?? 'sem ancestralidade'} · {cls?.name ?? 'sem classe'}
+          {archetype && ` · ${archetype.name}`}
+          {hpMax > 0 && ` · ${hpMax} HP`}
+        </span>
+        <span className="font-mono shrink-0 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)]">
+          {tabIdx + 1}/{steps.length}
+        </span>
       </div>
     </div>
   )

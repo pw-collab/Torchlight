@@ -131,9 +131,30 @@ export interface TalentTableEntry {
 
 // ─── Spellcasting ─────────────────────────────────────────────────────────────
 
+/**
+ * The four spell lists. A class draws from one of them; the catalog tags every
+ * spell with the traditions that may learn it.
+ */
+export type SpellTradition = 'Arcane' | 'Divine' | 'Primal' | 'Witchcraft'
+
+/** Portuguese labels for the tradition chips in the spell picker. */
+export const TRADITION_LABEL: Record<SpellTradition, string> = {
+  Arcane: 'Arcano',
+  Divine: 'Divino',
+  Primal: 'Primal',
+  Witchcraft: 'Bruxaria',
+}
+
 export interface SpellcastingConfig {
   stat: Stat
   spellsPerDay: number[] // indexed by level (0-indexed = level 1)
+  /** Spell list the class learns from — see "Lançando Feitiços". */
+  tradition?: SpellTradition
+  /**
+   * Spells known per level (0-indexed = level 1). Falls back to
+   * `spellsPerDay` when a class knows exactly what it can cast.
+   */
+  spellsKnown?: number[]
 }
 
 // ─── Class ────────────────────────────────────────────────────────────────────

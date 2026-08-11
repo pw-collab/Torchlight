@@ -3,10 +3,10 @@ import type { Class } from '@/types/class.types'
 export const ranger: Class = {
   id: 'ranger',
   name: 'Ranger',
-  hitDie: 6,
+  hitDie: 8,
 
-  weaponProficiency: 'Todas as armas',
-  armorProficiency: 'Armaduras leves e médias; Escudos',
+  weaponProficiency: 'Adaga, arco longo, espada longa, arco curto, espada curta, lança, cajado',
+  armorProficiency: 'Armadura de couro, cota de malha, cota de malha de mithral',
 
   armorTraining: ['none', 'light', 'medium', 'shield'],
   weaponTraining: ['simple', 'martial', 'ranged'],
