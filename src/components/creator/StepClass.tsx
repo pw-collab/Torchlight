@@ -2,7 +2,7 @@
 
 import { classes, getClassLore } from '@/data/classes/index'
 import { TRADITION_LABEL, type ClassTechnique } from '@/types/class.types'
-import { TarotPicker, DetailBlock, type TarotOption } from '@/components/creator/TarotPicker'
+import { CardPicker, DetailBlock, type CardOption } from '@/components/creator/CardPicker'
 import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 
@@ -11,7 +11,7 @@ interface Props {
   onChange: (id: string) => void
 }
 
-/** Card glyphs — one symbol per vocation, drawn in the hex window. */
+/** Card glyphs — one symbol per vocation, drawn in the arch window. */
 export const CLASS_GLYPH: Record<string, string> = {
   commoner: '○',
   artificer: '⚙',
@@ -52,11 +52,12 @@ function hitDieLabel(hitDie: number): string {
 }
 
 export function StepClass({ classId, onChange }: Props) {
-  const options: TarotOption[] = classes.map(c => ({
+  const options: CardOption[] = classes.map(c => ({
     id: c.id,
     title: c.name,
-    subtitle: c.hitDie > 0 ? `Dado d${c.hitDie}` : 'Nível 0',
+    caption: c.hitDie > 0 ? `Dado d${c.hitDie}` : 'Nível 0',
     glyph: CLASS_GLYPH[c.id] ?? '✦',
+    description: getClassLore(c.id)?.summary ?? '',
   }))
 
   return (
@@ -70,15 +71,16 @@ export function StepClass({ classId, onChange }: Props) {
       </StepProse>
 
       <p className="text-muted-foreground text-[11px] leading-relaxed italic">
-        Uma vez escolhida a classe, você também escolherá um <strong className="not-italic text-[var(--parchment-pale)]">Arquétipo</strong> —
+        Uma vez escolhida a classe, você também escolherá um <strong className="text-[var(--parchment-pale)] not-italic">Arquétipo</strong> —
         a especialização que termina de definir o conceito do personagem.
       </p>
 
-      <TarotPicker
+      <CardPicker
         options={options}
         selectedId={classId}
         onSelect={onChange}
-        emptyHint="Toque em uma carta para ler a vocação por inteiro."
+        actionLabel="Escolher esta classe"
+        chosenLabel="Classe escolhida"
         renderDetail={option => {
           const cls = classes.find(c => c.id === option.id)
           if (!cls) return null
@@ -89,12 +91,12 @@ export function StepClass({ classId, onChange }: Props) {
           return (
             <>
               {lore?.summary && (
-                <p className="text-muted-foreground text-[12px] leading-relaxed italic">
+                <p className="text-muted-foreground mb-3 text-[12.5px] leading-relaxed italic">
                   {lore.summary}
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="mb-3 flex flex-wrap gap-1.5">
                 <Badge variant="outline" className={CHIP_CLASS}>
                   Dado de Vida {hitDieLabel(cls.hitDie)}
                 </Badge>
@@ -103,7 +105,7 @@ export function StepClass({ classId, onChange }: Props) {
               </div>
 
               {lore?.text && (
-                <p className="text-[11.5px] leading-relaxed whitespace-pre-line text-[var(--parchment-light)]">
+                <p className="mb-3 text-[12.5px] leading-relaxed whitespace-pre-line text-[var(--foreground)]">
                   {lore.text}
                 </p>
               )}
@@ -120,11 +122,11 @@ export function StepClass({ classId, onChange }: Props) {
                           >
                             {TECH_KIND_LABEL[t.kind ?? 'passive']}
                           </Badge>
-                          <span className="font-heading text-[12px] tracking-[0.03em] text-[var(--parchment-pale)]">
+                          <span className="font-heading text-[13px] tracking-[0.03em] text-[var(--parchment-pale)]">
                             {t.name}
                           </span>
                         </span>
-                        <span className="text-muted-foreground text-[11px] leading-relaxed whitespace-pre-line">
+                        <span className="text-muted-foreground text-[12px] leading-relaxed whitespace-pre-line">
                           {t.description}
                         </span>
                       </li>
@@ -146,10 +148,10 @@ export function StepClass({ classId, onChange }: Props) {
                   <ul className="flex flex-col gap-1">
                     {cls.talentTable.map(entry => (
                       <li key={entry.roll} className="flex gap-2">
-                        <span className="font-mono w-9 shrink-0 text-[10px] text-[var(--gold-oxidized)]">
+                        <span className="font-mono w-9 shrink-0 text-[11px] text-[var(--gold-oxidized)]">
                           {entry.roll}
                         </span>
-                        <span className="text-muted-foreground text-[11px] leading-snug">
+                        <span className="text-muted-foreground text-[12px] leading-snug">
                           {entry.effect}
                         </span>
                       </li>

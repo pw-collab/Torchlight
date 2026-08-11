@@ -2,7 +2,7 @@
 
 import { ancestries } from '@/data/ancestries/index'
 import { DOMAINS } from '@/data/domains/index'
-import { TarotPicker, DetailBlock, type TarotOption } from '@/components/creator/TarotPicker'
+import { CardPicker, DetailBlock, type CardOption } from '@/components/creator/CardPicker'
 import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Field, FieldLabel } from '@/components/ui/field'
@@ -45,11 +45,13 @@ function pariahTone(level: number): string {
 export function StepAncestry({
   ancestryId, onAncestryChange, name, onNameChange, hideIntro,
 }: Props) {
-  const options: TarotOption[] = ancestries.map(a => ({
+  const options: CardOption[] = ancestries.map(a => ({
     id: a.id,
     title: a.name,
-    subtitle: a.pariahLevel != null ? `Pária ${a.pariahLevel}/6` : 'Ancestralidade',
+    caption: a.pariahLevel != null ? `Pária ${a.pariahLevel}/6` : 'Ancestralidade',
     glyph: ANCESTRY_GLYPH[a.id] ?? '✦',
+    // The wiki entries open with the paragraph that best sells the people.
+    description: a.description?.split('\n')[0] ?? a.traits[0]?.description ?? '',
   }))
 
   return (
@@ -79,11 +81,12 @@ export function StepAncestry({
         </StepProse>
       )}
 
-      <TarotPicker
+      <CardPicker
         options={options}
         selectedId={ancestryId}
         onSelect={onAncestryChange}
-        emptyHint="Toque em uma carta para ver traços, idiomas e o peso social da ancestralidade."
+        actionLabel="Escolher esta ancestralidade"
+        chosenLabel="Ancestralidade escolhida"
         renderDetail={option => {
           const ancestry = ancestries.find(a => a.id === option.id)
           if (!ancestry) return null
@@ -96,13 +99,13 @@ export function StepAncestry({
           return (
             <>
               {ancestry.description && (
-                <p className="text-muted-foreground text-[12px] leading-relaxed whitespace-pre-line italic">
+                <p className="text-muted-foreground mb-3 text-[12.5px] leading-relaxed whitespace-pre-line italic">
                   {ancestry.description}
                 </p>
               )}
 
               {ancestry.pariahLevel != null && (
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
                   <Badge
                     variant="outline"
                     className={cn(
@@ -112,7 +115,7 @@ export function StepAncestry({
                   >
                     PÁRIA {ancestry.pariahLevel}/6
                   </Badge>
-                  <span className="text-muted-foreground text-[10px] italic">
+                  <span className="text-muted-foreground text-[11px] italic">
                     Quanto maior o índice, mais a população das Brumas reage com medo e preconceito.
                   </span>
                 </div>
@@ -123,7 +126,7 @@ export function StepAncestry({
                   {ancestry.traits.map(trait => (
                     <li key={trait.name}>
                       <span className="text-[var(--parchment-pale)]">{trait.name}: </span>
-                      <span className="text-muted-foreground text-[11px] leading-relaxed">
+                      <span className="text-muted-foreground text-[12px] leading-relaxed">
                         {trait.description}
                       </span>
                     </li>
