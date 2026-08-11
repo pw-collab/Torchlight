@@ -304,7 +304,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <div className="sheet-main">
             {/* Character name left, Editar right */}
             <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, marginBottom: 20 }}>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 32, color: 'var(--destructive)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--destructive)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {character.name}
               </h1>
               <Link
