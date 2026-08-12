@@ -5,6 +5,12 @@ export type { Archetype, ArchetypeKitItem } from '@/types/archetype.types'
 /**
  * Archetype catalog — mirrors the "Arquétipos" database in the campaign wiki.
  *
+ * An archetype's talent **widens what its classes can do** — the Metafísico
+ * lets non-casters pull mind spells off a scroll, the Arcabuzeiro hands a
+ * ranger the firearms their class never listed, the Erudito opens a school of
+ * magic to someone who does not cast at all. Write the same concept across
+ * every class it touches; a plain "+1 to a check" is not an archetype.
+ *
  * The wiki defines a talent for five archetypes (Cavaleiro Errante, Lutador de
  * Arena, Metafísico, Necromante, Soldado); the rest were written here, in the
  * shape those five set: a named rule, one clear trigger, one clear effect.
@@ -23,7 +29,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Alquimista se você quer moldar corpos e destinos por meio de misturas voláteis.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Mistura instável. Uma vez por descanso, você prepara uma dose volátil com os reagentes que tem à mão: escolha um elixir ou poção que já saiba produzir e prepare-o sem gastar componentes. Se o teste falhar, a mistura estoura nas suas mãos e causa 1d4 de dano.',
+      'Transmutação alquímica. Com uma hora de trabalho e um teste de INT (DC 12), você converte matéria bruta em outra substância: prata para revestir uma lâmina, um ácido, um antídoto, sal consagrado. Você também domina o ofício da outra tradição — quem prepara elixires pode fermentar poções em caldeirão, e quem ferve o caldeirão pode preparar elixires.',
     alliesRivals: 0,
   },
   {
@@ -45,7 +51,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Arcabuzeiro se você quer precisão, poder de fogo e inovação no campo de batalha.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Pólvora e paciência. Recarregar uma arma de pólvora não consome sua ação uma vez por rodada. Se gastar uma rodada inteira mirando, seu próximo ataque à distância é feito com vantagem.',
+      'Adestramento em pólvora. Você é proficiente com armas de fogo mesmo que sua classe não as liste. Recarregar não consome sua ação uma vez por rodada e, se gastar uma rodada inteira mirando, seu próximo tiro é feito com vantagem.',
     alliesRivals: 0,
   },
   {
@@ -56,7 +62,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Arcanista se você quer domínio estruturado sobre forças arcanas.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Método arcano. Escolha uma escola de magia. Você recebe +1 em testes de conjuração de magias dessa escola e tem vantagem em testes para identificar magias e efeitos mágicos da mesma escola.',
+      'Círculo ritual. Você pode conjurar como ritual qualquer magia que conheça: leva dez minutos e um círculo desenhado, não exige teste de conjuração e não pode ser feito em combate. Com um dia de trabalho e materiais, você também escreve pergaminhos das magias que conhece.',
     alliesRivals: 1,
   },
   {
@@ -77,7 +83,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Caçador de Monstros se você quer rastrear, estudar e explorar as fraquezas dos horrores.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Estudo da presa. Após observar uma criatura por uma rodada, faça um teste de INT (DC 12). Em sucesso, você recorda uma fraqueza dela e tem vantagem no primeiro ataque que fizer contra ela nesta cena.',
+      'Estudo da presa. Após observar uma criatura por uma rodada, faça um teste de INT (DC 12). Em sucesso, você descobre uma fraqueza dela — prata, fogo, solo consagrado, um nome — e tem vantagem no primeiro ataque que fizer contra ela nesta cena. Dizer a fraqueza em voz alta estende a vantagem a um aliado próximo.',
     alliesRivals: 3,
   },
   {
@@ -110,7 +116,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Erudito se você quer que o conhecimento profundo seja sua maior arma.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Biblioteca mental. Você tem vantagem em testes de INT para recordar história, heráldica, anatomia ou lendas locais. Uma vez por descanso, ao consultar seus livros por dez minutos, converta um teste de conhecimento falho em sucesso.',
+      'Especialização de escola. Escolha uma escola de magia. Você recebe +1 em testes de conjuração de magias dessa escola, tem vantagem para identificá-las e pode aprendê-las de qualquer lista. Se sua classe não conjura, você aprende uma magia de 1º círculo dessa escola e a conjura com INT (DC 10 + o círculo).',
     alliesRivals: 1,
   },
   {
@@ -121,7 +127,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Essencialista se você quer magia bruta e indomada fluindo de dentro de você.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Sangue em brasa. Escolha um tipo de dano elemental. Suas magias que causam esse tipo de dano causam +1 de dano por dado — e, quando você falha em um teste de conjuração delas, sofre 1 de dano.',
+      'Combustão essencial. Escolha um tipo de dano elemental: suas magias desse tipo causam +1 de dano por dado. Uma vez por descanso, conjure uma magia que conhece sem fazer o teste — ela simplesmente acontece, e você sofre dano igual ao círculo da magia.',
     alliesRivals: 1,
   },
   {
@@ -132,7 +138,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Inquisidor se você quer impor fé e julgamento através de disciplina e zelo.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Interrogatório inclemente. Você tem vantagem em testes para detectar mentiras e para intimidar durante um interrogatório. Uma criatura que você acusar em voz alta de heresia ou de pacto sofre −1 em testes contra você até o fim da cena.',
+      'Julgamento revelador. 1/dia, ao encarar uma criatura por uma rodada, faça um teste de SAB (DC 12): em sucesso, você sabe se ela está sob pacto, maldição ou possessão. Você tem vantagem em testes para detectar mentiras e para intimidar durante um interrogatório.',
     alliesRivals: 2,
   },
   {
@@ -143,7 +149,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Lutador de Arena se você quer transformar violência bruta e resistência em sobrevivência.',
     // O primeiro parágrafo é do wiki; a regra abaixo dele foi redigida aqui.
     talent:
-      'O corpo é sua maior arma. Em arenas clandestinas, fossos de lama ou jaulas improvisadas, você aprendeu que a violência não é glória — é sobrevivência. Cada cicatriz é um pagamento recebido por continuar respirando.\nSeus ataques desarmados causam 1d4 de dano e você tem vantagem em testes para agarrar, derrubar ou desarmar. 1/cena, quando um golpe corpo a corpo o atinge, você pode revidar imediatamente com um ataque desarmado contra quem o acertou.',
+      'O corpo é sua maior arma. Em arenas clandestinas, fossos de lama ou jaulas improvisadas, você aprendeu que a violência não é glória — é sobrevivência. Cada cicatriz é um pagamento recebido por continuar respirando.\nSeus ataques desarmados causam 1d4 de dano e você tem vantagem em testes de CON contra dor, exaustão e para continuar de pé. 1/dia, quando um golpe o reduziria a 0 HP, você permanece com 1 HP.',
     questions: [
       'O que você aprendeu a suportar para vencer?',
       'Qual parte do seu corpo virou uma arma?',
@@ -196,7 +202,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Ocultista se você quer explorar verdades ocultas que nenhuma mente sã deveria buscar.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Leitura proibida. Você lê qualquer texto ocultista sem precisar de tradução. 1/dia, ao examinar um símbolo, sinal ou ritual sobrenatural, faça um teste de SAB (DC 12): em sucesso, descobre o que ele invoca e o preço que cobra; em falha, faça um teste de horror.',
+      'Rito proibido. Você lê qualquer texto ocultista sem tradução e pode conduzir um ritual que encontre escrito, mesmo sem conjurar magias: leva uma hora e um teste de SAB (DC 12 + o círculo do efeito). O rito sempre cobra um preço, e o mestre diz qual antes de você decidir se segue.',
     alliesRivals: 4,
   },
   {
@@ -207,7 +213,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Patife se você quer usar charme, truques e oportunismo para abrir qualquer porta.',
     // Talento redigido para a mesa — o wiki traz só o rótulo "Charlatan/Smuggler".
     talent:
-      'Charlatão e contrabandista. Você tem vantagem em testes para blefar sobre sua identidade e para esconder objetos pequenos de uma revista. Uma vez por cena, você tira do bolso um item mundano e barato que "estava ali o tempo todo".',
+      'Lábia e mão leve. Você é treinado nas tarefas de trapaça e furto — disfarces, bolsos, fechaduras simples — e tem vantagem em testes para blefar sobre sua identidade. Uma vez por cena, você tira do bolso um item mundano e barato que "estava ali o tempo todo".',
     alliesRivals: 2,
   },
   {
