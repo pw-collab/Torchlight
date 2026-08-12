@@ -34,7 +34,7 @@ export const ARCHETYPES: Archetype[] = [
     summary: 'Escolha o Anacoreta se você quer que fé, devoção e dever definam seu caminho.',
     // Talento redigido para a mesa — o verbete do wiki ainda não define o seu.
     talent:
-      'Voto de reclusão. Você tem vantagem em testes para resistir a tentação, coerção e possessão. Depois de passar um dia inteiro em silêncio — sem falar com ninguém além dos seus companheiros —, seu primeiro teste de conjuração do dia seguinte é feito com vantagem.',
+      'Andarilho das Brumas. A fé em Ezra o sustenta onde a cerração engole as estradas: você tem vantagem em testes para atravessar as Brumas sem se perder e para encontrar abrigo em terras que nunca pisou. 1/dia, ao recitar as litanias da Guardiã em voz alta, você e os aliados próximos repetem um teste falho contra medo, horror ou efeito das Brumas.',
     alliesRivals: 2,
   },
   {
@@ -141,8 +141,9 @@ export const ARCHETYPES: Archetype[] = [
     classIds: ['warrior', 'barbarian'],
     glyph: '⚔',
     summary: 'Escolha o Lutador de Arena se você quer transformar violência bruta e resistência em sobrevivência.',
+    // O primeiro parágrafo é do wiki; a regra abaixo dele foi redigida aqui.
     talent:
-      'O corpo é sua maior arma. Em arenas clandestinas, fossos de lama ou jaulas improvisadas, você aprendeu que a violência não é glória — é sobrevivência. Cada cicatriz é um pagamento recebido por continuar respirando.',
+      'O corpo é sua maior arma. Em arenas clandestinas, fossos de lama ou jaulas improvisadas, você aprendeu que a violência não é glória — é sobrevivência. Cada cicatriz é um pagamento recebido por continuar respirando.\nSeus ataques desarmados causam 1d4 de dano e você tem vantagem em testes para agarrar, derrubar ou desarmar. 1/cena, quando um golpe corpo a corpo o atinge, você pode revidar imediatamente com um ataque desarmado contra quem o acertou.',
     questions: [
       'O que você aprendeu a suportar para vencer?',
       'Qual parte do seu corpo virou uma arma?',
