@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { modifier, modifierStr } from '@/lib/dice'
 import { getClass } from '@/data/classes/index'
+import { StepProse } from '@/components/creator/StepSection'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -26,8 +27,16 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
   const [rolling, setRolling] = useState(false)
   const [rawRoll, setRawRoll] = useState<number | null>(null)
 
+  // The level-0 Commoner has no hit die: its HP is the CON modifier alone.
+  const hasHitDie = (cls?.hitDie ?? 0) > 0
+
   function rollHP() {
     if (!cls) return
+    if (!hasHitDie) {
+      setRawRoll(0)
+      onRoll(Math.max(1, conMod))
+      return
+    }
     setRolling(true)
     setTimeout(() => {
       const roll = Math.floor(Math.random() * cls.hitDie) + 1
@@ -40,6 +49,11 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-5">
+      <StepProse className="w-full">
+        Para definir seu HP, role a quantidade de Dados de Vida (DV) igual a seu nível — um DV na
+        criação, já que todo personagem começa no 1º nível. Some seu bônus de CON apenas uma vez.
+      </StepProse>
+
       {cls && (
         <Item
           variant="outline"
@@ -48,7 +62,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
           <ItemContent className="gap-1">
             <ItemDescription className={CAPTION_CLASS}>Dado de Vida</ItemDescription>
             <ItemTitle className="font-heading text-[22px] tracking-[0.04em] text-[var(--parchment-pale)]">
-              d{cls.hitDie}
+              {hasHitDie ? `d${cls.hitDie}` : '—'}
             </ItemTitle>
           </ItemContent>
           <ItemContent className="items-end gap-1 text-right">
@@ -76,7 +90,13 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
             : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--blood-bright)]',
         )}
       >
-        {rolling ? '⟳ Rolando...' : hpMax > 0 ? '⟳ Rolar novamente' : '✦ Rolar HP Inicial'}
+        {rolling
+          ? '⟳ Rolando...'
+          : !hasHitDie
+            ? '✦ Definir HP pelo mod. CON'
+            : hpMax > 0
+              ? '⟳ Rolar novamente'
+              : '✦ Rolar HP Inicial'}
       </Button>
 
       {editMode && (
@@ -111,7 +131,8 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
             {hpMax}
           </span>
           <span className="text-muted-foreground text-[11px] italic">
-            {rawRoll} (d{cls?.hitDie}) {conMod >= 0 ? '+' : ''}{conMod} (CON)
+            {hasHitDie ? `${rawRoll} (d${cls?.hitDie}) ` : 'Sem dado de vida — '}
+            {conMod >= 0 ? '+' : ''}{conMod} (CON)
             {hpMax < rawRoll + conMod ? ' → mínimo 1' : ''}
           </span>
         </div>

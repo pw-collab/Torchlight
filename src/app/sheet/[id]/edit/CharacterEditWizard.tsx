@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { StepAncestry } from '@/components/creator/StepAncestry'
 import { StepClass } from '@/components/creator/StepClass'
+import { StepArchetype } from '@/components/creator/StepArchetype'
 import { StepStats } from '@/components/creator/StepStats'
 import { StepHP } from '@/components/creator/StepHP'
 import { StepOrigin } from '@/components/creator/StepOrigin'
@@ -24,7 +25,7 @@ import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-type StepId = 'ancestry' | 'class' | 'stats' | 'hp' | 'origin' | 'equipment' | 'talents' | 'spells' | 'narrative' | 'review'
+type StepId = 'ancestry' | 'class' | 'archetype' | 'stats' | 'hp' | 'origin' | 'equipment' | 'talents' | 'spells' | 'narrative' | 'review'
 /** The advancement track is the landing tab; every other tab is an editing step. */
 type TabId = 'progress' | StepId
 
@@ -36,16 +37,17 @@ interface StepDef {
 }
 
 const ALL_STEPS: StepDef[] = [
-  { id: 'ancestry',  chapter: 'I',   title: 'Origem',    flavor: 'O sangue que te define.' },
-  { id: 'class',     chapter: 'II',  title: 'Vocação',   flavor: 'O caminho que trilhaste.' },
-  { id: 'stats',     chapter: 'III', title: 'Atributos', flavor: 'A carne e o espírito, revisitados.' },
-  { id: 'hp',        chapter: 'IV',  title: 'Vitalidade', flavor: 'A chama que persiste.' },
-  { id: 'origin',    chapter: 'V',   title: 'Domínio',   flavor: 'As sombras de onde vieste.' },
-  { id: 'equipment', chapter: 'VI',  title: 'Pertences', flavor: 'O peso que ainda carregas.' },
-  { id: 'talents',   chapter: 'VII', title: 'Talentos',  flavor: 'O que o destino te concedeu.' },
-  { id: 'spells',    chapter: 'VIII', title: 'Arcano',   flavor: 'As palavras que ainda sussurras.' },
-  { id: 'narrative', chapter: 'IX',  title: 'Narrativa', flavor: 'A história que não pode ser apagada.' },
-  { id: 'review',    chapter: 'X',   title: 'Revisão',   flavor: 'Selar as alterações no arquivo.' },
+  { id: 'ancestry',  chapter: 'I',    title: 'Origem',     flavor: 'O sangue que te define.' },
+  { id: 'class',     chapter: 'II',   title: 'Vocação',    flavor: 'O caminho que trilhaste.' },
+  { id: 'archetype', chapter: 'III',  title: 'Arquétipo',  flavor: 'O tipo de pessoa que tu és.' },
+  { id: 'stats',     chapter: 'IV',   title: 'Atributos',  flavor: 'A carne e o espírito, revisitados.' },
+  { id: 'hp',        chapter: 'V',    title: 'Vitalidade', flavor: 'A chama que persiste.' },
+  { id: 'origin',    chapter: 'VI',   title: 'Domínio',    flavor: 'As sombras de onde vieste.' },
+  { id: 'equipment', chapter: 'VII',  title: 'Pertences',  flavor: 'O peso que ainda carregas.' },
+  { id: 'talents',   chapter: 'VIII', title: 'Talentos',   flavor: 'O que o destino te concedeu.' },
+  { id: 'spells',    chapter: 'IX',   title: 'Arcano',     flavor: 'As palavras que ainda sussurras.' },
+  { id: 'narrative', chapter: 'X',    title: 'Narrativa',  flavor: 'A história que não pode ser apagada.' },
+  { id: 'review',    chapter: 'XI',   title: 'Revisão',    flavor: 'Selar as alterações no arquivo.' },
 ]
 
 const PROGRESS_LABEL = 'Progresso'
@@ -62,6 +64,7 @@ export function CharacterEditWizard({ character }: Props) {
   const [name, setName]             = useState(character.name)
   const [ancestryId, setAncestryId] = useState(character.ancestryId)
   const [classId, setClassId]       = useState(character.classId)
+  const [archetypeId, setArchetypeId] = useState(character.archetypeId)
   const [stats, setStats]           = useState<Record<Stat, number>>(character.stats)
   const [hpMax, setHpMax]           = useState(character.hpMax)
   const [hpCurrent, setHpCurrent]   = useState(character.hpCurrent)
@@ -118,6 +121,7 @@ export function CharacterEditWizard({ character }: Props) {
     switch (stepId) {
       case 'ancestry':  return { name: name.trim(), ancestry_id: ancestryId } as Partial<CharacterRow>
       case 'class':     return { class_id: classId } as Partial<CharacterRow>
+      case 'archetype': return { archetype_id: archetypeId || null } as Partial<CharacterRow>
       case 'stats':     return { str: stats.str, dex: stats.dex, con: stats.con, int: stats.int, wis: stats.wis, cha: stats.cha } as Partial<CharacterRow>
       case 'hp':        return { hp_max: hpMax, hp_current: Math.min(hpCurrent, hpMax) } as Partial<CharacterRow>
       case 'origin':    return { domain_id: domainId || null, languages, faith: faith || null } as Partial<CharacterRow>
@@ -193,7 +197,11 @@ export function CharacterEditWizard({ character }: Props) {
   function handleAncestryChange(id: string) {
     setAncestryId(id)
     const a = getAncestry(id)
-    setDomainId('')
+    // The home domain survives unless the new ancestry cannot come from there.
+    const options = a?.domainOptions
+    const stillNative = domainId !== ''
+      && (!options || options.includes('*') || options.includes(domainId))
+    if (!stillNative) setDomainId('')
     setLanguages(a?.fixedLanguages ?? [])
   }
 
@@ -210,6 +218,7 @@ export function CharacterEditWizard({ character }: Props) {
       name: name.trim(),
       ancestry_id: ancestryId,
       class_id: classId,
+      archetype_id: archetypeId || null,
       str: stats.str, dex: stats.dex, con: stats.con,
       int: stats.int, wis: stats.wis, cha: stats.cha,
       level,
@@ -335,7 +344,15 @@ export function CharacterEditWizard({ character }: Props) {
             {current.id === 'class' && (
               <StepClass
                 classId={classId}
-                onChange={id => { setClassId(id); setSpells([]) }}
+                // Archetypes and spell lists belong to the class that grants them.
+                onChange={id => { setClassId(id); setArchetypeId(''); setSpells([]) }}
+              />
+            )}
+            {current.id === 'archetype' && (
+              <StepArchetype
+                classId={classId}
+                archetypeId={archetypeId}
+                onChange={setArchetypeId}
               />
             )}
             {current.id === 'stats' && (
@@ -372,7 +389,7 @@ export function CharacterEditWizard({ character }: Props) {
               />
             )}
             {current.id === 'spells' && (
-              <StepSpells classId={classId} selectedSpells={spells} onChange={setSpells} />
+              <StepSpells classId={classId} selectedSpells={spells} onChange={setSpells} level={level} />
             )}
             {current.id === 'narrative' && (
               <StepNarrative
@@ -388,6 +405,8 @@ export function CharacterEditWizard({ character }: Props) {
               <StepReview
                 name={name}
                 classId={classId}
+                archetypeId={archetypeId}
+                talents={localTalents}
                 ancestryId={ancestryId}
                 stats={stats}
                 hpMax={hpMax}

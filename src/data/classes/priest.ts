@@ -5,7 +5,7 @@ export const priest: Class = {
   name: 'Priest',
   hitDie: 6,
 
-  weaponProficiency: 'Armas simples',
+  weaponProficiency: 'Clava, besta, adaga, maça, espada longa, cajado, martelo de guerra',
   armorProficiency: 'Todas as armaduras; Todos os escudos',
 
   armorTraining: ['none', 'light', 'medium', 'heavy', 'shield'],
@@ -14,6 +14,8 @@ export const priest: Class = {
   spellcasting: {
     stat: 'wis',
     spellsPerDay: [2, 3, 3, 4, 4, 5, 5, 6, 6, 7],
+    tradition: 'Divine',
+    spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
   },
 
   techniques: [

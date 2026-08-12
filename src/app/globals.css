@@ -187,13 +187,6 @@ html, body {
   border-right: 1px solid var(--sidebar-border);
 }
 
-/* Raised card face — used on TarotCard when face="cream" */
-.face-cream {
-  background: var(--parchment-face);
-  border: 1px solid var(--ink-border);
-  color: var(--ink-on-cream);
-}
-
 /* Red accent glow (hover) */
 .glow-hover-red:hover { box-shadow: var(--glow-blood-soft); }
 
@@ -354,39 +347,6 @@ html, body {
 }
 .animate-flame      { animation: flameDance 1.6s ease-in-out infinite; display: inline-block; }
 .animate-torch-halo { animation: torchHalo 2.2s ease-in-out infinite; }
-
-/* Tarot card grid — talents, techniques, inventory and spells. */
-.tarot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: 10px;
-  align-items: stretch;
-}
-.tarot-card {
-  transition: transform 260ms var(--ease-ritual), box-shadow 260ms var(--ease-ritual), opacity 260ms;
-}
-.tarot-card:hover { transform: translateY(-3px); }
-
-/* Flip variant — cards reveal their detail on a 3D-rotated back face.
-   The grid must not stretch siblings to match an opened (taller) card,
-   and the lift-on-hover is dropped because the card owns its own
-   rotateY transform. */
-.tarot-grid--flip { align-items: start; }
-.tarot-flip {
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 560ms var(--ease-ritual), height 380ms var(--ease-ritual);
-}
-.tarot-flip.is-flipped { transform: rotateY(180deg); }
-.tarot-flip-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-.tarot-flip-face--back { transform: rotateY(180deg); }
-.tarot-flip:hover { transform: translateY(-3px); }
-.tarot-flip.is-flipped:hover { transform: rotateY(180deg) translateY(-3px); }
 
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
@@ -550,31 +510,6 @@ html, body {
   .vitals-portrait { width: 240px; max-width: 45%; }
   .vitals-meta { flex: 1 1 auto; }
   .vitals-stats { flex: 1 1 auto; }
-}
-
-/* ============================================================
-   Character creator — two-column stepper shell
-   ============================================================ */
-.creator-shell {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 24px;
-  width: 100%;
-  max-width: 1160px;
-  margin: 0 auto;
-  flex: 1;
-  align-items: start;
-}
-.creator-sidebar { grid-column: span 3 / span 3; position: sticky; top: 0; }
-.creator-mobile-steps { display: none; }
-.creator-main { grid-column: span 9 / span 9; min-width: 0; }
-.creator-content { max-width: 780px; }
-
-@media (max-width: 900px) {
-  .creator-shell { max-width: 780px; gap: 0; }
-  .creator-sidebar { display: none; }
-  .creator-main { grid-column: span 12 / span 12; }
-  .creator-mobile-steps { display: flex; }
 }
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */

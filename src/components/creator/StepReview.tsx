@@ -2,11 +2,14 @@
 
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
+import { getArchetype } from '@/data/archetypes/index'
 import { getDomain } from '@/data/domains/index'
-import { getItem } from '@/data/equipment/index'
+import { getSpell } from '@/data/spells/index'
 import { modifier, modifierStr } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
 import type { KnowledgeArea } from '@/types/character.types'
+import type { InventoryItem } from '@/types/inventory.types'
+import type { Talent } from '@/types/talent.types'
 
 const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
@@ -27,16 +30,21 @@ interface Props {
   backgroundDetails: { concept?: string; origin?: string; backstory?: string; traumaticEvents?: string }
   relations: { family?: string[]; allies?: string[]; rivals?: string[]; faction?: string }
   impulses: { secrets?: string; flaws?: string; fears?: string; objectives?: string }
+  /** Creation extras — absent while editing an existing sheet. */
+  archetypeId?: string
+  equipment?: InventoryItem[]
+  talents?: Talent[]
 }
 
 export function StepReview(props: Props) {
   const { name, classId, ancestryId, stats, hpMax, domainId, languages, faith,
-          knowledgeAreas, spells, backgroundDetails, relations, impulses } = props
+          knowledgeAreas, spells, backgroundDetails, relations, impulses,
+          archetypeId, equipment, talents } = props
 
   const cls = getClass(classId)
   const ancestry = getAncestry(ancestryId)
+  const archetype = archetypeId ? getArchetype(archetypeId) : null
   const domain = domainId ? getDomain(domainId) : null
-  const equipment = (cls?.startingGear ?? []).map(id => ({ id, item: getItem(id) }))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -64,7 +72,9 @@ export function StepReview(props: Props) {
           fontSize: 12,
           color: 'var(--bone-muted)',
         }}>
-          {cls?.name ?? classId} · {ancestry?.name ?? ancestryId} · Nível 1 · {hpMax} HP
+          {cls?.name ?? classId}
+          {archetype && ` · ${archetype.name}`}
+          {' · '}{ancestry?.name ?? ancestryId} · Nível 1 · {hpMax} HP
           {domain && ` · ${domain.name}`}
         </p>
       </div>
@@ -115,16 +125,52 @@ export function StepReview(props: Props) {
         })}
       </div>
 
+      {/* Archetype — talent, item and hook in one block */}
+      {archetype && (
+        <div style={{
+          padding: '12px 14px',
+          background: 'var(--card)',
+          border: '1px solid var(--destructive)',
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}>
+          <p style={blockTitle}>Arquétipo · {archetype.name}</p>
+          <p style={flavorText}>{archetype.summary}</p>
+          {archetype.talent && (
+            <p style={flavorText}>
+              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Talento: </span>
+              {archetype.talent}
+            </p>
+          )}
+          {archetype.kit && archetype.kit.length > 0 && (
+            <p style={flavorText}>
+              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Item: </span>
+              {archetype.kit.map(k => k.name).join(', ')}
+            </p>
+          )}
+          {archetype.hook && (
+            <p style={flavorText}>
+              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Gancho: </span>
+              {archetype.hook}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Two-column details */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        {/* Equipment */}
-        <ReviewBlock title="Equipamento">
-          {equipment.map(({ id, item }) => (
-            <ReviewRow key={id} label={item?.name ?? id} value={`${item?.slots ?? 1}s`} />
-          ))}
-        </ReviewBlock>
+        {equipment && (
+          <ReviewBlock title="Equipamento">
+            {equipment.length > 0
+              ? equipment.map(item => (
+                  <ReviewRow key={item.id} label={item.name} value={`${item.slots}s`} />
+                ))
+              : <ReviewRow label="Nada carregado" value="" />}
+          </ReviewBlock>
+        )}
 
-        {/* Origin */}
         <ReviewBlock title="Origem">
           {domain && <ReviewRow label="Domínio" value={domain.name} />}
           {faith && <ReviewRow label="Fé" value={faith} />}
@@ -133,16 +179,22 @@ export function StepReview(props: Props) {
           )}
         </ReviewBlock>
 
-        {/* Spells */}
-        {spells.length > 0 && (
-          <ReviewBlock title="Magias">
-            {spells.map(s => (
-              <ReviewRow key={s} label={s} value="" />
+        {(talents ?? []).length > 0 && (
+          <ReviewBlock title="Talentos">
+            {(talents ?? []).map(t => (
+              <ReviewRow key={t.id} label={t.name} value="" />
             ))}
           </ReviewBlock>
         )}
 
-        {/* Knowledge Areas */}
+        {spells.length > 0 && (
+          <ReviewBlock title="Magias">
+            {spells.map(id => (
+              <ReviewRow key={id} label={getSpell(id)?.name ?? id} value={`T${getSpell(id)?.tier ?? 1}`} />
+            ))}
+          </ReviewBlock>
+        )}
+
         {knowledgeAreas.length > 0 && (
           <ReviewBlock title="Conhecimentos">
             {knowledgeAreas.map((ka, i) => (
@@ -153,7 +205,7 @@ export function StepReview(props: Props) {
       </div>
 
       {/* Narrative summary */}
-      {(backgroundDetails.concept || backgroundDetails.backstory || impulses.objectives) && (
+      {(backgroundDetails.concept || backgroundDetails.backstory || impulses.objectives || relations.faction) && (
         <div style={{
           padding: '14px 16px',
           background: 'var(--card)',
@@ -193,7 +245,7 @@ export function StepReview(props: Props) {
         padding: '8px 0',
         borderTop: '1px solid var(--border)',
       }}>
-        Confirme os detalhes acima e sele o registro para entrar nas Terras das Névoas.
+        Confirme os detalhes acima e sele o registro para entrar nas Terras das Brumas.
       </div>
     </div>
   )
@@ -207,17 +259,7 @@ function ReviewBlock({ title, children }: { title: string; children: React.React
       border: '1px solid var(--border)',
       borderRadius: 2,
     }}>
-      <p style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 7,
-        letterSpacing: '0.16em',
-        textTransform: 'uppercase',
-        color: 'var(--candle-amber)',
-        opacity: 0.7,
-        marginBottom: 8,
-      }}>
-        {title}
-      </p>
+      <p style={blockTitle}>{title}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {children}
       </div>
@@ -252,6 +294,16 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
       )}
     </div>
   )
+}
+
+const blockTitle: React.CSSProperties = {
+  fontFamily: 'var(--font-heading)',
+  fontSize: 7,
+  letterSpacing: '0.16em',
+  textTransform: 'uppercase',
+  color: 'var(--candle-amber)',
+  opacity: 0.7,
+  marginBottom: 8,
 }
 
 const flavorText: React.CSSProperties = {

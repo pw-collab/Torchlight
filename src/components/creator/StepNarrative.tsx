@@ -35,6 +35,11 @@ interface Props {
   onBackgroundChange: (patch: BackgroundDetails) => void
   onRelationsChange: (patch: Relations) => void
   onImpulsesChange: (patch: Impulses) => void
+  /** Creation: the character's name is settled here, with the rest of the story. */
+  name?: string
+  onNameChange?: (name: string) => void
+  /** The archetype's narrative hook, offered as a starting thread. */
+  hook?: string
 }
 
 const SECTION_LABEL_CLASS =
@@ -52,6 +57,7 @@ const INPUT_CLASS =
 export function StepNarrative({
   backgroundDetails, relations, impulses,
   onBackgroundChange, onRelationsChange, onImpulsesChange,
+  name, onNameChange, hook,
 }: Props) {
   const [relInput, setRelInput] = useState({ family: '', allies: '', rivals: '' })
 
@@ -70,6 +76,36 @@ export function StepNarrative({
 
   return (
     <div className="flex flex-col gap-7">
+
+      {/* Nome */}
+      {onNameChange && (
+        <Field>
+          <FieldLabel htmlFor="character-name" className={SECTION_LABEL_CLASS}>
+            Nome do Personagem
+          </FieldLabel>
+          <Input
+            id="character-name"
+            type="text"
+            value={name ?? ''}
+            onChange={e => onNameChange(e.target.value)}
+            placeholder="Como te chamam nas Terras das Brumas?"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+          />
+        </Field>
+      )}
+
+      {/* Gancho do arquétipo */}
+      {hook && (
+        <div className="rounded-sm border-l-2 border-[var(--destructive)] bg-[var(--card)] px-3.5 py-2.5">
+          <span className={SECTION_LABEL_CLASS}>Gancho do arquétipo</span>
+          <p className="text-muted-foreground mt-1 text-[11.5px] leading-relaxed italic">
+            {hook}
+          </p>
+          <p className="text-muted-foreground/70 mt-1.5 text-[10px]">
+            Use-o como ponto de partida do passado abaixo — ou contradiga-o de propósito.
+          </p>
+        </div>
+      )}
 
       {/* Histórico */}
       <FieldSet>

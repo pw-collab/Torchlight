@@ -2,25 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { getAncestry } from '@/data/ancestries/index'
-import { DOMAINS, getDomain, ALL_DOMAIN_IDS } from '@/data/domains/index'
+import { DOMAINS, getDomain } from '@/data/domains/index'
+import { RELIGIONS } from '@/data/religions/index'
 import { modifier } from '@/lib/dice'
+import { StepAncestry } from '@/components/creator/StepAncestry'
+import { StepProse, StepSection } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
-
-const FAITHS = [
-  'A Igreja de Ezra da Fé Matriz',
-  'A Igreja de Ezra dos Corações Puros',
-  'A Igreja de Ezra dos Eruditos',
-  'A Igreja de Ezra dos Zelotes',
-  'A Igreja de Hala',
-  'A Divindade da Humanidade',
-  'A Fé de Ferro',
-  'A Ordem Eterna',
-  'O Culto do Senhor da Manhã',
-  'Nenhuma / Sem fé',
-]
+import { cn, textGlyph } from '@/lib/utils'
 
 interface Props {
   ancestryId: string
@@ -31,6 +21,11 @@ interface Props {
   onDomainChange: (id: string) => void
   onLanguagesChange: (langs: string[]) => void
   onFaithChange: (faith: string) => void
+  /**
+   * Creation mode: the ancestry deck is shown inside this step, as sub-section
+   * 2.2. The sheet's editor keeps ancestry on its own tab and leaves this out.
+   */
+  onAncestryChange?: (id: string) => void
 }
 
 export function StepOrigin({
@@ -42,20 +37,29 @@ export function StepOrigin({
   onDomainChange,
   onLanguagesChange,
   onFaithChange,
+  onAncestryChange,
 }: Props) {
   const [freeInput, setFreeInput] = useState('')
+  const [domainFilter, setDomainFilter] = useState('')
 
   const ancestry = getAncestry(ancestryId)
   const intMod = Math.max(0, modifier(intStat))
 
-  const anyDomain = ancestry?.domainOptions?.includes('*') ?? false
+  // An ancestry may narrow the domains it can come from; '*' and an absent list
+  // both mean "anywhere in the Domains of Dread".
   const availableDomains = useMemo(() => {
-    if (!ancestry?.domainOptions) return []
-    if (anyDomain) return DOMAINS
-    return ancestry.domainOptions.map(id => DOMAINS.find(d => d.id === id)).filter(Boolean) as typeof DOMAINS
-  }, [ancestry, anyDomain])
+    const options = ancestry?.domainOptions
+    if (!options || options.includes('*')) return DOMAINS
+    const allowed = new Set(options)
+    return DOMAINS.filter(d => allowed.has(d.id))
+  }, [ancestry])
 
-  const hasDomainChoice = availableDomains.length > 0
+  const shownDomains = useMemo(() => {
+    const query = domainFilter.trim().toLowerCase()
+    if (!query) return availableDomains
+    return availableDomains.filter(d => d.name.toLowerCase().includes(query))
+  }, [availableDomains, domainFilter])
+
   const rules = ancestry?.languageRules
   const fixedLangs: string[] = ancestry?.fixedLanguages ?? []
 
@@ -101,59 +105,158 @@ export function StepOrigin({
 
   function handleDomainSelect(id: string) {
     onDomainChange(id)
-    // Reset domain languages when domain changes
+    // The domain's language pool changes with it — drop the old picks.
     onLanguagesChange([...fixedLangs, ...freeLangs])
   }
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-8">
 
-      {/* Domain picker */}
-      {hasDomainChoice && (
-        <section>
-          <div className={SECTION_LABEL_CLASS}>Domínio de Origem</div>
-          <p className={SECTION_NOTE_CLASS}>
-            As Terras das Névoas são compostas de domínios isolados por cerração mágica.
-            Escolha o lar que moldou sua história.
-          </p>
-          <div
-            className={cn(
-              'mt-3 grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-[5px]',
-              availableDomains.length > 12 && 'max-h-[260px] overflow-y-auto',
-            )}
-          >
-            {availableDomains.map(d => {
-              const active = domainId === d.id
-              return (
-                <Button
-                  key={d.id}
-                  variant="outline"
-                  onClick={() => handleDomainSelect(d.id)}
-                  aria-pressed={active}
+      {/* ── 2.1 Home domain ─────────────────────────────────────────────── */}
+      <StepSection index={onAncestryChange ? '2.1' : undefined} title="Domínio natal">
+        <StepProse>
+          Determina as expectativas culturais do personagem, seu conhecimento de folclore e suas
+          suposições de sobrevivência cotidiana como nativo de um Domínio do Pavor. Estas são
+          verdades de interpretação que moldam visão de mundo, medos e expectativas. Use-as para
+          orientar decisões, suspeitas e reações ao sobrenatural.
+        </StepProse>
+
+        {availableDomains.length > 10 && (
+          <Input
+            type="search"
+            value={domainFilter}
+            onChange={e => setDomainFilter(e.target.value)}
+            placeholder="Filtrar domínios..."
+            aria-label="Filtrar domínios"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+          />
+        )}
+
+        <div className="flex max-h-[440px] flex-col gap-1 overflow-y-auto pr-1">
+          {shownDomains.map(domain => {
+            const active = domainId === domain.id
+            return (
+              <button
+                key={domain.id}
+                type="button"
+                onClick={() => handleDomainSelect(active ? '' : domain.id)}
+                aria-pressed={active}
+                className={cn(
+                  'tactile cursor-pointer rounded-sm border px-3.5 py-2.5 text-left transition-all duration-200',
+                  active
+                    ? 'border-[var(--primary)] bg-[var(--border)] shadow-[0_0_12px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--bone-dim)]',
+                )}
+              >
+                <span
                   className={cn(
-                    'h-auto justify-start truncate rounded-sm px-2.5 py-[7px] text-[11px] normal-case',
-                    'font-sans tracking-normal transition-all duration-200',
-                    active
-                      ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]'
-                      : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
+                    'font-heading text-[13px] tracking-[0.03em]',
+                    active ? 'text-[var(--parchment-pale)]' : 'text-[var(--muted-foreground)]',
                   )}
                 >
-                  {d.name}
-                </Button>
-              )
-            })}
-          </div>
-        </section>
+                  {domain.name}
+                </span>
+                <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--gold-oxidized)] uppercase">
+                  {domain.region}
+                </span>
+                <span className="text-muted-foreground mt-0.5 block text-[10.5px] leading-snug italic">
+                  {domain.description}
+                </span>
+                {active && (
+                  <span className="mt-1.5 flex flex-col gap-1">
+                    {domain.commonExperiences && (
+                      <span className="block text-[10.5px] leading-snug text-[var(--parchment-light)]">
+                        <span className="text-[var(--candle-amber)]">Verdades de interpretação: </span>
+                        {domain.commonExperiences}
+                      </span>
+                    )}
+                    {domain.darkLord && (
+                      <span className="font-mono block text-[9px] text-[var(--muted-foreground)]">
+                        Senhor Sombrio: {domain.darkLord}
+                      </span>
+                    )}
+                    {domain.religions.length > 0 && (
+                      <span className="font-mono block text-[9px] text-[var(--muted-foreground)]">
+                        Fé predominante: {domain.religions.join(', ')}
+                      </span>
+                    )}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+          {shownDomains.length === 0 && (
+            <p className="text-muted-foreground px-1 py-3 text-[11px] italic">
+              Nenhum domínio corresponde ao filtro.
+            </p>
+          )}
+        </div>
+      </StepSection>
+
+      {/* ── 2.2 Ancestry ─────────────────────────────────────────────────── */}
+      {onAncestryChange && (
+        <StepSection index="2.2" title="Defina sua Ancestralidade">
+          <StepAncestry ancestryId={ancestryId} onAncestryChange={onAncestryChange} />
+        </StepSection>
       )}
 
-      {/* Languages */}
-      {(fixedLangs.length > 0 || rules) && (
-        <section>
-          <div className={SECTION_LABEL_CLASS}>Idiomas</div>
+      {/* ── 2.3 Religion ─────────────────────────────────────────────────── */}
+      <StepSection index={onAncestryChange ? '2.3' : undefined} title="Religião">
+        <StepProse>
+          Nos Domínios do Pavor, a fé é tanto um escudo quanto uma arma. No entanto, as divindades
+          raramente respondem diretamente, e suas igrejas são muitas vezes tão falhas e corruptas
+          quanto o mundo ao seu redor.
+        </StepProse>
 
-          {/* Fixed languages */}
+        <div className="flex flex-col gap-1">
+          {RELIGIONS.map(religion => {
+            const active = faith === religion.name
+            const local = selectedDomain?.religions.includes(religion.name) ?? false
+            return (
+              <button
+                key={religion.id}
+                type="button"
+                onClick={() => onFaithChange(active ? '' : religion.name)}
+                aria-pressed={active}
+                className={cn(
+                  'tactile flex cursor-pointer items-start gap-2.5 rounded-sm border px-3.5 py-2.5 text-left transition-all duration-200',
+                  active
+                    ? 'border-[var(--chart-4)] bg-[var(--muted)]'
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--bone-dim)]',
+                )}
+              >
+                <span className="mt-0.5 shrink-0 text-[13px] leading-none text-[var(--gold-oxidized)]">
+                  {textGlyph(religion.glyph)}
+                </span>
+                <span className="min-w-0">
+                  <span
+                    className={cn(
+                      'font-heading block text-[12.5px] tracking-[0.03em]',
+                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--muted-foreground)]',
+                    )}
+                  >
+                    {religion.name}
+                    {local && (
+                      <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--verdigris-light)] uppercase">
+                        no seu domínio
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-muted-foreground mt-0.5 block text-[10.5px] leading-snug italic">
+                    {religion.description}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </StepSection>
+
+      {/* ── Languages ────────────────────────────────────────────────────── */}
+      {(fixedLangs.length > 0 || rules) && (
+        <StepSection title="Idiomas">
           {fixedLangs.length > 0 && (
-            <div className="mb-2.5">
+            <div>
               <span className={SUB_LABEL_CLASS}>Concedidos pela ancestralidade</span>
               <div className="mt-[5px] flex flex-wrap gap-[5px]">
                 {fixedLangs.map(l => (
@@ -163,9 +266,8 @@ export function StepOrigin({
             </div>
           )}
 
-          {/* Domain language picks */}
           {domainPickCount > 0 && domainPool.length > 0 && (
-            <div className="mb-3">
+            <div>
               <span className={SUB_LABEL_CLASS}>
                 Do domínio — escolha {domainPickCount} de {selectedDomain?.name}
                 <span className="ml-1.5 text-[var(--gold-oxidized)]">
@@ -205,13 +307,18 @@ export function StepOrigin({
             </div>
           )}
 
-          {domainPickCount > 0 && !selectedDomain && hasDomainChoice && (
-            <p className="mb-2.5 text-[10px] text-[var(--muted-foreground)] italic">
-              Escolha um domínio acima para ver as opções de idiomas.
+          {domainPickCount > 0 && !selectedDomain && (
+            <p className="text-[10px] text-[var(--muted-foreground)] italic">
+              Escolha um domínio natal acima para ver as opções de idiomas.
             </p>
           )}
 
-          {/* Free language picks */}
+          {domainPickCount > 0 && selectedDomain && domainPool.length === 0 && (
+            <p className="text-[10px] text-[var(--muted-foreground)] italic">
+              Os idiomas de {selectedDomain.name} ainda não foram catalogados.
+            </p>
+          )}
+
           {freePickCount > 0 && (
             <div>
               <span className={SUB_LABEL_CLASS}>
@@ -263,44 +370,11 @@ export function StepOrigin({
               )}
             </div>
           )}
-        </section>
+        </StepSection>
       )}
-
-      {/* Faith */}
-      <section>
-        <div className={SECTION_LABEL_CLASS}>Fé</div>
-        <p className={SECTION_NOTE_CLASS}>Nas Terras das Névoas, a fé pode ser âncora ou corrente.</p>
-        <div className="mt-3 flex flex-col gap-1">
-          {FAITHS.map(f => {
-            const active = faith === f
-            return (
-              <Button
-                key={f}
-                variant="outline"
-                onClick={() => onFaithChange(active ? '' : f)}
-                aria-pressed={active}
-                className={cn(
-                  'h-auto justify-start rounded-sm px-3.5 py-2.5 text-left text-xs normal-case',
-                  'font-sans tracking-normal transition-all duration-200',
-                  active
-                    ? 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--parchment-light)] not-italic'
-                    : 'text-muted-foreground border-[var(--border)] bg-[var(--card)] italic',
-                )}
-              >
-                {f}
-              </Button>
-            )
-          })}
-        </div>
-      </section>
     </div>
   )
 }
-
-const SECTION_LABEL_CLASS =
-  'font-heading mb-1.5 text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
-
-const SECTION_NOTE_CLASS = 'text-muted-foreground text-[10px] leading-normal italic'
 
 const SUB_LABEL_CLASS =
   'font-heading text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
