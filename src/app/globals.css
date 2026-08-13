@@ -371,10 +371,10 @@ html, body {
    auto-layout: twelve flexible columns (no fixed track widths),
    24px gutters, capped at 1760px and padded 16/48/56/48. Three rows:
 
-     row 1   heading .......................... columns 4–9
+     row 1   heading (4–9) · fortuna (10) · light status (11)
      row 2   nav rail (col 3, spanning rows 2–3) ·
              content (4–9) · vitals (10–11)
-     row 3   content (4–9) · fortuna (10–11)
+     row 3   content (4–9)
 
    Nothing here is sticky: the page scrolls as one sheet, the way the
    design lays it out. Below 1280px the empty outer columns are handed
@@ -403,7 +403,10 @@ html, body {
 .sheet-primary   { grid-area: 2 / 4 / 3 / 10; min-width: 0; }
 .sheet-secondary { grid-area: 3 / 4 / 4 / 10; min-width: 0; }
 .sheet-vitals    { grid-area: 2 / 10 / 3 / 12; min-width: 0; }
-.sheet-fortune   { grid-area: 3 / 10 / 4 / 12; min-width: 0; }
+/* Fortuna and the light status ride the heading's row, one column each, so
+   both counters stay in view no matter how far the sheet is scrolled to. */
+.sheet-fortune   { grid-area: 1 / 10 / 2 / 11; min-width: 0; align-self: end; }
+.sheet-torch     { grid-area: 1 / 11 / 2 / 12; min-width: 0; align-self: end; }
 
 /* Tabs that carry a single block of content let it take both content rows
    rather than leaving the second one hollow. */
@@ -426,23 +429,27 @@ html, body {
   .sheet-header,
   .sheet-primary,
   .sheet-secondary { grid-column: 2 / span 8; }
-  .sheet-vitals,
-  .sheet-fortune   { grid-column: 10 / span 3; }
+  .sheet-vitals    { grid-column: 10 / span 3; }
+  .sheet-fortune   { grid-column: 10 / span 1; }
+  .sheet-torch     { grid-column: 11 / span 2; }
 }
 
 @media (max-width: 1000px) {
   .sheet-grid {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: repeat(5, auto);
     padding: 8px 24px 40px;
   }
-  /* Rows are explicit here so `-1` reaches the bottom of the stack. */
+  /* Rows are explicit here so `-1` reaches the bottom of the stack. The
+     heading gives up its row to fortuna and the light status, which keep the
+     pairing they have on the wide grid. */
   .sheet-rail      { grid-area: 1 / 1 / -1 / 2; padding: 0 16px 0 0; }
-  .sheet-header    { grid-area: 1 / 2 / 2 / 3; }
-  .sheet-vitals    { grid-area: 2 / 2 / 3 / 3; }
-  .sheet-fortune   { grid-area: 3 / 2 / 4 / 3; }
-  .sheet-primary   { grid-area: 4 / 2 / 5 / 3; }
-  .sheet-secondary { grid-area: 5 / 2 / 6 / 3; }
+  .sheet-header    { grid-area: 1 / 2 / 2 / 4; }
+  .sheet-fortune   { grid-area: 2 / 2 / 3 / 3; align-self: start; }
+  .sheet-torch     { grid-area: 2 / 3 / 3 / 4; align-self: start; }
+  .sheet-vitals    { grid-area: 3 / 2 / 4 / 4; }
+  .sheet-primary   { grid-area: 4 / 2 / 5 / 4; }
+  .sheet-secondary { grid-area: 5 / 2 / 6 / 4; }
   .sheet-primary--full { grid-row: 4 / 6; }
 }
 

@@ -55,6 +55,17 @@ export const DICE_SPRING = {
   tap: { type: 'spring', stiffness: 620, damping: 28 } as const,
 }
 
+/**
+ * The press every tally button on the sheet shares: lift on hover, squash on
+ * press, spring-driven so release snaps back with life. Spread onto the
+ * `motion.button` a shadcn Button renders through.
+ */
+export const DICE_TAP = {
+  whileHover: { scale: 1.05, y: -2 },
+  whileTap: { scale: 0.9, y: 1 },
+  transition: DICE_SPRING.tap,
+}
+
 /* ============================================================
    Roll lifecycle
    ============================================================ */

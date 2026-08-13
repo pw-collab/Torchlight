@@ -392,7 +392,7 @@ export function FloatingVitals({
 
       {/* Luck bar — phones keep it inside the vitals block, since there is no
           second column to give it a row of its own. */}
-      <FortuneBar luckTokens={luckTokens} onLuckChange={onLuckChange} variant="stacked" />
+      <FortuneBar luckTokens={luckTokens} onLuckChange={onLuckChange} />
 
       {/* HP / XP overlay */}
       {hpOverlay}

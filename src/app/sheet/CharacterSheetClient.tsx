@@ -14,7 +14,8 @@ import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
-import { FortuneBar } from '@/components/sheet/FortuneBar'
+import { FortuneTile } from '@/components/sheet/FortuneBar'
+import { TorchStatus } from '@/components/sheet/TorchStatus'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { TabBar } from '@/components/sheet/TabBar'
 import { TabRail } from '@/components/sheet/TabRail'
@@ -305,10 +306,11 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         </div>
       ) : (
         // The whole sheet sits on one twelve-column grid, laid out as the
-        // design's auto-layout: heading on row 1 (columns 4-9); the nav rail
+        // design's auto-layout: on row 1 the heading (columns 4-9) with
+        // fortuna and the light status beside it (10 and 11); the nav rail
         // holding column 3 down rows 2-3; the tab's content filling columns
-        // 4-9 of those same rows; the vitals in columns 10-11 of row 2 with
-        // fortuna under them on row 3 (see .sheet-* in globals.css).
+        // 4-9 of those same rows; the vitals in columns 10-11 of row 2
+        // (see .sheet-* in globals.css).
         <div className="sheet-grid">
           <header className="sheet-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -324,6 +326,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
             </Link>
           </header>
 
+          <div className="sheet-fortune">
+            <FortuneTile luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
+          </div>
+
+          <div className="sheet-torch">
+            <TorchStatus inventory={character.inventory} onClick={() => setTab('inventory')} />
+          </div>
+
           <div className="sheet-rail">
             <TabRail tabs={railItems} active={tab} onChange={setTab} />
           </div>
@@ -336,10 +346,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <aside className="sheet-vitals">
             {vitals}
           </aside>
-
-          <div className="sheet-fortune">
-            <FortuneBar luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
-          </div>
         </div>
       )}
 
@@ -351,7 +357,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         <DiceRoller onRoll={handleRoll} floating />
       )}
 
-      <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
+      {/* Phones have no column to reserve for the light, so they keep the
+          floating badge; the desktop grid carries TorchStatus instead. */}
+      {isMobile && <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />}
       <DiceOverlay
         phase={rollPhase}
         roll={activeRoll}
