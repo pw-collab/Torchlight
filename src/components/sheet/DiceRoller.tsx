@@ -43,7 +43,7 @@ const LABEL_CLASS =
 const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
 const CAPTION_CLASS =
-  'font-body text-[10px] italic leading-tight text-[var(--bone-muted)]'
+  'font-body text-muted-foreground text-[10px] leading-tight italic'
 
 /** Groups a pool into `{sides, count}`, smallest die first. */
 function grouped(pool: number[]): { sides: number; count: number }[] {
@@ -149,7 +149,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           <span
             aria-hidden
             className={cn(
-              'bg-destructive text-background font-heading absolute -top-1 -right-1',
+              'bg-primary text-primary-foreground font-heading absolute -top-1 -right-1',
               'flex size-5 items-center justify-center text-[10px] font-bold',
             )}
           >
@@ -196,17 +196,17 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                   aria-label={`Adicionar d${d} ao punhado`}
                   variant="hollow"
                   className={cn(
-                    'bg-secondary relative h-[50px] min-w-0 px-0',
-                    'hover:border-[var(--destructive)] hover:bg-[var(--accent)]',
+                    'bg-input border-input relative h-[50px] min-w-0 px-0',
+                    'hover:border-primary hover:bg-accent',
                     'disabled:opacity-40',
-                    count > 0 && 'border-[var(--destructive)]',
+                    count > 0 && 'border-primary',
                   )}
                 >
-                  <DieIcon sides={d} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
+                  <DieIcon sides={d} size={26} shapeColor="var(--primary)" numberColor="var(--primary-foreground)" />
                   {count > 0 && (
                     <span
                       aria-hidden
-                      className="bg-destructive text-background font-heading absolute -top-1 -right-1 flex size-4 items-center justify-center text-[9px] font-bold"
+                      className="bg-primary text-primary-foreground font-heading absolute -top-1 -right-1 flex size-4 items-center justify-center text-[9px] font-bold"
                     >
                       {count}
                     </span>
@@ -218,7 +218,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
 
           {/* Tray — chips double as the touch-friendly way to take a die back,
               since there is no right-click on a phone. */}
-          <div className="border-border bg-secondary/40 flex min-h-11 flex-wrap items-center gap-1.5 border p-1.5">
+          <div className="border-border bg-input flex min-h-11 flex-wrap items-center gap-1.5 border p-1.5">
             {pool.length === 0 ? (
               <span className={cn(CAPTION_CLASS, 'px-1')}>Punhado vazio</span>
             ) : (
@@ -230,8 +230,8 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                   title={`Remover um d${sides}`}
                   aria-label={`Remover um d${sides} do punhado`}
                   className={cn(
-                    'border-border bg-background font-mono text-secondary-foreground border px-2 py-1 text-[11px]',
-                    'hover:border-[var(--destructive)] hover:text-[var(--destructive)]',
+                    'border-input bg-secondary font-mono text-secondary-foreground border px-2 py-1 text-[11px]',
+                    'hover:border-primary hover:text-foreground',
                   )}
                 >
                   {count > 1 ? count : ''}d{sides} <span aria-hidden className="opacity-50">×</span>
@@ -247,9 +247,25 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               disabled={pool.length === 0}
               render={<motion.button {...diceTap} />}
               variant="hollow"
-              className="bg-input border-input hover:border-primary hover:bg-accent h-[54px] min-w-0 px-0"
+              className={cn(
+                'font-heading bg-primary text-primary-foreground h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
+                'hover:bg-primary/80 disabled:opacity-35',
+              )}
             >
-              <DieIcon sides={d} size={28} shapeColor="var(--primary)" numberColor="var(--primary-foreground)" />
+              Rolar{pool.length > 0 ? ` ${pool.length}` : ''}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setPool([])}
+              disabled={pool.length === 0}
+              render={<motion.button {...diceTap} />}
+              variant="outline"
+              className={cn(
+                'font-heading bg-input border-input h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
+                'hover:border-primary disabled:opacity-35',
+              )}
+            >
+              Limpar
             </Button>
           </div>
           {full && (
