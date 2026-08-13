@@ -25,9 +25,10 @@ const DIE_TYPES: Record<number, DieType> = {
 /**
  * Above this the pre-simulation (up to 5000 physics steps per throw)
  * starts to cost more than the spectacle is worth, so we fall back to
- * the lightweight SVG scene.
+ * the lightweight SVG scene. The dice pool caps itself here too, so a
+ * handful built in the UI always gets the physics table.
  */
-const MAX_DICE = 12
+export const MAX_DICE = 12
 
 /* ─── Loading ──────────────────────────────────────────────────────────── */
 
@@ -158,28 +159,34 @@ export function readDiceTheme(): DiceTheme {
  * can't be staged in 3D (unsupported die, too many dice, values out of
  * range) — callers fall back to the SVG scene.
  *
- * Every die keeps its own face: an advantage pair throws two dice showing
- * both results, `3d6` throws three. Dice are deliberately *identical* in
- * the air — tinting the crit die before it lands would give the result
- * away mid-flight. The reveal is left to the settle effects below.
+ * Every die keeps its own shape and face, so a mixed pool throws a real
+ * `2d6 + d20` rather than three of anything. Dice are deliberately
+ * *identical in colour* in the air — tinting the crit die before it lands
+ * would give the result away mid-flight. The reveal is left to the settle
+ * effects below.
  */
 export function diceConfigFor(roll: RollResult, theme: DiceTheme): DiceConfig[] | null {
-  const sides = roll.sides ?? parseDie(roll.die).sides
-  const type = DIE_TYPES[sides]
-  if (!type) return null
+  const thrown = roll.dice?.length
+    ? roll.dice
+    : [{ sides: roll.sides ?? parseDie(roll.die).sides, value: roll.result }]
 
-  const faces = roll.dice?.length ? roll.dice : [roll.result]
-  if (faces.length === 0 || faces.length > MAX_DICE) return null
-  // A formula total (e.g. 2d6 → 9) would be an impossible face; bail rather
-  // than let the engine silently land on something that isn't the result.
-  if (faces.some(f => !Number.isInteger(f) || f < 1 || f > sides)) return null
+  if (thrown.length === 0 || thrown.length > MAX_DICE) return null
 
-  return faces.map(rolled => ({
-    dice: type,
-    rolled,
-    textColor: theme.text,
-    backgroundColor: theme.face,
-  }))
+  const config: DiceConfig[] = []
+  for (const { sides, value } of thrown) {
+    const type = DIE_TYPES[sides]
+    if (!type) return null
+    // A formula total (e.g. 2d6 → 9) would be an impossible face; bail rather
+    // than let the engine silently land on something that isn't the result.
+    if (!Number.isInteger(value) || value < 1 || value > sides) return null
+    config.push({
+      dice: type,
+      rolled: value,
+      textColor: theme.text,
+      backgroundColor: theme.face,
+    })
+  }
+  return config
 }
 
 /**
@@ -192,13 +199,12 @@ export function diceConfigFor(roll: RollResult, theme: DiceTheme): DiceConfig[] 
  * which is exactly the die the player is looking at.
  */
 export function effectRulesFor(roll: RollResult, theme: DiceTheme, fx: Engine['effects']): EffectRule[] {
-  const sides = roll.sides ?? parseDie(roll.die).sides
-  const type = DIE_TYPES[sides]
-  if (!type) return []
-
+  // Crits and fumbles are only ever flagged for a lone d20 (see rollPool), so
+  // the rule can name that die directly rather than deriving a type that a
+  // mixed pool wouldn't have.
   if (roll.isCritical) {
     return [{
-      match: { type, visible: roll.result },
+      match: { type: 'd20', visible: roll.result },
       play: [
         fx.glow({ color: theme.crit, intensity: 1.4 }),
         fx.haloRing({ color: theme.crit }),
@@ -210,7 +216,7 @@ export function effectRulesFor(roll: RollResult, theme: DiceTheme, fx: Engine['e
 
   if (roll.isFumble) {
     return [{
-      match: { type, visible: roll.result },
+      match: { type: 'd20', visible: roll.result },
       play: [
         fx.glow({ color: theme.fumble, intensity: 1.2 }),
         fx.screenShake({ intensity: 0.5 }),

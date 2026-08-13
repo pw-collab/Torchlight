@@ -19,13 +19,14 @@ import { DICE_EASE, DICE_SPRING, DICE_TIME, seededRandom, type HeroKind, type Ro
 
 export interface SceneDie {
   finalValue: number
+  /** Each die carries its own shape, so a mixed pool draws as one. */
+  sides: number
   /** false for the discarded advantage/disadvantage die. */
   kept: boolean
 }
 
 interface Props {
   phase: RollPhase
-  sides: number
   dice: SceneDie[]
   hero: HeroKind
   /** Roll id — seeds each die's tumble arc so re-renders don't reshuffle it. */
@@ -45,9 +46,8 @@ function dieColors(hero: HeroKind, landed: boolean, kept: boolean) {
   return { shape: 'var(--primary)', num: 'var(--secondary)' }
 }
 
-function TumblingDie({ phase, sides, die, hero, seed, index, size, reduced }: {
+function TumblingDie({ phase, die, hero, seed, index, size, reduced }: {
   phase: RollPhase
-  sides: number
   die: SceneDie
   hero: HeroKind
   seed: string
@@ -55,6 +55,7 @@ function TumblingDie({ phase, sides, die, hero, seed, index, size, reduced }: {
   size: number
   reduced: boolean
 }) {
+  const sides = die.sides
   // Per-die stable randomness: spin magnitudes and direction.
   const arc = useMemo(() => {
     const rand = seededRandom(`${seed}:${index}`)
@@ -174,16 +175,20 @@ function TumblingDie({ phase, sides, die, hero, seed, index, size, reduced }: {
   )
 }
 
-export function DiceScene({ phase, sides, dice, hero, seed, size = 96 }: Props) {
+export function DiceScene({ phase, dice, hero, seed, size = 96 }: Props) {
   const reduced = !!useReducedMotion()
-  const dieSize = dice.length > 1 ? Math.round(size * 0.82) : size
+  // A handful needs to fit the tray, so dice shrink as the pool grows.
+  const scale = dice.length > 4 ? 0.6 : dice.length > 2 ? 0.7 : dice.length > 1 ? 0.82 : 1
+  const dieSize = Math.round(size * scale)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 18, minHeight: size + 24 }}>
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexWrap: 'wrap', gap: 14, maxWidth: 'min(90vw, 460px)', minHeight: size + 24,
+    }}>
       {dice.map((die, i) => (
         <TumblingDie
           key={`${seed}:${i}`}
           phase={phase}
-          sides={sides}
           die={die}
           hero={hero}
           seed={seed}

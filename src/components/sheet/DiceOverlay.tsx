@@ -101,13 +101,17 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
   const isFumble = hero === 'fumble'
   const landed = phase === 'landed'
 
-  const { sides } = roll ? parseDie(roll.die) : { sides: 20 }
+  // Advantage shows both faces with the loser struck through; every other roll
+  // — a lone die or a whole pool — shows each die it actually threw.
+  const advSides = roll?.sides ?? (roll ? parseDie(roll.die).sides : 20)
   const dice: SceneDie[] =
     roll?.rolls && roll.rolls.length > 1
-      ? roll.rolls.map(v => ({ finalValue: v, kept: v === roll.result }))
-      : [{ finalValue: roll?.result ?? 20, kept: true }]
+      ? roll.rolls.map(v => ({ finalValue: v, sides: advSides, kept: v === roll.result }))
+      : roll?.dice?.length
+      ? roll.dice.map(d => ({ finalValue: d.value, sides: d.sides, kept: true }))
+      : [{ finalValue: roll?.result ?? 20, sides: advSides, kept: true }]
   // Advantage can roll doubles — make sure exactly one die reads as kept.
-  if (dice.filter(d => d.kept).length > 1) {
+  if (roll?.rolls && roll.rolls.length > 1 && dice.filter(d => d.kept).length > 1) {
     let found = false
     for (const d of dice) {
       if (d.kept && found) d.kept = false
@@ -216,7 +220,6 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                 <DiceScene
                   key={roll.id}
                   phase={phase}
-                  sides={sides}
                   dice={dice}
                   hero={hero}
                   seed={roll.id}

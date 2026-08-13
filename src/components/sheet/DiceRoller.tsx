@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { rollDie } from '@/lib/dice'
+import { rollDie, rollPool } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieIcon } from '@/components/dice/DieIcon'
 import { DICE_SPRING } from '@/lib/diceMotion'
+import { MAX_DICE } from '@/lib/diceEngine'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,7 +20,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-const SMALL_DICE = [4, 6, 8, 10, 12]
+const POOL_DICE = [4, 6, 8, 10, 12, 20]
 type RollMode = 'normal' | 'advantage' | 'disadvantage'
 
 interface Props {
@@ -41,6 +42,17 @@ const LABEL_CLASS =
   'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--muted-foreground)] uppercase'
 const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
+const CAPTION_CLASS =
+  'font-body text-[10px] italic leading-tight text-[var(--bone-muted)]'
+
+/** Groups a pool into `{sides, count}`, smallest die first. */
+function grouped(pool: number[]): { sides: number; count: number }[] {
+  const counts = new Map<number, number>()
+  for (const s of pool) counts.set(s, (counts.get(s) ?? 0) + 1)
+  return [...counts.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([sides, count]) => ({ sides, count }))
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -49,15 +61,43 @@ const FIELD_CLASS =
  * anchored just above it — never a fullscreen overlay. `floating` pins it to
  * the bottom-right of the screen (desktop); otherwise it renders inline as the
  * trailing button of the mobile bottom bar (see TabBar).
+ *
+ * Two ways to roll, kept visually apart because they behave differently:
+ *
+ * the handful — tapping a die adds it to a pool that can mix shapes, and
+ *   "Rolar" throws the lot as one roll. Right-click on a die, or a tap on its
+ *   chip, takes one back; "Limpar" empties the tray.
+ *
+ * the d20 row — rolls one d20 the moment it's pressed. Advantage and
+ *   disadvantage are single-die mechanics (throw two, keep one), so pooling
+ *   them would mean nothing; "Normal" stays here too so the commonest roll in
+ *   the game is still one tap away.
  */
 export function DiceRoller({ onRoll, floating = false }: Props) {
+  const [pool, setPool] = useState<number[]>([])
   const [mod, setMod] = useState(0)
   const [dc,  setDc]  = useState(14)
   const [open, setOpen] = useState(false)
 
-  function roll(sides: number, mode: RollMode = 'normal') {
-    const result = rollDie(`d${sides}`, `d${sides}`, undefined, mod, mode === 'advantage', mode === 'disadvantage')
-    if (sides === 20) { result.isCritical = result.result === 20; result.isFumble = result.result === 1 }
+  const addDie    = (sides: number) => setPool(p => (p.length >= MAX_DICE ? p : [...p, sides]))
+  const removeDie = (sides: number) => setPool(p => {
+    const at = p.lastIndexOf(sides)
+    return at === -1 ? p : [...p.slice(0, at), ...p.slice(at + 1)]
+  })
+
+  function rollHandful() {
+    if (pool.length === 0) return
+    const notation = grouped(pool).map(g => `${g.count > 1 ? g.count : ''}d${g.sides}`).join(' + ')
+    const result = rollPool(pool, notation, mod)
+    setPool([])
+    setOpen(false)
+    onRoll?.(result)
+  }
+
+  function rollD20(mode: RollMode) {
+    const result = rollDie('d20', 'd20', undefined, mod, mode === 'advantage', mode === 'disadvantage')
+    result.isCritical = result.result === 20
+    result.isFumble = result.result === 1
     setOpen(false)
     onRoll?.(result)
   }
@@ -67,6 +107,8 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
     { mode: 'advantage'    as RollMode, label: '↑ Vantagem',    color: 'var(--chart-2)'  },
     { mode: 'disadvantage' as RollMode, label: '↓ Desvantagem', color: 'var(--destructive)'  },
   ] as const
+
+  const full = pool.length >= MAX_DICE
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -87,7 +129,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               />
             }
             className={cn(
-              'bg-secondary data-popup-open:bg-destructive px-0 transition-colors duration-[250ms]',
+              'bg-secondary data-popup-open:bg-destructive relative px-0 transition-colors duration-[250ms]',
               floating
                 ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
                 : 'h-12 min-h-12 w-14',
@@ -102,6 +144,18 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           shapeColor={open ? 'var(--background)' : 'var(--destructive)'}
           numberColor={open ? 'var(--destructive)' : 'var(--background)'}
         />
+        {/* Badge so a pool built and left behind isn't invisible once closed. */}
+        {pool.length > 0 && (
+          <span
+            aria-hidden
+            className={cn(
+              'bg-destructive text-background font-heading absolute -top-1 -right-1',
+              'flex size-5 items-center justify-center text-[10px] font-bold',
+            )}
+          >
+            {pool.length}
+          </span>
+        )}
       </PopoverTrigger>
 
       <PopoverContent
@@ -121,25 +175,107 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           </PopoverTitle>
         </PopoverHeader>
 
-        {/* d4–d12 grid */}
-        <div className="grid grid-cols-5 gap-1.5">
-          {SMALL_DICE.map(d => (
+        {/* ── The handful ────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-2">
+          <p className={CAPTION_CLASS}>
+            Toque para somar ao punhado · botão direito remove
+          </p>
+
+          <div className="grid grid-cols-6 gap-1.5">
+            {POOL_DICE.map(d => {
+              const count = pool.filter(s => s === d).length
+              return (
+                <Button
+                  key={d}
+                  type="button"
+                  onClick={() => addDie(d)}
+                  onContextMenu={e => { e.preventDefault(); removeDie(d) }}
+                  disabled={full}
+                  render={<motion.button {...diceTap} />}
+                  title={`Adicionar d${d}${count ? ` (${count} no punhado)` : ''}`}
+                  aria-label={`Adicionar d${d} ao punhado`}
+                  variant="hollow"
+                  className={cn(
+                    'bg-secondary relative h-[50px] min-w-0 px-0',
+                    'hover:border-[var(--destructive)] hover:bg-[var(--accent)]',
+                    'disabled:opacity-40',
+                    count > 0 && 'border-[var(--destructive)]',
+                  )}
+                >
+                  <DieIcon sides={d} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
+                  {count > 0 && (
+                    <span
+                      aria-hidden
+                      className="bg-destructive text-background font-heading absolute -top-1 -right-1 flex size-4 items-center justify-center text-[9px] font-bold"
+                    >
+                      {count}
+                    </span>
+                  )}
+                </Button>
+              )
+            })}
+          </div>
+
+          {/* Tray — chips double as the touch-friendly way to take a die back,
+              since there is no right-click on a phone. */}
+          <div className="border-border bg-secondary/40 flex min-h-11 flex-wrap items-center gap-1.5 border p-1.5">
+            {pool.length === 0 ? (
+              <span className={cn(CAPTION_CLASS, 'px-1')}>Punhado vazio</span>
+            ) : (
+              grouped(pool).map(({ sides, count }) => (
+                <button
+                  key={sides}
+                  type="button"
+                  onClick={() => removeDie(sides)}
+                  title={`Remover um d${sides}`}
+                  aria-label={`Remover um d${sides} do punhado`}
+                  className={cn(
+                    'border-border bg-background font-mono text-secondary-foreground border px-2 py-1 text-[11px]',
+                    'hover:border-[var(--destructive)] hover:text-[var(--destructive)]',
+                  )}
+                >
+                  {count > 1 ? count : ''}d{sides} <span aria-hidden className="opacity-50">×</span>
+                </button>
+              ))
+            )}
+          </div>
+
+          <div className="flex gap-1.5">
             <Button
-              key={d}
               type="button"
-              onClick={() => roll(d)}
+              onClick={rollHandful}
+              disabled={pool.length === 0}
               render={<motion.button {...diceTap} />}
-              title={`d${d}`}
-              aria-label={`Rolar d${d}`}
               variant="hollow"
-              className="bg-secondary h-[54px] min-w-0 px-0 hover:border-[var(--destructive)] hover:bg-[var(--accent)]"
+              className={cn(
+                'font-heading bg-destructive text-background h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
+                'hover:bg-[var(--blood-bright)] disabled:opacity-35',
+              )}
             >
-              <DieIcon sides={d} size={28} shapeColor="var(--destructive)" numberColor="var(--background)" />
+              Rolar{pool.length > 0 ? ` ${pool.length}` : ''}
             </Button>
-          ))}
+            <Button
+              type="button"
+              onClick={() => setPool([])}
+              disabled={pool.length === 0}
+              render={<motion.button {...diceTap} />}
+              variant="outline"
+              className={cn(
+                'font-heading border-border bg-secondary h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
+                'hover:border-[var(--destructive)] disabled:opacity-35',
+              )}
+            >
+              Limpar
+            </Button>
+          </div>
+          {full && (
+            <p className={cn(CAPTION_CLASS, 'text-[var(--destructive)]')}>
+              Limite de {MAX_DICE} dados por rolagem.
+            </p>
+          )}
         </div>
 
-        {/* Modifier */}
+        {/* Modifier — added once to the whole roll, handful or d20. */}
         <div className="flex items-center gap-2.5">
           <Label htmlFor="dice-mod" className={LABEL_CLASS}>Modificador</Label>
           <Input
@@ -154,7 +290,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
 
         <Separator className="bg-[var(--border)]" />
 
-        {/* d20 section */}
+        {/* ── The d20 row — rolls on press, no pooling ────────────────────── */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5">
             <Label htmlFor="dice-dc" className={LABEL_CLASS}>DC Alvo</Label>
@@ -168,12 +304,14 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
             />
           </div>
 
+          <p className={CAPTION_CLASS}>Rola na hora, um d20 só</p>
+
           <div className="grid grid-cols-3 gap-1.5">
             {d20Modes.map(({ mode, label, color }) => (
               <Button
                 key={mode}
                 type="button"
-                onClick={() => roll(20, mode)}
+                onClick={() => rollD20(mode)}
                 render={<motion.button {...diceTap} />}
                 variant="outline"
                 style={{ color }}
