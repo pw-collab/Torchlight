@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { Ancestry } from '@/types/ancestry.types'
+import type { Archetype } from '@/types/archetype.types'
 import type { TechniqueState } from '@/types/technique.types'
 import { rollDie, modifier, modifierStr } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
@@ -440,12 +441,78 @@ function TechniqueCard({
   )
 }
 
+// ─── Granted techniques: ancestry and archetype ───────────────────────────────
+
+/**
+ * A technique the character was born with rather than one the class hands out:
+ * an ancestry trait or the archetype's talent. Both are settled at creation and
+ * never change, so they carry no state and no controls — the talent deck below
+ * the panel is where what a character *earns* later goes (a level roll, a
+ * reward from play).
+ */
+interface GrantedTechnique {
+  key: string
+  name: string
+  description: string
+  caption: string
+  accent: string
+  glyph: string
+}
+
+const ANCESTRY_STYLE = { caption: 'Ancestralidade', accent: 'var(--foreground)', glyph: '☽' }
+const ARCHETYPE_STYLE = { caption: 'Arquétipo', accent: 'var(--chart-1)', glyph: '✦' }
+
+/** Every trait of the ancestry, then the archetype's talent. */
+function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedTechnique[] {
+  const granted: GrantedTechnique[] = ancestry
+    ? ancestry.traits.map(trait => ({
+        key: `ancestry:${ancestry.id}:${trait.name}`,
+        name: trait.name,
+        description: trait.description,
+        ...ANCESTRY_STYLE,
+      }))
+    : []
+
+  // Archetypes still awaiting a written talent contribute nothing here.
+  if (archetype?.talent) {
+    granted.push({
+      key: `archetype:${archetype.id}`,
+      name: archetype.name,
+      description: archetype.talent,
+      ...ARCHETYPE_STYLE,
+      glyph: archetype.glyph || ARCHETYPE_STYLE.glyph,
+    })
+  }
+
+  return granted
+}
+
+function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: RollResult) => void }) {
+  return (
+    <GlyphCard
+      glyph={entry.glyph}
+      title={entry.name}
+      caption={entry.caption}
+      accent={entry.accent}
+      description={entry.description}
+    >
+      {/* Archetype talents are written as a paragraph of flavour followed by
+          the rule itself — the line break between them has to survive. */}
+      <p style={{ ...POPOVER_BODY, whiteSpace: 'pre-line' }}>
+        <RollableText text={entry.description} label={entry.name} onRoll={onRoll} />
+      </p>
+    </GlyphCard>
+  )
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface Props {
   classData: Class
   /** Fills the ancestry tag beside the class one. Omitted, the tag is dropped. */
   ancestry?: Ancestry
+  /** Fills the archetype tag and contributes its talent. Omitted, both are dropped. */
+  archetype?: Archetype
   /** The sheet's languages, listed inside the ancestry tag. */
   languages?: string[]
   stats: Record<string, number>
@@ -454,10 +521,11 @@ interface Props {
   onRoll?: (result: RollResult) => void
 }
 
-export function ClassPanel({ classData, ancestry, languages = [], stats, techniqueStates, onStateChange, onRoll }: Props) {
+export function ClassPanel({ classData, ancestry, archetype, languages = [], stats, techniqueStates, onStateChange, onRoll }: Props) {
   const activeTechniques = classData.techniques.filter(
     (t): t is ClassTechnique => t !== null,
   )
+  const granted = grantedTechniques(ancestry, archetype)
 
   function handleTechniqueState(updated: TechniqueState) {
     onStateChange(patchState(techniqueStates, updated))
@@ -465,8 +533,10 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
 
   return (
     <div className="worn-border" style={panelStyle({ padding: 42 })}>
-      {/* Header — class and ancestry condensed into tags, with the
-          proficiencies, traits and languages one hover (or tap) away. */}
+      {/* Header — class, ancestry and archetype condensed into tags, with the
+          proficiencies, languages and concept one hover (or tap) away. The
+          ancestry traits and the archetype talent are not repeated here: they
+          have their own cards among the techniques below. */}
       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
         <DetailChip
           label={classData.name}
@@ -478,21 +548,24 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
         </DetailChip>
 
         {ancestry && (
-          <DetailChip label={ancestry.name} detailLabel="talentos e idiomas da ancestralidade">
-            {ancestry.traits.map(trait => (
-              <ChipDetail key={trait.name} label={trait.name}>
-                {trait.description}
-              </ChipDetail>
-            ))}
+          <DetailChip label={ancestry.name} detailLabel="idiomas da ancestralidade">
             <ChipDetail label="Idiomas">
               {languages.length > 0 ? languages.join(', ') : 'Nenhum idioma registrado.'}
             </ChipDetail>
           </DetailChip>
         )}
+
+        {archetype && (
+          <DetailChip label={archetype.name} detailLabel="conceito e gancho do arquétipo">
+            <ChipDetail label="Conceito">{archetype.summary}</ChipDetail>
+            {archetype.hook && <ChipDetail label="Gancho">{archetype.hook}</ChipDetail>}
+          </DetailChip>
+        )}
       </div>
 
-      {/* Techniques */}
-      {activeTechniques.length > 0 && (
+      {/* Techniques — everything the character starts play with: the class's
+          own, the ancestry's traits and the archetype's talent. */}
+      {(activeTechniques.length > 0 || granted.length > 0) && (
         <div style={{ marginBottom: 20 }}>
           <SectionSubheading className="mb-3">Técnicas</SectionSubheading>
           <div className="grid-6-cards">
@@ -505,6 +578,9 @@ export function ClassPanel({ classData, ancestry, languages = [], stats, techniq
                 onStateChange={handleTechniqueState}
                 onRoll={onRoll}
               />
+            ))}
+            {granted.map(entry => (
+              <GrantedCard key={entry.key} entry={entry} onRoll={onRoll} />
             ))}
           </div>
         </div>

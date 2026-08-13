@@ -167,7 +167,9 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
         {/* List */}
         {talents.length === 0 && !formOpen ? (
           <p className="mt-4 text-[13px] text-[var(--muted-foreground)] italic">
-            Nenhum talento registrado nos arquivos.
+            Nenhum talento registrado nos arquivos. Aqui ficam os talentos conquistados em
+            jogo — rolagens de nível e concessões do mestre. Os de ancestralidade e arquétipo
+            já constam entre as Técnicas.
           </p>
         ) : (
           <div className="grid-6-cards mt-4">
