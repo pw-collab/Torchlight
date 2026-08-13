@@ -111,10 +111,10 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
         onClick={isMobile ? () => setOpen(o => !o) : undefined}
         style={{
           display: 'inline-flex',
-          alignItems: 'baseline',
+          alignItems: 'center',
           gap: 8,
           minWidth: 0,
-          padding: '5px 12px 7px',
+          padding: '3px 6px',
           background: 'var(--secondary)',
           color: 'var(--primary-foreground)',
           border: '1px solid var(--input)',
@@ -122,15 +122,15 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
           textAlign: 'left',
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 16, lineHeight: '24px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {label}
         </span>
         {trailing && (
           <>
-            <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 20, lineHeight: 1, color: 'var(--border)', opacity: 0.45, flexShrink: 0 }}>
+            <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 20, lineHeight: '20px', color: 'var(--border)', opacity: 0.45, flexShrink: 0 }}>
               |
             </span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, lineHeight: 1, textTransform: 'uppercase', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, lineHeight: '16px', textTransform: 'uppercase', flexShrink: 0 }}>
               {trailing}
             </span>
           </>

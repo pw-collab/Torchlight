@@ -20,13 +20,16 @@ interface Props<K extends string> {
  * that hugs the main block's left edge. Mobile keeps the labelled bottom bar
  * instead (see TabBar), so this renders only on the desktop layout.
  *
+ * Placement, padding and the column's vertical rule belong to `.sheet-rail`,
+ * which parks this stack at the top centre of its column.
+ *
  * Plain buttons rather than the Tabs primitive — the panels live in the page
  * body, and each square is really a view switch, so there is no tablist
  * relationship to model here.
  */
 export function TabRail<K extends string>({ tabs, active, onChange }: Props<K>) {
   return (
-    <nav aria-label="Navegação da ficha" className="flex flex-col gap-2 mt-2">
+    <nav aria-label="Navegação da ficha" className="flex w-14 flex-col gap-2">
       {tabs.map(t => {
         const isActive = t.key === active
         return (

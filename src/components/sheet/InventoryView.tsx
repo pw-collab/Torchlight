@@ -190,7 +190,12 @@ function renderTypeIcon(item: InventoryItem, size = 44) {
   return <TypeIcon src={src} fallback={fallback} size={size} />
 }
 
-function TreasureVault({ gold, silver, copper, onUpdate }: {
+/**
+ * Coin purse. Exported because the sheet places it on its own row of the page
+ * grid, under the inventory panel — the same slot the stats tab gives to the
+ * talent deck (see CharacterSheetClient).
+ */
+export function TreasureVault({ gold, silver, copper, onUpdate }: {
   gold: number
   silver: number
   copper: number
@@ -203,7 +208,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
   ]
 
   return (
-    <div className="worn-border" style={{ padding: 24 }}>
+    <div className="card-surface" style={{ padding: 24 }}>
       <SectionSubheading className="mb-3">Tesouro</SectionSubheading>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
         {coins.map(({ key, label, color, value }) => (
@@ -794,12 +799,8 @@ interface Props {
   inventory: InventoryItem[]
   str: number
   dex: number
-  gold: number
-  silver: number
-  copper: number
   onUpdate: (inventory: InventoryItem[]) => void
   onAcChange: (ac: number) => void
-  onCurrencyUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
   onMeleeRangedUpdate: (patch: { meleeBonus?: number; rangedBonus?: number }) => void
   onRoll?: (result: RollResult) => void
   meleeBonus: number
@@ -809,8 +810,7 @@ interface Props {
 
 export function InventoryView({
   inventory, str, dex,
-  gold, silver, copper,
-  onUpdate, onAcChange, onCurrencyUpdate, onMeleeRangedUpdate,
+  onUpdate, onAcChange, onMeleeRangedUpdate,
   onRoll, meleeBonus, rangedBonus, playerName,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
@@ -1058,13 +1058,13 @@ export function InventoryView({
   }
 
   return (
-    // Six columns, no page shell: this renders inside the sheet's main block,
+    // No page shell: this renders straight into the sheet's content column,
     // which spans six of the page's twelve columns and already carries the
-    // page's margins.
-    <div className="grid-6">
-
+    // page's margins. Tesouro is placed on the row below by the page (see
+    // TreasureVault above).
+    <>
         {/* Inventário — grid takes emphasis, Carga inline in the header */}
-        <div className="worn-border col-span-6" style={{ padding: 24 }}>
+        <div className="card-surface" style={{ padding: 24 }}>
           <div className="grid-6">
           {/* Title and actions wrap onto their own lines rather than colliding
               once the block is too narrow to hold both (phones). */}
@@ -1220,11 +1220,6 @@ export function InventoryView({
           </div>
         </div>
 
-        {/* Treasure */}
-        <div className="col-span-6">
-          <TreasureVault gold={gold} silver={silver} copper={copper} onUpdate={onCurrencyUpdate} />
-        </div>
-
       {/* Equip selection modal */}
       {selectingSlot && (
         <div
@@ -1349,6 +1344,6 @@ export function InventoryView({
           }}
         />
       )}
-    </div>
+    </>
   )
 }

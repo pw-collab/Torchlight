@@ -27,19 +27,23 @@ export const POPOVER_BODY: React.CSSProperties = {
 }
 
 interface Props {
-  /** Symbol drawn in the arch window on the face and in the popover badge. */
+  /** Symbol drawn in the card's masthead and in the popover badge. */
   glyph: ReactNode
   title: string
-  /** Small uppercase category label under the face divider. */
+  /** Small uppercase category label under the masthead rule. */
   caption: string
-  /** Accent colour for the divider, caption and popover chrome. */
+  /** Accent colour for the roll arrow and the popover chrome. */
   accent: string
   /** Preview text on the face — clamped to five lines. */
   description?: string
-  /** Compact counter under the glyph, e.g. `2/3`. */
+  /** Compact counter beside the caption, e.g. `2/3`. */
   status?: { text: string; color: string } | null
-  /** Ornament in the middle of the face divider. */
-  dividerGlyph?: string
+  /**
+   * Cards the character *spends* — activations — carry a filled masthead and
+   * a lit caption; the passive ones stay hollow and dim. The design tells the
+   * two apart by weight rather than by hue.
+   */
+  tone?: 'passive' | 'activation'
   /** Popover body — the detail revealed once the card is opened. */
   children?: ReactNode
   /** Row pinned below the popover body, outside its scroll area. */
@@ -54,13 +58,14 @@ interface Props {
 }
 
 /**
- * The sheet's card face: arch window, name, accented divider, category label
- * and a clamped description, opening onto a centred popover with the detail.
- * Shared by the class block's techniques and the talent list.
+ * The sheet's card face: a ruled masthead carrying the symbol, the name and
+ * the category label, over a clamped description — opening onto a centred
+ * popover with the detail. Shared by the class block's techniques and the
+ * talent list.
  */
 export function GlyphCard({
   glyph, title, caption, accent, description, status,
-  dividerGlyph = '⨝', children, footer, overlay,
+  tone = 'passive', children, footer, overlay,
   popoverHeight = 360, open: openProp, onOpenChange,
 }: Props) {
   const [uncontrolled, setUncontrolled] = useState(false)
@@ -103,7 +108,10 @@ export function GlyphCard({
             <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
               {/* Heading */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
-                <span style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${accent}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: accent, lineHeight: 1 }}>
+                <span
+                  className="[&>svg]:size-4"
+                  style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${accent}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: accent, lineHeight: 1 }}
+                >
                   {glyph}
                 </span>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
@@ -153,9 +161,10 @@ export function GlyphCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          // 3:5 face: the card takes its width from the grid column and its
-          // height from that ratio, so the deck keeps its shape at any width.
-          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // The design's face ratio (246 × 384): the card takes its width from
+          // the panel column and its height from that ratio, so a deck keeps
+          // its shape at any width — and never drops below the 224px floor.
+          'tactile card-lift aspect-[246/384] h-auto min-h-[224px] w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'bg-input transition-[border-color] duration-[250ms]',
           // Button's base is a label: nowrap + uppercase. The face holds prose,
           // so it wraps and keeps the casing the text was written in.
@@ -171,8 +180,8 @@ export function GlyphCard({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 6,
-          padding: '10px 9px 12px',
+          gap: 12,
+          padding: 12,
           boxSizing: 'border-box',
           overflow: 'hidden',
         }}>
@@ -188,34 +197,62 @@ export function GlyphCard({
             </div>
           </div>
 
-          {/* Arch icon */}
-          <div style={{ width: 56, height: 56, border: '1px solid var(--border)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 22, color: 'var(--foreground)', lineHeight: 1, userSelect: 'none' }}>{glyph}</span>
-            {status && (
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: status.color, lineHeight: 1, letterSpacing: '0.04em' }}>{status.text}</span>
-            )}
+          {/* Masthead — symbol, name and the category label under a rule.
+              Filled for activations, hollow for everything passive. */}
+          <div
+            className={cn('[&>svg]:size-8', tone === 'activation' && 'bg-input')}
+            style={{
+              width: '100%',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: 16,
+              boxSizing: 'border-box',
+              flexShrink: 0,
+              color: 'var(--foreground)',
+              /* Text glyphs (the creator's tier numerals) need a size of their
+                 own; icon children are sized by the rule above. */
+              fontFamily: 'var(--font-body)',
+              fontSize: 22,
+              lineHeight: 1,
+            }}
+          >
+            {glyph}
+
+            {/* Title — wraps onto a second line, then clamps */}
+            <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', margin: 0 }}>
+              {title}
+            </p>
+
+            {/* Category label, with the use counter beside it when there is one */}
+            <div style={{ width: '100%', borderTop: '1px solid var(--border)', paddingTop: 6, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 5 }}>
+              <p style={{
+                fontFamily: 'var(--font-body)',
+                fontWeight: 600,
+                fontSize: 8,
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                lineHeight: '11.429px',
+                textAlign: 'center',
+                margin: 0,
+                color: tone === 'activation' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+              }}>
+                {caption}
+              </p>
+              {status && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11.429px', letterSpacing: '0.04em' }}>
+                  {status.text}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Title — wraps onto a second line, then clamps */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', flexShrink: 0 }}>
-            {title}
-          </p>
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
-            <span style={{ flex: 1, height: 1, background: accent }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: accent, lineHeight: 1 }}>{dividerGlyph}</span>
-            <span style={{ flex: 1, height: 1, background: accent }} />
-          </div>
-
-          {/* Caption */}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: accent, letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center', width: '100%' }}>
-            {caption}
-          </p>
-
-          {/* Description — fills whatever the title left, fading at the cut */}
+          {/* Description — fills whatever the masthead left, fading at the cut */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {description}
             </p>
           </div>

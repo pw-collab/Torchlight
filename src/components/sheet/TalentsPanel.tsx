@@ -1,13 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import type { IconSvgElement } from '@hugeicons/react'
+import {
+  FourFinger03Icon,
+  Moon02Icon,
+  StarAward01Icon,
+} from '@hugeicons/core-free-icons'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
 import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
 import { SectionHeading } from '@/components/shared/SectionHeading'
+import { CardIcon } from '@/components/sheet/ClassPanel'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -32,10 +38,11 @@ const ORIGIN_ACCENT: Record<TalentOrigin, string> = {
   ancestry: 'var(--foreground)',
 }
 
-const ORIGIN_GLYPH: Record<TalentOrigin, string> = {
-  ancestry: '☽',
-  class: '☿',
-  general: '✦',
+/** Mirrors the technique deck's symbols so the two decks read as one set. */
+const ORIGIN_ICON: Record<TalentOrigin, IconSvgElement> = {
+  ancestry: Moon02Icon,
+  class: FourFinger03Icon,
+  general: StarAward01Icon,
 }
 
 const FIELD_LABEL_CLASS =
@@ -93,8 +100,11 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   }
 
   return (
-    <Card className="border-border bg-card border p-10 ring-0">
+    // Same container as the technique panel: card surface, three columns, a
+    // full-width heading row and then one talent card per column.
+    <section className="panel-grid">
       <SectionHeading
+        className="panel-grid__row"
         trailing={
           <Button
             variant="secondary"
@@ -108,10 +118,10 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
         Talentos &amp; Habilidades
       </SectionHeading>
 
-      <CardContent className="px-0">
-        {/* Add / edit form */}
-        {formOpen && (
-          <div className="animate-ink-spread bg-secondary border-border mt-4 flex flex-col gap-2.5 border px-4 py-3.5">
+      {/* Add / edit form */}
+      {formOpen && (
+        <div className="panel-grid__row">
+          <div className="animate-ink-spread bg-secondary border-border flex flex-col gap-2.5 border px-4 py-3.5">
             <div className="grid-6 grid-6--tight">
               <Field className="col-span-4 col-sm-full">
                 <FieldLabel htmlFor="talent-name" className={FIELD_LABEL_CLASS}>Nome</FieldLabel>
@@ -162,32 +172,30 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
               {editingId ? '✦ Salvar Alterações' : '✦ Registrar Talento'}
             </Button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* List */}
-        {talents.length === 0 && !formOpen ? (
-          <p className="mt-4 text-[13px] text-[var(--muted-foreground)] italic">
-            Nenhum talento registrado nos arquivos. Aqui ficam os talentos conquistados em
-            jogo — rolagens de nível e concessões do mestre. Os de ancestralidade e arquétipo
-            já constam entre as Técnicas.
-          </p>
-        ) : (
-          <div className="grid-6-cards mt-4">
-            {talents.map(t => (
-              <TalentCard
-                key={t.id}
-                talent={t}
-                expanded={expandedId === t.id}
-                onOpenChange={open => setExpandedId(open ? t.id : null)}
-                onRemove={() => removeTalent(t.id)}
-                onEdit={() => startEdit(t)}
-                onRoll={onRoll}
-              />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Deck — one card per column, rows growing with the list */}
+      {talents.length === 0 && !formOpen ? (
+        <p className="panel-grid__row text-[13px] text-[var(--muted-foreground)] italic">
+          Nenhum talento registrado nos arquivos. Aqui ficam os talentos conquistados em
+          jogo — rolagens de nível e concessões do mestre. Os de ancestralidade e arquétipo
+          já constam entre as Técnicas.
+        </p>
+      ) : (
+        talents.map(t => (
+          <TalentCard
+            key={t.id}
+            talent={t}
+            expanded={expandedId === t.id}
+            onOpenChange={open => setExpandedId(open ? t.id : null)}
+            onRemove={() => removeTalent(t.id)}
+            onEdit={() => startEdit(t)}
+            onRoll={onRoll}
+          />
+        ))
+      )}
+    </section>
   )
 }
 
@@ -201,12 +209,11 @@ function TalentCard({ talent, expanded, onOpenChange, onRemove, onEdit, onRoll }
 }) {
   return (
     <GlyphCard
-      glyph={ORIGIN_GLYPH[talent.origin]}
+      glyph={<CardIcon icon={ORIGIN_ICON[talent.origin]} />}
       title={talent.name}
       caption={ORIGIN_LABEL[talent.origin]}
       accent={ORIGIN_ACCENT[talent.origin]}
       description={talent.description}
-      dividerGlyph="✦"
       open={expanded}
       onOpenChange={onOpenChange}
       footer={

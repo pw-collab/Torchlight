@@ -1,6 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
+import {
+  FourFinger03Icon,
+  HourglassIcon,
+  JusticeScale01Icon,
+  Moon02Icon,
+  RotateRight02Icon,
+  StarAward01Icon,
+} from '@hugeicons/core-free-icons'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
@@ -23,12 +32,9 @@ const STAT_SHORT: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
 }
 
-function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
-  return {
-    background: 'var(--card)',
-    border: '1px solid var(--border)',
-    ...extra,
-  }
+/** The 32px symbol every card carries in its masthead. */
+export function CardIcon({ icon }: { icon: IconSvgElement }) {
+  return <HugeiconsIcon icon={icon} size={32} strokeWidth={1.5} />
 }
 
 type BtnVariant = 'blood' | 'amber' | 'mist' | 'dark' | 'danger' | 'green'
@@ -362,11 +368,16 @@ function SpellLikeSection({
 // The four kinds used to be told apart by hue (purple / parchment / red /
 // verdigris). This theme is monochrome apart from the reds, so they are told
 // apart by lightness instead — every value still clears 4.5:1 on --card.
-const KIND_STYLE: Record<TechniqueKind, { label: string; color: string; glyph: string }> = {
-  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          glyph: '☿' },
-  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', glyph: '⚖' },
-  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      glyph: '⌛' },
-  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       glyph: '☽' },
+// The two the character *spends* carry the filled masthead; the two that just
+// sit on the sheet stay hollow.
+const KIND_STYLE: Record<
+  TechniqueKind,
+  { label: string; color: string; icon: IconSvgElement; tone: 'passive' | 'activation' }
+> = {
+  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          icon: FourFinger03Icon,  tone: 'passive' },
+  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', icon: JusticeScale01Icon, tone: 'passive' },
+  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      icon: HourglassIcon,      tone: 'activation' },
+  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       icon: RotateRight02Icon,  tone: 'activation' },
 }
 
 function TechniqueCard({
@@ -406,10 +417,11 @@ function TechniqueCard({
 
   return (
     <GlyphCard
-      glyph={style.glyph}
+      glyph={<CardIcon icon={style.icon} />}
       title={technique.name}
       caption={style.label}
       accent={style.color}
+      tone={style.tone}
       description={technique.description}
       status={statusLine}
       overlay={
@@ -457,11 +469,11 @@ interface GrantedTechnique {
   description: string
   caption: string
   accent: string
-  glyph: string
+  icon: IconSvgElement
 }
 
-const ANCESTRY_STYLE = { caption: 'Ancestralidade', accent: 'var(--foreground)', glyph: '☽' }
-const ARCHETYPE_STYLE = { caption: 'Arquétipo', accent: 'var(--chart-1)', glyph: '✦' }
+const ANCESTRY_STYLE = { caption: 'Ancestralidade', accent: 'var(--foreground)', icon: Moon02Icon }
+const ARCHETYPE_STYLE = { caption: 'Arquétipo', accent: 'var(--chart-1)', icon: StarAward01Icon }
 
 /** Every trait of the ancestry, then the archetype's talent. */
 function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedTechnique[] {
@@ -481,7 +493,6 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
       name: archetype.name,
       description: archetype.talent,
       ...ARCHETYPE_STYLE,
-      glyph: archetype.glyph || ARCHETYPE_STYLE.glyph,
     })
   }
 
@@ -491,7 +502,7 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
 function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: RollResult) => void }) {
   return (
     <GlyphCard
-      glyph={entry.glyph}
+      glyph={<CardIcon icon={entry.icon} />}
       title={entry.name}
       caption={entry.caption}
       accent={entry.accent}
@@ -533,12 +544,15 @@ export function ClassPanel({ classData, ancestry, archetype, languages = [], sta
   }
 
   return (
-    <div className="worn-border" style={panelStyle({ padding: 42 })}>
-      {/* Header — class, ancestry and archetype condensed into tags, with the
+    // The design's technique container: a card surface on a three-column grid
+    // whose first row is the tag strip, second the section heading, and every
+    // row after that a line of technique cards (see .panel-grid).
+    <section className="panel-grid">
+      {/* Row 1 — class, ancestry and archetype condensed into tags, with the
           proficiencies, languages and concept one hover (or tap) away. The
           ancestry traits and the archetype talent are not repeated here: they
           have their own cards among the techniques below. */}
-      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
+      <div className="panel-grid__row" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, paddingBottom: 8 }}>
         <DetailChip
           label={classData.name}
           trailing={`d${classData.hitDie}`}
@@ -564,28 +578,25 @@ export function ClassPanel({ classData, ancestry, archetype, languages = [], sta
         )}
       </div>
 
-      {/* Techniques — everything the character starts play with: the class's
-          own, the ancestry's traits and the archetype's talent. */}
-      {(activeTechniques.length > 0 || granted.length > 0) && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionSubheading className="mb-3">Técnicas</SectionSubheading>
-          <div className="grid-6-cards">
-            {activeTechniques.map(t => (
-              <TechniqueCard
-                key={t.id}
-                technique={t}
-                state={getState(techniqueStates, t.id)}
-                stats={stats}
-                onStateChange={handleTechniqueState}
-                onRoll={onRoll}
-              />
-            ))}
-            {granted.map(entry => (
-              <GrantedCard key={entry.key} entry={entry} onRoll={onRoll} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Row 2 — the section heading, ruled across the full panel. */}
+      <SectionSubheading className="panel-grid__row">Técnicas</SectionSubheading>
+
+      {/* Rows 3 and on — everything the character starts play with: the class's
+          own techniques, the ancestry's traits and the archetype's talent. One
+          card per column, three to a row. */}
+      {activeTechniques.map(t => (
+        <TechniqueCard
+          key={t.id}
+          technique={t}
+          state={getState(techniqueStates, t.id)}
+          stats={stats}
+          onStateChange={handleTechniqueState}
+          onRoll={onRoll}
+        />
+      ))}
+      {granted.map(entry => (
+        <GrantedCard key={entry.key} entry={entry} onRoll={onRoll} />
+      ))}
+    </section>
   )
 }

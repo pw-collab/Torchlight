@@ -69,7 +69,6 @@ export function CardPicker({
             caption={option.caption}
             accent={accent}
             description={option.description}
-            dividerGlyph={chosen ? '✦' : '⨝'}
             status={chosen ? { text: '✓', color: accent } : null}
             open={openId === option.id}
             onOpenChange={open => setOpenId(open ? option.id : null)}
