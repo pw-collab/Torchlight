@@ -97,7 +97,7 @@ export function CardPicker({
 export function DetailBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mb-3 flex flex-col gap-1 last:mb-0">
-      <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--candle-amber)] uppercase">
+      <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
         {label}
       </span>
       <div className="font-sans text-[13px] leading-relaxed text-[var(--foreground)]">

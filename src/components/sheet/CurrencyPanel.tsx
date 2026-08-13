@@ -14,9 +14,9 @@ interface Props {
 
 export function CurrencyPanel({ gold, silver, copper, onUpdate }: Props) {
   const coins = [
-    { key: 'gold' as const, label: 'PO', color: 'var(--gold-bright)', value: gold },
-    { key: 'silver' as const, label: 'PP', color: 'var(--bone-white)', value: silver },
-    { key: 'copper' as const, label: 'PC', color: 'var(--candle-amber)', value: copper },
+    { key: 'gold' as const, label: 'PO', color: 'var(--chart-1)', value: gold },
+    { key: 'silver' as const, label: 'PP', color: 'var(--foreground)', value: silver },
+    { key: 'copper' as const, label: 'PC', color: 'var(--muted-foreground)', value: copper },
   ]
 
   return (

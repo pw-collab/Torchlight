@@ -13,10 +13,10 @@ interface Props {
   onRoll?: (r: RollResult) => void
 }
 
-const BORDER = '1px solid var(--ink-border)'
+const BORDER = '1px solid var(--border)'
 /** Ink tones for the cream sheet — the dark-side tokens disappear on it. */
 const INK_MUTED = 'var(--chart-3)'
-const INK_RULE  = 'color-mix(in oklch, var(--ink-deep), transparent 72%)'
+const INK_RULE  = 'color-mix(in oklch, var(--background), transparent 72%)'
 
 function StatPair({ label, value }: { label: string; value: string | number | undefined }) {
   if (value == null || value === '') return null
@@ -26,7 +26,7 @@ function StatPair({ label, value }: { label: string; value: string | number | un
         {label}
       </span>
       <span style={{ color: INK_RULE, fontSize: 10, margin: '0 1px' }}>|</span>
-      <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
+      <span style={{ fontSize: 11.5, color: 'var(--background)', fontFamily: 'var(--font-body)' }}>
         {value}
       </span>
     </div>
@@ -43,8 +43,8 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       fontFamily: 'var(--font-body)',
       maxWidth: 480,
       border: BORDER,
-      background: 'var(--parchment-face)',
-      color: 'var(--ink-on-cream)',
+      background: 'var(--foreground)',
+      color: 'var(--background)',
       position: 'relative',
     }}>
       {/* Action buttons */}
@@ -67,7 +67,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               title="Excluir ficha"
               aria-label="Excluir ficha"
               variant="outline"
-              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-3 text-[13px] tracking-[0.1em] text-[var(--blood-bright)]"
+              className="tactile h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--destructive)] bg-[var(--destructive)]/15 px-3 text-[13px] tracking-[0.1em] text-[var(--destructive)]"
             >
               ✕
             </Button>
@@ -76,7 +76,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       )}
 
       {/* Header */}
-      <div style={{ background: 'var(--ink-deep)', color: 'var(--foreground)', padding: '10px 14px 8px' }}>
+      <div style={{ background: 'var(--background)', color: 'var(--foreground)', padding: '10px 14px 8px' }}>
         <p style={{ fontSize: 18, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0, lineHeight: 1.2, fontFamily: 'var(--font-heading)' }}>
           {npc.name}
         </p>
@@ -107,7 +107,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
           border: `1px solid ${INK_RULE}`,
           padding: '7px 10px',
           margin: '0 0 10px',
-          background: 'var(--parchment-face)',
+          background: 'var(--foreground)',
           fontSize: 11.5,
         }}>
           {/* Row 1: Combat stats */}
@@ -141,7 +141,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
                 <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED, whiteSpace: 'nowrap' }}>
                   Experience:
                 </span>
-                <span style={{ fontSize: 11.5, color: 'var(--ink-deep)', fontFamily: 'var(--font-body)' }}>
+                <span style={{ fontSize: 11.5, color: 'var(--background)', fontFamily: 'var(--font-body)' }}>
                   {npc.experience}
                 </span>
               </div>
@@ -161,7 +161,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               paddingBottom: 2,
               margin: '0 0 8px',
               fontFamily: 'var(--font-heading)',
-              color: 'var(--ink-deep)',
+              color: 'var(--background)',
             }}>
               Features
             </div>
@@ -172,11 +172,11 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
                 .replace(/\*([^*]+)\*/g, '<em>$1</em>')
               return (
                 <div key={i} style={{ fontSize: 12, margin: '0 0 7px', lineHeight: 1.55 }}>
-                  <span style={{ fontStyle: 'italic', fontWeight: 500, color: '#111' }}>
+                  <span style={{ fontStyle: 'italic', fontWeight: 500, color: 'var(--background)' }}>
                     {feat.title}
                   </span>
                   {feat.tag && (
-                    <span style={{ fontStyle: 'italic', color: '#555' }}>
+                    <span style={{ fontStyle: 'italic', color: INK_MUTED }}>
                       {' '}— {feat.tag}.
                     </span>
                   )}{' '}

@@ -111,7 +111,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
       fontSize: 7,
       letterSpacing: '0.14em',
       textTransform: 'uppercase' as const,
-      color: 'var(--bone-muted)',
+      color: 'var(--muted-foreground)',
       marginBottom: 3,
     }}>
       {children}
@@ -120,7 +120,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-[7px] py-[5px] text-[11px] text-[var(--foreground)]'
 
 type BtnVariant = 'blood' | 'mist' | 'amber' | 'dark' | 'danger' | 'green'
 
@@ -197,9 +197,9 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
   onUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
 }) {
   const coins = [
-    { key: 'gold'   as const, label: 'PO', color: 'text-[var(--gold-bright)]',  value: gold },
-    { key: 'silver' as const, label: 'PP', color: 'text-[var(--bone-white)]',   value: silver },
-    { key: 'copper' as const, label: 'PC', color: 'text-[var(--candle-amber)]', value: copper },
+    { key: 'gold'   as const, label: 'PO', color: 'text-[var(--chart-1)]',  value: gold },
+    { key: 'silver' as const, label: 'PP', color: 'text-[var(--foreground)]',   value: silver },
+    { key: 'copper' as const, label: 'PC', color: 'text-[var(--muted-foreground)]', value: copper },
   ]
 
   return (
@@ -212,7 +212,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
             className="worn-border"
             style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 12, textAlign: 'center' }}
           >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 6 }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 6 }}>
               {label}
             </div>
             <NumInput
@@ -227,7 +227,7 @@ function TreasureVault({ gold, silver, copper, onUpdate }: {
           </div>
         ))}
       </div>
-      <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 12 }}>
+      <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 12 }}>
         100 moedas = 1 slot de carga.
       </div>
     </div>
@@ -284,7 +284,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
         }}
       >
         <div style={{ marginBottom: 10 }}>
-          <OrnateTitle color="var(--parchment-light)" fontSize={10}>Adicionar do Catálogo</OrnateTitle>
+          <OrnateTitle color="var(--foreground)" fontSize={10}>Adicionar do Catálogo</OrnateTitle>
         </div>
 
         <Input
@@ -294,7 +294,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
           value={query}
           onChange={e => setQuery(e.target.value)}
           aria-label="Buscar no catálogo"
-          className="mb-2.5 h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
+          className="mb-2.5 h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--foreground)]"
         />
 
         <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', marginBottom: 0 }}>
@@ -308,7 +308,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
                 '-mb-px h-auto rounded-none border-b-2 px-2.5 pt-1.5 pb-1 text-[8px] tracking-[0.14em]',
                 'transition-all duration-[250ms]',
                 tab === t
-                  ? 'border-b-[var(--gold-oxidized)] bg-[var(--border)] text-[var(--parchment-light)]'
+                  ? 'border-b-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
                   : 'text-muted-foreground border-b-transparent',
               )}
             >
@@ -319,7 +319,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
 
         <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, paddingTop: 4 }}>
           {filtered.length === 0 && (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', padding: '8px 4px' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', padding: '8px 4px' }}>
               Nenhum item encontrado.
             </p>
           )}
@@ -328,17 +328,17 @@ function CatalogPickerModal({ onAdd, onClose }: {
               key={cat.id}
               variant="ghost"
               onClick={() => { onAdd(catalogToInventoryItem(cat)); onClose() }}
-              className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-1 py-2 text-left normal-case transition-colors duration-[180ms] hover:bg-[var(--border)]"
+              className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-1 py-2 text-left normal-case transition-colors duration-[180ms] hover:bg-[var(--input)]"
             >
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)', flex: 1 }}>
+                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)', flex: 1 }}>
                   {ITEM_ICON[cat.type] ?? '⚗'} {cat.name}
                 </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--gold-bright)', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-1)', flexShrink: 0 }}>
                   {cat.cost}
                 </span>
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)', marginTop: 1 }}>
                 {cat.weight} slot{cat.weight !== 1 ? 's' : ''}
                 {cat.damageDie && cat.damageDie !== '-' ? ` · ${cat.damageDie}` : ''}
                 {cat.acBonus ? ` · CA ${cat.acBonus}` : ''}
@@ -363,11 +363,11 @@ const TYPE_LABEL: Record<ItemType, string> = {
 }
 
 const TYPE_ACCENT: Record<ItemType, { color: string }> = {
-  weapon:   { color: 'var(--blood-bright)' },
-  armor:    { color: 'var(--verdigris-light)' },
-  shield:   { color: 'var(--verdigris-light)' },
-  gear:     { color: 'var(--bone-muted)' },
-  treasure: { color: 'var(--gold-bright)' },
+  weapon:   { color: 'var(--destructive)' },
+  armor:    { color: 'var(--chart-2)' },
+  shield:   { color: 'var(--chart-2)' },
+  gear:     { color: 'var(--muted-foreground)' },
+  treasure: { color: 'var(--chart-1)' },
   document: { color: 'var(--muted-foreground)' },
 }
 
@@ -386,7 +386,7 @@ function ItemIconSlot({ item, selected, onSelect }: {
       className={cn(
         'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
         'bg-[var(--background)] hover:bg-[var(--background)]',
-        selected ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--bone-dim)]',
+        selected ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--muted-foreground)]',
       )}
     >
       {item.equipped && (
@@ -518,7 +518,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       boxSizing: 'border-box',
       background: 'var(--background)',
       border: '1px solid var(--destructive)',
-      borderTop: '2px solid var(--blood-bright)',
+      borderTop: '2px solid var(--destructive)',
       padding: 12,
       display: 'flex',
       flexDirection: 'column',
@@ -529,7 +529,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
           <div style={{
             fontFamily: 'var(--font-heading)',
             fontSize: 13,
-            color: 'var(--parchment-light)',
+            color: 'var(--foreground)',
             lineHeight: 1.2,
             letterSpacing: '0.02em',
             overflow: 'hidden',
@@ -560,7 +560,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
         </Button>
       </div>
 
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)', lineHeight: 1.7 }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)', lineHeight: 1.7 }}>
         {[
           `${item.slots} slot${item.slots !== 1 ? 's' : ''}`,
           item.quantity > 1 ? `×${item.quantity}` : null,
@@ -574,12 +574,12 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       {(item.equipped || item.isLit) && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {item.equipped && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--verdigris-light)', background: 'color-mix(in oklch, var(--chart-2), transparent 80%)', border: '1px solid color-mix(in oklch, var(--chart-2), transparent 65%)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--chart-2)', background: 'color-mix(in oklch, var(--chart-2), transparent 80%)', border: '1px solid color-mix(in oklch, var(--chart-2), transparent 65%)', padding: '1px 5px' }}>
               Equipado
             </span>
           )}
           {item.isLit && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--candle-amber)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)', padding: '1px 5px' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--primary-foreground)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)', padding: '1px 5px' }}>
               Acesa
             </span>
           )}
@@ -587,7 +587,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       )}
 
       {item.description && item.description !== '-' && (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', lineHeight: 1.55, margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', lineHeight: 1.55, margin: 0 }}>
           {item.description}
         </p>
       )}
@@ -968,7 +968,7 @@ export function InventoryView({
           gap: 6,
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
+        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
           {label}
         </span>
 
@@ -986,13 +986,13 @@ export function InventoryView({
             </div>
 
             {slot === 'armor' && (item.acBonus || item.type === 'armor') && (
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)' }}>
                 CA {calcAC}
               </div>
             )}
 
             {item.type === 'shield' && item.acBonus && (
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--bone-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)' }}>
                 +{item.acBonus} CA
               </div>
             )}
@@ -1026,8 +1026,8 @@ export function InventoryView({
                     fontFamily: 'var(--font-mono)',
                     fontSize: 8,
                     color: item.isLit
-                      ? item.lightMinutesLeft <= 10 ? 'var(--blood-bright)' : 'var(--candle-amber)'
-                      : 'var(--bone-muted)',
+                      ? item.lightMinutesLeft <= 10 ? 'var(--destructive)' : 'var(--chart-1)'
+                      : 'var(--muted-foreground)',
                   }}>
                     {item.lightMinutesLeft}min
                   </span>
@@ -1047,7 +1047,7 @@ export function InventoryView({
           <Button
             variant="outline"
             onClick={() => setSelectingSlot(slot)}
-            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--destructive)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--parchment-warm)] transition-all duration-300"
+            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--destructive)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
           >
             <span aria-hidden style={{ fontSize: shape === 'square' ? 18 : 22, lineHeight: 1, opacity: 0.3, filter: 'saturate(0.3)' }}>{emptyIcon}</span>
             <span>+ Equipar</span>
@@ -1247,11 +1247,11 @@ export function InventoryView({
             onClick={e => e.stopPropagation()}
           >
             <div style={{ marginBottom: 12 }}>
-              <OrnateTitle color="var(--parchment-light)" fontSize={10}>Equipar em {SLOT_LABELS[selectingSlot]}</OrnateTitle>
+              <OrnateTitle color="var(--foreground)" fontSize={10}>Equipar em {SLOT_LABELS[selectingSlot]}</OrnateTitle>
             </div>
 
             {unequippedCompatible(selectingSlot).length === 0 ? (
-              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)' }}>
                 Nenhum item compatível disponível.
               </p>
             ) : (
@@ -1260,12 +1260,12 @@ export function InventoryView({
                   key={item.id}
                   variant="ghost"
                   onClick={() => equipItem(item.id, selectingSlot!)}
-                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--border)]"
+                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
                     {item.isLight ? LIGHT_ICON[item.lightKind ?? 'torch'] : ITEM_ICON[item.type] ?? '⚗'} {item.name}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 1 }}>
                     {item.slots} slot{item.slots !== 1 ? 's' : ''}
                     {item.damageDie ? ` · ${item.damageDie}` : ''}
                     {item.acBonus ? ` · CA ${item.acBonus}` : ''}
@@ -1299,9 +1299,9 @@ export function InventoryView({
             onClick={e => e.stopPropagation()}
           >
             <div style={{ marginBottom: 4 }}>
-              <OrnateTitle color="var(--parchment-light)" fontSize={10}>Mãos Ocupadas</OrnateTitle>
+              <OrnateTitle color="var(--foreground)" fontSize={10}>Mãos Ocupadas</OrnateTitle>
             </div>
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--bone-muted)', marginBottom: 12 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 12 }}>
               Qual item substituir?
             </p>
 
@@ -1313,12 +1313,12 @@ export function InventoryView({
                   key={slot}
                   variant="ghost"
                   onClick={() => equipItem(replaceFor, slot)}
-                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--border)]"
+                  className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--parchment-light)' }}>
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
                     {item!.isLight ? LIGHT_ICON[item!.lightKind ?? 'torch'] : ITEM_ICON[item!.type] ?? '⚗'} {item!.name}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 1 }}>
                     {item!.damageDie ? `${item!.damageDie}` : ''}
                     {item!.acBonus ? `+${item!.acBonus} CA` : ''}
                   </div>

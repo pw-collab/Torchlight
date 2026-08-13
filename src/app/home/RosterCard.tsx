@@ -54,10 +54,10 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
           <div className="flex min-w-px flex-1 flex-col items-start">
             <span
               className={cn(
-                'rounded-[1px] border px-1.5 py-0.5 text-[7px] leading-[10.5px] tracking-[0.7px] text-white uppercase',
+                'rounded-[1px] border px-1.5 py-0.5 text-[7px] leading-[10.5px] tracking-[0.7px] uppercase',
                 char.isOwn
-                  ? 'border-[var(--destructive)] bg-[var(--destructive)]'
-                  : 'border-[var(--muted-foreground)] bg-[var(--muted-foreground)]',
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-input bg-secondary text-secondary-foreground',
               )}
             >
               {char.isOwn ? '● você' : (char.ownerName ?? 'Jogador')}
@@ -82,7 +82,7 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
                 title="Excluir ficha"
                 aria-label={`Excluir ficha de ${char.name}`}
                 onClick={onDelete}
-                className={cn(ACTION_CLASS, 'text-[var(--blood-bright)] hover:border-[var(--destructive)]')}
+                className={cn(ACTION_CLASS, 'text-[var(--destructive)] hover:border-[var(--destructive)]')}
               >
                 ✕
               </Button>
@@ -102,7 +102,7 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
           <Button
             nativeButton={false}
             render={<Link href={`/sheet/${char.id}`} />}
-            className="font-heading h-11 min-h-11 w-full rounded-[1px] border border-[var(--border)] bg-[var(--destructive)] px-4 text-[16px] tracking-normal text-white normal-case transition-colors hover:bg-[color-mix(in_oklch,var(--destructive),black_14%)]"
+            className="font-heading h-11 min-h-11 w-full rounded-[1px] border-primary bg-primary text-primary-foreground hover:bg-primary/80 border px-4 text-[16px] tracking-normal normal-case transition-colors"
           >
             Acessar
           </Button>

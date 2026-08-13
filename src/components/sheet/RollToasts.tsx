@@ -53,16 +53,16 @@ export function RollToasts({ rolls }: Props) {
           : 'var(--card), var(--card)'
 
         const numColor = isCritical
-          ? 'var(--gold-bright)'
+          ? 'var(--chart-1)'
           : isFumble
-          ? 'var(--blood-bright)'
-          : 'var(--parchment-pale)'
+          ? 'var(--destructive)'
+          : 'var(--foreground)'
 
         const labelColor = isCritical
-          ? 'var(--gold-bright)'
+          ? 'var(--chart-1)'
           : isFumble
-          ? 'var(--blood-bright)'
-          : 'var(--bone-muted)'
+          ? 'var(--destructive)'
+          : 'var(--muted-foreground)'
 
         return (
           <motion.div
@@ -104,7 +104,7 @@ export function RollToasts({ rolls }: Props) {
               <span style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 8,
-                color: 'var(--parchment-warm)',
+                color: 'var(--muted-foreground)',
               }}>
                 {new Date(roll.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -117,7 +117,7 @@ export function RollToasts({ rolls }: Props) {
                     fontFamily: 'var(--font-body)',
                     fontStyle: 'italic',
                     fontSize: 11,
-                    color: 'var(--bone-muted)',
+                    color: 'var(--muted-foreground)',
                     marginBottom: 2,
                   }}>
                     {roll.subLabel}
@@ -126,7 +126,7 @@ export function RollToasts({ rolls }: Props) {
                 <span style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 10,
-                  color: 'var(--bone-muted)',
+                  color: 'var(--muted-foreground)',
                 }}>
                   {roll.die}
                   {roll.modifier !== undefined && roll.modifier !== 0
@@ -154,7 +154,7 @@ export function RollToasts({ rolls }: Props) {
                   fontSize: 8,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: roll.advantage === 'advantage' ? 'var(--verdigris-light)' : 'var(--blood-bright)',
+                  color: roll.advantage === 'advantage' ? 'var(--chart-2)' : 'var(--destructive)',
                 }}>
                   {roll.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
                 </span>
@@ -167,7 +167,7 @@ export function RollToasts({ rolls }: Props) {
                         fontFamily: 'var(--font-mono)',
                         fontSize: 11,
                         fontWeight: kept ? 700 : 400,
-                        color: kept ? 'var(--parchment-pale)' : 'var(--bone-muted)',
+                        color: kept ? 'var(--foreground)' : 'var(--muted-foreground)',
                         textDecoration: kept ? 'none' : 'line-through',
                         opacity: kept ? 1 : 0.55,
                       }}

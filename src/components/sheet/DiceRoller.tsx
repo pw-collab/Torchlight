@@ -129,7 +129,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               />
             }
             className={cn(
-              'bg-secondary data-popup-open:bg-destructive relative px-0 transition-colors duration-[250ms]',
+              'bg-input border-input data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
               floating
                 ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
                 : 'h-12 min-h-12 w-14',
@@ -141,8 +141,8 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           className="animate-die-idle"
           sides={20}
           size={30}
-          shapeColor={open ? 'var(--background)' : 'var(--destructive)'}
-          numberColor={open ? 'var(--destructive)' : 'var(--background)'}
+          shapeColor={open ? 'var(--primary-foreground)' : 'var(--primary)'}
+          numberColor={open ? 'var(--primary)' : 'var(--primary-foreground)'}
         />
         {/* Badge so a pool built and left behind isn't invisible once closed. */}
         {pool.length > 0 && (
@@ -164,13 +164,13 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
         sideOffset={12}
         aria-label="Rolar dados"
         className={cn(
-          'bg-background border-border z-70 flex w-[min(320px,calc(100vw-32px))] flex-col gap-3',
+          'bg-popover border-border z-70 flex w-[min(320px,calc(100vw-32px))] flex-col gap-3',
           'max-h-[calc(100dvh-150px)] overflow-y-auto border-2 px-3 pt-3.5 pb-4',
           'shadow-[0_-6px_32px_rgba(0,0,0,0.85)]',
         )}
       >
         <PopoverHeader className="p-0">
-          <PopoverTitle className="font-heading text-secondary-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
+          <PopoverTitle className="font-heading text-popover-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
             Rolar Dados
           </PopoverTitle>
         </PopoverHeader>
@@ -247,25 +247,9 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               disabled={pool.length === 0}
               render={<motion.button {...diceTap} />}
               variant="hollow"
-              className={cn(
-                'font-heading bg-destructive text-background h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
-                'hover:bg-[var(--blood-bright)] disabled:opacity-35',
-              )}
+              className="bg-input border-input hover:border-primary hover:bg-accent h-[54px] min-w-0 px-0"
             >
-              Rolar{pool.length > 0 ? ` ${pool.length}` : ''}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setPool([])}
-              disabled={pool.length === 0}
-              render={<motion.button {...diceTap} />}
-              variant="outline"
-              className={cn(
-                'font-heading border-border bg-secondary h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
-                'hover:border-[var(--destructive)] disabled:opacity-35',
-              )}
-            >
-              Limpar
+              <DieIcon sides={d} size={28} shapeColor="var(--primary)" numberColor="var(--primary-foreground)" />
             </Button>
           </div>
           {full && (
@@ -288,7 +272,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
           />
         </div>
 
-        <Separator className="bg-[var(--border)]" />
+        <Separator />
 
         {/* ── The d20 row — rolls on press, no pooling ────────────────────── */}
         <div className="flex flex-col gap-2">
@@ -316,12 +300,12 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                 variant="outline"
                 style={{ color }}
                 className={cn(
-                  'font-heading bg-secondary border-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
+                  'font-heading bg-input border-input h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
                   'text-[11px] font-bold tracking-[0.04em] normal-case',
-                  'hover:border-[var(--border)] hover:bg-[var(--accent)]',
+                  'hover:border-primary hover:bg-accent',
                 )}
               >
-                <DieIcon sides={20} size={26} shapeColor="var(--destructive)" numberColor="var(--background)" />
+                <DieIcon sides={20} size={26} shapeColor="var(--primary)" numberColor="var(--primary-foreground)" />
                 <span>{label}</span>
               </Button>
             ))}

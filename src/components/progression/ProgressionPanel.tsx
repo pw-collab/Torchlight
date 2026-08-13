@@ -202,7 +202,7 @@ export function ProgressionPanel({
             <span className="font-mono text-[8px] tracking-[0.24em] text-[var(--muted-foreground)] uppercase">
               Progresso · {classData?.name ?? classId}
             </span>
-            <span className="font-heading text-[26px] leading-none font-black text-[var(--parchment-pale)]">
+            <span className="font-heading text-[26px] leading-none font-black text-[var(--foreground)]">
               Nível {level}
               <span className="font-mono ml-2 align-middle text-[10px] tracking-[0.12em] text-[var(--muted-foreground)]">
                 / {MAX_LEVEL}

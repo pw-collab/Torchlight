@@ -93,12 +93,12 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
   }
 
   return (
-    <Card className="worn-border bg-transparent p-10 ring-0">
+    <Card className="border-border bg-card border p-10 ring-0">
       <SectionHeading
         trailing={
           <Button
             variant="secondary"
-            className="tactile shrink-0"
+            className="tactile bg-input border-input text-foreground shrink-0"
             onClick={() => (formOpen ? closeForm() : setFormOpen(true))}
           >
             {formOpen ? '✕ Fechar' : '+ Adicionar'}

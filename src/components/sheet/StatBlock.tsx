@@ -21,9 +21,9 @@ const STAT_FULL: Record<Stat, string> = {
 }
 
 const ROLL_TYPES = [
-  { id: 'normal' as const, label: 'Normal', className: 'text-[var(--parchment-light)]' },
-  { id: 'advantage' as const, label: '✦ Vantagem', className: 'text-[var(--verdigris-light)]' },
-  { id: 'disadvantage' as const, label: '✕ Desvantagem', className: 'text-[var(--blood-bright)]' },
+  { id: 'normal' as const, label: 'Normal', className: 'text-[var(--foreground)]' },
+  { id: 'advantage' as const, label: '✦ Vantagem', className: 'text-[var(--chart-2)]' },
+  { id: 'disadvantage' as const, label: '✕ Desvantagem', className: 'text-[var(--destructive)]' },
 ]
 
 interface Props {
@@ -60,13 +60,13 @@ export function StatBlock({ stats, onRoll }: Props) {
         const card = (
           <div
             className={cn(
-              'worn-border relative w-full px-0.5 pt-2 pb-2.5 text-center select-none',
-              'bg-[var(--parchment-mid)] transition-all duration-300',
-              'group-data-popup-open/stat:bg-[var(--gold-oxidized)]',
+              'relative w-full border px-0.5 pt-2 pb-2.5 text-center select-none',
+              'bg-input border-input transition-all duration-300',
+              'group-data-popup-open/stat:bg-accent group-data-popup-open/stat:border-accent',
               isInteractive ? 'cursor-pointer' : 'cursor-default',
             )}
           >
-            <div className="font-mono mb-0.5 text-[10px] tracking-[0.12em] text-[var(--parchment-light)] uppercase transition-colors duration-300 group-data-popup-open/stat:text-[var(--background)]">
+            <div className="font-mono text-muted-foreground group-data-popup-open/stat:text-accent-foreground mb-0.5 text-[10px] tracking-[0.12em] uppercase transition-colors duration-300">
               {STAT_LABELS[key]}
             </div>
 
@@ -74,19 +74,19 @@ export function StatBlock({ stats, onRoll }: Props) {
               key={pulsedStat === key ? 'pulse' : 'idle'}
               className={cn(
                 'font-heading text-2xl leading-none font-bold',
-                'group-data-popup-open/stat:text-[var(--background)]',
+                'group-data-popup-open/stat:text-accent-foreground',
                 pulsedStat === key && 'animate-value-pulse',
                 mod > 0
-                  ? 'text-[var(--verdigris-light)]'
+                  ? 'text-[var(--chart-2)]'
                   : mod < 0
-                    ? 'text-[var(--blood-bright)]'
-                    : 'text-[var(--bone-white)]',
+                    ? 'text-[var(--destructive)]'
+                    : 'text-muted-foreground',
               )}
             >
               {mod > 0 ? `+${mod}` : mod}
             </div>
 
-            <div className="font-mono mt-0.5 text-[10px] text-[var(--gold-bright)] group-data-popup-open/stat:text-[var(--background)]">
+            <div className="font-mono text-muted-foreground group-data-popup-open/stat:text-accent-foreground mt-0.5 text-[10px]">
               {stats[key]}
             </div>
           </div>
@@ -108,7 +108,7 @@ export function StatBlock({ stats, onRoll }: Props) {
             <DropdownMenuContent
               align={idx >= 3 ? 'end' : 'center'}
               sideOffset={4}
-              className="w-auto min-w-[130px] border-t-4 border-t-[var(--gold-oxidized)] p-0"
+              className="border-t-primary w-auto min-w-[130px] border-t-4 p-0"
             >
               {ROLL_TYPES.map(opt => (
                 <DropdownMenuItem

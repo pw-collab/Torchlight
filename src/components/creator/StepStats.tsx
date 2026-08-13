@@ -23,7 +23,7 @@ const STAT_META: Record<Stat, { label: string; full: string }> = {
 const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 
 const STAT_CAPTION_CLASS =
-  'font-heading text-[8px] tracking-[0.18em] text-[var(--candle-amber)]/70 uppercase'
+  'font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)]/70 uppercase'
 
 /** One of the six 3d6 results, and the attribute it was placed on. */
 export interface StatRoll {
@@ -147,8 +147,8 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[var(--border)] bg-[var(--border)]/15'
-            : 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_12px_var(--primary)]',
+            ? 'text-muted-foreground cursor-wait border-[var(--border)] bg-[var(--muted)]'
+            : 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)] shadow-[0_0_12px_var(--primary)]',
         )}
       >
         {rolling
@@ -164,7 +164,7 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
           <div className="flex items-center justify-between gap-2">
             <span className={STAT_CAPTION_CLASS}>
               Resultados a distribuir
-              <span className="ml-1.5 text-[var(--gold-oxidized)]">
+              <span className="ml-1.5 text-[var(--muted-foreground)]">
                 {unplaced.length}/{rollList.length}
               </span>
             </span>
@@ -172,7 +172,7 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
               <Button
                 variant="link"
                 onClick={autoDistribute}
-                className="text-muted-foreground h-auto p-0 text-[9px] tracking-[0.12em] no-underline hover:text-[var(--parchment-light)]"
+                className="text-muted-foreground h-auto p-0 text-[9px] tracking-[0.12em] no-underline hover:text-[var(--foreground)]"
               >
                 distribuir em ordem
               </Button>
@@ -195,11 +195,11 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
                     placed
                       ? 'cursor-default border-[var(--border)] bg-transparent opacity-35'
                       : active
-                        ? 'border-[var(--primary)] bg-[var(--border)] shadow-[0_0_12px_color-mix(in_oklch,var(--primary),transparent_60%)]'
-                        : 'cursor-pointer border-[var(--border)] bg-[var(--card)] hover:border-[var(--bone-dim)]',
+                        ? 'border-[var(--primary)] bg-[var(--input)] shadow-[0_0_12px_color-mix(in_oklch,var(--primary),transparent_60%)]'
+                        : 'cursor-pointer border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]',
                   )}
                 >
-                  <span className="font-heading text-[19px] leading-none font-bold text-[var(--parchment-light)]">
+                  <span className="font-heading text-[19px] leading-none font-bold text-[var(--foreground)]">
                     {roll.value}
                   </span>
                   <span className="font-mono text-muted-foreground text-[7px]">
@@ -247,15 +247,15 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
                     const n = parseInt(e.target.value)
                     onChange({ ...stats, [key]: isNaN(n) ? 1 : Math.min(20, Math.max(1, n)) })
                   }}
-                  className="font-mono h-auto rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-sm font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
+                  className="font-mono h-auto rounded-[1px] border-[var(--border)] bg-[var(--background)] px-0.5 py-[3px] text-center text-sm font-bold text-[var(--foreground)] [-moz-appearance:textfield]"
                 />
                 <div
                   className={cn(
                     'font-mono mt-1 text-[8.5px]',
                     mod > 0
-                      ? 'text-[var(--verdigris-light)]'
+                      ? 'text-[var(--chart-2)]'
                       : mod < 0
-                        ? 'text-[var(--blood-bright)]'
+                        ? 'text-[var(--destructive)]'
                         : 'text-muted-foreground',
                   )}
                 >
@@ -269,7 +269,7 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
 
       {eligible && (
         <Alert className="rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-2">
-          <AlertDescription className="text-center text-[11px] text-[var(--candle-amber)] italic">
+          <AlertDescription className="text-center text-[11px] text-[var(--muted-foreground)] italic">
             Nenhum atributo excede 14 — o destino permite um novo lançamento.
           </AlertDescription>
         </Alert>
@@ -318,10 +318,10 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
                     !filled
                       ? 'text-[var(--muted-foreground)] opacity-40'
                       : isHigh
-                        ? 'text-[var(--verdigris-light)]'
+                        ? 'text-[var(--chart-2)]'
                         : isLow
                           ? 'text-[var(--destructive)]'
-                          : 'text-[var(--parchment-light)]',
+                          : 'text-[var(--foreground)]',
                   )}
                 >
                   {filled ? val : '—'}
@@ -332,7 +332,7 @@ export function StepStats({ stats, onChange, rolls, onRollsChange, editMode }: P
                     !filled
                       ? 'text-transparent'
                       : mod > 0
-                        ? 'text-[var(--verdigris-light)]'
+                        ? 'text-[var(--chart-2)]'
                         : mod < 0
                           ? 'text-[var(--destructive)]'
                           : 'text-muted-foreground',

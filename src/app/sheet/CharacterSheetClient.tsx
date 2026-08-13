@@ -105,7 +105,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     return (
       <AppShell backHref="/home" playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <span className="animate-flicker" style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--parchment-warm)' }}>
+          <span className="animate-flicker" style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
             ✦ O arquivo está sendo consultado...
           </span>
         </div>
@@ -117,7 +117,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     return (
       <AppShell backHref="/home" playerName={playerName}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: 'var(--blood-bright)' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: 'var(--destructive)' }}>
             Personagem não encontrado no arquivo.
           </p>
         </div>
@@ -307,12 +307,12 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           <div className="sheet-main">
             {/* Character name left, Editar right */}
             <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, marginBottom: 20 }}>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--destructive)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {character.name}
               </h1>
               <Link
                 href={editHref}
-                style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--destructive)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
+                style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
               >
@@ -377,7 +377,7 @@ function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean })
         fontSize: 10,
         letterSpacing: '0.16em',
         textTransform: 'uppercase',
-        color: 'var(--candle-glow)',
+        color: 'var(--card-foreground)',
         background: 'var(--card)',
         border: '1px solid var(--primary)',
         borderRadius: 2,

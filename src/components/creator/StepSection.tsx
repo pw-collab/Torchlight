@@ -37,11 +37,11 @@ export function StepSection({ index, title, children, className }: SectionProps)
     <section className={cn('flex flex-col gap-3', className)}>
       <div className="flex items-baseline gap-2 border-b border-[var(--border)] pb-2">
         {index && (
-          <span className="font-mono text-[9px] tracking-[0.16em] text-[var(--candle-amber)]">
+          <span className="font-mono text-[9px] tracking-[0.16em] text-[var(--muted-foreground)]">
             {index}
           </span>
         )}
-        <h3 className="font-heading text-secondary-foreground text-[17px] leading-none font-semibold">
+        <h3 className="font-heading text-card-foreground text-[17px] leading-none font-semibold">
           {title}
         </h3>
       </div>
@@ -55,7 +55,7 @@ export function StepLabel({ children, className }: { children: ReactNode; classN
   return (
     <span
       className={cn(
-        'font-heading text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase',
+        'font-heading text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase',
         className,
       )}
     >

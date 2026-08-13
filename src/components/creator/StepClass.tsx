@@ -44,7 +44,7 @@ const STAT_LABEL: Record<string, string> = {
 }
 
 const CHIP_CLASS =
-  'rounded-[1px] border-[var(--border)] bg-black/25 px-2 py-0.5 text-[10px] text-muted-foreground italic'
+  'rounded-[1px] border-[var(--border)] bg-[var(--input)] px-2 py-0.5 text-[10px] text-muted-foreground italic'
 
 /** The Commoner has no hit die of its own — its HP is the CON modifier. */
 function hitDieLabel(hitDie: number): string {
@@ -71,7 +71,7 @@ export function StepClass({ classId, onChange }: Props) {
       </StepProse>
 
       <p className="text-muted-foreground text-[11px] leading-relaxed italic">
-        Uma vez escolhida a classe, você também escolherá um <strong className="text-[var(--parchment-pale)] not-italic">Arquétipo</strong> —
+        Uma vez escolhida a classe, você também escolherá um <strong className="text-[var(--foreground)] not-italic">Arquétipo</strong> —
         a especialização que termina de definir o conceito do personagem.
       </p>
 
@@ -118,11 +118,11 @@ export function StepClass({ classId, onChange }: Props) {
                         <span className="flex items-center gap-1.5">
                           <Badge
                             variant="outline"
-                            className="font-mono shrink-0 rounded-[1px] border-0 bg-[var(--border)] px-[5px] py-0.5 text-[7px] tracking-[0.06em] text-[var(--gold-oxidized)]"
+                            className="font-mono shrink-0 rounded-[1px] border-0 bg-[var(--input)] px-[5px] py-0.5 text-[7px] tracking-[0.06em] text-[var(--muted-foreground)]"
                           >
                             {TECH_KIND_LABEL[t.kind ?? 'passive']}
                           </Badge>
-                          <span className="font-heading text-[13px] tracking-[0.03em] text-[var(--parchment-pale)]">
+                          <span className="font-heading text-[13px] tracking-[0.03em] text-[var(--foreground)]">
                             {t.name}
                           </span>
                         </span>
@@ -148,7 +148,7 @@ export function StepClass({ classId, onChange }: Props) {
                   <ul className="flex flex-col gap-1">
                     {cls.talentTable.map(entry => (
                       <li key={entry.roll} className="flex gap-2">
-                        <span className="font-mono w-9 shrink-0 text-[11px] text-[var(--gold-oxidized)]">
+                        <span className="font-mono w-9 shrink-0 text-[11px] text-[var(--muted-foreground)]">
                           {entry.roll}
                         </span>
                         <span className="text-muted-foreground text-[12px] leading-snug">

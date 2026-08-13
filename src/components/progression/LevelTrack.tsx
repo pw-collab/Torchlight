@@ -159,8 +159,8 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
           isSelected ? 'h-[94px] w-[124px] sm:h-[106px] sm:w-[142px]' : 'h-[78px] w-[104px] sm:h-[88px] sm:w-[116px]',
           locked && 'bg-secondary/60 border-[var(--border)]',
           !locked && !isCurrent && 'bg-secondary border-[var(--border)]',
-          isCurrent && 'bg-destructive border-[var(--bone-dim)]',
-          isSelected && !isCurrent && 'border-[var(--bone-dim)]',
+          isCurrent && 'bg-destructive border-[var(--muted-foreground)]',
+          isSelected && !isCurrent && 'border-[var(--muted-foreground)]',
         )}
       >
         {/* Face — level numeral and what the level grants */}
@@ -192,7 +192,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
             <span
               className={cn(
                 'mt-0.5 h-px w-6',
-                isCurrent ? 'bg-background/60' : locked ? 'bg-transparent' : 'bg-[var(--bone-dim)]/50',
+                isCurrent ? 'bg-background/60' : locked ? 'bg-transparent' : 'bg-[var(--muted-foreground)]/50',
               )}
             />
           </span>
@@ -238,7 +238,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
             <span
               className={cn(
                 'mt-[3px] block size-[5px] rounded-full',
-                isCurrent ? 'bg-background animate-flicker' : 'bg-[var(--bone-dim)]',
+                isCurrent ? 'bg-background animate-flicker' : 'bg-[var(--muted-foreground)]',
               )}
             />
           )}
@@ -259,7 +259,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
         <span
           className={cn(
             'block h-full transition-[width] duration-500 ease-[var(--ease-ritual)]',
-            sealed ? 'bg-[var(--chart-1)]' : 'bg-[var(--destructive)]',
+            sealed ? 'bg-[var(--chart-1)]' : 'bg-[var(--primary)]',
           )}
           style={{ width: `${Math.round(Math.min(1, Math.max(0, fill)) * 100)}%` }}
         />
@@ -285,7 +285,7 @@ function RewardChip({
       className={cn(
         'font-mono inline-flex max-w-full items-center gap-[3px] border px-[3px] py-[1px] text-[7px] tracking-[0.04em]',
         tone === 'inverted' && 'border-background/40 bg-background/15 text-background',
-        tone === 'normal' && 'border-[var(--border)] bg-[var(--background)]/40 text-[var(--bone-dim)]',
+        tone === 'normal' && 'border-[var(--border)] bg-[var(--background)]/40 text-[var(--muted-foreground)]',
         tone === 'muted' && 'border-[var(--border)] text-[var(--muted-foreground)]',
       )}
     >

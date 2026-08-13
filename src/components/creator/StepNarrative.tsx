@@ -43,16 +43,16 @@ interface Props {
 }
 
 const SECTION_LABEL_CLASS =
-  'font-heading mb-0.5 text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
+  'font-heading mb-0.5 text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
 
 const FIELD_LABEL_CLASS =
   'font-heading text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
 
 const TEXTAREA_CLASS =
-  'h-auto resize-y rounded-sm border-[var(--border)] bg-[var(--card)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--parchment-pale)] italic transition-colors duration-200 focus-visible:border-[var(--primary)]'
+  'h-auto resize-y rounded-sm border-[var(--border)] bg-[var(--card)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--foreground)] italic transition-colors duration-200 focus-visible:border-[var(--primary)]'
 
 const INPUT_CLASS =
-  'h-auto w-full flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] transition-colors duration-200 focus-visible:border-[var(--primary)]'
+  'h-auto w-full flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--foreground)] transition-colors duration-200 focus-visible:border-[var(--primary)]'
 
 export function StepNarrative({
   backgroundDetails, relations, impulses,
@@ -89,7 +89,7 @@ export function StepNarrative({
             value={name ?? ''}
             onChange={e => onNameChange(e.target.value)}
             placeholder="Como te chamam nas Terras das Brumas?"
-            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--foreground)] focus-visible:border-[var(--primary)]"
           />
         </Field>
       )}
@@ -160,7 +160,7 @@ export function StepNarrative({
                         aria-label={`Remover ${v}`}
                       />
                     }
-                    className="cursor-pointer rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)] transition-all duration-150"
+                    className="cursor-pointer rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--foreground)] transition-all duration-150"
                   >
                     {v} ×
                   </Badge>
@@ -180,7 +180,7 @@ export function StepNarrative({
                 <Button
                   variant="outline"
                   onClick={() => addRelItem(key)}
-                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)]/15 px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--parchment-light)]"
+                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--muted)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--foreground)]"
                 >
                   + Add
                 </Button>

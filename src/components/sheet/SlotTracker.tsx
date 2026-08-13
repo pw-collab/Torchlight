@@ -13,14 +13,14 @@ export function SlotTracker({ str, equipment }: Props) {
   const { max, used, overEncumbered } = useSlots(str, equipment)
 
   return (
-    <Card className="worn-border border-t-0 bg-[var(--parchment-mid)] py-5">
+    <Card className="worn-border border-t-0 bg-[var(--card)] py-5">
       <CardContent className="px-5">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-muted-foreground text-[10px] italic">Capacidade de Carga</span>
           <span
             className={cn(
               'font-mono text-[10px]',
-              overEncumbered ? 'text-[var(--blood-bright)]' : 'text-[var(--parchment-light)]',
+              overEncumbered ? 'text-[var(--destructive)]' : 'text-[var(--foreground)]',
             )}
           >
             {used} / {max}
@@ -42,16 +42,16 @@ export function SlotTracker({ str, equipment }: Props) {
                 'size-2.5 rounded-[1px] border',
                 i < used
                   ? overEncumbered
-                    ? 'border-[var(--blood-mid)] bg-[var(--destructive)]'
-                    : 'border-[var(--muted-foreground)] bg-[var(--border)]'
-                  : 'border-[var(--border)] bg-black/30',
+                    ? 'border-[var(--destructive)] bg-[var(--destructive)]'
+                    : 'border-[var(--accent)] bg-[var(--accent)]'
+                  : 'border-[var(--border)] bg-[var(--input)]',
               )}
             />
           ))}
         </div>
 
         {overEncumbered && (
-          <p className="mt-1.5 text-[10px] text-[var(--blood-bright)] italic">
+          <p className="mt-1.5 text-[10px] text-[var(--destructive)] italic">
             Sobrecarregado — penalidade de movimento aplicada.
           </p>
         )}

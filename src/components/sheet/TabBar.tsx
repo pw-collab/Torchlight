@@ -33,8 +33,8 @@ export function TabBar<K extends string>({ tabs, active, onChange, trailing }: P
     <nav
       aria-label="Navegação da ficha"
       className={cn(
-        'bg-secondary fixed inset-x-0 bottom-0 z-60 flex justify-center',
-        'border-border border-t-2 shadow-[0_-4px_24px_rgba(0,0,0,0.7)]',
+        'bg-sidebar fixed inset-x-0 bottom-0 z-60 flex justify-center',
+        'border-sidebar-border border-t-2 shadow-[0_-4px_24px_rgba(0,0,0,0.7)]',
         'pt-1.5 pb-[calc(6px+var(--safe-bottom))]',
         isMobile ? 'px-2' : 'px-6',
       )}
@@ -63,8 +63,8 @@ export function TabBar<K extends string>({ tabs, active, onChange, trailing }: P
                 value={t.key}
                 className={cn(
                   'tactile font-heading h-12 border border-transparent font-extrabold whitespace-nowrap',
-                  'text-[var(--muted-foreground)] hover:text-[var(--bone-dim)]',
-                  'data-active:bg-destructive data-active:text-background data-active:border-[var(--bone-dim)]',
+                  'text-muted-foreground hover:text-foreground',
+                  'data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:border-sidebar-ring',
                   isMobile
                     ? 'flex-1 px-1.5 text-[11px] tracking-[0.04em]'
                     : 'flex-none px-5 text-[15px] tracking-[0.12em]',

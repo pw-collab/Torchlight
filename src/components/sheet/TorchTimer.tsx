@@ -27,7 +27,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
   return (
     <Card
       className={cn(
-        'worn-border bg-[var(--parchment-mid)] py-3',
+        'worn-border bg-[var(--card)] py-3',
         isLit
           ? isLow
             ? 'border-[var(--destructive)] shadow-[0_4px_14px_rgba(0,0,0,0.6),0_0_8px_color-mix(in_oklch,var(--destructive),transparent_75%)]'
@@ -41,7 +41,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
             className={cn(
               'font-heading text-[8.5px] tracking-[0.2em] uppercase',
               isLit
-                ? isLow ? 'text-[var(--blood-bright)]' : 'text-[var(--candle-amber)]'
+                ? isLow ? 'text-[var(--destructive)]' : 'text-[var(--chart-1)]'
                 : 'text-muted-foreground',
             )}
           >
@@ -51,7 +51,7 @@ export function TorchTimer({ torchEndAt, playerName, characterId, onUpdate }: Pr
             <span
               className={cn(
                 'font-mono text-[13px] font-bold',
-                isLow ? 'text-[var(--blood-bright)]' : 'text-[var(--candle-amber)]',
+                isLow ? 'text-[var(--destructive)]' : 'text-[var(--chart-1)]',
               )}
             >
               {minutesLeft}min

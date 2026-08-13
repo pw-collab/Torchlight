@@ -19,7 +19,7 @@ interface Props {
 }
 
 const CAPTION_CLASS =
-  'font-heading block text-[8px] tracking-[0.18em] text-[var(--candle-amber)]/70 uppercase'
+  'font-heading block text-[8px] tracking-[0.18em] text-[var(--muted-foreground)]/70 uppercase'
 
 export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
   const cls = getClass(classId)
@@ -61,7 +61,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         >
           <ItemContent className="gap-1">
             <ItemDescription className={CAPTION_CLASS}>Dado de Vida</ItemDescription>
-            <ItemTitle className="font-heading text-[22px] tracking-[0.04em] text-[var(--parchment-pale)]">
+            <ItemTitle className="font-heading text-[22px] tracking-[0.04em] text-[var(--foreground)]">
               {hasHitDie ? `d${cls.hitDie}` : '—'}
             </ItemTitle>
           </ItemContent>
@@ -70,7 +70,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
             <ItemTitle
               className={cn(
                 'font-heading text-[22px]',
-                conMod >= 0 ? 'text-[var(--verdigris-light)]' : 'text-[var(--destructive)]',
+                conMod >= 0 ? 'text-[var(--chart-2)]' : 'text-[var(--destructive)]',
               )}
             >
               {modifierStr(con)}
@@ -87,7 +87,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
             ? 'text-muted-foreground cursor-wait border-[var(--destructive)] bg-[var(--destructive)]/15'
-            : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--blood-bright)]',
+            : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--destructive)]',
         )}
       >
         {rolling
@@ -117,7 +117,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
               const n = parseInt(e.target.value)
               onRoll(isNaN(n) ? 1 : Math.min(999, Math.max(1, n)))
             }}
-            className="font-heading h-auto w-[120px] rounded-sm border-[var(--destructive)] bg-[var(--ink-deep)] px-3 py-2 text-center text-5xl font-bold text-[var(--parchment-pale)] [-moz-appearance:textfield]"
+            className="font-heading h-auto w-[120px] rounded-sm border-[var(--destructive)] bg-[var(--background)] px-3 py-2 text-center text-5xl font-bold text-[var(--foreground)] [-moz-appearance:textfield]"
           />
         </Field>
       )}
@@ -127,7 +127,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
           <span className="font-heading text-[8px] tracking-[0.22em] text-[var(--destructive)]/70 uppercase">
             HP Máximo
           </span>
-          <span className="font-heading text-[64px] leading-none font-bold text-[var(--parchment-pale)]">
+          <span className="font-heading text-[64px] leading-none font-bold text-[var(--foreground)]">
             {hpMax}
           </span>
           <span className="text-muted-foreground text-[11px] italic">

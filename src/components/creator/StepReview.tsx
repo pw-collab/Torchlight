@@ -59,7 +59,7 @@ export function StepReview(props: Props) {
           fontFamily: 'var(--font-heading)',
           fontSize: 22,
           fontWeight: 700,
-          color: 'var(--parchment-pale)',
+          color: 'var(--foreground)',
           letterSpacing: '0.05em',
           marginBottom: 4,
           lineHeight: 1.1,
@@ -70,7 +70,7 @@ export function StepReview(props: Props) {
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
           fontSize: 12,
-          color: 'var(--bone-muted)',
+          color: 'var(--muted-foreground)',
         }}>
           {cls?.name ?? classId}
           {archetype && ` · ${archetype.name}`}
@@ -97,7 +97,7 @@ export function StepReview(props: Props) {
                 fontSize: 6,
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
-                color: 'var(--candle-amber)',
+                color: 'var(--muted-foreground)',
                 opacity: 0.7,
                 marginBottom: 2,
               }}>
@@ -107,7 +107,7 @@ export function StepReview(props: Props) {
                 fontFamily: 'var(--font-heading)',
                 fontSize: 20,
                 fontWeight: 700,
-                color: 'var(--parchment-pale)',
+                color: 'var(--foreground)',
                 lineHeight: 1,
               }}>
                 {val}
@@ -115,7 +115,7 @@ export function StepReview(props: Props) {
               <p style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 9,
-                color: mod > 0 ? 'var(--verdigris-light)' : mod < 0 ? 'var(--destructive)' : 'var(--bone-muted)',
+                color: mod > 0 ? 'var(--chart-2)' : mod < 0 ? 'var(--destructive)' : 'var(--muted-foreground)',
                 marginTop: 2,
               }}>
                 {modifierStr(val)}
@@ -140,19 +140,19 @@ export function StepReview(props: Props) {
           <p style={flavorText}>{archetype.summary}</p>
           {archetype.talent && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Talento: </span>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Talento: </span>
               {archetype.talent}
             </p>
           )}
           {archetype.kit && archetype.kit.length > 0 && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Item: </span>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Item: </span>
               {archetype.kit.map(k => k.name).join(', ')}
             </p>
           )}
           {archetype.hook && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Gancho: </span>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Gancho: </span>
               {archetype.hook}
             </p>
           )}
@@ -217,7 +217,7 @@ export function StepReview(props: Props) {
         }}>
           {backgroundDetails.concept && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Conceito: </span>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Conceito: </span>
               {backgroundDetails.concept}
             </p>
           )}
@@ -229,7 +229,7 @@ export function StepReview(props: Props) {
           )}
           {impulses.objectives && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--parchment-warm)', fontStyle: 'normal' }}>Objetivo: </span>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Objetivo: </span>
               {impulses.objectives}
             </p>
           )}
@@ -241,7 +241,7 @@ export function StepReview(props: Props) {
         fontFamily: 'var(--font-body)',
         fontStyle: 'italic',
         fontSize: 10,
-        color: 'var(--bone-muted)',
+        color: 'var(--muted-foreground)',
         padding: '8px 0',
         borderTop: '1px solid var(--border)',
       }}>
@@ -273,7 +273,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
       <span style={{
         fontFamily: 'var(--font-body)',
         fontSize: 11,
-        color: 'var(--parchment-light)',
+        color: 'var(--foreground)',
         flex: 1,
         minWidth: 0,
         overflow: 'hidden',
@@ -286,7 +286,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
         <span style={{
           fontFamily: 'var(--font-mono)',
           fontSize: 9,
-          color: 'var(--bone-muted)',
+          color: 'var(--muted-foreground)',
           flexShrink: 0,
         }}>
           {value}
@@ -301,7 +301,7 @@ const blockTitle: React.CSSProperties = {
   fontSize: 7,
   letterSpacing: '0.16em',
   textTransform: 'uppercase',
-  color: 'var(--candle-amber)',
+  color: 'var(--muted-foreground)',
   opacity: 0.7,
   marginBottom: 8,
 }
@@ -310,6 +310,6 @@ const flavorText: React.CSSProperties = {
   fontFamily: 'var(--font-body)',
   fontStyle: 'italic',
   fontSize: 11,
-  color: 'var(--bone-muted)',
+  color: 'var(--muted-foreground)',
   lineHeight: 1.5,
 }

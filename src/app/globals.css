@@ -18,6 +18,10 @@
 :root {
   /* ------------------------------------------------------------------
      shadcn/ui semantic tokens — the single source of colour for the app.
+     Every component links straight to one of these; the taxonomy each
+     role follows is read off the Figma theme (surfaces on --card /
+     --input, rules on --border, dim labels on --muted-foreground,
+     nav state on --sidebar-*, meters on --primary over --chart-2).
      ------------------------------------------------------------------ */
   --background: oklch(1 0 0);
   --foreground: oklch(0.148 0.004 228.8);
@@ -51,46 +55,6 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
-
-  /* ------------------------------------------------------------------
-     Legacy Avernus Archives names, kept only as aliases of the tokens
-     above. Older markup still says `var(--bone-white)` or
-     `var(--parchment-mid)`; resolving those here means the whole
-     interface follows the theme from one place instead of carrying its
-     own hardcoded palette.
-     ------------------------------------------------------------------ */
-  --ink-black:        var(--background);
-  --ink-deep:         var(--background);
-  --parchment-deep:   var(--muted);
-  --parchment-mid:    var(--card);
-  --parchment-warm:   var(--muted-foreground);
-  --parchment-tan:    var(--muted-foreground);
-  --parchment-light:  var(--foreground);
-  --parchment-pale:   var(--foreground);
-
-  /* The cream card face is a *light* surface in both themes, so its ink has to
-     come from --background rather than the dark side's foreground tokens. */
-  --parchment-face:   var(--foreground);
-  --parchment-paper:  var(--muted-foreground);
-  --ink-on-cream:     var(--background);
-  --ink-border:       color-mix(in oklch, var(--background), transparent 72%);
-
-  --bone-white:       var(--foreground);
-  --bone-dim:         var(--muted-foreground);
-  --bone-muted:       var(--muted-foreground);
-  --blood-deep:       var(--primary);
-  --blood-mid:        var(--primary);
-  --blood-bright:     var(--destructive);
-  --candle-amber:     var(--muted-foreground);
-  --candle-glow:      var(--chart-1);
-  --gold-oxidized:    var(--muted-foreground);
-  --gold-mid:         var(--muted-foreground);
-  --gold-bright:      var(--chart-1);
-  --verdigris:        var(--chart-2);
-  --verdigris-light:  var(--chart-2);
-  --verdigris-bright: var(--chart-2);
-  --mist-purple:      var(--chart-5);
-  --mist-bright:      var(--chart-4);
 
   /* Two families cover every role. Bricolage Grotesque takes the display
      work; Libre Franklin takes running text and the small technical labels.
@@ -129,8 +93,6 @@
   --ease-ritual:   cubic-bezier(0.4, 0, 0.2, 1);
   --duration-base: 400ms;
   --duration-slow: 700ms;
-
-  --worn-border: var(--border);
 }
 
 /* ============================================================
@@ -246,7 +208,7 @@ html, body {
 
 /* Amber flash — momentary emphasis on text. */
 @keyframes amberFlash {
-  0%   { color: var(--candle-glow); text-shadow: 0 0 10px color-mix(in oklch, var(--primary), transparent 30%); }
+  0%   { color: var(--chart-1); text-shadow: 0 0 10px color-mix(in oklch, var(--primary), transparent 30%); }
   100% { color: inherit; text-shadow: none; }
 }
 .animate-amber-flash { animation: amberFlash 600ms ease-out both; }
@@ -298,12 +260,12 @@ html, body {
 
 /* HP damage / heal flash. */
 @keyframes damageFlash {
-  0%   { color: var(--blood-bright); transform: scale(1.14); }
-  100% { color: var(--parchment-light); transform: scale(1); }
+  0%   { color: var(--destructive); transform: scale(1.14); }
+  100% { color: var(--sidebar-foreground); transform: scale(1); }
 }
 @keyframes healFlash {
-  0%   { color: var(--verdigris-light); transform: scale(1.14); }
-  100% { color: var(--parchment-light); transform: scale(1); }
+  0%   { color: var(--chart-2); transform: scale(1.14); }
+  100% { color: var(--sidebar-foreground); transform: scale(1); }
 }
 .animate-damage { animation: damageFlash 520ms ease-out both; }
 .animate-heal   { animation: healFlash 520ms ease-out both; }
@@ -516,7 +478,7 @@ html, body {
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
 .dice-formula {
-  color: var(--candle-amber);
+  color: var(--foreground);
   border-bottom: 1px dashed color-mix(in oklch, var(--primary), transparent 40%);
   cursor: pointer;
   white-space: nowrap;
@@ -525,12 +487,12 @@ html, body {
   transition: color 160ms ease, border-bottom-color 160ms ease, text-shadow 160ms ease;
 }
 .dice-formula:hover {
-  color: var(--candle-glow);
-  border-bottom-color: var(--candle-amber);
+  color: var(--chart-1);
+  border-bottom-color: var(--chart-1);
   text-shadow: 0 0 6px color-mix(in oklch, var(--primary), transparent 55%);
 }
 .dice-formula:active {
-  color: var(--gold-bright);
+  color: var(--chart-1);
   text-shadow: 0 0 10px color-mix(in oklch, var(--chart-1), transparent 30%);
 }
 

@@ -33,11 +33,11 @@ export const ANCESTRY_GLYPH: Record<string, string> = {
 }
 
 const STEP_LABEL_CLASS =
-  'font-heading mb-2.5 block text-[8px] tracking-[0.22em] text-[var(--candle-amber)] uppercase'
+  'font-heading mb-2.5 block text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
 
 /** 0 passes unnoticed, 6 gets hunted — the scale reads green to blood. */
 function pariahTone(level: number): string {
-  if (level <= 1) return 'text-[var(--verdigris-light)]'
+  if (level <= 1) return 'text-[var(--chart-2)]'
   if (level >= 5) return 'text-[var(--destructive)]'
   return 'text-muted-foreground'
 }
@@ -67,7 +67,7 @@ export function StepAncestry({
             value={name ?? ''}
             onChange={e => onNameChange(e.target.value)}
             placeholder="Como te chamam nas Terras das Brumas?"
-            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3.5 py-3 text-[15px] tracking-[0.02em] text-[var(--foreground)] focus-visible:border-[var(--primary)]"
           />
         </Field>
       )}
@@ -109,7 +109,7 @@ export function StepAncestry({
                   <Badge
                     variant="outline"
                     className={cn(
-                      'font-mono rounded-[1px] border-0 bg-black/30 px-[5px] py-0.5 text-[7px] tracking-[0.06em]',
+                      'font-mono rounded-[1px] border-0 bg-[var(--input)] px-[5px] py-0.5 text-[7px] tracking-[0.06em]',
                       pariahTone(ancestry.pariahLevel),
                     )}
                   >
@@ -125,7 +125,7 @@ export function StepAncestry({
                 <ul className="flex flex-col gap-1.5">
                   {ancestry.traits.map(trait => (
                     <li key={trait.name}>
-                      <span className="text-[var(--parchment-pale)]">{trait.name}: </span>
+                      <span className="text-[var(--foreground)]">{trait.name}: </span>
                       <span className="text-muted-foreground text-[12px] leading-relaxed">
                         {trait.description}
                       </span>

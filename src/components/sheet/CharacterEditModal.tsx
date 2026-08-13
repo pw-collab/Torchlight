@@ -64,7 +64,7 @@ function isValid(form: EditForm): boolean {
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-[7px] py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-[7px] py-[5px] text-[11px] text-[var(--foreground)]'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -73,7 +73,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
       fontSize: 7,
       letterSpacing: '0.14em',
       textTransform: 'uppercase',
-      color: 'var(--bone-muted)',
+      color: 'var(--muted-foreground)',
       marginBottom: 3,
     }}>
       {children}
@@ -88,7 +88,7 @@ function SectionDivider({ children }: { children: React.ReactNode }) {
       fontSize: 8.5,
       letterSpacing: '0.2em',
       textTransform: 'uppercase',
-      color: 'var(--bone-muted)',
+      color: 'var(--muted-foreground)',
       paddingBottom: 7,
       borderBottom: '1px solid var(--border)',
       marginBottom: 12,
@@ -214,7 +214,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <DialogHeader className="flex-row items-center justify-between border-b border-[var(--border)] pb-3.5">
-          <DialogTitle className="font-heading text-[11px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
+          <DialogTitle className="font-heading text-[11px] tracking-[0.18em] text-[var(--foreground)] uppercase">
             ✦ Editar Personagem
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -276,13 +276,13 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             {form.hpMax < character.hpCurrent && (
               <div style={{
                 fontFamily: 'var(--font-body)', fontStyle: 'italic',
-                fontSize: 9.5, color: 'var(--candle-amber)', marginTop: 4,
+                fontSize: 9.5, color: 'var(--destructive)', marginTop: 4,
               }}>
                 ⚠ PV atual ({character.hpCurrent}) será reduzido para {form.hpMax}
               </div>
             )}
           </div>
-          <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)', marginTop: 8 }}>
+          <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 8 }}>
             CA é calculada automaticamente pela armadura equipada na aba Inventário.
           </div>
         </div>
@@ -295,7 +295,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <div
                 key={key}
                 style={{
-                  background: 'var(--card), var(--parchment-mid)',
+                  background: 'var(--card), var(--card)',
                   border: '1px solid var(--border)',
                   borderRadius: 1,
                   padding: '6px 4px',
@@ -305,7 +305,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 <div style={{
                   fontFamily: 'var(--font-heading)', fontSize: 6.5,
                   letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: 'var(--bone-muted)', marginBottom: 4,
+                  color: 'var(--muted-foreground)', marginBottom: 4,
                 }}>
                   {STAT_LABELS[key]}
                 </div>
@@ -315,13 +315,13 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                   min={1} max={20}
                   onChange={numField(key, 1, 20)}
                   aria-label={STAT_LABELS[key]}
-                  className="font-mono h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-0.5 py-[3px] text-center text-[13px] font-bold text-[var(--parchment-light)] [-moz-appearance:textfield]"
+                  className="font-mono h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-0.5 py-[3px] text-center text-[13px] font-bold text-[var(--foreground)] [-moz-appearance:textfield]"
                 />
                 <div style={{
                   fontFamily: 'var(--font-mono)', fontSize: 8.5, marginTop: 3,
                   color: (() => {
                     const m = Math.floor((form[key] - 10) / 2)
-                    return m > 0 ? 'var(--verdigris-light)' : m < 0 ? 'var(--blood-bright)' : 'var(--bone-muted)'
+                    return m > 0 ? 'var(--chart-2)' : m < 0 ? 'var(--destructive)' : 'var(--muted-foreground)'
                   })(),
                 }}>
                   {statMod(form[key])}
@@ -365,7 +365,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                   {['2D6', 'Efeito'].map((h, i) => (
                     <div key={h} style={{
                       fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em',
-                      textTransform: 'uppercase', color: 'var(--bone-muted)', padding: '5px 10px',
+                      textTransform: 'uppercase', color: 'var(--muted-foreground)', padding: '5px 10px',
                       borderRight: i === 0 ? '1px solid var(--border)' : 'none',
                     }}>
                       {h}
@@ -398,7 +398,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       </div>
                       <div style={{
                         fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5,
-                        color: isLastRoll ? 'var(--parchment-light)' : 'var(--bone-muted)',
+                        color: isLastRoll ? 'var(--foreground)' : 'var(--muted-foreground)',
                         padding: '6px 10px', lineHeight: 1.4,
                       }}>
                         {entry.effect}
@@ -424,18 +424,18 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 }}
               >
                 <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--candle-amber)', lineHeight: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: 22, fontWeight: 700, color: 'var(--foreground)', lineHeight: 1 }}>
                     {lastRoll.roll}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--bone-muted)', marginTop: 1 }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 7.5, color: 'var(--muted-foreground)', marginTop: 1 }}>
                     ({lastRoll.die1}+{lastRoll.die2})
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--parchment-light)', lineHeight: 1.5, marginTop: 2 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--foreground)', lineHeight: 1.5, marginTop: 2 }}>
                     {lastRoll.effect}
                   </p>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--verdigris-light)', marginTop: 4 }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-2)', marginTop: 4 }}>
                     ✦ Adicionado aos talentos de classe
                   </p>
                 </div>
@@ -446,7 +446,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             <div>
               <div style={{
                 fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.14em',
-                textTransform: 'uppercase', color: 'var(--bone-muted)', marginBottom: 7,
+                textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 7,
               }}>
                 Talentos adquiridos ({classTalents.length})
               </div>
@@ -454,7 +454,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               {classTalents.length === 0 ? (
                 <p style={{
                   fontFamily: 'var(--font-body)', fontStyle: 'italic',
-                  fontSize: 11, color: 'var(--bone-muted)',
+                  fontSize: 11, color: 'var(--muted-foreground)',
                 }}>
                   Nenhum talento de classe ainda. Use "Rolar 2d6" em cada nível ímpar.
                 </p>
@@ -477,7 +477,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       <span style={{
                         fontFamily: 'var(--font-heading)', fontSize: 7,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
-                        color: 'var(--candle-amber)',
+                        color: 'var(--primary-foreground)',
                         background: 'var(--primary)',
                         border: '1px solid var(--primary)',
                         padding: '1px 5px', borderRadius: 1, flexShrink: 0, marginTop: 1,
@@ -487,7 +487,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
                           fontFamily: 'var(--font-heading)', fontSize: 10.5,
-                          color: 'var(--parchment-light)', lineHeight: 1.3,
+                          color: 'var(--foreground)', lineHeight: 1.3,
                         }}>
                           {talent.name}
                         </div>
@@ -506,7 +506,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                         onClick={() => removeClassTalent(talent.id)}
                         title="Remover talento"
                         aria-label="Remover talento"
-                        className="h-auto w-auto shrink-0 px-0.5 text-[11px] leading-none text-[var(--destructive)] transition-colors duration-[180ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+                        className="h-auto w-auto shrink-0 px-0.5 text-[11px] leading-none text-[var(--destructive)] transition-colors duration-[180ms] hover:bg-transparent hover:text-[var(--destructive)]"
                       >
                         ✕
                       </Button>
@@ -551,7 +551,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             return (
               <div style={{
                 fontFamily: 'var(--font-body)', fontStyle: 'italic',
-                fontSize: 9.5, color: 'var(--bone-muted)', marginBottom: 10,
+                fontSize: 9.5, color: 'var(--muted-foreground)', marginBottom: 10,
               }}>
                 {parts.length > 0
                   ? `Idiomas concedidos: ${parts.join(' · ')}.`
@@ -575,7 +575,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                     padding: '3px 7px 3px 9px',
                     fontFamily: 'var(--font-body)',
                     fontSize: 10.5,
-                    color: 'var(--parchment-light)',
+                    color: 'var(--foreground)',
                   }}
                 >
                   {lang}
@@ -585,7 +585,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                     onClick={() => removeLang(lang)}
                     title={`Remover ${lang}`}
                     aria-label={`Remover ${lang}`}
-                    className="h-auto w-auto px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+                    className="h-auto w-auto px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--destructive)]"
                   >
                     ✕
                   </Button>
@@ -595,7 +595,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
           ) : (
             <p style={{
               fontFamily: 'var(--font-body)', fontStyle: 'italic',
-              fontSize: 10.5, color: 'var(--bone-muted)', marginBottom: 10,
+              fontSize: 10.5, color: 'var(--muted-foreground)', marginBottom: 10,
             }}>
               Nenhum idioma registrado.
             </p>
@@ -610,7 +610,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 <div style={{
                   fontFamily: 'var(--font-heading)', fontSize: 7,
                   letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'var(--bone-muted)', marginBottom: 5,
+                  color: 'var(--muted-foreground)', marginBottom: 5,
                 }}>
                   Idiomas do domínio {domain?.name}
                 </div>

@@ -38,7 +38,7 @@ export function FloatingTorch({ inventory, onClick }: Props) {
   const fraction = Math.min(1, mins / max)
   const isLow = mins <= 10
 
-  const accent = isLow ? 'var(--blood-bright)' : 'var(--candle-amber)'
+  const accent = isLow ? 'var(--destructive)' : 'var(--chart-1)'
   const haloColor = isLow ? 'var(--destructive)' : 'var(--primary)'
 
   return (
@@ -81,7 +81,7 @@ export function FloatingTorch({ inventory, onClick }: Props) {
           fontSize: 7.5,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: isLow ? 'var(--blood-bright)' : 'var(--bone-muted)',
+          color: isLow ? 'var(--destructive)' : 'var(--muted-foreground)',
           whiteSpace: 'nowrap',
         }}>
           {isLow ? '⚠ Quase apagando' : KIND_LABEL[source.lightKind ?? 'torch'] + ' acesa'}

@@ -126,7 +126,7 @@ export function FloatingVitals({
             size="icon-sm"
             onClick={() => setOpen(false)}
             aria-label="Fechar"
-            className="text-[15px] leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--bone-dim)]"
+            className="text-muted-foreground hover:text-foreground text-[15px] leading-none hover:bg-transparent"
           >
             ✕
           </Button>
@@ -135,11 +135,11 @@ export function FloatingVitals({
         {/* XP bar */}
         <div>
           <Progress value={xpPct} className="gap-0" aria-label="Progresso de XP">
-            <ProgressTrack className="h-2 rounded-none border border-[var(--border)] bg-black/50">
+            <ProgressTrack className="border-border bg-input h-2 rounded-none border">
               <ProgressIndicator
                 className={cn(
                   'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
-                  xpReady ? 'bg-[var(--bone-dim)] shadow-[0_0_6px_color-mix(in_oklch,var(--muted-foreground),transparent_60%)]' : 'bg-[var(--chart-2)]',
+                  xpReady ? 'bg-[var(--chart-1)] shadow-[0_0_6px_color-mix(in_oklch,var(--chart-1),transparent_60%)]' : 'bg-[var(--chart-2)]',
                 )}
               />
             </ProgressTrack>
@@ -218,15 +218,15 @@ export function FloatingVitals({
           />
 
           {/* LV badge — top-left overlay */}
-          <div style={{ position: 'absolute', top: 5, left: 5, height: 34, background: 'var(--secondary)', border: '1px solid var(--destructive)', padding: '0 10px', display: 'flex', alignItems: 'center', gap: 4, boxSizing: 'border-box', zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--destructive)', lineHeight: 1 }}>LV</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 22, color: 'var(--destructive)', lineHeight: 1 }}>{level}</span>
+          <div style={{ position: 'absolute', top: 5, left: 5, height: 34, background: 'var(--secondary)', border: '1px solid var(--border)', padding: '0 10px', display: 'flex', alignItems: 'center', gap: 4, boxSizing: 'border-box', zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>LV</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 22, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{level}</span>
           </div>
 
           {/* AC badge — top-right overlay */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--background)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--background)', lineHeight: 1 }}>{ac}</span>
+          <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom overlay */}
@@ -235,25 +235,25 @@ export function FloatingVitals({
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
           >
-            {/* Gold base */}
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--muted-foreground)' }} />
+            {/* Depleted track */}
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
             {/* HP fill (red from left) */}
             <div
               key={flash ?? 'idle'}
-              style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--destructive)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
+              style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
             />
             {/* Text */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--background)', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--background)', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
                 <span
                   key={`flash-${flash ?? 'idle'}`}
                   className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
                   style={{ display: 'inline' }}
                 >{hpCurrent}</span>
-                <span style={{ color: 'var(--background)' }}>/{hpMax}</span>
+                <span style={{ color: 'var(--sidebar-foreground)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 9, color: 'var(--background)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
+              <span style={{ fontSize: 9, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
             </div>
           </div>
         </div>
@@ -273,7 +273,7 @@ export function FloatingVitals({
                   onClick={() => rollStat(key)}
                   className={cn(
                     'h-auto min-w-0 flex-col items-center justify-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
-                    'hover:bg-[var(--border)]',
+                    'bg-input border-input hover:border-ring',
                     onRoll ? 'cursor-pointer' : 'cursor-default',
                   )}
                 >
@@ -287,8 +287,8 @@ export function FloatingVitals({
 
           {/* Fortuna — the only survivor of the old control row: LV moved onto
               the portrait and Editar onto the main block's header. */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: 'var(--secondary)', border: '1px solid var(--border)', padding: '4px 8px', boxSizing: 'border-box' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>Fortuna</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '4px 8px', boxSizing: 'border-box' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1, flexShrink: 0 }}>Fortuna</span>
             <div style={{ display: 'flex', gap: 2, minWidth: 0 }}>
               {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
                 <Button
@@ -299,7 +299,7 @@ export function FloatingVitals({
                   aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
                   className={cn(
                     'font-sans h-6 w-auto min-w-0 px-1 text-xl leading-6 transition-colors duration-300 hover:bg-transparent',
-                    i < luckTokens ? 'text-destructive' : 'text-[var(--destructive)]/25',
+                    i < luckTokens ? 'text-accent' : 'text-[var(--input)]',
                   )}
                 >
                   ✦
@@ -326,7 +326,7 @@ export function FloatingVitals({
         <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--muted-foreground)', letterSpacing: '0.07em', lineHeight: 1.4 }}>
           {className} · {ancestryName}
         </p>
-        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: 'var(--destructive)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: 'var(--primary-foreground)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {characterName}
         </p>
       </div>
@@ -345,9 +345,9 @@ export function FloatingVitals({
           />
 
           {/* AC badge — top-right */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: 'var(--muted-foreground)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--background)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: 'var(--background)', lineHeight: 1 }}>{ac}</span>
+          <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
           </div>
 
           {/* HP bar — bottom */}
@@ -356,15 +356,15 @@ export function FloatingVitals({
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
           >
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--muted-foreground)' }} />
-            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--destructive)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
+            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 6px', gap: 3 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--background)', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--background)', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
                 <span key={`f-${flash ?? 'idle'}`} className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''} style={{ display: 'inline' }}>{hpCurrent}</span>
-                <span style={{ color: 'var(--background)' }}>/{hpMax}</span>
+                <span style={{ color: 'var(--sidebar-foreground)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 10, color: 'var(--background)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
+              <span style={{ fontSize: 10, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
             </div>
           </div>
         </div>
@@ -381,7 +381,7 @@ export function FloatingVitals({
                 onClick={() => rollStat(key)}
                 className={cn(
                   'h-auto flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
-                  'hover:bg-[var(--border)]',
+                  'bg-input border-input hover:border-ring',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >
@@ -396,21 +396,21 @@ export function FloatingVitals({
 
       {/* LV + EDITAR — full-width row, mirroring the desktop control row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ background: 'var(--secondary)', border: '1px solid var(--destructive)', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--destructive)', lineHeight: 1 }}>LV</span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--destructive)', lineHeight: 1 }}>{level}</span>
+        <div style={{ background: 'var(--secondary)', border: '1px solid var(--border)', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>LV</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{level}</span>
         </div>
         <Link
           href={editHref}
           onClick={e => e.stopPropagation()}
-          style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--destructive)', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
+          style={{ fontFamily: 'var(--font-heading)', fontSize: 16, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', minHeight: 44, display: 'flex', alignItems: 'center' }}
         >
           Editar
         </Link>
       </div>
 
       {/* Luck bar */}
-      <div style={{ background: 'var(--muted-foreground)', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
         <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
           {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
             <Button
@@ -421,7 +421,7 @@ export function FloatingVitals({
               aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
               className={cn(
                 'font-sans h-auto min-h-[30px] w-auto px-0.5 text-[22px] leading-5 transition-colors duration-300 hover:bg-transparent',
-                i < luckTokens ? 'text-destructive' : 'text-[var(--destructive)]/25',
+                i < luckTokens ? 'text-accent' : 'text-[var(--input)]',
               )}
             >
               ✦
@@ -429,7 +429,7 @@ export function FloatingVitals({
           ))}
         </div>
         <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 60 }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--background)', lineHeight: 1 }}>Fortuna</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1 }}>Fortuna</span>
         </div>
       </div>
 
