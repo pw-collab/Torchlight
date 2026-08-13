@@ -415,7 +415,9 @@ html, body {
    ============================================================ */
 .sheet-grid {
   /* Self-contained rather than composed with .grid-12: the tablet tier below
-     re-templates the columns, and .grid-12 is declared later in this file. */
+     re-templates the columns, and .grid-12 is declared later in this file.
+     .grid-12-wide mirrors this box for the campaign roster — keep the two
+     in step if the cap, gutter, or padding steps change. */
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 24px;
@@ -629,6 +631,126 @@ html, body {
   .col-xs-12 { grid-column: span 12 / span 12; }
   .grid-12 > .col-xs-12 { grid-column: 1 / -1; }
 }
+
+/* ============================================================
+   Wide 12-column page container
+   The campaign roster (/home) sits on the same box as the
+   character sheet: twelve columns, 24px gutter, capped at 1760px
+   and centred, with the sheet's padding steps. It can't just be
+   .sheet-grid — that class re-templates its columns below 1000px
+   to place the icon rail — so the two mirror each other and must
+   be changed together (see .sheet-grid above).
+   ============================================================ */
+.grid-12-wide {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+  max-width: 1760px;
+  margin-inline: auto;
+  padding: 16px 48px 56px;
+}
+@media (max-width: 1000px) { .grid-12-wide { padding: 8px 24px 40px; } }
+@media (max-width: 640px)  { .grid-12-wide { padding: 8px 16px 40px; gap: 12px; } }
+
+/* ============================================================
+   Campaign roster — one page of the cast, six cards to a row on
+   the design's widest tier (each card spans two of the twelve).
+   Cards take more columns as the viewport narrows so a card never
+   falls below ~180px wide; CampaignRosterClient reads the same
+   breakpoints to decide how many characters fill a page, so the
+   two lists have to stay in step.
+   ============================================================ */
+.roster-row { position: relative; isolation: isolate; }
+/* z-index 0 boxes every card into one stacking context, so a card that lifts
+   or is mid-stagger can never paint (or hit-test) over the nav chevrons. */
+.roster-track {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+}
+@media (max-width: 640px) { .roster-track { gap: 12px; } }
+
+.roster-card {
+  grid-column: span 2 / span 2;
+  position: relative;
+  height: 640px;
+  min-height: 160px;
+  overflow: hidden;
+}
+@media (max-width: 1440px) { .roster-card { grid-column: span 3 / span 3; } }
+@media (max-width: 1024px) { .roster-card { grid-column: span 4 / span 4; height: 520px; } }
+@media (max-width: 767px)  { .roster-card { grid-column: span 6 / span 6; height: 440px; } }
+@media (max-width: 480px)  { .roster-card { grid-column: span 12 / span 12; } }
+
+/* Five lines of 18px sit inside the 96px the design allows the concept;
+   the cap is kept as well so a taller line-height can never spill. */
+.roster-card__concept {
+  max-height: 96px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  text-overflow: ellipsis;
+}
+
+/* Edit/delete ride on top of the portrait, so they surface on hover —
+   except where there is no hover to surface them. */
+.roster-card__actions {
+  opacity: 0;
+  transition: opacity 200ms var(--ease-ritual);
+}
+.roster-card:hover .roster-card__actions,
+.roster-card:focus-within .roster-card__actions { opacity: 1; }
+@media (hover: none) { .roster-card__actions { opacity: 1; } }
+
+/* Netflix-style row navigation: chevrons riding the row's outer edges,
+   vertically centred so they never cover a card's "Acessar" button. */
+.roster-nav {
+  position: absolute;
+  /* Centred by half its own height rather than translateY(-50%): .tactile's
+     press state sets `transform: scale(0.96)`, which would replace a
+     positioning transform and drop the button out from under the cursor. */
+  top: calc(50% - 60px);
+  height: 120px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--background), transparent 15%);
+  color: var(--foreground);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 200ms var(--ease-ritual), border-color 200ms var(--ease-ritual);
+}
+.roster-nav:hover {
+  background: var(--background);
+  border-color: var(--muted-foreground);
+}
+.roster-nav--prev { left: 0; }
+.roster-nav--next { right: 0; }
+
+/* Page indicator — the dashes Netflix puts at the top-right of a row. */
+.roster-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-bottom: 12px;
+}
+.roster-pager__dash {
+  width: 16px;
+  height: 3px;
+  background: color-mix(in oklch, var(--muted-foreground), transparent 70%);
+  transition: background 200ms var(--ease-ritual);
+}
+.roster-pager__dash--active { background: var(--destructive); }
 
 /* ============================================================
    6-column layout grid (character sheet)
