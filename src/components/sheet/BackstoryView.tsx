@@ -38,12 +38,12 @@ const labelStyle: React.CSSProperties = {
   fontSize: 7,
   letterSpacing: '0.14em',
   textTransform: 'uppercase',
-  color: 'var(--bone-muted)',
+  color: 'var(--muted-foreground)',
   marginBottom: 4,
 }
 
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-2 py-[5px] text-[11px] text-[var(--parchment-light)]'
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-2 py-[5px] text-[11px] text-[var(--foreground)]'
 
 const TEXTAREA_CLASS = `${INPUT_CLASS} resize-y leading-normal`
 
@@ -59,7 +59,7 @@ const chip: React.CSSProperties = {
   padding: '3px 7px 3px 9px',
   fontFamily: 'var(--font-body)',
   fontSize: 10.5,
-  color: 'var(--parchment-light)',
+  color: 'var(--foreground)',
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ function RemoveBtn({ onClick }: { onClick: () => void }) {
       size="icon-xs"
       onClick={onClick}
       aria-label="Remover"
-      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--blood-bright)]"
+      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--destructive)]"
     >
       ✕
     </Button>
@@ -251,7 +251,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
           {langs.length > 0 ? (
             <ChipList items={langs} onRemove={l => saveLangs(langs.filter(x => x !== l))} />
           ) : (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--bone-muted)', marginBottom: 4 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', marginBottom: 4 }}>
               Nenhum idioma registrado.
             </p>
           )}
@@ -290,7 +290,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
                     className={cn(INPUT_CLASS, 'flex-1')}
                   />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--bone-muted)' }}>Bônus</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>Bônus</span>
                     <Input
                       type="number"
                       value={area.bonus}

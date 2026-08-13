@@ -51,7 +51,7 @@ function LogoMenu({
           alt="Torchlight"
           width={logoSize}
           height={logoSize}
-          className="object-contain drop-shadow-[0_0_12px_var(--destructive)]"
+          className="object-contain drop-shadow-[0_0_12px_var(--primary)]"
         />
         <span className="text-secondary-foreground inline-block text-[10px] leading-none transition-transform group-data-popup-open/logo:-scale-y-100">
           ▾
@@ -71,7 +71,7 @@ function LogoMenu({
                 {playerName}
               </span>
               {playerRole && (
-                <span className="text-destructive text-[10px] leading-tight tracking-[0.06em] italic">
+                <span className="text-muted-foreground text-[10px] leading-tight tracking-[0.06em] italic">
                   {playerRole}
                 </span>
               )}
@@ -123,10 +123,10 @@ export function AppShell({ children, playerName, playerRole, backHref }: Props) 
               className={cn(
                 'font-heading flex min-h-11 min-w-0 items-center gap-1.5 px-1.5',
                 'text-xs tracking-[0.11em] uppercase transition-colors',
-                'text-[var(--muted-foreground)] hover:text-[var(--bone-dim)]',
+                'text-muted-foreground hover:text-foreground',
               )}
             >
-              <span aria-hidden className="text-destructive font-bold">
+              <span aria-hidden className="text-primary font-bold">
                 ‹
               </span>
               <span className="truncate underline underline-offset-2">Voltar</span>

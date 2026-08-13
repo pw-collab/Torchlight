@@ -97,10 +97,10 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
               : 'border-[var(--primary)] bg-[var(--primary)]/15',
           )}
         >
-          <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--candle-amber)] uppercase">
+          <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
             Rolagens iniciais
           </span>
-          <span className="font-mono text-[10px] text-[var(--parchment-light)]">
+          <span className="font-mono text-[10px] text-[var(--foreground)]">
             {classTalents.length}/{rollBudget}
             {rollBudget! > 1 && (
               <span className="text-muted-foreground ml-1.5 text-[9px] italic">
@@ -183,7 +183,7 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
                     <TableCell
                       className={cn(
                         'px-2.5 py-1.5 text-[10.5px] leading-snug italic',
-                        isLast ? 'text-[var(--parchment-light)]' : 'text-muted-foreground',
+                        isLast ? 'text-[var(--foreground)]' : 'text-muted-foreground',
                       )}
                     >
                       {entry.effect}
@@ -212,10 +212,10 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
             </div>
           </div>
           <ItemContent className="gap-1">
-            <ItemDescription className="mt-0.5 text-[11px] leading-normal text-[var(--parchment-light)] italic">
+            <ItemDescription className="mt-0.5 text-[11px] leading-normal text-[var(--foreground)] italic">
               {lastRoll.effect}
             </ItemDescription>
-            <ItemDescription className="font-mono text-[8px] text-[var(--verdigris-light)]">
+            <ItemDescription className="font-mono text-[8px] text-[var(--chart-2)]">
               ✦ Adicionado aos talentos de classe
             </ItemDescription>
           </ItemContent>
@@ -243,12 +243,12 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
               >
                 <Badge
                   variant="outline"
-                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--candle-amber)] uppercase"
+                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--primary-foreground)] uppercase"
                 >
                   Classe
                 </Badge>
                 <ItemContent className="gap-0">
-                  <ItemTitle className="font-heading text-[10.5px] leading-snug text-[var(--parchment-light)]">
+                  <ItemTitle className="font-heading text-[10.5px] leading-snug text-[var(--foreground)]">
                     {talent.name}
                   </ItemTitle>
                   {talent.description && (
@@ -263,7 +263,7 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
                     size="icon-xs"
                     onClick={() => remove(talent.id)}
                     aria-label={`Remover ${talent.name}`}
-                    className="text-[var(--destructive)] transition-colors duration-[180ms] hover:text-[var(--blood-bright)]"
+                    className="text-[var(--destructive)] transition-colors duration-[180ms] hover:text-[var(--destructive)]"
                   >
                     ✕
                   </Button>

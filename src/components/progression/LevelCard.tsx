@@ -69,7 +69,7 @@ export function LevelCard({
         className={cn(
           'flex items-center justify-between border border-b-0 px-3 py-1.5',
           isCurrent && !sealed
-            ? 'bg-destructive border-[var(--bone-dim)]'
+            ? 'bg-destructive border-[var(--muted-foreground)]'
             : 'bg-secondary border-[var(--border)]',
         )}
       >
@@ -114,8 +114,8 @@ export function LevelCard({
                 / NVL
               </span>
             </div>
-            <span className="mt-1.5 h-px w-16 bg-[var(--bone-dim)]/50" />
-            <div className="font-mono mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] tracking-[0.14em] text-[var(--bone-dim)]">
+            <span className="bg-border mt-1.5 h-px w-16" />
+            <div className="font-mono mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] tracking-[0.14em] text-[var(--muted-foreground)]">
               {rewards.map(kind => (
                 <span key={kind} className="flex items-center gap-1.5">
                   <HugeiconsIcon
@@ -191,11 +191,11 @@ export function LevelCard({
             XP
           </span>
           <Progress value={xpPct} className="min-w-0 flex-1 gap-0" aria-label="Progresso de XP">
-            <ProgressTrack className="h-[3px] bg-black/35">
+            <ProgressTrack className="bg-input h-[3px]">
               <ProgressIndicator
                 className={cn(
                   'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
-                  xpPct >= 100 ? 'bg-[var(--chart-1)]' : 'bg-[var(--destructive)]',
+                  xpPct >= 100 ? 'bg-[var(--chart-1)]' : 'bg-[var(--primary)]',
                 )}
               />
             </ProgressTrack>
@@ -211,7 +211,7 @@ export function LevelCard({
             className={cn(
               'font-mono h-7 w-12 shrink-0 rounded-none border-[var(--border)] bg-[var(--background)] px-1',
               'text-[11px] tabular-nums',
-              xpPct >= 100 ? 'text-[var(--chart-1)]' : 'text-[var(--parchment-light)]',
+              xpPct >= 100 ? 'text-[var(--chart-1)]' : 'text-[var(--foreground)]',
             )}
           />
           <span className="font-mono shrink-0 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)]">
@@ -294,7 +294,7 @@ function RewardSection({
         withDivider && 'border-t border-[var(--border)] pt-4',
       )}
     >
-      <p className="font-sans text-[13px] leading-snug text-[var(--bone-muted)] italic">
+      <p className="font-sans text-[13px] leading-snug text-[var(--muted-foreground)] italic">
         {isHp
           ? 'Todo nível — role o dado de vida da classe e some o resultado ao PV máximo. O modificador de CON não entra de novo.'
           : `Nível ímpar — role 2d6 na tabela de talentos${classData ? ` de ${classData.name}` : ''} e receba o resultado.`}
@@ -366,7 +366,7 @@ function RewardSection({
                       <TableCell
                         className={cn(
                           'px-2.5 py-1.5 text-[10.5px] leading-snug italic',
-                          hit ? 'text-[var(--parchment-light)]' : 'text-[var(--muted-foreground)]',
+                          hit ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                         )}
                       >
                         {row.effect}
@@ -404,8 +404,8 @@ function RewardSection({
             className={cn(
               'font-heading h-auto w-full px-4 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
               busy !== null || !classData
-                ? 'cursor-wait border-[var(--border)] bg-[var(--border)]/15 text-[var(--muted-foreground)]'
-                : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--blood-bright)] shadow-[0_0_12px_color-mix(in_oklch,var(--destructive),transparent_75%)]',
+                ? 'cursor-wait border-[var(--border)] bg-[var(--muted)] text-[var(--muted-foreground)]'
+                : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--destructive)] shadow-[0_0_12px_color-mix(in_oklch,var(--destructive),transparent_75%)]',
             )}
           >
             {rolling
@@ -427,7 +427,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
       <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
         {label}
       </span>
-      <span className="font-heading truncate text-[18px] leading-none text-[var(--parchment-pale)]">
+      <span className="font-heading truncate text-[18px] leading-none text-[var(--foreground)]">
         {value}
       </span>
     </div>
@@ -449,7 +449,7 @@ function RewardReceipt({
         <span className="font-heading text-[8px] tracking-[0.2em] text-[var(--muted-foreground)] uppercase">
           PV ganhos
         </span>
-        <span className="font-heading text-[28px] leading-none font-bold text-[var(--parchment-pale)]">
+        <span className="font-heading text-[28px] leading-none font-bold text-[var(--foreground)]">
           +{entry.hpGain ?? 0}
         </span>
         <span className="font-mono text-[8.5px] text-[var(--muted-foreground)]">
@@ -473,7 +473,7 @@ function RewardReceipt({
         </div>
       </div>
       <div className="flex min-w-0 flex-col gap-1">
-        <span className="text-[11.5px] leading-normal text-[var(--parchment-light)] italic">
+        <span className="text-[11.5px] leading-normal text-[var(--foreground)] italic">
           {entry.talentEffect}
         </span>
         <span className="font-mono text-[8px] text-[var(--chart-1)]">✦ Adicionado aos talentos</span>

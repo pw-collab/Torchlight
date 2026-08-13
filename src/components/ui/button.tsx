@@ -13,7 +13,7 @@ const buttonVariants = cva(
       variant: {
         default: "cn-button-variant-default",
         outline: "cn-button-variant-outline",
-        secondary: "cn-button-variant-secondary border-[var(--bone-dim)]",
+        secondary: "cn-button-variant-secondary border-input",
         ghost: "cn-button-variant-ghost",
         destructive: "cn-button-variant-destructive",
         hollow: "text-primary border-primary hover:bg-primary/10",

@@ -42,8 +42,8 @@ export function TabRail<K extends string>({ tabs, active, onChange }: Props<K>) 
               'transition-colors duration-150 outline-none',
               'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
               isActive
-                ? 'bg-destructive text-background border-[var(--bone-dim)]'
-                : 'bg-secondary border-border text-[var(--muted-foreground)] hover:border-[var(--bone-dim)] hover:text-[var(--bone-dim)]',
+                ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
+                : 'bg-input border-input text-muted-foreground hover:border-sidebar-ring hover:text-foreground',
             )}
           >
             <HugeiconsIcon icon={t.icon} size={26} strokeWidth={1.6} />

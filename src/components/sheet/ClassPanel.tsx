@@ -25,6 +25,7 @@ const STAT_SHORT: Record<Stat, string> = {
 
 function panelStyle(extra?: React.CSSProperties): React.CSSProperties {
   return {
+    background: 'var(--card)',
     border: '1px solid var(--border)',
     ...extra,
   }
@@ -81,19 +82,19 @@ function PassiveModifierLine({
         gap: 8,
       }}
     >
-      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
         {label} {score}
       </span>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--bone-muted)' }}>→</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted-foreground)' }}>→</span>
       <span style={{
         fontFamily: 'var(--font-mono)',
         fontSize: 12,
         fontWeight: 700,
-        color: effective > 0 ? 'var(--verdigris-light)' : 'var(--bone-muted)',
+        color: effective > 0 ? 'var(--chart-2)' : 'var(--muted-foreground)',
       }}>
         {modifierStr(score)}
       </span>
-      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--bone-muted)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)' }}>
         → {effective > 0 ? `+${effective}` : effective} slots extras de carga
         {mod.onlyIfPositive && effective === 0 && ' (inativo — mod. negativo)'}
       </span>
@@ -140,7 +141,7 @@ function ChoiceSection({
                 fontFamily: 'var(--font-body)',
                 fontStyle: 'italic',
                 fontSize: 12,
-                color: 'var(--bone-muted)',
+                color: 'var(--muted-foreground)',
               }}>
                 {cfg.informativeOnly ? 'Registrado' : 'Escolha'}
               </span>
@@ -148,7 +149,7 @@ function ChoiceSection({
                 fontFamily: 'var(--font-mono)',
                 fontSize: 14,
                 fontWeight: 700,
-                color: 'var(--candle-amber)',
+                color: 'var(--primary-foreground)',
                 background: 'color-mix(in oklch, var(--primary), transparent 82%)',
                 border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)',
                 padding: '2px 8px',
@@ -180,7 +181,7 @@ function ChoiceSection({
               onKeyDown={e => { if (e.key === 'Enter') commit(draft); if (e.key === 'Escape') setEditing(false) }}
               placeholder={cfg.prompt}
               aria-label={cfg.prompt}
-              className="h-auto min-w-[120px] flex-1 border-[var(--border)] bg-[var(--ink-deep)] px-2 py-1 text-sm text-[var(--parchment-light)]"
+              className="h-auto min-w-[120px] flex-1 border-[var(--border)] bg-[var(--background)] px-2 py-1 text-sm text-[var(--foreground)]"
             />
           ) : (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -231,7 +232,7 @@ function UsePips({
             key={i}
             style={{
               fontSize: 13,
-              color: i < remaining ? 'var(--candle-amber)' : 'var(--border)',
+              color: i < remaining ? 'var(--accent)' : 'var(--input)',
               filter: i < remaining ? 'drop-shadow(0 0 3px var(--primary))' : 'none',
               transition: 'all 250ms',
               lineHeight: 1,
@@ -241,7 +242,7 @@ function UsePips({
           </span>
         ))}
       </div>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--bone-muted)' }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--muted-foreground)' }}>
         {remaining}/{max}{perLabel ? ` ${perLabel}` : ''}
       </span>
       <Button
@@ -388,17 +389,17 @@ function TechniqueCard({
   const statusLine = (() => {
     if (kind === 'limited_use' && technique.uses) {
       const remaining = state.usesRemaining ?? technique.uses.max
-      return { text: `${remaining}/${technique.uses.max}`, color: remaining > 0 ? 'var(--candle-amber)' : 'var(--blood-bright)' }
+      return { text: `${remaining}/${technique.uses.max}`, color: remaining > 0 ? 'var(--chart-1)' : 'var(--destructive)' }
     }
     if (kind === 'spell_like' && technique.spellLike) {
       const expended = state.expendedAbilities?.length ?? 0
       const total = technique.spellLike.abilities.length
-      return { text: `${total - expended}/${total}`, color: expended > 0 ? 'var(--blood-bright)' : 'var(--verdigris-light)' }
+      return { text: `${total - expended}/${total}`, color: expended > 0 ? 'var(--destructive)' : 'var(--chart-2)' }
     }
     if (kind === 'choice' && state.choice) {
       const cfg = technique.choice!
       const label = cfg.options?.find(o => o.value === state.choice)?.label ?? state.choice
-      return { text: label.length > 8 ? label.slice(0, 7) + '…' : label, color: 'var(--candle-amber)' }
+      return { text: label.length > 8 ? label.slice(0, 7) + '…' : label, color: 'var(--muted-foreground)' }
     }
     return null
   })()

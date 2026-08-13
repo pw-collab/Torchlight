@@ -224,7 +224,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
               backgroundImage: 'repeating-linear-gradient(135deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 8px)',
             }}>
               {!hovering && !dragging && (
-                <span style={{ fontSize: 28, opacity: 0.25, userSelect: 'none', color: 'var(--gold-oxidized)' }}>✦</span>
+                <span style={{ fontSize: 28, opacity: 0.25, userSelect: 'none', color: 'var(--muted-foreground)' }}>✦</span>
               )}
             </div>
           )}
@@ -278,7 +278,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
               zIndex: 3,
             }}
           >
-            <span className="animate-flicker" style={{ color: 'var(--candle-amber)', fontSize: 20 }}>✦</span>
+            <span className="animate-flicker" style={{ color: 'var(--chart-1)', fontSize: 20 }}>✦</span>
           </div>
         )}
 
@@ -289,7 +289,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           style={{
             position: 'absolute',
             inset: 0,
-            border: '1px solid var(--primary)',
+            border: '1px solid var(--sidebar-ring)',
             pointerEvents: 'none',
             zIndex: 4,
           }}
@@ -302,7 +302,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: -2,
-              border: '2px solid var(--candle-amber)',
+              border: '2px solid var(--ring)',
               boxShadow: '0 0 12px var(--primary)',
               zIndex: 5,
               pointerEvents: 'none',
@@ -326,7 +326,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
       {/* Error message */}
       {error && (
         <FieldError
-          className="text-center text-[10px] leading-snug text-[var(--blood-bright)]"
+          className="text-center text-[10px] leading-snug text-destructive"
           style={{ maxWidth: fluid ? '100%' : size }}
         >
           {error}

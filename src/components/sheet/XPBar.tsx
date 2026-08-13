@@ -18,13 +18,13 @@ export function XPBar({ level, xp, onUpdate }: Props) {
   return (
     <div className="flex flex-1 items-center gap-2">
       <Progress value={pct} className="min-w-0 flex-1 gap-0" aria-label="Progresso de XP">
-        <ProgressTrack className="h-[3px] rounded-sm bg-black/35">
+        <ProgressTrack className="bg-input h-[3px] rounded-sm">
           <ProgressIndicator
             className={cn(
               'transition-[width] duration-[400ms] ease-[var(--ease-ritual)]',
               ready
-                ? 'bg-[var(--gold-bright)] shadow-[0_0_5px_color-mix(in_oklch,var(--chart-1),transparent_60%)]'
-                : 'bg-[var(--verdigris-light)]',
+                ? 'bg-[var(--chart-1)] shadow-[0_0_5px_color-mix(in_oklch,var(--chart-1),transparent_60%)]'
+                : 'bg-[var(--chart-2)]',
             )}
           />
         </ProgressTrack>
@@ -39,7 +39,7 @@ export function XPBar({ level, xp, onUpdate }: Props) {
           aria-label="XP atual"
           className={cn(
             'font-mono h-auto w-[34px] border-none bg-transparent p-0 text-right text-[10px]',
-            ready ? 'text-[var(--gold-bright)]' : 'text-[var(--parchment-light)]',
+            ready ? 'text-[var(--chart-1)]' : 'text-[var(--foreground)]',
           )}
         />
         <span className="font-mono text-muted-foreground text-[10px] whitespace-nowrap">

@@ -10,12 +10,12 @@ export default async function LandingPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold text-amber-400 mb-2">🕯️ Torchlight</h1>
-      <p className="text-zinc-400 mb-8">Shadowdark RPG Companion</p>
+      <h1 className="text-primary-foreground mb-2 text-4xl font-bold">🕯️ Torchlight</h1>
+      <p className="text-muted-foreground mb-8">Shadowdark RPG Companion</p>
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Link
           href="/login"
-          className="rounded bg-amber-700 px-6 py-3 text-center font-bold text-white hover:bg-amber-600"
+          className="bg-primary text-primary-foreground hover:bg-primary/80 rounded px-6 py-3 text-center font-bold"
         >
           Login com Discord
         </Link>

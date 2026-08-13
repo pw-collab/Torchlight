@@ -17,7 +17,7 @@ interface Props {
  */
 export function OrnateTitle({
   children,
-  color = 'var(--bone-dim)',
+  color = 'var(--muted-foreground)',
   fontSize = 8.5,
   className,
 }: Props) {

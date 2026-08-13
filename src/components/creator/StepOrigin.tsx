@@ -128,7 +128,7 @@ export function StepOrigin({
             onChange={e => setDomainFilter(e.target.value)}
             placeholder="Filtrar domínios..."
             aria-label="Filtrar domínios"
-            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+            className="h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs text-[var(--foreground)] focus-visible:border-[var(--primary)]"
           />
         )}
 
@@ -144,19 +144,19 @@ export function StepOrigin({
                 className={cn(
                   'tactile cursor-pointer rounded-sm border px-3.5 py-2.5 text-left transition-all duration-200',
                   active
-                    ? 'border-[var(--primary)] bg-[var(--border)] shadow-[0_0_12px_color-mix(in_oklch,var(--primary),transparent_75%)]'
-                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--bone-dim)]',
+                    ? 'border-[var(--primary)] bg-[var(--input)] shadow-[0_0_12px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]',
                 )}
               >
                 <span
                   className={cn(
                     'font-heading text-[13px] tracking-[0.03em]',
-                    active ? 'text-[var(--parchment-pale)]' : 'text-[var(--muted-foreground)]',
+                    active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                   )}
                 >
                   {domain.name}
                 </span>
-                <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--gold-oxidized)] uppercase">
+                <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
                   {domain.region}
                 </span>
                 <span className="text-muted-foreground mt-0.5 block text-[10.5px] leading-snug italic">
@@ -165,8 +165,8 @@ export function StepOrigin({
                 {active && (
                   <span className="mt-1.5 flex flex-col gap-1">
                     {domain.commonExperiences && (
-                      <span className="block text-[10.5px] leading-snug text-[var(--parchment-light)]">
-                        <span className="text-[var(--candle-amber)]">Verdades de interpretação: </span>
+                      <span className="block text-[10.5px] leading-snug text-[var(--foreground)]">
+                        <span className="text-[var(--foreground)]">Verdades de interpretação: </span>
                         {domain.commonExperiences}
                       </span>
                     )}
@@ -222,22 +222,22 @@ export function StepOrigin({
                   'tactile flex cursor-pointer items-start gap-2.5 rounded-sm border px-3.5 py-2.5 text-left transition-all duration-200',
                   active
                     ? 'border-[var(--chart-4)] bg-[var(--muted)]'
-                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--bone-dim)]',
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]',
                 )}
               >
-                <span className="mt-0.5 shrink-0 text-[13px] leading-none text-[var(--gold-oxidized)]">
+                <span className="mt-0.5 shrink-0 text-[13px] leading-none text-[var(--muted-foreground)]">
                   {textGlyph(religion.glyph)}
                 </span>
                 <span className="min-w-0">
                   <span
                     className={cn(
                       'font-heading block text-[12.5px] tracking-[0.03em]',
-                      active ? 'text-[var(--parchment-pale)]' : 'text-[var(--muted-foreground)]',
+                      active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                     )}
                   >
                     {religion.name}
                     {local && (
-                      <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--verdigris-light)] uppercase">
+                      <span className="font-mono ml-2 text-[7px] tracking-[0.14em] text-[var(--chart-2)] uppercase">
                         no seu domínio
                       </span>
                     )}
@@ -270,7 +270,7 @@ export function StepOrigin({
             <div>
               <span className={SUB_LABEL_CLASS}>
                 Do domínio — escolha {domainPickCount} de {selectedDomain?.name}
-                <span className="ml-1.5 text-[var(--gold-oxidized)]">
+                <span className="ml-1.5 text-[var(--muted-foreground)]">
                   {selectedDomainLangs.length}/{domainPickCount}
                 </span>
               </span>
@@ -293,7 +293,7 @@ export function StepOrigin({
                       className={cn(
                         PICK_CHIP_CLASS,
                         sel
-                          ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]'
+                          ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
                           : full
                             ? 'cursor-default border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]'
                             : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
@@ -323,7 +323,7 @@ export function StepOrigin({
             <div>
               <span className={SUB_LABEL_CLASS}>
                 Idiomas adicionais — qualquer
-                <span className="ml-1.5 text-[var(--gold-oxidized)]">
+                <span className="ml-1.5 text-[var(--muted-foreground)]">
                   {freeLangs.length}/{freePickCount}
                 </span>
               </span>
@@ -341,7 +341,7 @@ export function StepOrigin({
                     }
                     className={cn(
                       PICK_CHIP_CLASS,
-                      'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)]',
+                      'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]',
                     )}
                   >
                     {l} ×
@@ -357,12 +357,12 @@ export function StepOrigin({
                     onKeyDown={e => e.key === 'Enter' && addFreeLang()}
                     placeholder="Nome do idioma..."
                     aria-label="Nome do idioma"
-                    className="h-auto flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--parchment-pale)] focus-visible:border-[var(--primary)]"
+                    className="h-auto flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--foreground)] focus-visible:border-[var(--primary)]"
                   />
                   <Button
                     variant="outline"
                     onClick={addFreeLang}
-                    className="h-auto rounded-sm border-[var(--border)] bg-[var(--border)]/15 px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+                    className="h-auto rounded-sm border-[var(--border)] bg-[var(--muted)] px-3.5 py-[7px] text-[9px] tracking-[0.12em] text-[var(--foreground)]"
                   >
                     + Adicionar
                   </Button>
@@ -380,7 +380,7 @@ const SUB_LABEL_CLASS =
   'font-heading text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
 
 const CHIP_CLASS =
-  'rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]'
+  'rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--foreground)]'
 
 const PICK_CHIP_CLASS =
   'cursor-pointer rounded-[10px] border px-2.5 py-[3px] text-[11px] transition-all duration-150'

@@ -201,7 +201,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
     <Dialog open onOpenChange={open => { if (!open) onClose() }}>
       <DialogContent className="flex max-h-[90vh] max-w-[920px] flex-col overflow-hidden border-t-2 border-t-[var(--border)] p-0">
         <DialogHeader className="border-b border-[var(--border)] px-5 py-3.5">
-          <DialogTitle className="font-heading text-[10px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
+          <DialogTitle className="font-heading text-[10px] tracking-[0.18em] text-[var(--foreground)] uppercase">
             {isEditing ? '✎ Editar Ficha de NPC' : '✦ Nova Ficha de NPC'}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -254,18 +254,18 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
                 id="npc-markdown"
                 value={md}
                 onChange={e => setMd(e.target.value)}
-                className="font-mono min-h-[400px] flex-1 resize-none border-[var(--border)] bg-[var(--ink-deep)] text-[11px] leading-[1.55] text-[var(--parchment-light)]"
+                className="font-mono min-h-[400px] flex-1 resize-none border-[var(--border)] bg-[var(--background)] text-[11px] leading-[1.55] text-[var(--foreground)]"
               />
               <FieldDescription className="text-muted-foreground text-[10px] leading-normal italic">
-                Dica: use <Kbd className="text-[var(--candle-amber)]">**negrito**</Kbd> nas descrições
-                de features. Stats separados por <Kbd className="text-[var(--candle-amber)]">|</Kbd>.
+                Dica: use <Kbd className="text-[var(--foreground)]">**negrito**</Kbd> nas descrições
+                de features. Stats separados por <Kbd className="text-[var(--foreground)]">|</Kbd>.
               </FieldDescription>
             </Field>
           )}
 
           {/* Right: Live preview */}
           {(!stacked || activePane === 'preview') && (
-            <ScrollArea className="flex-1 bg-black/15">
+            <ScrollArea className="bg-background flex-1">
               <div className="px-5 py-3.5">
                 <div className="text-muted-foreground font-heading mb-2.5 text-[8px] tracking-[0.16em] uppercase">
                   Pré-visualização
@@ -278,7 +278,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
 
         <DialogFooter className="flex-row items-center gap-2.5 border-t border-[var(--border)] px-5 py-3">
           {error && (
-            <span className="flex-1 text-[11px] text-[var(--blood-bright)] italic">{error}</span>
+            <span className="flex-1 text-[11px] text-[var(--destructive)] italic">{error}</span>
           )}
           <div className={error ? 'flex-0' : 'flex-1'} />
           <Button variant="outline" onClick={onClose} className="text-muted-foreground">

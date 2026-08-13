@@ -23,7 +23,7 @@ export function SectionHeading({ children, trailing, className }: Props) {
         className,
       )}
     >
-      <span className="font-heading text-secondary-foreground min-w-0 truncate text-2xl leading-none font-semibold">
+      <span className="font-heading text-card-foreground min-w-0 truncate text-2xl leading-none font-semibold">
         {children}
       </span>
       {trailing}
@@ -43,7 +43,7 @@ export function SectionSubheading({ children, trailing, className }: Props) {
         className,
       )}
     >
-      <span className="font-heading text-secondary-foreground min-w-0 truncate text-[17px] leading-none font-semibold">
+      <span className="font-heading text-card-foreground min-w-0 truncate text-[17px] leading-none font-semibold">
         {children}
       </span>
       {trailing}

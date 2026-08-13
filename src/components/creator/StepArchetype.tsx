@@ -38,7 +38,7 @@ export function StepArchetype({ classId, archetypeId, onChange }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <StepProse>
-        Arquétipos representam <strong className="text-[var(--parchment-pale)] not-italic">o tipo
+        Arquétipos representam <strong className="text-[var(--foreground)] not-italic">o tipo
         de pessoa que seu personagem é</strong> antes mesmo de suas habilidades entrarem em jogo.
         Eles descrevem história, vivência e abordagem diante do mundo, indo além da classe.
         Enquanto a Classe define <em>como</em> o personagem age mecanicamente — luta, conjura,
@@ -81,7 +81,7 @@ export function StepArchetype({ classId, archetypeId, onChange }: Props) {
                       const { name, slots, note } = kitLabel(kit)
                       return (
                         <li key={name}>
-                          <span className="text-[var(--parchment-pale)]">{name}</span>
+                          <span className="text-[var(--foreground)]">{name}</span>
                           <span className="font-mono text-muted-foreground ml-1.5 text-[9px]">
                             {slots} slot{slots === 1 ? '' : 's'}
                           </span>

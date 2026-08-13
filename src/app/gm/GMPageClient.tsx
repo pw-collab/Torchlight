@@ -173,7 +173,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 fontFamily: 'var(--font-heading)',
                 fontSize: 22,
                 fontWeight: 700,
-                color: 'var(--parchment-pale)',
+                color: 'var(--foreground)',
                 letterSpacing: '0.05em',
                 marginBottom: 4,
                 lineHeight: 1.1,
@@ -200,7 +200,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 fontSize: 7.5,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'var(--verdigris-light)',
+                color: 'var(--chart-2)',
                 background: 'var(--chart-2)',
                 border: '1px solid var(--chart-2)',
                 padding: '4px 12px',
@@ -231,8 +231,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 className={cn(
                   'tactile font-heading text-muted-foreground min-h-11 flex-none border-b-2 border-transparent',
                   'px-4.5 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
-                  'data-active:border-b-[var(--border)] data-active:bg-[var(--border)]',
-                  'data-active:text-[var(--parchment-light)]',
+                  'data-active:border-b-[var(--primary)] data-active:bg-[var(--input)]',
+                  'data-active:text-[var(--foreground)]',
                 )}
               >
                 {t.label}
@@ -254,7 +254,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                     fontFamily: 'var(--font-heading)',
                     fontSize: 14,
                     fontWeight: 700,
-                    color: 'var(--bone-white)',
+                    color: 'var(--foreground)',
                     letterSpacing: '0.05em',
                     marginBottom: 6,
                   }}
@@ -266,7 +266,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                     fontFamily: 'var(--font-body)',
                     fontStyle: 'italic',
                     fontSize: 12,
-                    color: 'var(--bone-muted)',
+                    color: 'var(--muted-foreground)',
                     marginBottom: 18,
                     lineHeight: 1.65,
                   }}
@@ -281,7 +281,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   onKeyDown={e => e.key === 'Enter' && createSession()}
                   placeholder="Nome da sessão..."
                   aria-label="Nome da sessão"
-                  className="mb-3.5 h-auto rounded-[1px] border-[var(--border)] bg-[var(--ink-deep)] px-3 py-2.5 text-[13px] text-[var(--parchment-light)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
+                  className="mb-3.5 h-auto rounded-[1px] border-[var(--border)] bg-[var(--background)] px-3 py-2.5 text-[13px] text-[var(--foreground)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
                 />
 
                 <div
@@ -297,10 +297,10 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   variant="outline"
                   className={cn(
                     'h-auto rounded-[1px] px-5.5 py-2.5 text-[10px] font-semibold tracking-[0.14em]',
-                    'text-[var(--parchment-pale)] transition-all duration-[var(--duration-base)] ease-[var(--ease-ritual)]',
+                    'text-[var(--foreground)] transition-all duration-[var(--duration-base)] ease-[var(--ease-ritual)]',
                     creating
-                      ? 'border-[var(--border)] bg-[var(--parchment-mid)]'
-                      : 'border-[var(--blood-bright)] bg-[var(--blood-mid)] shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
+                      ? 'border-[var(--border)] bg-[var(--card)]'
+                      : 'border-[var(--destructive)] bg-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
                   )}
                 >
                   {creating ? <><Spinner /> Registrando…</> : '⚔ Iniciar Sessão'}
@@ -325,7 +325,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                       width: 6,
                       height: 6,
                       borderRadius: '50%',
-                      background: 'var(--verdigris-light)',
+                      background: 'var(--chart-2)',
                       boxShadow: '0 0 6px var(--chart-2)',
                       flexShrink: 0,
                     }}
@@ -335,7 +335,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                       fontFamily: 'var(--font-heading)',
                       fontSize: 16,
                       fontWeight: 700,
-                      color: 'var(--bone-white)',
+                      color: 'var(--foreground)',
                       letterSpacing: '0.04em',
                       lineHeight: 1.2,
                     }}
@@ -365,20 +365,20 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         {tab === 'npcs' && (
           <div className="animate-ink-spread col-span-12">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--bone-muted)' }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
               </span>
               <Button
                 onClick={openCreator}
                 variant="outline"
-                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--blood-mid)] bg-[var(--destructive)]/25 px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
+                className="tactile glow-hover-blood text-foreground h-11 min-h-11 rounded-[1px] border-[var(--primary)] bg-[var(--destructive)]/25 px-4.5 text-[10px] tracking-[0.14em] transition-all duration-[250ms]"
               >
                 + Nova Ficha
               </Button>
             </div>
 
             {loadingNpcs ? (
-              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
                 Consultando os arquivos...
               </p>
             ) : npcs.length === 0 ? (
@@ -392,7 +392,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   borderRadius: 1,
                 }}
               >
-                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--bone-muted)' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, color: 'var(--muted-foreground)' }}>
                   Nenhuma ficha registrada. Crie a primeira com &quot;+ Nova Ficha&quot;.
                 </p>
               </div>
@@ -422,7 +422,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                       />
                     </div>
                   ) : (
-                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--bone-muted)', padding: '20px 0' }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)', padding: '20px 0' }}>
                       Selecione uma ficha à esquerda para visualizá-la.
                     </p>
                   )}

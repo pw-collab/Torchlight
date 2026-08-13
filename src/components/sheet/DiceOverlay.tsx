@@ -121,7 +121,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
     ? 'var(--destructive)'
     : 'var(--border)'
 
-  const numberColor = isCritical ? 'var(--gold-bright)' : isFumble ? 'var(--destructive)' : 'var(--muted-foreground)'
+  const numberColor = isCritical ? 'var(--chart-1)' : isFumble ? 'var(--destructive)' : 'var(--muted-foreground)'
   const numberShadow = isCritical
     ? '0 0 24px var(--chart-1)'
     : isFumble
@@ -236,7 +236,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                 fontSize: 9,
                 letterSpacing: '0.3em',
                 textTransform: 'uppercase',
-                color: 'var(--bone-muted)',
+                color: 'var(--muted-foreground)',
               }}
             >
               {landed ? roll.label : 'Rolando...'}
@@ -280,7 +280,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 4 }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--bone-muted)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--muted-foreground)' }}>
                     {roll.die}
                     {roll.modifier !== undefined && roll.modifier !== 0
                       ? (roll.modifier > 0 ? ` +${roll.modifier}` : ` ${roll.modifier}`)
@@ -294,7 +294,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                         fontSize: 7,
                         letterSpacing: '0.16em',
                         textTransform: 'uppercase',
-                        color: roll.advantage === 'advantage' ? 'var(--verdigris-light)' : 'var(--blood-bright)',
+                        color: roll.advantage === 'advantage' ? 'var(--chart-2)' : 'var(--destructive)',
                       }}>
                         {roll.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
                       </span>
@@ -307,7 +307,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                               fontFamily: 'var(--font-mono)',
                               fontSize: 14,
                               fontWeight: kept ? 700 : 400,
-                              color: kept ? 'var(--parchment-pale)' : 'var(--bone-muted)',
+                              color: kept ? 'var(--foreground)' : 'var(--muted-foreground)',
                               textDecoration: kept ? 'none' : 'line-through',
                               opacity: kept ? 1 : 0.55,
                             }}
@@ -331,7 +331,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                         fontSize: 10,
                         letterSpacing: '0.18em',
                         textTransform: 'uppercase',
-                        color: isCritical ? 'var(--gold-bright)' : 'var(--blood-bright)',
+                        color: isCritical ? 'var(--chart-1)' : 'var(--destructive)',
                         textShadow: isCritical ? '0 0 8px var(--chart-1)' : 'none',
                         marginTop: 2,
                       }}

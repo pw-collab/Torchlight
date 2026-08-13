@@ -156,12 +156,12 @@ export function GlyphCard({
           // 3:5 face: the card takes its width from the grid column and its
           // height from that ratio, so the deck keeps its shape at any width.
           'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
-          'transition-[border-color] duration-[250ms]',
+          'bg-input transition-[border-color] duration-[250ms]',
           // Button's base is a label: nowrap + uppercase. The face holds prose,
           // so it wraps and keeps the casing the text was written in.
           'whitespace-normal normal-case',
         )}
-        style={{ borderColor: open ? accent : 'var(--border)' }}
+        style={{ borderColor: open ? accent : 'var(--input)' }}
       >
         <div style={{
           position: 'relative',
@@ -178,10 +178,10 @@ export function GlyphCard({
         }}>
           {/* Corner marks + roll arrow */}
           <div aria-hidden style={{ position: 'absolute', inset: 4, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
               <span>✦</span><span>✦</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--muted-foreground)', lineHeight: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
               <span>✦</span>
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: accent, lineHeight: 1 }}>↝</span>
               <span>✦</span>

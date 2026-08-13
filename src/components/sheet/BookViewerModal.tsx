@@ -40,17 +40,17 @@ function paginateMarkdown(md: string, charsPerPage = 600): string[] {
 
 const mdComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="font-heading mb-2.5 text-sm leading-snug tracking-[0.1em] text-[var(--gold-oxidized)]">{children}</h1>
+    <h1 className="font-heading mb-2.5 text-sm leading-snug tracking-[0.1em] text-[var(--background)]">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="font-heading mt-2 mb-1.5 text-xs leading-snug tracking-[0.08em] text-[var(--gold-oxidized)]">{children}</h2>
+    <h2 className="font-heading mt-2 mb-1.5 text-xs leading-snug tracking-[0.08em] text-[var(--background)]">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="font-heading mt-1.5 mb-1 text-[11px] leading-snug tracking-[0.06em] text-[var(--gold-oxidized)]">{children}</h3>
+    <h3 className="font-heading mt-1.5 mb-1 text-[11px] leading-snug tracking-[0.06em] text-[var(--background)]">{children}</h3>
   ),
   p: ({ children }) => <p className="mb-2 leading-[1.55]">{children}</p>,
   strong: ({ children }) => (
-    <strong className="font-semibold text-[var(--candle-amber)]">{children}</strong>
+    <strong className="font-semibold text-[var(--primary)]">{children}</strong>
   ),
   em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
   ul: ({ children }) => <ul className="mb-2 list-disc pl-4">{children}</ul>,
@@ -60,7 +60,7 @@ const mdComponents: Components = {
 }
 
 const PAGE_CLASS =
-  'relative w-[min(340px,calc(100vw-3rem))] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--parchment-light)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--ink-deep)]'
+  'relative w-[min(340px,calc(100vw-3rem))] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--foreground)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--background)]'
 
 export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
   // Two pages side by side need ~760-800px of viewport before the spread
@@ -98,7 +98,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
           {/* Header — wraps below the title on narrow viewports instead of
               forcing the (shrink-to-fit) dialog wider than the screen. */}
           <DialogHeader className="flex w-full max-w-[736px] flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <DialogTitle className="font-heading text-[11px] tracking-[0.16em] text-[var(--parchment-warm)] uppercase">
+            <DialogTitle className="font-heading text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
               📖 {item.name}
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -109,7 +109,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
                 size="sm"
                 variant="outline"
                 onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
-                className="border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em] text-[var(--parchment-light)]"
+                className="border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em] text-[var(--foreground)]"
               >
                 ✎ Editar Conteúdo
               </Button>
@@ -118,7 +118,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
                 variant="outline"
                 onClick={onClose}
                 aria-label="Fechar"
-                className="border-[var(--destructive)] bg-[var(--card)] text-[10px] text-[var(--blood-bright)]"
+                className="border-[var(--destructive)] bg-[var(--card)] text-[10px] text-[var(--destructive)]"
               >
                 ✕
               </Button>
@@ -170,7 +170,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.max(0, s - 1))}
               disabled={clampedIndex === 0}
-              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--foreground)]"
             >
               ← Anterior
             </Button>
@@ -186,7 +186,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               variant="outline"
               onClick={() => setSpreadIndex(s => Math.min(totalSpreads - 1, s + 1))}
               disabled={clampedIndex >= totalSpreads - 1}
-              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--parchment-light)]"
+              className="border-[var(--border)] bg-[var(--card)] text-[10px] tracking-[0.12em] text-[var(--foreground)]"
             >
               Próximo →
             </Button>
@@ -198,7 +198,7 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
       <Dialog open={editingContent} onOpenChange={setEditingContent}>
         <DialogContent className="max-w-[540px] border-t-2 border-t-[var(--border)] p-6">
           <DialogHeader>
-            <DialogTitle className="font-heading text-[9px] tracking-[0.18em] text-[var(--parchment-light)] uppercase">
+            <DialogTitle className="font-heading text-[9px] tracking-[0.18em] text-[var(--foreground)] uppercase">
               Editar Conteúdo — {item.name}
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -211,8 +211,8 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
             onChange={e => setDraft(e.target.value)}
             placeholder={'# Título\n\nEscreva aqui em **Markdown**...\n\nPalavras *em itálico*, **negrito**, listas, etc.'}
             className={cn(
-              'font-mono h-[360px] resize-y bg-[var(--ink-deep)] text-[11px] leading-normal',
-              'border-[var(--border)] text-[var(--parchment-light)]',
+              'font-mono h-[360px] resize-y bg-[var(--background)] text-[11px] leading-normal',
+              'border-[var(--border)] text-[var(--foreground)]',
             )}
           />
 

@@ -132,7 +132,7 @@ export function CampaignRosterClient({
                   Elenco da Campanha
                 </h1>
                 {isGm && (
-                  <span className="rounded-[1px] border border-[var(--destructive)] bg-[var(--destructive)] px-2 py-[3px] text-[8px] tracking-[0.14em] text-white uppercase">
+                  <span className="rounded-[1px] border-primary bg-primary text-primary-foreground border px-2 py-[3px] text-[8px] tracking-[0.14em] uppercase">
                     Vista do Mestre
                   </span>
                 )}
@@ -154,7 +154,7 @@ export function CampaignRosterClient({
               )}
               <Button
                 onClick={() => router.push('/character-creator')}
-                className="font-heading h-11 min-h-11 rounded-[1px] border border-[var(--border)] bg-[var(--destructive)] px-4 text-[16px] tracking-normal text-white normal-case transition-colors hover:bg-[color-mix(in_oklch,var(--destructive),black_14%)] lg:min-w-[257px]"
+                className="font-heading h-11 min-h-11 rounded-[1px] border-primary bg-primary text-primary-foreground hover:bg-primary/80 border px-4 text-[16px] tracking-normal normal-case transition-colors lg:min-w-[257px]"
               >
                 + Criar personagem
               </Button>

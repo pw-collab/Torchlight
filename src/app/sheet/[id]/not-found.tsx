@@ -10,7 +10,7 @@ export default function SheetNotFound() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 32,
-        background: 'var(--ink-black)',
+        background: 'var(--background)',
       }}
     >
       <p
@@ -18,7 +18,7 @@ export default function SheetNotFound() {
           fontFamily: 'var(--font-body)',
           fontStyle: 'italic',
           fontSize: 14,
-          color: 'var(--blood-bright)',
+          color: 'var(--destructive)',
           marginBottom: 20,
         }}
       >
@@ -31,7 +31,7 @@ export default function SheetNotFound() {
           fontSize: 10,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: 'var(--parchment-light)',
+          color: 'var(--foreground)',
         }}
       >
         ← Voltar aos arquivos

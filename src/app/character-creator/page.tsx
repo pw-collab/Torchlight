@@ -290,7 +290,7 @@ export default function CharacterCreatorPage() {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center bg-[var(--ink-black)] px-5"
+      className="flex min-h-screen flex-col items-center bg-[var(--background)] px-5"
       style={{ paddingBottom: 'calc(84px + var(--safe-bottom))' }}
     >
       {/* ── Header: exit link, identity line and the chapter strip ────────── */}
@@ -299,7 +299,7 @@ export default function CharacterCreatorPage() {
           <div className="flex items-center justify-between gap-3">
             <Link
               href="/home"
-              className="font-heading flex min-h-11 items-center py-2 text-[11px] tracking-[0.12em] text-[var(--bone-muted)] uppercase transition-colors duration-200 hover:text-[var(--parchment-light)]"
+              className="font-heading flex min-h-11 items-center py-2 text-[11px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase transition-colors duration-200 hover:text-[var(--foreground)]"
             >
               ← Sair
             </Link>
@@ -331,11 +331,11 @@ export default function CharacterCreatorPage() {
                     'transition-colors duration-150 outline-none',
                     'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                     isActive
-                      ? 'bg-destructive text-background border-[var(--bone-dim)]'
-                      : 'bg-secondary border-[var(--border)] text-[var(--muted-foreground)]',
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
+                      : 'bg-input border-input text-muted-foreground',
                     locked
                       ? 'cursor-not-allowed opacity-40'
-                      : 'cursor-pointer hover:border-[var(--bone-dim)] hover:text-[var(--bone-dim)]',
+                      : 'cursor-pointer hover:border-sidebar-ring hover:text-foreground',
                   )}
                 >
                   {s.label}
@@ -348,13 +348,13 @@ export default function CharacterCreatorPage() {
 
       {/* ── Chapter heading ───────────────────────────────────────────────── */}
       <div key={current.id} className="animate-mist-rise mt-6 mb-5 w-full max-w-[760px] text-center">
-        <div className="font-heading mb-2 text-[9px] tracking-[0.26em] text-[var(--candle-amber)] uppercase opacity-60">
+        <div className="font-heading mb-2 text-[9px] tracking-[0.26em] text-[var(--muted-foreground)] uppercase opacity-60">
           ✦ {current.chapter} ✦
         </div>
-        <h2 className="font-heading mb-2.5 text-[30px] leading-none font-bold tracking-[0.04em] text-[var(--parchment-pale)]">
+        <h2 className="font-heading mb-2.5 text-[30px] leading-none font-bold tracking-[0.04em] text-[var(--foreground)]">
           {current.title}
         </h2>
-        <p className="font-sans text-[12px] tracking-[0.02em] text-[var(--bone-muted)] italic">
+        <p className="font-sans text-[12px] tracking-[0.02em] text-[var(--muted-foreground)] italic">
           {current.flavor}
         </p>
       </div>
@@ -466,7 +466,7 @@ export default function CharacterCreatorPage() {
           className={cn(
             'h-auto flex-1 border-[var(--border)] bg-transparent px-4 py-3.5',
             'text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] transition-all duration-200',
-            'hover:border-[var(--border)] hover:text-[var(--parchment-light)]',
+            'hover:border-[var(--border)] hover:text-[var(--foreground)]',
             tabIdx === 0 && 'cursor-default opacity-40',
           )}
         >
@@ -481,8 +481,8 @@ export default function CharacterCreatorPage() {
             className={cn(
               'h-auto flex-[2] px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
               canAdvance
-                ? 'border-[var(--primary)] bg-[var(--border)] text-[var(--parchment-light)] shadow-[0_0_10px_color-mix(in_oklch,var(--primary),transparent_75%)]'
-                : 'cursor-not-allowed border-[var(--border)] bg-[var(--border)]/15 text-[var(--muted-foreground)]',
+                ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)] shadow-[0_0_10px_color-mix(in_oklch,var(--primary),transparent_75%)]'
+                : 'cursor-not-allowed border-[var(--border)] bg-[var(--muted)] text-[var(--muted-foreground)]',
             )}
           >
             Próximo →
@@ -509,13 +509,13 @@ export default function CharacterCreatorPage() {
         <span
           className={cn(
             'font-heading max-w-[140px] shrink-0 truncate text-[13px] transition-colors duration-300',
-            name ? 'text-[var(--parchment-light)]' : 'text-[var(--muted-foreground)]',
+            name ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
           )}
         >
           {name || 'Sem nome'}
         </span>
         <span className="shrink-0 text-[10px] text-[var(--muted-foreground)]">·</span>
-        <span className="font-sans min-w-0 flex-1 truncate text-[10px] text-[var(--bone-muted)] italic">
+        <span className="font-sans min-w-0 flex-1 truncate text-[10px] text-[var(--muted-foreground)] italic">
           {ancestry?.name ?? 'sem ancestralidade'} · {cls?.name ?? 'sem classe'}
           {archetype && ` · ${archetype.name}`}
           {hpMax > 0 && ` · ${hpMax} HP`}

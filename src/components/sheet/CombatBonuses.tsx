@@ -21,7 +21,7 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
   ]
 
   return (
-    <Card className="worn-border bg-[var(--parchment-mid)] py-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)]">
+    <Card className="worn-border bg-[var(--card)] py-3 shadow-[0_4px_14px_rgba(0,0,0,0.6)]">
       <CardHeader className="border-b border-[var(--border)] px-3.5 pb-[7px]">
         <OrnateTitle>Bônus de Combate</OrnateTitle>
       </CardHeader>
@@ -46,10 +46,10 @@ export function CombatBonuses({ meleeBonus, rangedBonus, spellcastingBonus, onUp
               className={cn(
                 'font-heading h-auto cursor-text border-none bg-transparent p-0 text-center text-[22px] font-bold',
                 value > 0
-                  ? 'text-[var(--verdigris-light)]'
+                  ? 'text-[var(--chart-2)]'
                   : value < 0
-                    ? 'text-[var(--blood-bright)]'
-                    : 'text-[var(--bone-white)]',
+                    ? 'text-[var(--destructive)]'
+                    : 'text-[var(--foreground)]',
               )}
             />
           </div>

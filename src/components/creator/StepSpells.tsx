@@ -78,13 +78,13 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
               className={cn(
                 'h-auto rounded-sm px-2.5 py-1.5 text-[9px] tracking-[0.12em] transition-colors duration-150',
                 tradition === t
-                  ? 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--parchment-light)]'
+                  ? 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--foreground)]'
                   : 'text-muted-foreground border-[var(--border)] bg-[var(--card)]',
               )}
             >
               {TRADITION_LABEL[t]}
               {t === classTradition && (
-                <span className="ml-1 text-[7px] text-[var(--gold-oxidized)]">classe</span>
+                <span className="ml-1 text-[7px] text-[var(--muted-foreground)]">classe</span>
               )}
             </Button>
           ))}
@@ -93,7 +93,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
         <span
           className={cn(
             'font-mono text-[10px]',
-            atLimit ? 'text-[var(--verdigris-light)]' : 'text-[var(--parchment-light)]',
+            atLimit ? 'text-[var(--chart-2)]' : 'text-[var(--foreground)]',
           )}
         >
           {selectedSpells.length}/{known || '—'} magias
@@ -112,7 +112,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
                 render={
                   <button type="button" onClick={() => toggle(id)} aria-label={`Remover ${spell?.name ?? id}`} />
                 }
-                className="cursor-pointer rounded-[10px] border-[var(--chart-2)] bg-[var(--muted)] px-2.5 py-[3px] text-[11px] text-[var(--parchment-light)]"
+                className="cursor-pointer rounded-[10px] border-[var(--chart-2)] bg-[var(--muted)] px-2.5 py-[3px] text-[11px] text-[var(--foreground)]"
               >
                 {spell?.name ?? id} ×
               </Badge>
@@ -122,7 +122,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
       )}
 
       {atLimit && (
-        <p className="text-[10px] text-[var(--verdigris-light)] italic">
+        <p className="text-[10px] text-[var(--chart-2)] italic">
           Você já conhece todas as magias permitidas no {level}º nível. Remova uma para trocar.
         </p>
       )}
@@ -188,4 +188,4 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
 }
 
 const SPELL_CHIP_CLASS =
-  'font-mono rounded-[1px] border-[var(--border)] bg-black/25 px-1.5 py-0.5 text-[7px] tracking-[0.06em] text-muted-foreground'
+  'font-mono rounded-[1px] border-[var(--border)] bg-[var(--input)] px-1.5 py-0.5 text-[7px] tracking-[0.06em] text-muted-foreground'

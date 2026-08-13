@@ -53,7 +53,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       'font-mono h-auto shrink-0 rounded-sm border px-2.5 py-[3px] text-[9px] font-bold',
       'tracking-normal normal-case transition-all duration-[180ms]',
       active
-        ? 'border-[var(--chart-4)] bg-[var(--chart-4)]/15 text-[var(--parchment-light)]'
+        ? 'border-[var(--chart-4)] bg-[var(--chart-4)]/15 text-[var(--foreground)]'
         : 'border-[var(--chart-4)] bg-[var(--muted)] text-[var(--muted-foreground)]',
     )
 
@@ -102,7 +102,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
           value={query}
           onChange={e => setQuery(e.target.value)}
           aria-label="Buscar magia"
-          className="h-auto rounded-sm border-[var(--chart-4)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--parchment-light)]"
+          className="h-auto rounded-sm border-[var(--chart-4)] bg-[var(--card)] px-2.5 py-1.5 text-[11px] text-[var(--foreground)]"
         />
 
         {/* Tier filter pills */}
@@ -486,10 +486,10 @@ export function Spells({
                     'font-mono h-auto w-[46px] rounded-sm px-1 py-[3px] text-[13px] font-bold',
                     'border-[var(--chart-4)] bg-[var(--muted)]',
                     spellcastingBonus > 0
-                      ? 'text-[var(--verdigris-light)]'
+                      ? 'text-[var(--chart-2)]'
                       : spellcastingBonus < 0
-                        ? 'text-[var(--blood-bright)]'
-                        : 'text-[var(--bone-white)]',
+                        ? 'text-[var(--destructive)]'
+                        : 'text-[var(--foreground)]',
                   )}
                 />
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
@@ -500,7 +500,7 @@ export function Spells({
                   value={castingAttr}
                   onChange={e => onUpdate({ castingAttr: e.target.value })}
                   aria-label="Atributo de conjuração"
-                  className="font-mono cursor-pointer rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] text-[10px] font-bold text-[var(--parchment-light)]"
+                  className="font-mono cursor-pointer rounded-sm border border-[var(--chart-4)] bg-[var(--muted)] text-[10px] font-bold text-[var(--foreground)]"
                 >
                   {STAT_OPTIONS.map(o => (
                     <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>
@@ -516,7 +516,7 @@ export function Spells({
 
       {/* ── Spell grid — replicates ClassPanel's technique card design ── */}
       {equippedSpells.length === 0 ? (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--parchment-warm)' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
