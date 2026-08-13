@@ -14,16 +14,16 @@ export const thief: Class = {
   techniques: [
     {
       id: 'backstab',
-      name: 'Backstab',
+      name: 'Punhalada',
       description:
-        'Se você atingir um inimigo que está desprevenido ou que não pode ver você, adicione seu nível ao dano causado.',
+        'Se você acertar uma criatura que não está ciente do seu ataque, você causa X dados de dano adicional da sua arma. A quantidade de dados de dano adicionais é igual à metade do seu nível (arredonde para baixo).',
       // TODO: kind will be configured — likely 'passive' (always active when condition met)
     },
     {
-      id: 'burglar',
-      name: 'Burglar',
+      id: 'thievery',
+      name: 'Ladroagem',
       description:
-        'Você tem vantagem em testes de Destreza para escalar, abrir fechaduras, remover armadilhas e outros atos de ladinagem.',
+        'Você é um mestre em furtos e possui as ferramentas necessárias para o ofício escondidas em seu corpo (sem ocupar espaços). Você é treinado e tem vantagem em quaisquer testes associados à Escalada, Furtividade e ocultação, Disfarces, Encontrar e desarmar armadilhas ou Tarefas delicadas como furtar e abrir fechaduras.',
       // TODO: kind will be configured — 'passive' (always active)
     },
     null,
