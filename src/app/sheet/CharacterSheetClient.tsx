@@ -32,6 +32,7 @@ import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
 import { getAncestry } from '@/data/ancestries/index'
+import { getArchetype } from '@/data/archetypes/index'
 
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
@@ -126,6 +127,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   const cls = getClass(character.classId)
   const ancestry = getAncestry(character.ancestryId)
+  const archetype = character.archetypeId ? getArchetype(character.archetypeId) : undefined
 
   async function handleHpChange(newHp: number) {
     await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
@@ -220,6 +222,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
               <ClassPanel
                 classData={cls}
                 ancestry={ancestry}
+                archetype={archetype}
                 languages={character.languages}
                 stats={character.stats}
                 techniqueStates={character.techniqueStates}
