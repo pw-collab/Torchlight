@@ -6,18 +6,29 @@ import type { RollResult } from '@/lib/dice'
    Tune the feel here, not inside components.
    ============================================================ */
 
-/** Phase durations in ms. The roll timeline is assembled from these. */
+/**
+ * Phase durations in ms. The roll timeline is assembled from these.
+ *
+ * These are where the wait actually lives. A physics roll spends ~2.0s of
+ * simulated time settling — measured, and near-constant whether one die is
+ * thrown or twelve, and unmoved by the engine's throwSpeed/throwSpin knobs.
+ * That part is the library's to own. Everything else on the clock is ours,
+ * and it used to be 2.36s of it — more than half the roll. Trimmed hard:
+ * the anticipation beat reads at half its old length, and the settled result
+ * no longer holds the screen, because RollToasts keeps it in the corner for
+ * 15s anyway.
+ */
 export const DICE_TIME = {
   /** Pre-roll rattle in the "hand" — anticipation beat. */
-  charge: 260,
+  charge: 120,
   /** Airborne tumble with decelerating spin. */
-  tumble: 680,
+  tumble: 420,
   /** Extra slow-motion final bounce, crits/fumbles only. */
-  slowmo: 620,
+  slowmo: 360,
   /** How long the settled result lingers before the overlay fades. */
-  linger: 2100,
+  linger: 1200,
   /** Shorter linger when the roll skipped the theatrics. */
-  lingerReduced: 1700,
+  lingerReduced: 1000,
   /**
    * Physics rolls land when the table says the dice stopped, not on a clock.
    * This is only the watchdog: if a die wedges against a wall or the render
