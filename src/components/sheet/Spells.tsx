@@ -3,6 +3,8 @@
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { MagicWand01Icon } from '@hugeicons/core-free-icons'
 import { getSpell, getSpellsForClass } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
 import { rollDie, modifier } from '@/lib/dice'
@@ -349,8 +351,8 @@ function SpellCard({
         variant="secondary"
         aria-expanded={open}
         className={cn(
-          // Same 3:5 face as GlyphCard.
-          'tactile card-lift aspect-[3/5] h-auto w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
+          // Same face as GlyphCard — a spell is a card in the same deck.
+          'tactile card-lift aspect-[246/384] h-auto min-h-[224px] w-full flex-col p-1 shadow-[0_4px_7px_rgba(0,0,0,0.65)]',
           'transition-[border-color] duration-[250ms]',
           // Same as GlyphCard: the face is prose, not a button label.
           'whitespace-normal normal-case',
@@ -366,8 +368,8 @@ function SpellCard({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 6,
-          padding: '10px 9px 12px',
+          gap: 12,
+          padding: 12,
           boxSizing: 'border-box',
           overflow: 'hidden',
         }}>
@@ -383,34 +385,41 @@ function SpellCard({
             </div>
           </div>
 
-          {/* Arch — tier numeral */}
-          <div style={{ width: 56, height: 56, border: '1px solid var(--border)', borderRadius: '999px 999px 0 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, gap: 2 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--foreground)', lineHeight: 1, userSelect: 'none' }}>{tier}</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color, lineHeight: 1, letterSpacing: '0.04em' }}>
-              {isFailed ? 'FALHOU' : dc != null ? `DC ${dc}` : ''}
-            </span>
+          {/* Masthead — a spell is always something cast, so it carries the
+              filled treatment the sheet gives every activation. */}
+          <div className="bg-input [&>svg]:size-8" style={{
+            width: '100%',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: 16,
+            boxSizing: 'border-box',
+            flexShrink: 0,
+          }}>
+            <HugeiconsIcon icon={MagicWand01Icon} size={32} strokeWidth={1.5} />
+
+            {/* Title — wraps onto a second line, then clamps */}
+            <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', margin: 0 }}>
+              {name}
+            </p>
+
+            {/* School, tier and the roll it takes to land it */}
+            <div style={{ width: '100%', borderTop: '1px solid var(--border)', paddingTop: 6, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 5 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 8, color: 'var(--primary-foreground)', letterSpacing: '1px', textTransform: 'uppercase', lineHeight: '11.429px', textAlign: 'center', margin: 0 }}>
+                {school} {tier}
+              </p>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: isFailed ? 'var(--destructive)' : color, lineHeight: '11.429px', letterSpacing: '0.04em' }}>
+                {isFailed ? 'FALHOU' : dc != null ? `DC ${dc}` : ''}
+              </span>
+            </div>
           </div>
 
-          {/* Title — wraps onto a second line, then clamps */}
-          <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere', flexShrink: 0 }}>
-            {name}
-          </p>
-
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: '100%', padding: '0 12px', boxSizing: 'border-box' }}>
-            <span style={{ flex: 1, height: 1, background: color }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color, lineHeight: 1 }}>☽</span>
-            <span style={{ flex: 1, height: 1, background: color }} />
-          </div>
-
-          {/* School label */}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color, letterSpacing: '1px', textTransform: 'uppercase', textAlign: 'center', width: '100%' }}>
-            {school}
-          </p>
-
-          {/* Description — fills whatever the title left, fading at the cut */}
+          {/* Description — fills whatever the masthead left, fading at the cut */}
           <div style={{ flex: 1, minHeight: 0, width: '100%', overflow: 'hidden', paddingBottom: FACE_CLEARANCE, boxSizing: 'border-box', maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 12, letterSpacing: 'normal', color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
               {spell?.description ?? ''}
             </p>
           </div>
@@ -454,16 +463,12 @@ export function Spells({
   }
 
   return (
-    <div
-      className="worn-border"
-      style={{
-        border: '1px solid var(--chart-4)',
-        padding: 40,
-      }}
-    >
+    // Same container as the technique and talent decks: a card surface on a
+    // three-column grid, heading row first, then one spell card per column.
+    <section className="panel-grid">
       {/* ── Header ── */}
       <SectionHeading
-        className="mb-3"
+        className="panel-grid__row"
         trailing={
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {/* Learn button */}
@@ -514,33 +519,31 @@ export function Spells({
         Magias
       </SectionHeading>
 
-      {/* ── Spell grid — replicates ClassPanel's technique card design ── */}
+      {/* ── Spell deck — replicates ClassPanel's technique card design ── */}
       {equippedSpells.length === 0 ? (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
+        <p className="panel-grid__row" style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
           Nenhuma magia aprendida.{onSpellsChange ? ' Use "+ Aprender" para adicionar.' : ''}
         </p>
       ) : (
-        <div className="grid-6-cards">
-          {equippedSpells.map(id => {
-            const spell = getSpell(id) ?? available.find(s => s.id === id)
-            const isFailed = failedSpells.includes(id)
-            return (
-              <SpellCard
-                key={id}
-                id={id}
-                spell={spell}
-                isFailed={isFailed}
-                castingAttr={castingAttr}
-                spellcastingBonus={spellcastingBonus}
-                stats={stats}
-                onRoll={onRoll}
-                onForget={onSpellsChange ? () => forgetSpell(id) : undefined}
-                onFail={() => setFailedSpells(fs => [...fs, id])}
-                onRecover={() => setFailedSpells(fs => fs.filter(s => s !== id))}
-              />
-            )
-          })}
-        </div>
+        equippedSpells.map(id => {
+          const spell = getSpell(id) ?? available.find(s => s.id === id)
+          const isFailed = failedSpells.includes(id)
+          return (
+            <SpellCard
+              key={id}
+              id={id}
+              spell={spell}
+              isFailed={isFailed}
+              castingAttr={castingAttr}
+              spellcastingBonus={spellcastingBonus}
+              stats={stats}
+              onRoll={onRoll}
+              onForget={onSpellsChange ? () => forgetSpell(id) : undefined}
+              onFail={() => setFailedSpells(fs => [...fs, id])}
+              onRecover={() => setFailedSpells(fs => fs.filter(s => s !== id))}
+            />
+          )
+        })
       )}
 
       {/* Spell picker modal */}
@@ -552,6 +555,6 @@ export function Spells({
           onClose={() => setShowPicker(false)}
         />
       )}
-    </div>
+    </section>
   )
 }

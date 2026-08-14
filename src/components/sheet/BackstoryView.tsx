@@ -29,8 +29,9 @@ const FAITHS = [
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
+// The design's content container: card surface, 1px rule, 24px inset.
 const card: React.CSSProperties = {
-  padding: 42,
+  padding: 24,
 }
 
 const labelStyle: React.CSSProperties = {
@@ -242,7 +243,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
-      <section className="worn-border" style={card}>
+      <section className="card-surface" style={card}>
         <SectionHeading className="mb-3.5">Conhecimentos</SectionHeading>
 
         {/* Languages */}
@@ -338,7 +339,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
-      <section className="worn-border" style={card}>
+      <section className="card-surface" style={card}>
         <SectionHeading className="mb-3.5">Histórico</SectionHeading>
         <div className="grid-6-split">
           {([
@@ -363,7 +364,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
-      <section className="worn-border" style={card}>
+      <section className="card-surface" style={card}>
         <SectionHeading className="mb-3.5">Relações e Conexões</SectionHeading>
         <div className="grid-6-split" style={{ gap: 16 }}>
 
@@ -402,7 +403,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
       </section>
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
-      <section className="worn-border" style={card}>
+      <section className="card-surface" style={card}>
         <SectionHeading className="mb-3.5">Impulsos</SectionHeading>
         <div className="grid-6-split">
           {([

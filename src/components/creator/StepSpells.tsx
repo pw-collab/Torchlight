@@ -141,7 +141,6 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
               caption={spell.school || spell.type}
               accent={accent}
               description={spell.description}
-              dividerGlyph="☽"
               status={learned ? { text: '✓', color: accent } : null}
               open={openId === spell.id}
               onOpenChange={open => setOpenId(open ? spell.id : null)}

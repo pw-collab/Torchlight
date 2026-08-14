@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AvatarUpload } from '@/components/sheet/AvatarUpload'
+import { FortuneBar } from '@/components/sheet/FortuneBar'
 import { modifier, modifierStr, rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
@@ -258,8 +259,10 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Stats + Fortuna: stacked under the portrait on wide screens, beside
-            it once the column goes full-width (see .vitals-* in globals.css) */}
+        {/* Stats: stacked under the portrait on wide screens, beside it once
+            the column goes full-width (see .vitals-* in globals.css). Fortuna
+            is no longer part of this stack — the design gives it its own row
+            of the page grid, under the vitals (see .sheet-fortune). */}
         <div className="vitals-meta">
           {/* Stats 2×3 grid */}
           {stats && (
@@ -285,28 +288,6 @@ export function FloatingVitals({
             </div>
           )}
 
-          {/* Fortuna — the only survivor of the old control row: LV moved onto
-              the portrait and Editar onto the main block's header. */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: 'var(--card)', border: '1px solid var(--border)', padding: '4px 8px', boxSizing: 'border-box' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1, flexShrink: 0 }}>Fortuna</span>
-            <div style={{ display: 'flex', gap: 2, minWidth: 0 }}>
-              {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-                <Button
-                  key={i}
-                  variant="ghost"
-                  onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
-                  title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-                  aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-                  className={cn(
-                    'font-sans h-6 w-auto min-w-0 px-1 text-xl leading-6 transition-colors duration-300 hover:bg-transparent',
-                    i < luckTokens ? 'text-accent' : 'text-[var(--input)]',
-                  )}
-                >
-                  ✦
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* HP / XP overlay */}
@@ -409,29 +390,9 @@ export function FloatingVitals({
         </Link>
       </div>
 
-      {/* Luck bar */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
-        <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
-          {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
-            <Button
-              key={i}
-              variant="ghost"
-              onClick={() => onLuckChange(i < luckTokens ? luckTokens - 1 : luckTokens + 1)}
-              title={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-              aria-label={i < luckTokens ? 'Remover token de fortuna' : 'Adicionar token de fortuna'}
-              className={cn(
-                'font-sans h-auto min-h-[30px] w-auto px-0.5 text-[22px] leading-5 transition-colors duration-300 hover:bg-transparent',
-                i < luckTokens ? 'text-accent' : 'text-[var(--input)]',
-              )}
-            >
-              ✦
-            </Button>
-          ))}
-        </div>
-        <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 60 }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1 }}>Fortuna</span>
-        </div>
-      </div>
+      {/* Luck bar — phones keep it inside the vitals block, since there is no
+          second column to give it a row of its own. */}
+      <FortuneBar luckTokens={luckTokens} onLuckChange={onLuckChange} />
 
       {/* HP / XP overlay */}
       {hpOverlay}

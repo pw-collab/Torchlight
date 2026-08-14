@@ -14,12 +14,14 @@ import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
+import { FortuneTile } from '@/components/sheet/FortuneBar'
+import { TorchStatus } from '@/components/sheet/TorchStatus'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import { TabBar } from '@/components/sheet/TabBar'
 import { TabRail } from '@/components/sheet/TabRail'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
-import { InventoryView } from '@/components/sheet/InventoryView'
+import { InventoryView, TreasureVault } from '@/components/sheet/InventoryView'
 import { FloatingTorch } from '@/components/sheet/FloatingTorch'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
@@ -213,50 +215,55 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     />
   )
 
-  const tabContent = (
-    <>
-      {tab === 'stats' && (
-        <div className="grid-6">
-          {cls && (
-            <div className="col-span-6">
-              <ClassPanel
-                classData={cls}
-                ancestry={ancestry}
-                archetype={archetype}
-                languages={character.languages}
-                stats={character.stats}
-                techniqueStates={character.techniqueStates}
-                onStateChange={handleTechniqueStatesChange}
-                onRoll={handleRoll}
-              />
-            </div>
-          )}
-          <div className="col-span-6">
-            <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
-          </div>
-        </div>
-      )}
-
-      {tab === 'inventory' && (
+  // Every tab hands the page the same shape: the block that fills the content
+  // column's first row and, where the tab has one, the block that fills the
+  // second. The page owns placement — tab components only render blocks.
+  const tabBlocks: Record<Tab, { primary: React.ReactNode; secondary?: React.ReactNode }> = {
+    stats: {
+      primary: cls && (
+        <ClassPanel
+          classData={cls}
+          ancestry={ancestry}
+          archetype={archetype}
+          languages={character.languages}
+          stats={character.stats}
+          techniqueStates={character.techniqueStates}
+          onStateChange={handleTechniqueStatesChange}
+          onRoll={handleRoll}
+        />
+      ),
+      secondary: (
+        <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
+      ),
+    },
+    inventory: {
+      primary: (
         <InventoryView
           inventory={character.inventory}
           str={character.stats.str}
           dex={character.stats.dex}
-          gold={character.gold}
-          silver={character.silver}
-          copper={character.copper}
           onUpdate={handleInventoryUpdate}
           onAcChange={handleAcChange}
-          onCurrencyUpdate={handleCurrencyUpdate}
           onMeleeRangedUpdate={handleMeleeRangedUpdate}
           onRoll={handleRoll}
           meleeBonus={character.meleeBonus}
           rangedBonus={character.rangedBonus}
           playerName={playerName}
         />
-      )}
-
-      {tab === 'spells' && (
+      ),
+      secondary: (
+        <TreasureVault
+          gold={character.gold}
+          silver={character.silver}
+          copper={character.copper}
+          onUpdate={handleCurrencyUpdate}
+        />
+      ),
+    },
+    // The grimoire and the backstory are each a single block, so they take
+    // both content rows rather than leaving the second one hollow.
+    spells: {
+      primary: (
         <Spells
           classId={character.classId}
           equippedSpells={character.spells}
@@ -267,13 +274,14 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onUpdate={handleSpellcastingUpdate}
           onSpellsChange={handleSpellsChange}
         />
-      )}
+      ),
+    },
+    backstory: {
+      primary: <BackstoryView character={character} onUpdate={updateCharacter} />,
+    },
+  }
 
-      {tab === 'backstory' && (
-        <BackstoryView character={character} onUpdate={updateCharacter} />
-      )}
-    </>
-  )
+  const { primary, secondary } = tabBlocks[tab]
 
   return (
     <AppShell
@@ -286,42 +294,54 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'stretch',
+          gap: 16,
           paddingLeft: 16,
           paddingRight: 16,
           paddingTop: 16,
           paddingBottom: 'calc(76px + var(--safe-bottom))',
         }}>
           {vitals}
-          <div style={{ width: '100%', marginBottom: 40 }}>{tabContent}</div>
+          {primary}
+          {secondary}
         </div>
       ) : (
-        // Rail, main block and vitals share one 12-column grid: the main block
-        // fills the six centre columns, so it lands on the horizontal centre of
-        // the screen with the icon tabs against its left edge and the vitals
-        // against its right (see .sheet-* in globals.css).
+        // The whole sheet sits on one twelve-column grid, laid out as the
+        // design's auto-layout: on row 1 the heading (columns 4-9) with
+        // fortuna and the light status beside it (10 and 11); the nav rail
+        // holding column 3 down rows 2-3; the tab's content filling columns
+        // 4-9 of those same rows; the vitals in columns 10-11 of row 2
+        // (see .sheet-* in globals.css).
         <div className="sheet-grid">
+          <header className="sheet-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {character.name}
+            </h1>
+            <Link
+              href={editHref}
+              style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+            >
+              Editar
+            </Link>
+          </header>
+
+          <div className="sheet-fortune">
+            <FortuneTile luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
+          </div>
+
+          <div className="sheet-torch">
+            <TorchStatus inventory={character.inventory} onClick={() => setTab('inventory')} />
+          </div>
+
           <div className="sheet-rail">
             <TabRail tabs={railItems} active={tab} onChange={setTab} />
           </div>
 
-          <div className="sheet-main">
-            {/* Character name left, Editar right */}
-            <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 20, marginBottom: 20 }}>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {character.name}
-              </h1>
-              <Link
-                href={editHref}
-                style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-              >
-                Editar
-              </Link>
-            </header>
-
-            {tabContent}
+          <div className={secondary ? 'sheet-primary' : 'sheet-primary sheet-primary--full'}>
+            {primary}
           </div>
+          {secondary && <div className="sheet-secondary">{secondary}</div>}
 
           <aside className="sheet-vitals">
             {vitals}
@@ -337,7 +357,9 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         <DiceRoller onRoll={handleRoll} floating />
       )}
 
-      <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />
+      {/* Phones have no column to reserve for the light, so they keep the
+          floating badge; the desktop grid carries TorchStatus instead. */}
+      {isMobile && <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />}
       <DiceOverlay
         phase={rollPhase}
         roll={activeRoll}

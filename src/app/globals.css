@@ -365,14 +365,21 @@ html, body {
 }
 
 /* ============================================================
-   Character sheet — icon rail · main block · vitals column
+   Character sheet — the design's twelve-column page grid
 
-   Wide screens follow the design grid: the main block fills the six
-   centre columns (4–9) so it sits on the horizontal centre of the
-   screen, the square icon tabs hug its left edge from column 3, and
-   the vitals take columns 10–11. Below 1280px the empty outer columns
-   are handed back to the content, so the vitals column never gets
-   narrower than the portrait needs; below 1000px the grid collapses to
+   One grid carries the whole sheet, placed exactly as the Figma
+   auto-layout: twelve flexible columns (no fixed track widths),
+   24px gutters, capped at 1760px and padded 16/48/56/48. Three rows:
+
+     row 1   heading (4–9) · fortuna (10) · light status (11)
+     row 2   nav rail (col 3, spanning rows 2–3) ·
+             content (4–9) · vitals (10–11)
+     row 3   content (4–9)
+
+   Nothing here is sticky: the page scrolls as one sheet, the way the
+   design lays it out. Below 1280px the empty outer columns are handed
+   back to the content so the vitals column never gets narrower than
+   the portrait needs; below 1000px the grid collapses to
    "rail + stacked content".
    ============================================================ */
 .sheet-grid {
@@ -382,6 +389,7 @@ html, body {
      in step if the cap, gutter, or padding steps change. */
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(3, auto);
   gap: 24px;
   align-items: start;
   max-width: 1760px;
@@ -389,49 +397,60 @@ html, body {
   /* AppShell already offsets the fixed header; this is the gap below it. */
   padding: 16px 48px 56px;
 }
-/* Sticky offsets are measured from the scroll container's content box, which
-   AppShell has already pushed below the fixed header — so these match the
-   grid's own top padding and land the columns level with the main block. */
+
+/* grid-area: row-start / column-start / row-end / column-end */
+.sheet-header    { grid-area: 1 / 4 / 2 / 10; min-width: 0; }
+.sheet-primary   { grid-area: 2 / 4 / 3 / 10; min-width: 0; }
+.sheet-secondary { grid-area: 3 / 4 / 4 / 10; min-width: 0; }
+.sheet-vitals    { grid-area: 2 / 10 / 3 / 12; min-width: 0; }
+/* Fortuna and the light status ride the heading's row, one column each, so
+   both counters stay in view no matter how far the sheet is scrolled to. */
+.sheet-fortune   { grid-area: 1 / 10 / 2 / 11; min-width: 0; align-self: end; }
+.sheet-torch     { grid-area: 1 / 11 / 2 / 12; min-width: 0; align-self: end; }
+
+/* Tabs that carry a single block of content let it take both content rows
+   rather than leaving the second one hollow. */
+.sheet-primary--full { grid-row: 2 / 4; }
+
+/* The rail owns its column across both content rows: one vertical rule down
+   the full height, with the tab squares parked at its top centre. */
 .sheet-rail {
-  grid-column: 3 / span 1;
+  grid-area: 2 / 3 / 4 / 4;
+  align-self: stretch;
   display: flex;
-  justify-content: flex-end;
-  position: sticky;
-  top: 16px;
-}
-.sheet-main {
-  grid-column: 4 / span 6;
-  min-width: 0;
-}
-.sheet-vitals {
-  grid-column: 10 / span 2;
-  min-width: 0;
-  position: sticky;
-  top: 16px;
-  max-height: calc(100dvh - 112px - var(--safe-top));
-  overflow-y: auto;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+  border-right: 1px solid var(--sidebar-border);
 }
 
 @media (max-width: 1280px) {
-  .sheet-rail   { grid-column: 1 / span 1; }
-  .sheet-main   { grid-column: 2 / span 8; }
-  .sheet-vitals { grid-column: 10 / span 3; }
+  .sheet-rail      { grid-column: 1 / span 1; }
+  .sheet-header,
+  .sheet-primary,
+  .sheet-secondary { grid-column: 2 / span 8; }
+  .sheet-vitals    { grid-column: 10 / span 3; }
+  .sheet-fortune   { grid-column: 10 / span 1; }
+  .sheet-torch     { grid-column: 11 / span 2; }
 }
 
 @media (max-width: 1000px) {
   .sheet-grid {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: repeat(5, auto);
     padding: 8px 24px 40px;
   }
-  .sheet-rail   { grid-column: 1; grid-row: 1 / span 2; justify-content: flex-start; top: 8px; }
-  .sheet-vitals {
-    grid-column: 2;
-    grid-row: 1;
-    position: static;
-    max-height: none;
-    overflow: visible;
-  }
-  .sheet-main { grid-column: 2; grid-row: 2; }
+  /* Rows are explicit here so `-1` reaches the bottom of the stack. The
+     heading gives up its row to fortuna and the light status, which keep the
+     pairing they have on the wide grid. */
+  .sheet-rail      { grid-area: 1 / 1 / -1 / 2; padding: 0 16px 0 0; }
+  .sheet-header    { grid-area: 1 / 2 / 2 / 4; }
+  .sheet-fortune   { grid-area: 2 / 2 / 3 / 3; align-self: start; }
+  .sheet-torch     { grid-area: 2 / 3 / 3 / 4; align-self: start; }
+  .sheet-vitals    { grid-area: 3 / 2 / 4 / 4; }
+  .sheet-primary   { grid-area: 4 / 2 / 5 / 4; }
+  .sheet-secondary { grid-area: 5 / 2 / 6 / 4; }
+  .sheet-primary--full { grid-row: 4 / 6; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
@@ -439,6 +458,35 @@ html, body {
    before that decision lands. */
 @media (max-width: 640px) {
   .sheet-grid { padding: 8px 16px 40px; }
+}
+
+/* ============================================================
+   Sheet panel — the design's content container
+
+   A card surface holding a three-column grid: full-width section rows
+   (the tag strip, the headings) first, then one card per column with
+   the rows growing as the deck does. Techniques, talents and the
+   grimoire all sit on this same box.
+   ============================================================ */
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-content: start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 24px;
+}
+/* Section rows — tag strips, headings, forms — take the panel's full width. */
+.panel-grid__row { grid-column: 1 / -1; }
+
+/* The design's cards bottom out at ~143px wide, so the deck drops a column
+   before the panel gets narrower than that. */
+@media (max-width: 767px) {
+  .panel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px; }
+}
+@media (max-width: 420px) {
+  .panel-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Vitals column internals: portrait over stats while it owns a narrow track,
@@ -462,6 +510,8 @@ html, body {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  /* The design insets the stat grid by 4px inside the vitals column. */
+  padding: 4px;
 }
 .vitals-stats {
   display: grid;
@@ -470,10 +520,13 @@ html, body {
 }
 
 @media (max-width: 1000px) {
-  .vitals-stack { flex-direction: row; align-items: stretch; }
+  /* Portrait beside the stats rather than above them. The tiles keep their
+     own height instead of stretching to the portrait's — with fortuna moved
+     out to its own row, nothing else is left to share that space. */
+  .vitals-stack { flex-direction: row; align-items: flex-start; }
   .vitals-portrait { width: 240px; max-width: 45%; }
   .vitals-meta { flex: 1 1 auto; }
-  .vitals-stats { flex: 1 1 auto; }
+  .vitals-stats { flex: 0 0 auto; }
 }
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */

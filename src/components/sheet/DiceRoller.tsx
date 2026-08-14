@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { rollDie, rollPool } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieIcon } from '@/components/dice/DieIcon'
-import { DICE_SPRING } from '@/lib/diceMotion'
+import { DICE_SPRING, DICE_TAP } from '@/lib/diceMotion'
 import { MAX_DICE } from '@/lib/diceEngine'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,14 +27,6 @@ interface Props {
   onRoll?: (result: RollResult) => void
   /** Anchors the button to the bottom-right of the viewport (desktop layout). */
   floating?: boolean
-}
-
-// Shared micro-interaction for every dice button: lift on hover,
-// squash on press — spring-driven so release snaps back with life.
-const diceTap = {
-  whileHover: { scale: 1.05, y: -2 },
-  whileTap: { scale: 0.9, y: 1 },
-  transition: DICE_SPRING.tap,
 }
 
 // Shared label treatment for the popover's form rows.
@@ -191,7 +183,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                   onClick={() => addDie(d)}
                   onContextMenu={e => { e.preventDefault(); removeDie(d) }}
                   disabled={full}
-                  render={<motion.button {...diceTap} />}
+                  render={<motion.button {...DICE_TAP} />}
                   title={`Adicionar d${d}${count ? ` (${count} no punhado)` : ''}`}
                   aria-label={`Adicionar d${d} ao punhado`}
                   variant="hollow"
@@ -245,7 +237,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               type="button"
               onClick={rollHandful}
               disabled={pool.length === 0}
-              render={<motion.button {...diceTap} />}
+              render={<motion.button {...DICE_TAP} />}
               variant="hollow"
               className={cn(
                 'font-heading bg-primary text-primary-foreground h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
@@ -258,7 +250,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
               type="button"
               onClick={() => setPool([])}
               disabled={pool.length === 0}
-              render={<motion.button {...diceTap} />}
+              render={<motion.button {...DICE_TAP} />}
               variant="outline"
               className={cn(
                 'font-heading bg-input border-input h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
@@ -312,7 +304,7 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                 key={mode}
                 type="button"
                 onClick={() => rollD20(mode)}
-                render={<motion.button {...diceTap} />}
+                render={<motion.button {...DICE_TAP} />}
                 variant="outline"
                 style={{ color }}
                 className={cn(
