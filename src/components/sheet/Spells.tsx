@@ -92,7 +92,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       >
         {/* Header */}
         <div>
-          <p color="var(--chart-1)" fontSize={10}>Aprender Magia</p>
+          <p style={{ color: 'var(--chart-1)', fontSize: 10 }}>Aprender Magia</p>
         </div>
 
         {/* Search */}
