@@ -22,12 +22,12 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 const TIER_LABEL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
 
 const STAT_OPTIONS = [
-  { value: 'str', label: 'FOR — Força' },
-  { value: 'dex', label: 'DES — Destreza' },
-  { value: 'con', label: 'CON — Constituição' },
-  { value: 'int', label: 'INT — Inteligência' },
-  { value: 'wis', label: 'SAB — Sabedoria' },
-  { value: 'cha', label: 'CAR — Carisma' },
+  { value: 'str', label: 'Força' },
+  { value: 'dex', label: 'Destreza' },
+  { value: 'con', label: 'Constituição' },
+  { value: 'int', label: 'Inteligência' },
+  { value: 'wis', label: 'Sabedoria' },
+  { value: 'cha', label: 'Carisma' },
 ]
 
 // ─── Spell Picker Modal ───────────────────────────────────────────────────────
@@ -79,8 +79,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         className="worn-border"
         style={{
           background: 'linear-gradient(148deg, var(--muted) 0%, var(--card) 100%), var(--card)',
-          border: '1px solid var(--chart-4)',
-          borderTop: '2px solid var(--chart-4)',
+          border: '1px solid var(--border)',
+          borderTop: '2px solid var(--border)',
           boxShadow: '0 8px 40px rgba(0,0,0,0.85)',
           padding: '18px 20px',
           width: '100%',
@@ -93,7 +93,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       >
         {/* Header */}
         <div>
-          <OrnateTitle color="var(--chart-1)" fontSize={10}>☽ Aprender Magia</OrnateTitle>
+          <SectionHeading color="var(--chart-1)" fontSize={10}>☽ Aprender Magia</SectionHeading>
         </div>
 
         {/* Search */}
