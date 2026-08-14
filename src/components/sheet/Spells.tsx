@@ -52,7 +52,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
 
   const tierPill = (active: boolean) =>
     cn(
-      'font-mono h-auto shrink-0 rounded-sm border px-2.5 py-[3px] text-[9px] font-bold',
+      'font-mono h-auto shrink-0 rounded-sm border px-4 py-[4px] text-[11px] font-bold',
       'tracking-normal normal-case transition-all duration-[180ms]',
       active
         ? 'border-[var(--chart-4)] bg-[var(--chart-4)]/15 text-[var(--foreground)]'
@@ -78,11 +78,11 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         onClick={e => e.stopPropagation()}
         className="worn-border"
         style={{
-          background: 'linear-gradient(148deg, var(--muted) 0%, var(--card) 100%), var(--card)',
+          background: 'var(--card)',
           border: '1px solid var(--border)',
           borderTop: '2px solid var(--border)',
           boxShadow: '0 8px 40px rgba(0,0,0,0.85)',
-          padding: '18px 20px',
+          padding: '16px 16px',
           width: '100%',
           maxWidth: 480,
           display: 'flex',
@@ -93,7 +93,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       >
         {/* Header */}
         <div>
-          <SectionHeading color="var(--chart-1)" fontSize={10}>☽ Aprender Magia</SectionHeading>
+          <h3 color="var(--chart-1)" fontSize={10}>Aprender Magia</h3>
         </div>
 
         {/* Search */}
