@@ -1,6 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
+import {
+  AlertDiamondIcon,
+  ChurchIcon,
+  Flag02Icon,
+  GhostIcon,
+  HandshakeIcon,
+  HeartCrackIcon,
+  Home01Icon,
+  LockKeyIcon,
+  MapPinHouseIcon,
+  MaskTheater01Icon,
+  Mortarboard02Icon,
+  QuillWrite02Icon,
+  Sword03Icon,
+  Target01Icon,
+  TranslateIcon,
+  UserGroupIcon,
+} from '@hugeicons/core-free-icons'
 import type { Character, CharacterRow, KnowledgeArea } from '@/types/character.types'
 import { DOMAINS } from '@/data/domains/index'
 import { getAncestry } from '@/data/ancestries/index'
@@ -29,54 +48,117 @@ const FAITHS = [
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
-// The design's content container: card surface, 1px rule, 24px inset.
-const card: React.CSSProperties = {
-  padding: 24,
-}
+/** The design's content container: card surface, 1px rule, 24px inset. */
+const card: React.CSSProperties = { padding: 24 }
 
-const labelStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
-  fontSize: 7,
-  letterSpacing: '0.14em',
-  textTransform: 'uppercase',
-  color: 'var(--muted-foreground)',
-  marginBottom: 4,
-}
-
+/**
+ * Controls sit on --background, one step darker than the --input wells that
+ * group them, so a field never dissolves into the block holding it.
+ */
 const INPUT_CLASS =
-  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-2 py-[5px] text-[11px] text-[var(--foreground)]'
-
-const TEXTAREA_CLASS = `${INPUT_CLASS} resize-y leading-normal`
+  'h-auto w-full rounded-[1px] border-[var(--border)] bg-[var(--background)] px-2.5 py-1.5 text-[13px] text-[var(--foreground)]'
 
 const SELECT_CLASS = `${INPUT_CLASS} cursor-pointer`
 
-const chip: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 4,
-  background: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: 2,
-  padding: '3px 7px 3px 9px',
-  fontFamily: 'var(--font-body)',
-  fontSize: 10.5,
-  color: 'var(--foreground)',
+// ─── Shared visual pieces ─────────────────────────────────────────────────────
+
+/**
+ * A grouped well: ruled header carrying an icon, the group's name and its
+ * tally, over whatever the group holds. Every block on this tab is one of
+ * these, so scanning the page is scanning a list of headers.
+ */
+function SubPanel({
+  icon, title, accent = 'var(--muted-foreground)', count, hint, children, className,
+}: {
+  icon: IconSvgElement
+  title: string
+  /** Colours the icon, the tally and the header rule. */
+  accent?: string
+  /** Tally shown at the right of the header — omitted when there is none. */
+  count?: number
+  /**
+   * One line under the header telling the player what belongs here. Callers
+   * pass it only while the block is empty: it is scaffolding for filling the
+   * sheet in, and once there is something to read it would only crowd it.
+   */
+  hint?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('bg-input border-border flex flex-col border', className)}>
+      <header
+        className="flex items-center gap-2 border-b px-3 py-2"
+        style={{ borderColor: 'color-mix(in oklch, var(--border), transparent 30%)' }}
+      >
+        <HugeiconsIcon icon={icon} size={16} strokeWidth={1.5} style={{ color: accent, flexShrink: 0 }} />
+        <h3 className="font-heading text-foreground min-w-0 flex-1 truncate text-[11px] font-semibold tracking-[0.14em] uppercase">
+          {title}
+        </h3>
+        {count !== undefined && (
+          <span className="font-[var(--font-mono)] text-[11px] leading-none font-bold" style={{ color: count > 0 ? accent : 'var(--muted-foreground)' }}>
+            {count}
+          </span>
+        )}
+      </header>
+
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        {hint && (
+          <p className="text-muted-foreground text-[10.5px] leading-snug italic">{hint}</p>
+        )}
+        {children}
+      </div>
+    </section>
+  )
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+/**
+ * Textarea that grows to fit what is written in it. The sheet is read at the
+ * table far more often than it is filled in, and a fixed window turns a
+ * backstory into three visible lines with a scrollbar.
+ */
+function AutoTextarea({
+  value, onChange, onBlur, placeholder, ariaLabel, minRows = 3,
+}: {
+  value: string
+  onChange: (v: string) => void
+  onBlur: (v: string) => void
+  placeholder?: string
+  ariaLabel: string
+  minRows?: number
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null)
 
-function Label({ children }: { children: React.ReactNode }) {
-  return <div style={labelStyle}>{children}</div>
+  // Re-measured on every change, and once on mount for whatever was saved.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [value])
+
+  return (
+    <Textarea
+      ref={ref}
+      rows={minRows}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      onBlur={e => onBlur(e.target.value)}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      className={cn(INPUT_CLASS, 'resize-none overflow-hidden leading-[1.6]')}
+    />
+  )
 }
 
-function RemoveBtn({ onClick }: { onClick: () => void }) {
+function RemoveBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <Button
       variant="ghost"
       size="icon-xs"
       onClick={onClick}
-      aria-label="Remover"
-      className="h-auto w-auto shrink-0 px-px text-[10px] leading-none text-[var(--destructive)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--destructive)]"
+      aria-label={label}
+      className="h-auto w-auto shrink-0 px-1 text-[11px] leading-none text-[var(--muted-foreground)] transition-colors duration-[160ms] hover:bg-transparent hover:text-[var(--destructive)]"
     >
       ✕
     </Button>
@@ -90,7 +172,7 @@ function AddRow({
 }) {
   const active = value.trim().length > 0
   return (
-    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+    <div className="mt-auto flex gap-1.5 pt-1">
       <Input
         type="text"
         value={value}
@@ -99,36 +181,49 @@ function AddRow({
         placeholder={placeholder}
         aria-label={placeholder}
         maxLength={80}
-        className={cn(INPUT_CLASS, 'flex-1')}
+        className={cn(INPUT_CLASS, 'min-w-0 flex-1')}
       />
       <Button
         variant="outline"
         onClick={onAdd}
         disabled={!active}
+        aria-label={placeholder ? `Adicionar: ${placeholder}` : 'Adicionar'}
         className={cn(
-          'h-auto rounded-[1px] px-2.5 text-[7.5px] tracking-[0.1em] transition-all duration-200',
-          active
-            ? 'text-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15'
-            : 'text-muted-foreground border-[var(--chart-2)] bg-[var(--chart-2)]/15',
+          'border-border bg-card text-muted-foreground h-auto shrink-0 rounded-[1px] px-2.5 text-[13px] leading-none',
+          'hover:border-primary hover:text-foreground transition-colors duration-200 disabled:opacity-35',
         )}
       >
-        ✦ Adicionar
+        +
       </Button>
     </div>
   )
 }
 
-function ChipList({ items, onRemove }: { items: string[]; onRemove: (item: string) => void }) {
-  if (!items.length) return null
+/** A named person on a roster — one per line, so long names stay readable. */
+function EntryList({
+  items, onRemove, emptyLabel, accent,
+}: {
+  items: string[]
+  onRemove: (item: string) => void
+  emptyLabel: string
+  accent: string
+}) {
+  if (!items.length) {
+    return <p className="text-muted-foreground py-1 text-[11px] leading-snug italic">{emptyLabel}</p>
+  }
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 4 }}>
-      {items.map(item => (
-        <span key={item} style={chip}>
-          {item}
-          <RemoveBtn onClick={() => onRemove(item)} />
-        </span>
+    <ul className="flex flex-col">
+      {items.map((item, i) => (
+        <li
+          key={item}
+          className={cn('flex items-center gap-1.5 py-1.5', i > 0 && 'border-border border-t')}
+        >
+          <span aria-hidden className="shrink-0 text-[8px] leading-none" style={{ color: accent }}>✦</span>
+          <span className="text-foreground min-w-0 flex-1 text-[12.5px] leading-snug break-words">{item}</span>
+          <RemoveBtn onClick={() => onRemove(item)} label={`Remover ${item}`} />
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -149,6 +244,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
   const anyDomain = ancestryData?.domainOptions?.includes('*') ?? false
   const ancestryDomainId = anyDomain ? undefined : ancestryData?.domainOptions?.[0]
   const langPool = ancestryDomainId ? (getDomain(ancestryDomainId)?.languages ?? []) : []
+  const langSuggestions = langPool.filter(l => !langs.includes(l))
 
   function saveLangs(next: string[]) {
     setLangs(next)
@@ -238,81 +334,31 @@ export function BackstoryView({ character, onUpdate }: Props) {
     onUpdate({ impulses: { secrets, flaws, fears, objectives, [field]: value } })
   }
 
+  // Each impulse is a different kind of pressure, so each carries its own
+  // symbol and accent — four identical boxes told the player nothing.
+  const impulses = [
+    { field: 'secrets'    as const, title: 'Segredos',  icon: LockKeyIcon,      accent: 'var(--chart-1)',          value: secrets,    set: setSecrets,    hint: 'O que ninguém pode descobrir.',            example: 'Ex.: o nome que ele deixou para trás.' },
+    { field: 'flaws'      as const, title: 'Falhas',    icon: AlertDiamondIcon, accent: 'var(--muted-foreground)', value: flaws,      set: setFlaws,      hint: 'O que sempre mete o personagem em apuros.', example: 'Ex.: nunca recusa uma aposta.' },
+    { field: 'fears'      as const, title: 'Medos',     icon: GhostIcon,        accent: 'var(--destructive)',      value: fears,      set: setFears,      hint: 'Diante do que ele recua.',                 example: 'Ex.: água parada.' },
+    { field: 'objectives' as const, title: 'Objetivos', icon: Target01Icon,     accent: 'var(--chart-2)',          value: objectives, set: setObjectives, hint: 'O que ele quer o bastante para arriscar.',  example: 'Ex.: comprar de volta o nome da família.' },
+  ]
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="card-surface" style={card}>
-        <SectionHeading className="mb-3.5">Conhecimentos</SectionHeading>
+        <SectionHeading className="mb-4">Conhecimentos</SectionHeading>
 
-        {/* Languages */}
-        <div style={{ marginBottom: 18 }}>
-          <Label>Idiomas</Label>
-          {langs.length > 0 ? (
-            <ChipList items={langs} onRemove={l => saveLangs(langs.filter(x => x !== l))} />
-          ) : (
-            <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', marginBottom: 4 }}>
-              Nenhum idioma registrado.
-            </p>
-          )}
-          {/* Domain pool chips */}
-          {langPool.filter(l => !langs.includes(l)).length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 4, marginTop: 4 }}>
-              {langPool.filter(l => !langs.includes(l)).map(l => (
-                <Button
-                  key={l}
-                  variant="outline"
-                  onClick={() => addLang(l)}
-                  className="font-sans text-muted-foreground h-auto rounded-sm border-[var(--border)] bg-[var(--card)] px-2 py-0.5 text-[10px] tracking-normal normal-case transition-all duration-[160ms] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]"
-                >
-                  + {l}
-                </Button>
-              ))}
-            </div>
-          )}
-          <AddRow value={langInput} onChange={setLangInput} onAdd={() => { addLang(langInput); setLangInput('') }} placeholder="Outro idioma…" />
-        </div>
-
-        {/* Knowledge areas */}
-        <div style={{ marginBottom: 18 }}>
-          <Label>Áreas de Conhecimento</Label>
-          {areas.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 6 }}>
-              {areas.map((area, i) => (
-                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <Input
-                    type="text"
-                    value={area.name}
-                    onChange={e => updateArea(i, { name: e.target.value })}
-                    onBlur={e => updateArea(i, { name: e.target.value }, true)}
-                    placeholder="Área de conhecimento"
-                    aria-label="Área de conhecimento"
-                    className={cn(INPUT_CLASS, 'flex-1')}
-                  />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>Bônus</span>
-                    <Input
-                      type="number"
-                      value={area.bonus}
-                      onChange={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 })}
-                      onBlur={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 }, true)}
-                      aria-label="Bônus"
-                      className={cn(INPUT_CLASS, 'w-12 text-center [-moz-appearance:textfield]')}
-                    />
-                  </div>
-                  <RemoveBtn onClick={() => saveAreas(areas.filter((_, j) => j !== i))} />
-                </div>
-              ))}
-            </div>
-          )}
-          <AddRow value={newAreaName} onChange={setNewAreaName} onAdd={addArea} placeholder="Nova área…" />
-        </div>
-
-        {/* Domain + Faith */}
-        <div className="grid-6-split">
-          <div>
-            <Label>Domínio de Origem</Label>
+        <div className="grid-6 grid-6--tight">
+          {/* The two facts that place the character in the world lead the
+              block; everything under them is a list the player grows. */}
+          <SubPanel
+            icon={MapPinHouseIcon}
+            title="Domínio de Origem"
+            className="col-span-3 col-sm-full"
+          >
             <NativeSelect
               value={originDomain}
               onChange={e => { setOriginDomain(e.target.value); onUpdate({ domain_id: e.target.value }) }}
@@ -322,9 +368,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
               <NativeSelectOption value="">— Selecionar —</NativeSelectOption>
               {DOMAINS.map(d => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
             </NativeSelect>
-          </div>
-          <div>
-            <Label>Fé / Divindade</Label>
+          </SubPanel>
+
+          <SubPanel
+            icon={ChurchIcon}
+            title="Fé / Divindade"
+            className="col-span-3 col-sm-full"
+          >
             <NativeSelect
               value={faith}
               onChange={e => { setFaith(e.target.value); onUpdate({ faith: e.target.value }) }}
@@ -334,60 +384,233 @@ export function BackstoryView({ character, onUpdate }: Props) {
               <NativeSelectOption value="">— Selecionar —</NativeSelectOption>
               {FAITHS.map(f => <NativeSelectOption key={f} value={f}>{f}</NativeSelectOption>)}
             </NativeSelect>
-          </div>
+          </SubPanel>
+
+          <SubPanel
+            icon={TranslateIcon}
+            title="Idiomas"
+            count={langs.length}
+            accent="var(--chart-1)"
+            className="col-span-3 col-sm-full"
+          >
+            {langs.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {langs.map(l => (
+                  <span
+                    key={l}
+                    className="border-border bg-card text-foreground inline-flex items-center gap-0.5 border py-0.5 pr-1 pl-2 text-[12px]"
+                  >
+                    {l}
+                    <RemoveBtn onClick={() => saveLangs(langs.filter(x => x !== l))} label={`Remover ${l}`} />
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-[11px] italic">Nenhum idioma registrado.</p>
+            )}
+
+            {/* What the ancestry's domain already offers — one tap each. */}
+            {langSuggestions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-muted-foreground text-[9px] tracking-[0.12em] uppercase">Do domínio</span>
+                {langSuggestions.map(l => (
+                  <Button
+                    key={l}
+                    variant="outline"
+                    onClick={() => addLang(l)}
+                    className={cn(
+                      'font-sans text-muted-foreground border-border bg-card h-auto px-2 py-0.5',
+                      'text-[11px] tracking-normal normal-case transition-colors duration-[160ms]',
+                      'hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)]',
+                    )}
+                  >
+                    + {l}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            <AddRow
+              value={langInput}
+              onChange={setLangInput}
+              onAdd={() => { addLang(langInput); setLangInput('') }}
+              placeholder="Outro idioma…"
+            />
+          </SubPanel>
+
+          <SubPanel
+            icon={Mortarboard02Icon}
+            title="Áreas de Conhecimento"
+            count={areas.length}
+            accent="var(--chart-1)"
+            className="col-span-3 col-sm-full"
+          >
+            {areas.length > 0 ? (
+              <div className="flex flex-col gap-1.5">
+                {areas.map((area, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <Input
+                      type="text"
+                      value={area.name}
+                      onChange={e => updateArea(i, { name: e.target.value })}
+                      onBlur={e => updateArea(i, { name: e.target.value }, true)}
+                      placeholder="Área de conhecimento"
+                      aria-label="Área de conhecimento"
+                      className={cn(INPUT_CLASS, 'min-w-0 flex-1')}
+                    />
+                    {/* The bonus is a stat, so it gets the sheet's numeral
+                        treatment rather than looking like another text box. */}
+                    <span className="border-border bg-card flex shrink-0 items-center gap-1 border px-1.5 py-1">
+                      <span className="font-heading text-muted-foreground text-[8px] tracking-[0.12em] uppercase">Bônus</span>
+                      <Input
+                        type="number"
+                        value={area.bonus}
+                        onChange={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 })}
+                        onBlur={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 }, true)}
+                        aria-label={`Bônus de ${area.name || 'área de conhecimento'}`}
+                        className="font-[var(--font-numeral)] text-foreground h-auto w-9 rounded-none border-none bg-transparent p-0 text-center text-[15px] [-moz-appearance:textfield]"
+                      />
+                    </span>
+                    <RemoveBtn onClick={() => saveAreas(areas.filter((_, j) => j !== i))} label={`Remover ${area.name || 'área'}`} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-[11px] italic">
+                Ofícios, saberes e obsessões — o que o personagem estudou de verdade.
+              </p>
+            )}
+            <AddRow value={newAreaName} onChange={setNewAreaName} onAdd={addArea} placeholder="Nova área…" />
+          </SubPanel>
         </div>
       </section>
 
       {/* ── Seção 2: Histórico ─────────────────────────────────────────── */}
       <section className="card-surface" style={card}>
-        <SectionHeading className="mb-3.5">Histórico</SectionHeading>
-        <div className="grid-6-split">
-          {([
-            ['concept',         'Conceito',           concept,    setConcept,    3],
-            ['origin',          'Origem',             bgOrigin,   setBgOrigin,   3],
-            ['backstory',       'História de Fundo',  backstory,  setBackstory,  6],
-            ['traumaticEvents', 'Eventos Traumáticos',traumatic,  setTraumatic,  6],
-          ] as [string, string, string, (v: string) => void, number][]).map(([field, label, val, setVal, rows]) => (
-            <div key={field}>
-              <Label>{label}</Label>
-              <Textarea
-                rows={rows}
-                value={val}
-                onChange={e => setVal(e.target.value)}
-                onBlur={e => saveBg(field as Parameters<typeof saveBg>[0], e.target.value)}
-                aria-label={label}
-                className={TEXTAREA_CLASS}
-              />
-            </div>
-          ))}
+        <SectionHeading className="mb-4">Histórico</SectionHeading>
+
+        <div className="grid-6 grid-6--tight">
+          {/* Two lines that name the character, then the prose that explains
+              them — the short fields never share a row with the long ones, so
+              nothing leaves a hole beside it. */}
+          <SubPanel icon={MaskTheater01Icon} title="Conceito" className="col-span-3 col-sm-full">
+            <AutoTextarea
+              value={concept}
+              onChange={setConcept}
+              onBlur={v => saveBg('concept', v)}
+              ariaLabel="Conceito"
+              placeholder="Uma frase que resume quem ele é."
+              minRows={2}
+            />
+          </SubPanel>
+
+          <SubPanel icon={Home01Icon} title="Origem" className="col-span-3 col-sm-full">
+            <AutoTextarea
+              value={bgOrigin}
+              onChange={setBgOrigin}
+              onBlur={v => saveBg('origin', v)}
+              ariaLabel="Origem"
+              placeholder="De onde ele veio."
+              minRows={2}
+            />
+          </SubPanel>
+
+          <SubPanel
+            icon={QuillWrite02Icon}
+            title="História de Fundo"
+            accent="var(--chart-1)"
+            className="col-span-6"
+          >
+            <AutoTextarea
+              value={backstory}
+              onChange={setBackstory}
+              onBlur={v => saveBg('backstory', v)}
+              ariaLabel="História de Fundo"
+              placeholder="O que aconteceu antes da primeira sessão."
+              minRows={5}
+            />
+          </SubPanel>
+
+          <SubPanel
+            icon={HeartCrackIcon}
+            title="Eventos Traumáticos"
+            accent="var(--destructive)"
+            hint={traumatic ? undefined : 'As cicatrizes que o mestre pode puxar em jogo.'}
+            className="col-span-6"
+          >
+            <AutoTextarea
+              value={traumatic}
+              onChange={setTraumatic}
+              onBlur={v => saveBg('traumaticEvents', v)}
+              ariaLabel="Eventos Traumáticos"
+              placeholder="O que ele não superou."
+              minRows={4}
+            />
+          </SubPanel>
         </div>
       </section>
 
       {/* ── Seção 3: Relações e Conexões ───────────────────────────────── */}
       <section className="card-surface" style={card}>
-        <SectionHeading className="mb-3.5">Relações e Conexões</SectionHeading>
-        <div className="grid-6-split" style={{ gap: 16 }}>
+        <SectionHeading className="mb-4">Relações e Conexões</SectionHeading>
 
-          <div>
-            <Label>Membro da Família</Label>
-            <ChipList items={family} onRemove={item => { const n = family.filter(x => x !== item); setFamily(n); saveRels(n, allies, rivals, faction) }} />
+        <div className="grid-6 grid-6--tight">
+          {/* Three rosters side by side, each with the accent its side of the
+              table earns: kin warm, allies cool, rivals red. */}
+          <SubPanel
+            icon={UserGroupIcon}
+            title="Família"
+            count={family.length}
+            accent="var(--chart-1)"
+            className="col-span-2 col-sm-full"
+          >
+            <EntryList
+              items={family}
+              accent="var(--chart-1)"
+              emptyLabel="Ninguém registrado."
+              onRemove={item => { const n = family.filter(x => x !== item); setFamily(n); saveRels(n, allies, rivals, faction) }}
+            />
             <AddRow value={famInput} onChange={setFamInput} onAdd={addFamily} placeholder="Nome do familiar…" />
-          </div>
+          </SubPanel>
 
-          <div>
-            <Label>Aliado</Label>
-            <ChipList items={allies} onRemove={item => { const n = allies.filter(x => x !== item); setAllies(n); saveRels(family, n, rivals, faction) }} />
+          <SubPanel
+            icon={HandshakeIcon}
+            title="Aliados"
+            count={allies.length}
+            accent="var(--chart-2)"
+            className="col-span-2 col-sm-full"
+          >
+            <EntryList
+              items={allies}
+              accent="var(--chart-2)"
+              emptyLabel="Ninguém registrado."
+              onRemove={item => { const n = allies.filter(x => x !== item); setAllies(n); saveRels(family, n, rivals, faction) }}
+            />
             <AddRow value={allyInput} onChange={setAllyInput} onAdd={addAlly} placeholder="Nome do aliado…" />
-          </div>
+          </SubPanel>
 
-          <div>
-            <Label>Rival</Label>
-            <ChipList items={rivals} onRemove={item => { const n = rivals.filter(x => x !== item); setRivals(n); saveRels(family, allies, n, faction) }} />
+          <SubPanel
+            icon={Sword03Icon}
+            title="Rivais"
+            count={rivals.length}
+            accent="var(--destructive)"
+            className="col-span-2 col-sm-full"
+          >
+            <EntryList
+              items={rivals}
+              accent="var(--destructive)"
+              emptyLabel="Ninguém registrado."
+              onRemove={item => { const n = rivals.filter(x => x !== item); setRivals(n); saveRels(family, allies, n, faction) }}
+            />
             <AddRow value={rivalInput} onChange={setRivalInput} onAdd={addRival} placeholder="Nome do rival…" />
-          </div>
+          </SubPanel>
 
-          <div>
-            <Label>Facção ou Sociedade</Label>
+          <SubPanel
+            icon={Flag02Icon}
+            title="Facção ou Sociedade"
+            hint={faction ? undefined : 'A quem o personagem responde quando não responde a si mesmo.'}
+            className="col-span-6"
+          >
             <Input
               type="text"
               value={faction}
@@ -398,31 +621,33 @@ export function BackstoryView({ character, onUpdate }: Props) {
               maxLength={80}
               className={INPUT_CLASS}
             />
-          </div>
+          </SubPanel>
         </div>
       </section>
 
       {/* ── Seção 4: Impulsos ──────────────────────────────────────────── */}
       <section className="card-surface" style={card}>
-        <SectionHeading className="mb-3.5">Impulsos</SectionHeading>
-        <div className="grid-6-split">
-          {([
-            ['secrets',    'Segredos',  secrets,    setSecrets],
-            ['flaws',      'Falhas',    flaws,      setFlaws],
-            ['fears',      'Medos',     fears,      setFears],
-            ['objectives', 'Objetivos', objectives, setObjectives],
-          ] as [string, string, string, (v: string) => void][]).map(([field, label, val, setVal]) => (
-            <div key={field}>
-              <Label>{label}</Label>
-              <Textarea
-                rows={4}
-                value={val}
-                onChange={e => setVal(e.target.value)}
-                onBlur={e => saveImp(field as Parameters<typeof saveImp>[0], e.target.value)}
-                aria-label={label}
-                className={TEXTAREA_CLASS}
+        <SectionHeading className="mb-4">Impulsos</SectionHeading>
+
+        <div className="grid-6 grid-6--tight">
+          {impulses.map(({ field, title, icon, accent, value, set, hint, example }) => (
+            <SubPanel
+              key={field}
+              icon={icon}
+              title={title}
+              accent={accent}
+              hint={value ? undefined : hint}
+              className="col-span-3 col-sm-full"
+            >
+              <AutoTextarea
+                value={value}
+                onChange={set}
+                onBlur={v => saveImp(field, v)}
+                ariaLabel={title}
+                placeholder={example}
+                minRows={3}
               />
-            </div>
+            </SubPanel>
           ))}
         </div>
       </section>
