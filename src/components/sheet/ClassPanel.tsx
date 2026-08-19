@@ -14,7 +14,7 @@ import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.t
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
 import type { TechniqueState } from '@/types/technique.types'
-import { rollDie, modifier, modifierStr } from '@/lib/dice'
+import { rollDie, modifier, modifierStr, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
@@ -293,9 +293,11 @@ function SpellLikeSection({
     const resolvedStat = abilityCastStat ?? cfg.castStat
     const statScore = stats[resolvedStat] ?? 10
     const castMod = modifier(statScore)
-    const result = rollDie('d20', abilityName, `DC ${dc}`, castMod)
+    const result = withDc(rollDie('d20', abilityName, `DC ${dc}`, castMod), dc)
     onRoll?.(result)
-    if (result.total < dc) {
+    // One verdict for both the toast and the ability: a natural 20 that lands
+    // under the DC must not read SUCESSO and expend the ability anyway.
+    if (!result.success) {
       onChange({ ...state, expendedAbilities: [...expended, abilityId] })
     }
   }

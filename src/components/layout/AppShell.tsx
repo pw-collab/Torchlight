@@ -20,6 +20,12 @@ interface Props {
   playerRole?: string
   /** Where the "‹ Voltar" link goes. Omit it on Meus arquivos itself. */
   backHref?: string
+  /**
+   * The free end of the top bar. The table a character is sitting at lives
+   * here: it belongs to the whole view rather than to any one tab, and it is
+   * the only strip both the phone and the desktop layouts leave open.
+   */
+  headerRight?: React.ReactNode
 }
 
 /**
@@ -88,7 +94,7 @@ function LogoMenu({
   )
 }
 
-export function AppShell({ children, playerName, playerRole, backHref }: Props) {
+export function AppShell({ children, playerName, playerRole, backHref, headerRight }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -133,6 +139,12 @@ export function AppShell({ children, playerName, playerRole, backHref }: Props) 
             </Link>
           )}
         </div>
+
+        {headerRight && (
+          <div className="pointer-events-auto ml-auto flex min-w-0 shrink-0 items-center pl-2">
+            {headerRight}
+          </div>
+        )}
       </div>
 
       {/* Content — offset by the header's height: with no plate behind the

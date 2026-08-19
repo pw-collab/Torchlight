@@ -1,7 +1,9 @@
 'use client'
 
 import type { InventoryItem } from '@/types/inventory.types'
+import { brightest, fullMinutes, minutesLeft } from '@/lib/light'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useNow } from '@/hooks/useNow'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -23,18 +25,15 @@ const KIND_LABEL: Record<string, string> = {
  */
 export function FloatingTorch({ inventory, onClick }: Props) {
   const isMobile = useIsMobile()
-
-  const lit = inventory.filter(
-    i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0
-  )
-  if (lit.length === 0) return null
+  // Derived from the wall clock (see `lib/light`) — the tick just re-renders.
+  const now = useNow()
 
   // With multiple sources burning, the longest-lasting one defines the party's light
-  const source = lit.reduce((a, b) =>
-    (b.lightMinutesLeft ?? 0) > (a.lightMinutesLeft ?? 0) ? b : a
-  )
-  const mins = source.lightMinutesLeft ?? 0
-  const max = source.lightMaxMinutes ?? 60
+  const source = brightest(inventory, now)
+  if (!source) return null
+
+  const mins = minutesLeft(source, now)
+  const max = fullMinutes(source)
   const fraction = Math.min(1, mins / max)
   const isLow = mins <= 10
 

@@ -244,6 +244,17 @@ export default function CharacterCreatorPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
     const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+    // The row was written without this, so `campaign_roster()` handed every
+    // card an `owner_name` of null and nobody knew whose character was whose.
+    // `session_id` stays out on purpose: a character outlives any one session,
+    // so joining a table is its own flow (see §4.1 do plano), not a field the
+    // wizard guesses at creation.
+    const playerName =
+      user.user_metadata?.full_name ??
+      user.user_metadata?.name ??
+      user.user_metadata?.global_name ??
+      user.user_metadata?.user_name ??
+      null
 
     // The archetype's advantage rides along as a talent so it shows on the sheet.
     const allTalents: Talent[] = archetype
@@ -257,6 +268,7 @@ export default function CharacterCreatorPage() {
 
     const row: Partial<CharacterRow> = {
       user_id: discordId,
+      player_name: playerName,
       name: name.trim(),
       class_id: classId,
       archetype_id: archetypeId || null,

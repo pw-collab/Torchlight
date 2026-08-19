@@ -26,6 +26,11 @@ export interface Character {
   luckTokens: number
   inventory: InventoryItem[]
   spells: string[]
+  /**
+   * Legacy single-torch clock, from before light became a per-item thing.
+   * Nothing writes it and nothing reads it any more — light is derived from
+   * the inventory (see `lib/light`). Kept so old rows still map cleanly.
+   */
   torchEndAt: string | null
   // Extended
   gold: number
@@ -158,6 +163,7 @@ export interface CharacterRow {
   luck_tokens: number
   equipment: RawEquipItem[]
   spells: string[]
+  /** Legacy — see `Character.torchEndAt`. */
   torch_end_at: string | null
   // Extended (nullable for backward compat)
   xp?: number
@@ -180,7 +186,7 @@ export interface CharacterRow {
   background_details?: Character['backgroundDetails']
   relations?: RawRelations
   impulses?: Character['impulses']
-  player_name?: string
+  player_name?: string | null
 }
 
 export function rowToCharacter(row: CharacterRow): Character {

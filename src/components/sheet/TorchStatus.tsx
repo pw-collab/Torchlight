@@ -1,6 +1,8 @@
 'use client'
 
 import type { InventoryItem } from '@/types/inventory.types'
+import { brightest, fullMinutes, minutesLeft, spareSource } from '@/lib/light'
+import { useNow } from '@/hooks/useNow'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -16,15 +18,6 @@ const KIND_LABEL: Record<string, string> = {
   lantern: 'Lampião',
 }
 
-/** The burning source with the most time left — that's the party's light. */
-function brightest(inventory: InventoryItem[]) {
-  const lit = inventory.filter(
-    i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0,
-  )
-  if (lit.length === 0) return null
-  return lit.reduce((a, b) => ((b.lightMinutesLeft ?? 0) > (a.lightMinutesLeft ?? 0) ? b : a))
-}
-
 /**
  * Light status, holding its slot beside the heading whether or not anything is
  * burning — the point is being able to tell at a glance, and a badge that only
@@ -35,14 +28,18 @@ function brightest(inventory: InventoryItem[]) {
  * naming the source that is ready to light — or saying there is none.
  */
 export function TorchStatus({ inventory, onClick }: Props) {
-  const source = brightest(inventory)
-  const mins = source?.lightMinutesLeft ?? 0
-  const max = source?.lightMaxMinutes ?? 60
+  // The minutes are derived from the wall clock (see `lib/light`); the ticking
+  // value is only here to make the render happen again.
+  const now = useNow()
+
+  const source = brightest(inventory, now)
+  const mins = source ? minutesLeft(source, now) : 0
+  const max = source ? fullMinutes(source) : 60
   const isLow = source !== null && mins <= 10
 
   // Nothing burning: name whatever is carried and ready, so the box says what
   // could be lit rather than just that it is dark.
-  const spare = source ? null : inventory.find(i => i.isLight && (i.lightMinutesLeft ?? 0) > 0)
+  const spare = source ? null : spareSource(inventory, now)
 
   const accent = isLow ? 'var(--destructive)' : source ? 'var(--chart-1)' : 'var(--muted-foreground)'
   const kind = KIND_LABEL[(source ?? spare)?.lightKind ?? 'torch']

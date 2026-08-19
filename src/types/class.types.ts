@@ -190,7 +190,7 @@ export interface Class {
   /** Starting equipment item ids (from inventory catalog). */
   startingGear?: string[]
 
-  // Legacy typed arrays kept for backward-compat with SlotTracker etc.
+  // Legacy typed arrays kept for backward-compat with older sheet data.
   armorTraining?: ArmorType[]
   weaponTraining?: WeaponType[]
 }

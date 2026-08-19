@@ -10,6 +10,8 @@ import { RollToasts } from '@/components/sheet/RollToasts'
 import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
+import type { SessionRow } from '@/types/session.types'
+import { recordEvent } from '@/lib/sessionEvents'
 import type { RollResult } from '@/lib/dice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +22,7 @@ import { cn } from '@/lib/utils'
 interface Props {
   gmName: string
   gmId: string
-  session: { id: string; name: string } | null
+  session: SessionRow | null
 }
 
 type Tab = 'session' | 'npcs'
@@ -29,6 +31,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [session, setSession] = useState(initialSession)
   const [sessionName, setSessionName] = useState('')
   const [creating, setCreating] = useState(false)
+  const [ending, setEnding] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [tab, setTab] = useState<Tab>('session')
   const [npcs, setNpcs] = useState<NPC[]>([])
   const [loadingNpcs, setLoadingNpcs] = useState(false)
@@ -65,15 +69,62 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     if (!sessionName.trim()) return
     setCreating(true)
     const supabase = createClient()
+    // O código vem do banco (DEFAULT), e um gatilho arquiva a sessão anterior:
+    // duas ativas deixavam a antiga órfã, ainda aceitando entradas.
     const { data } = await supabase
       .from('sessions')
       .insert({ gm_id: gmId, name: sessionName, active: true })
       .select('*')
       .single()
     if (data) {
-      setSession(data)
+      const row = data as SessionRow
+      setSession(row)
+      void recordEvent({
+        sessionId: row.id,
+        actorName: gmName,
+        kind: 'session',
+        payload: { action: 'start', sessionName: row.name },
+      })
     }
     setCreating(false)
+  }
+
+  /**
+   * Encerrar arquiva a mesa: o código para de valer, quem estava nela deixa de
+   * ver a sessão na ficha, e o log fica de pé como registro do que aconteceu.
+   */
+  async function endSession() {
+    if (!session) return
+    const ok = window.confirm(`Encerrar "${session.name}"? O código deixa de valer para a mesa.`)
+    if (!ok) return
+
+    setEnding(true)
+    const supabase = createClient()
+    // O evento vai antes: depois de encerrada, a mesa já não deve receber nada.
+    await recordEvent({
+      sessionId: session.id,
+      actorName: gmName,
+      kind: 'session',
+      payload: { action: 'end', sessionName: session.name },
+    })
+    await supabase
+      .from('sessions')
+      .update({ active: false, ended_at: new Date().toISOString() })
+      .eq('id', session.id)
+    setSession(null)
+    setSessionName('')
+    setEnding(false)
+  }
+
+  async function copyCode() {
+    if (!session) return
+    try {
+      await navigator.clipboard.writeText(session.code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      // Sem permissão de área de transferência o código continua na tela.
+    }
   }
 
   async function handleSaveNpc(npc: Omit<NPC, 'id' | 'createdAt'>) {
@@ -342,20 +393,36 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   >
                     {session.name}
                   </h2>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 7.5,
-                      color: 'var(--muted-foreground)',
-                      letterSpacing: '0.1em',
-                      marginLeft: 'auto',
-                    }}
+
+                  {/* O código é a porta da mesa: é ele que o Mestre lê em voz
+                      alta, e cada jogador digita na própria ficha. */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={copyCode}
+                    title="Copiar o código da sessão"
+                    className="font-mono ml-auto h-9 min-h-9 shrink-0 gap-2 rounded-[1px] border-[var(--primary)] px-3"
                   >
-                    ID: {session.id.slice(0, 8).toUpperCase()}
-                  </span>
+                    <span className="font-heading text-[7.5px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+                      {copied ? 'Copiado' : 'Código'}
+                    </span>
+                    <span className="text-[15px] tracking-[0.3em] text-[var(--foreground)]">
+                      {session.code}
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={endSession}
+                    disabled={ending}
+                    className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] border-[var(--destructive)] px-3 text-[8.5px] tracking-[0.14em] text-[var(--destructive)] uppercase"
+                  >
+                    {ending ? 'Encerrando…' : 'Encerrar'}
+                  </Button>
                 </div>
 
-                <SessionPanel sessionId={session.id} />
+                <SessionPanel sessionId={session.id} gmName={gmName} gmId={gmId} />
               </div>
             )}
           </div>
