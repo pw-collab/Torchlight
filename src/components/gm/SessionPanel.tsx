@@ -1,9 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { PlayerCard, type GmAction } from './PlayerCard'
+import { PromptComposer, type PromptRequest } from './PromptComposer'
 import { SessionFeed } from './SessionFeed'
+import { STAT_LABELS } from '@/data/stats'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { Spells } from '@/components/sheet/Spells'
 import type { Character, CharacterRow } from '@/types/character.types'
@@ -11,6 +13,7 @@ import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { recordEvent } from '@/lib/sessionEvents'
+import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { Button } from '@/components/ui/button'
@@ -39,6 +42,26 @@ interface MemberRow {
     todo callback que depende do elenco se recriar sozinho. */
 const NO_SEATS: Seat[] = []
 
+/** As colunas numéricas que o desfazer sabe escrever de volta. */
+type UndoField = 'hp_current' | 'luck_tokens' | 'xp'
+
+interface Undoable {
+  characterId: string
+  characterName: string
+  kind: 'hp' | 'luck' | 'xp'
+  field: UndoField
+  previous: number
+  applied: number
+}
+
+const UNDO_WINDOW_MS = 30_000
+
+const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
+  hp: 'vida',
+  luck: 'Fortuna',
+  xp: 'XP',
+}
+
 /**
  * A mesa acontecendo.
  *
@@ -58,6 +81,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
   const [reloadToken, setReloadToken] = useState(0)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [composing, setComposing] = useState(false)
 
   const loaded = roster.sessionId === sessionId
   const seats = loaded ? roster.seats : NO_SEATS
@@ -68,6 +92,18 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
       setRoster(prev => (prev.sessionId === sessionId ? { ...prev, seats: update(prev.seats) } : prev)),
     [sessionId],
   )
+
+  // ── Desfazer (§5.3) ───────────────────────────────────────────────────────
+  const [undoable, setUndoable] = useState<Undoable | null>(null)
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const offerUndo = useCallback((entry: Undoable) => {
+    setUndoable(entry)
+    if (undoTimer.current) clearTimeout(undoTimer.current)
+    undoTimer.current = setTimeout(() => setUndoable(null), UNDO_WINDOW_MS)
+  }, [])
+
+  useEffect(() => () => { if (undoTimer.current) clearTimeout(undoTimer.current) }, [])
 
   const { events, loading: feedLoading } = useSessionFeed(sessionId)
 
@@ -145,7 +181,9 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
     const named = { characterName: character.name, by: 'gm' as const }
 
     let patch: Record<string, unknown> | null = null
-    let event: { kind: 'hp' | 'luck' | 'xp' | 'light'; payload: Record<string, unknown> } | null = null
+    let event: { kind: SessionEventKind; payload: Record<string, unknown> } | null = null
+    /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
+    let undoField: UndoField | null = null
 
     if (action.type === 'hp') {
       const from = character.hpCurrent
@@ -153,6 +191,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
       if (to !== from) {
         patch = { hp_current: to }
         event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
+        undoField = 'hp_current'
       }
     } else if (action.type === 'luck') {
       const from = character.luckTokens
@@ -160,6 +199,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
       if (to !== from) {
         patch = { luck_tokens: to }
         event = { kind: 'luck', payload: { from, to, delta: to - from, ...named } }
+        undoField = 'luck_tokens'
       }
     } else if (action.type === 'xp') {
       const from = character.xp
@@ -167,6 +207,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
       if (to !== from) {
         patch = { xp: to }
         event = { kind: 'xp', payload: { from, to, delta: to - from, ...named } }
+        undoField = 'xp'
       }
     } else if (action.type === 'snuff') {
       const burning = brightest(character.inventory)
@@ -174,6 +215,27 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
         const doused: InventoryItem[] = character.inventory.map(item => snuff(item))
         patch = { equipment: doused }
         event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
+      }
+    } else if (action.type === 'condition') {
+      // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
+      // é tirar.
+      const already = character.conditions.some(c => c.id === action.condition.id)
+      const next = already
+        ? character.conditions.filter(c => c.id !== action.condition.id)
+        : [...character.conditions, {
+            ...action.condition,
+            appliedBy: gmName,
+            appliedAt: new Date().toISOString(),
+          }]
+      patch = { conditions: next }
+      event = {
+        kind: 'condition',
+        payload: {
+          action: already ? 'removed' : 'applied',
+          label: action.condition.label,
+          ...(action.condition.note && { note: action.condition.note }),
+          ...named,
+        },
       }
     }
 
@@ -197,12 +259,112 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
       setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
     }
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
-  }, [sessionId, gmName, setSeats])
+
+    // O erro mais comum de qualquer VTT é aplicar dano no alvo errado ou
+    // digitar 17 em vez de 7. Com o antes e o depois já no log, oferecer a
+    // volta é quase de graça — e o log é append-only, então desfazer escreve
+    // de volta em vez de apagar: o erro fica registrado, e a correção também.
+    if (undoField) {
+      const p = event.payload as { from: number; to: number }
+      offerUndo({
+        characterId: character.id,
+        characterName: character.name,
+        kind: event.kind as 'hp' | 'luck' | 'xp',
+        field: undoField,
+        previous: p.from,
+        applied: p.to,
+      })
+    }
+  }, [sessionId, gmName, setSeats, offerUndo])
+
+  /** Escreve o valor anterior de volta e registra a correção. */
+  const undo = useCallback(async () => {
+    if (!undoable) return
+    const supabase = createClient()
+    setBusyId(undoable.characterId)
+
+    const { data } = await supabase
+      .from('characters')
+      .update({ [undoable.field]: undoable.previous })
+      .eq('id', undoable.characterId)
+      .select()
+      .single()
+
+    setBusyId(null)
+    setUndoable(null)
+    if (undoTimer.current) clearTimeout(undoTimer.current)
+
+    if (data) {
+      const updated = rowToCharacter(data as CharacterRow)
+      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
+    }
+
+    void recordEvent({
+      sessionId,
+      actorName: gmName,
+      characterId: undoable.characterId,
+      kind: undoable.kind,
+      payload: {
+        from: undoable.applied,
+        to: undoable.previous,
+        delta: undoable.previous - undoable.applied,
+        characterName: undoable.characterName,
+        by: 'gm',
+        undo: true,
+      },
+    })
+  }, [undoable, sessionId, gmName, setSeats])
+
+  /**
+   * Revela à mesa uma rolagem que estava escondida (§6.7). O log é
+   * append-only: revelar publica uma segunda linha apontando para a primeira,
+   * em vez de mexer no que já foi escrito.
+   */
+  const reveal = useCallback((event: SessionEvent) => {
+    void recordEvent({
+      sessionId,
+      actorName: event.actorName,
+      characterId: event.characterId,
+      kind: 'roll',
+      payload: { ...(event.payload as Record<string, unknown>), revealOf: event.id },
+      visibility: 'table',
+    })
+  }, [sessionId])
 
   /** XP para a mesa inteira — o fim de uma cena vale para todo mundo. */
   const grantXpToAll = useCallback(async () => {
     for (const seat of seats) await act(seat.character, { type: 'xp', delta: 1 })
   }, [seats, act])
+
+  /**
+   * "Todos, CON DC 12 contra o gás" (§6.4): uma linha de pedido por
+   * personagem, todas com o mesmo `promptId`. Cada ficha vê a sua e responde
+   * com uma rolagem que carrega esse id de volta — é assim que o painel sabe
+   * quem já respondeu, sem estado para dessincronizar.
+   */
+  const sendPrompt = useCallback((request: PromptRequest) => {
+    const promptId = crypto.randomUUID()
+    const attributeLabel = request.attribute ? STAT_LABELS[request.attribute] : 'd20'
+
+    for (const characterId of request.characterIds) {
+      const seat = seats.find(s => s.character.id === characterId)
+      void recordEvent({
+        sessionId,
+        actorName: gmName,
+        characterId,
+        kind: 'prompt',
+        payload: {
+          promptId,
+          attribute: request.attribute,
+          dc: request.dc,
+          label: request.label || `Teste de ${attributeLabel}`,
+          secret: request.secret,
+          characterName: seat?.character.name,
+          by: 'gm',
+        },
+      })
+    }
+  }, [seats, sessionId, gmName])
 
   const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
@@ -219,18 +381,60 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
         </span>
 
         {seats.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setComposing(c => !c)}
+              className="font-heading h-8 min-h-8 rounded-[1px] border-[var(--primary)] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+            >
+              ❔ Pedir rolagem
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void grantXpToAll()}
+              disabled={busyId !== null}
+              title="Conceder 1 de experiência a todos os personagens da mesa"
+              className="font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+            >
+              +1 XP a todos
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {undoable && (
+        <div
+          className="animate-ink-spread flex items-center gap-3 px-3 py-2"
+          style={{
+            background: 'var(--card)',
+            border: '1px solid var(--muted-foreground)',
+            borderLeftWidth: 3,
+          }}
+        >
+          <span className="font-body flex-1 text-[11px] text-[var(--muted-foreground)] italic">
+            {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
+          </span>
           <Button
             type="button"
             variant="outline"
-            onClick={() => void grantXpToAll()}
+            onClick={() => void undo()}
             disabled={busyId !== null}
-            title="Conceder 1 de experiência a todos os personagens da mesa"
-            className="font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+            className="font-heading h-8 min-h-8 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
           >
-            +1 XP a todos
+            ↩ Desfazer
           </Button>
-        )}
-      </div>
+        </div>
+      )}
+
+      {composing && (
+        <PromptComposer
+          seats={seats.map(s => ({ id: s.character.id, name: s.character.name }))}
+          onSend={sendPrompt}
+          onClose={() => setComposing(false)}
+        />
+      )}
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-3">
         {seats.map(seat => (
@@ -279,7 +483,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
         </Card>
       )}
 
-      <SessionFeed events={events} loading={feedLoading} />
+      <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
     </div>
   )
 }

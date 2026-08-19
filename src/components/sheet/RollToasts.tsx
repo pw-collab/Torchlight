@@ -8,9 +8,13 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
   rolls: RollResult[]
+  /** Fortuna disponível — sem token, a oferta de rerrolar nem aparece. */
+  fortuneLeft?: number
+  /** Gasta um token e rola de novo (§5.2). */
+  onSpendFortune?: (roll: RollResult) => void
 }
 
-export function RollToasts({ rolls }: Props) {
+export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
   const [now, setNow] = useState(Date.now())
   const isMobile = useIsMobile()
 
@@ -36,9 +40,12 @@ export function RollToasts({ rolls }: Props) {
       pointerEvents: 'none',
       ...positionStyle,
     }}>
-      {visible.map(roll => {
+      {/* Só a rolagem mais recente oferece a Fortuna: a segunda chance é da
+          jogada que acabou de assentar, não de qualquer coisa ainda na tela. */}
+      {visible.map((roll, index) => {
         const isCritical = roll.isCritical
         const isFumble = roll.isFumble
+        const canReroll = index === 0 && fortuneLeft > 0 && Boolean(onSpendFortune)
 
         const borderColor = isCritical
           ? 'var(--chart-1)'
@@ -82,6 +89,9 @@ export function RollToasts({ rolls }: Props) {
               padding: '10px 14px',
               minWidth: isMobile ? 140 : 160,
               maxWidth: isMobile ? 180 : 220,
+              // A pilha inteira é atravessável pelo ponteiro; só o cartão que
+              // oferece a Fortuna precisa receber o clique.
+              pointerEvents: canReroll ? 'auto' : 'none',
             }}
           >
             <div style={{
@@ -178,6 +188,56 @@ export function RollToasts({ rolls }: Props) {
                   vs DC {roll.dc}
                 </span>
               </div>
+            )}
+
+            {/* O total que a Fortuna deixou para trás, lado a lado com o novo. */}
+            {roll.rerollOf !== undefined && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                <span style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 8,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'var(--chart-1)',
+                }}>
+                  ✦ Rerrolado
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  color: 'var(--muted-foreground)',
+                  textDecoration: 'line-through',
+                  opacity: 0.55,
+                }}>
+                  {roll.rerollOf}
+                </span>
+              </div>
+            )}
+
+            {/* A Fortuna é regra de rerrolagem, não um contador: o momento de
+                gastá-la é agora, com o resultado ruim ainda na tela. */}
+            {canReroll && (
+              <button
+                type="button"
+                onClick={() => onSpendFortune?.(roll)}
+                title={`Gastar um token de Fortuna e rolar de novo (${fortuneLeft} restante${fortuneLeft === 1 ? '' : 's'})`}
+                style={{
+                  marginTop: 8,
+                  width: '100%',
+                  cursor: 'pointer',
+                  background: 'color-mix(in oklch, var(--chart-1), transparent 88%)',
+                  border: '1px solid var(--chart-1)',
+                  color: 'var(--chart-1)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 9,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  padding: '7px 8px',
+                  minHeight: 32,
+                }}
+              >
+                ✦ Gastar Fortuna
+              </button>
             )}
 
             {roll.advantage && roll.rolls && roll.rolls.length > 1 && (

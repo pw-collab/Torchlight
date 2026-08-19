@@ -9,6 +9,7 @@ import { FortuneBar } from '@/components/sheet/FortuneBar'
 import { modifier, modifierStr, rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
+import { STAT_FULL, STAT_KEYS, STAT_LABELS } from '@/data/stats'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
@@ -38,13 +39,6 @@ interface Props {
   onRoll?: (result: RollResult) => void
 }
 
-const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
-const STAT_LABELS: Record<Stat, string> = {
-  str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
-}
-const STAT_FULL: Record<Stat, string> = {
-  str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma',
-}
 
 export function FloatingVitals({
   ac, hpMax, hpCurrent, luckTokens, onHpChange, onLuckChange,
@@ -54,7 +48,7 @@ export function FloatingVitals({
 }: Props) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
-  const [step, setStep] = useState(1)
+  const [entry, setEntry] = useState('')
 
   const [flash, setFlash] = useState<'damage' | 'heal' | null>(null)
   const prevHp = useRef(hpCurrent)
@@ -80,7 +74,31 @@ export function FloatingVitals({
   const xpReady = xpPct >= 100
 
   function applyHp(delta: number) {
+    if (delta === 0) return
     onHpChange(Math.min(hpMax, Math.max(0, hpCurrent + delta)))
+  }
+
+  /**
+   * Dano por digitação (§5.5). O campo aceita `11`, `-11` e `+5`, e o Enter
+   * aplica — tomar onze de dano eram onze cliques, o que no celular é a
+   * diferença entre usar e não usar o app. Dano é o padrão: é o que a mesa
+   * digita noventa por cento das vezes.
+   *
+   * As setas continuam valendo, usando o que estiver escrito (ou 1, para o
+   * ajuste de um ponto continuar sendo um toque só).
+   */
+  const typed = Math.abs(parseInt(entry, 10))
+  const amount = Number.isFinite(typed) && typed > 0 ? typed : 1
+
+  function submitEntry() {
+    if (!Number.isFinite(typed) || typed === 0) return
+    applyHp(entry.trim().startsWith('+') ? typed : -typed)
+    setEntry('')
+  }
+
+  function applyFromButton(sign: 1 | -1) {
+    applyHp(sign * amount)
+    setEntry('')
   }
 
   function rollStat(stat: Stat) {
@@ -165,34 +183,43 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Damage / heal */}
-        <div className="flex items-stretch gap-3">
-          <Button
-            onClick={() => applyHp(-step)}
-            title="Aplicar dano"
-            aria-label="Aplicar dano"
-            className="tactile bg-destructive h-auto min-h-13 w-16 shrink-0 border-none px-0 text-2xl leading-none text-[var(--background)]"
-          >
-            ↓
-          </Button>
-          <Input
-            type="text"
-            inputMode="numeric"
-            value={String(step).padStart(2, '0')}
-            onChange={e => { const n = parseInt(e.target.value, 10); setStep(isNaN(n) ? 0 : Math.max(0, n)) }}
-            onBlur={() => { if (step < 1) setStep(1) }}
-            title="Valor aplicado por clique"
-            aria-label="Valor aplicado por clique"
-            className="bg-secondary border-border text-secondary-foreground h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
-          />
-          <Button
-            onClick={() => applyHp(step)}
-            title="Curar"
-            aria-label="Curar"
-            className="tactile text-background h-auto min-h-13 w-16 shrink-0 border-none bg-[var(--chart-2)] px-0 text-2xl leading-none"
-          >
-            ↑
-          </Button>
+        {/* Damage / heal — digite e dê Enter, ou use as setas */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-stretch gap-3">
+            <Button
+              onClick={() => applyFromButton(-1)}
+              title={`Aplicar ${amount} de dano`}
+              aria-label={`Aplicar ${amount} de dano`}
+              className="tactile bg-destructive h-auto min-h-13 w-16 shrink-0 border-none px-0 text-2xl leading-none text-[var(--background)]"
+            >
+              ↓
+            </Button>
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={entry}
+              onChange={e => {
+                const next = e.target.value.replace(/[^0-9+-]/g, '')
+                if (/^[+-]?\d{0,3}$/.test(next)) setEntry(next)
+              }}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitEntry() } }}
+              placeholder="−11"
+              title="Quanto aplicar — Enter tira, +5 cura"
+              aria-label="Quanto aplicar. Um número tira vida, com mais na frente cura, Enter aplica."
+              className="bg-secondary border-border text-secondary-foreground placeholder:text-muted-foreground/40 h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
+            />
+            <Button
+              onClick={() => applyFromButton(1)}
+              title={`Curar ${amount}`}
+              aria-label={`Curar ${amount}`}
+              className="tactile text-background h-auto min-h-13 w-16 shrink-0 border-none bg-[var(--chart-2)] px-0 text-2xl leading-none"
+            >
+              ↑
+            </Button>
+          </div>
+          <p className="font-body text-muted-foreground text-center text-[10px] leading-tight italic">
+            Enter tira vida · <span className="font-mono">+5</span> cura
+          </p>
         </div>
       </div>
     </div>,

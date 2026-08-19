@@ -35,6 +35,42 @@ export interface RollResult {
   dc?: number
   /** Whether the roll beat its DC. Undefined when no DC was set. */
   success?: boolean
+  /** O total que ficou para trás quando a Fortuna comprou uma segunda chance. */
+  rerollOf?: number
+  /** Responde a uma rolagem que o Mestre pediu (§6.4). */
+  promptId?: string
+}
+
+/**
+ * Rola de novo a mesma coisa — a segunda chance que a Fortuna compra (§5.2).
+ *
+ * Vantagem e desvantagem são "joga dois, guarda um": rerrolar isso é jogar os
+ * dois de novo, não somá-los, então esse caso passa por `rollDie`. Qualquer
+ * outra coisa é o punhado que foi lançado, refeito com as mesmas formas.
+ */
+export function reroll(original: RollResult): RollResult {
+  // `rollDie` carimba "(Vantagem)" no subrótulo; sem tirar, cada rerrolagem
+  // empilharia mais um.
+  const subLabel = original.subLabel?.replace(/\s*\((Vantagem|Desvantagem)\)\s*$/, '') || undefined
+  const mod = original.modifier ?? 0
+
+  const next = original.advantage
+    ? rollDie(
+        original.die,
+        original.label,
+        subLabel,
+        mod,
+        original.advantage === 'advantage',
+        original.advantage === 'disadvantage',
+      )
+    : rollPool(
+        (original.dice ?? []).map(d => d.sides),
+        original.label,
+        mod,
+        subLabel,
+      )
+
+  return withDc({ ...next, rerollOf: original.total, promptId: original.promptId }, original.dc)
 }
 
 /**

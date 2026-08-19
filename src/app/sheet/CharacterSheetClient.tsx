@@ -33,12 +33,25 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
-import { recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
-import type { EventPayload, SessionEventKind, SessionPayload } from '@/types/session.types'
+import { PromptCard } from '@/components/sheet/PromptCard'
+import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
+import { RestButton } from '@/components/sheet/RestButton'
+import { consumeRation, findRation } from '@/lib/rest'
+import { STAT_LABELS, isStat } from '@/data/stats'
+import type {
+  EventPayload,
+  EventVisibility,
+  PromptPayload as SessionPromptPayload,
+  SessionEvent,
+  SessionEventKind,
+  SessionPayload,
+} from '@/types/session.types'
+import { modifier, reroll, rollDie, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
-import type { CharacterRow } from '@/types/character.types'
+import type { ActiveCondition, CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
 import { getClass } from '@/data/classes/index'
@@ -111,7 +124,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   /** Registra na mesa, quando há uma. Fora dela, silêncio — e nada quebra. */
   const record = useCallback(
-    (kind: SessionEventKind, payload: EventPayload) => {
+    (kind: SessionEventKind, payload: EventPayload, visibility?: EventVisibility) => {
       if (!sessionId) return
       void recordEvent({
         sessionId,
@@ -119,9 +132,16 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         characterId,
         kind,
         payload: { ...payload, characterName },
+        visibility,
       })
     },
     [sessionId, playerName, characterId, characterName],
+  )
+
+  /** O que o Mestre pediu e ainda espera desta ficha (§6.4). */
+  const prompts = useMemo(
+    () => pendingPrompts(tableEvents, characterId),
+    [tableEvents, characterId],
   )
 
   // Roll lifecycle: useDiceRoll drives the phase timeline (anticipation →
@@ -139,10 +159,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     fallBackToTimed,
   } = useDiceRoll({ onSettled: onRollSettled })
 
-  const handleRoll = useCallback((result: RollResult) => {
+  const handleRoll = useCallback((result: RollResult, visibility?: EventVisibility) => {
     startRoll(result)
-    sendToDiscord({ type: 'roll', ...result })
-    record('roll', rollPayload(result))
+    // Uma rolagem secreta não passa pelo canal da mesa — o Discord é público.
+    if (visibility !== 'gm_only') sendToDiscord({ type: 'roll', ...result })
+    record('roll', rollPayload(result), visibility)
   }, [startRoll, record])
 
   /**
@@ -242,8 +263,76 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     record('luck', { from, to: newValue, delta: newValue - from, by: 'player' })
   }
 
+  /**
+   * A Fortuna é regra de rerrolagem, não um contador (§5.2): o token sai, os
+   * mesmos dados voltam à mesa e o feed guarda os dois resultados lado a lado.
+   */
+  function handleFortuneReroll(original: RollResult) {
+    if (!character || character.luckTokens <= 0) return
+    void handleLuckChange(character.luckTokens - 1)
+    handleRoll(reroll(original))
+  }
+
+  /**
+   * Responde ao que o Mestre pediu (§6.4). O motor de dados é o mesmo de
+   * sempre; o que muda é que a rolagem já nasce com o DC do pedido e volta
+   * carimbada com o `promptId`, que é o que fecha a pendência.
+   */
+  function answerPrompt(prompt: SessionEvent) {
+    const p = prompt.payload as SessionPromptPayload
+    const stat = isStat(p.attribute) ? p.attribute : null
+    const mod = stat ? modifier(character!.stats[stat]) : 0
+    const rolled = rollDie('d20', p.label, stat ? STAT_LABELS[stat] : undefined, mod)
+    const result: RollResult = { ...withDc(rolled, p.dc), promptId: p.promptId }
+    handleRoll(result, p.secret ? 'gm_only' : 'table')
+  }
+
   async function handleInventoryUpdate(inventory: InventoryItem[]) {
     await updateCharacter({ equipment: inventory as any } as Partial<CharacterRow>)
+  }
+
+  /**
+   * O jogador tira a própria condição — quem sente o veneno passar é ele, e
+   * pedir ao Mestre para clicar seria fricção sem motivo. Aplicar continua
+   * sendo do Mestre, do painel dele.
+   */
+  async function handleConditionRemove(condition: ActiveCondition) {
+    const next = character!.conditions.filter(c => c.id !== condition.id)
+    await updateCharacter({ conditions: next } as Partial<CharacterRow>)
+    record('condition', { action: 'removed', label: condition.label, by: 'player' })
+  }
+
+  /**
+   * Descanso (§5.7). Recupera pelo dado de vida da classe — o mesmo dado, e a
+   * mesma leitura, que a trilha de progressão usa ao subir de nível (a CON já
+   * foi contada uma vez, no HP inicial). Come uma ração; de estômago vazio o
+   * descanso não recupera nada, e o feed diz isso.
+   */
+  async function handleRest() {
+    if (!character) return
+    const cls = getClass(character.classId)
+    const die = `d${cls?.hitDie ?? 6}`
+    const ration = findRation(character.inventory)
+
+    const rolled = rollDie(die, 'Descanso', 'Recuperação')
+    const gain = ration ? Math.min(rolled.result, character.hpMax - character.hpCurrent) : 0
+    const to = character.hpCurrent + gain
+
+    const patch: Partial<CharacterRow> = {}
+    if (gain > 0) patch.hp_current = to
+    if (ration) (patch as any).equipment = consumeRation(character.inventory, ration.id)
+    if (Object.keys(patch).length > 0) await updateCharacter(patch)
+
+    record('hp', {
+      from: character.hpCurrent,
+      to,
+      delta: gain,
+      reason: 'rest',
+      die,
+      roll: rolled.result,
+      ration: Boolean(ration),
+      by: 'player',
+    })
   }
 
   async function handleTalentsUpdate(talents: Talent[]) {
@@ -385,6 +474,31 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   }
 
   const { primary, secondary } = tabBlocks[tab]
+  const disadvantages = disadvantageLabels(character.conditions)
+  const ration = findRation(character.inventory)
+
+  /**
+   * A faixa de estado: o que a mesa está esperando desta ficha, o que está em
+   * vigor sobre ela, e o botão de acampar. Abre o conteúdo em qualquer aba,
+   * porque nada disso é assunto de uma aba só.
+   */
+  const stateStrip = (
+    <>
+      <PromptCard prompts={prompts} onAnswer={answerPrompt} />
+      {(character.conditions.length > 0 || isOwner) && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <ConditionChips conditions={character.conditions} onRemove={handleConditionRemove} />
+          {isOwner && (
+            <RestButton
+              rations={ration?.quantity ?? 0}
+              hpFull={character.hpCurrent >= character.hpMax}
+              onRest={() => void handleRest()}
+            />
+          )}
+        </div>
+      )}
+    </>
+  )
 
   return (
     <AppShell
@@ -404,6 +518,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           paddingTop: 16,
           paddingBottom: 'calc(76px + var(--safe-bottom))',
         }}>
+          {stateStrip}
           {vitals}
           {primary}
           {secondary}
@@ -443,6 +558,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           </div>
 
           <div className={secondary ? 'sheet-primary' : 'sheet-primary sheet-primary--full'}>
+            {/* O pedido do Mestre abre o conteúdo em vez de flutuar sobre ele:
+                uma rolagem que a mesa está esperando não pode ser um aviso
+                que some sozinho. */}
+            {stateStrip}
             {primary}
           </div>
           {secondary && <div className="sheet-secondary">{secondary}</div>}
@@ -456,9 +575,14 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       {/* Navigation: labelled bottom bar on mobile (dice as its trailing
           button), icon rail + free-floating dice button on desktop. */}
       {isMobile ? (
-        <TabBar tabs={tabItems} active={tab} onChange={setTab} trailing={<DiceRoller onRoll={handleRoll} />} />
+        <TabBar
+          tabs={tabItems}
+          active={tab}
+          onChange={setTab}
+          trailing={<DiceRoller onRoll={handleRoll} disadvantageFrom={disadvantages} />}
+        />
       ) : (
-        <DiceRoller onRoll={handleRoll} floating />
+        <DiceRoller onRoll={handleRoll} floating disadvantageFrom={disadvantages} />
       )}
 
       {/* Phones have no column to reserve for the light, so they keep the
@@ -472,7 +596,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onSettled={settleRoll}
         onUnavailable={fallBackToTimed}
       />
-      <RollToasts rolls={rollHistory} />
+      <RollToasts
+        rolls={rollHistory}
+        fortuneLeft={character.luckTokens}
+        onSpendFortune={handleFortuneReroll}
+      />
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />

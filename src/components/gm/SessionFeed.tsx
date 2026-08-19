@@ -14,9 +14,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+
 interface Props {
   events: SessionEvent[]
   loading: boolean
+  /** Publica para a mesa uma rolagem que estava escondida (§6.7). */
+  onReveal?: (event: SessionEvent) => void
 }
 
 function clockOf(at: number): string {
@@ -34,10 +37,18 @@ function clockOf(at: number): string {
  * resolvido agora. Críticos, quedas e falhas ganham a borda colorida para
  * saltarem de uma lista que corre depressa.
  */
-export function SessionFeed({ events, loading }: Props) {
+export function SessionFeed({ events, loading, onReveal }: Props) {
   const [filter, setFilter] = useState<FeedFilterId>('all')
 
   const shown = events.filter(event => matchesFilter(event, filter))
+
+  // Uma rolagem escondida já revelada tem uma segunda linha apontando para ela;
+  // o log é append-only, então revelar é publicar de novo, não editar.
+  const revealed = new Set(
+    events
+      .map(event => (event.payload as { revealOf?: string }).revealOf)
+      .filter((id): id is string => Boolean(id)),
+  )
 
   return (
     <div
@@ -111,7 +122,7 @@ export function SessionFeed({ events, loading }: Props) {
                     {eventHeadline(event)}
                     {secret && (
                       <span className="font-body ml-1.5 text-[9px] text-[var(--muted-foreground)] italic">
-                        · só você vê
+                        · {revealed.has(event.id) ? 'revelado à mesa' : 'só você vê'}
                       </span>
                     )}
                   </span>
@@ -121,6 +132,19 @@ export function SessionFeed({ events, loading }: Props) {
                     </span>
                   )}
                 </span>
+
+                {/* O Mestre rola escondido e decide depois se conta (§6.7). */}
+                {onReveal && secret && event.kind === 'roll' && !revealed.has(event.id) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onReveal(event)}
+                    title="Mostrar esta rolagem para a mesa inteira"
+                    className="font-heading h-7 min-h-7 shrink-0 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase"
+                  >
+                    Revelar
+                  </Button>
+                )}
 
                 <span className="font-mono shrink-0 text-[8px] text-[var(--muted-foreground)]">
                   {clockOf(event.at)}

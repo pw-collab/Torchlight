@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { rollDie, rollPool, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
@@ -27,6 +27,12 @@ interface Props {
   onRoll?: (result: RollResult) => void
   /** Anchors the button to the bottom-right of the viewport (desktop layout). */
   floating?: boolean
+  /**
+   * Condições ativas que impõem desvantagem (§5.6). O painel avisa e destaca o
+   * botão; quem decide se a condição alcança *esta* rolagem é a mesa, não o
+   * app — por isso ele não rola por ninguém.
+   */
+  disadvantageFrom?: string[]
 }
 
 // Shared label treatment for the popover's form rows.
@@ -36,6 +42,45 @@ const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
 const CAPTION_CLASS =
   'font-body text-muted-foreground text-[10px] leading-tight italic'
+
+const DC_STORAGE_KEY = 'torchlight:last-dc'
+const DEFAULT_DC = 14
+
+/**
+ * O DC do último teste, lembrado entre aberturas do painel — e entre sessões.
+ *
+ * A releitura acontece ao abrir o painel, não num efeito de montagem: o
+ * servidor não tem `localStorage`, e um valor que aparecesse só depois da
+ * hidratação faria o campo mudar sozinho debaixo do dedo de quem já estava
+ * digitando. O armazenamento pode nem existir (aba privada, permissão negada),
+ * e aí o valor simplesmente não persiste — é conveniência, não estado do jogo.
+ */
+function useStickyDc(): [number, (value: number) => void, () => void] {
+  const [dc, setDcState] = useState(DEFAULT_DC)
+  const hydrated = useRef(false)
+
+  const hydrate = () => {
+    if (hydrated.current) return
+    hydrated.current = true
+    try {
+      const saved = parseInt(window.localStorage.getItem(DC_STORAGE_KEY) ?? '', 10)
+      if (Number.isFinite(saved) && saved > 0) setDcState(saved)
+    } catch {
+      // Sem armazenamento, fica o padrão.
+    }
+  }
+
+  const setDc = (value: number) => {
+    setDcState(value)
+    try {
+      window.localStorage.setItem(DC_STORAGE_KEY, String(value))
+    } catch {
+      // idem
+    }
+  }
+
+  return [dc, setDc, hydrate]
+}
 
 /** Groups a pool into `{sides, count}`, smallest die first. */
 function grouped(pool: number[]): { sides: number; count: number }[] {
@@ -65,10 +110,12 @@ function grouped(pool: number[]): { sides: number; count: number }[] {
  *   them would mean nothing; "Normal" stays here too so the commonest roll in
  *   the game is still one tap away.
  */
-export function DiceRoller({ onRoll, floating = false }: Props) {
+export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: Props) {
   const [pool, setPool] = useState<number[]>([])
   const [mod, setMod] = useState(0)
-  const [dc,  setDc]  = useState(14)
+  // O DC volta a ser o último usado, não 14: numa masmorra a dificuldade se
+  // repete cena após cena, e redigitar o mesmo número toda vez é atrito puro.
+  const [dc, setDc, hydrateDc] = useStickyDc()
   const [open, setOpen] = useState(false)
 
   const addDie    = (sides: number) => setPool(p => (p.length >= MAX_DICE ? p : [...p, sides]))
@@ -105,7 +152,13 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
   const full = pool.length >= MAX_DICE
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={next => {
+        if (next) hydrateDc()
+        setOpen(next)
+      }}
+    >
       {/* Square d20 button — floating bottom-right on desktop, trailing button
           of the bottom bar on mobile */}
       <PopoverTrigger
@@ -298,7 +351,15 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
             />
           </div>
 
-          <p className={CAPTION_CLASS}>Rola na hora, um d20 só</p>
+          {/* Uma condição em vigor lembra a desvantagem, mas não decide por
+              ninguém: se ela alcança *esta* rolagem é conversa de mesa. */}
+          {disadvantageFrom.length > 0 ? (
+            <p className={cn(CAPTION_CLASS, 'text-[var(--destructive)]')}>
+              ↓ Desvantagem por {disadvantageFrom.join(', ')}
+            </p>
+          ) : (
+            <p className={CAPTION_CLASS}>Rola na hora, um d20 só</p>
+          )}
 
           <div className="grid grid-cols-3 gap-1.5">
             {d20Modes.map(({ mode, label, color }) => (
@@ -313,6 +374,8 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
                   'font-heading bg-input border-input h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
                   'text-[11px] font-bold tracking-[0.04em] normal-case',
                   'hover:border-primary hover:bg-accent',
+                  mode === 'disadvantage' && disadvantageFrom.length > 0 &&
+                    'border-[var(--destructive)] bg-[color-mix(in_oklch,var(--destructive),transparent_88%)]',
                 )}
               >
                 <DieIcon sides={20} size={26} shapeColor="var(--primary)" numberColor="var(--primary-foreground)" />

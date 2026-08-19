@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase'
 import type { RollResult } from '@/lib/dice'
 import type {
+  ConditionPayload,
   EventPayload,
   EventVisibility,
   LightPayload,
   NotePayload,
+  PromptPayload,
   RollPayload,
   SessionEvent,
   SessionEventKind,
@@ -61,6 +63,8 @@ export function rollPayload(roll: RollResult, characterName?: string): RollPaylo
     ...(roll.isFumble && { isFumble: true }),
     ...(roll.rolls && { rolls: roll.rolls }),
     ...(roll.dc !== undefined && { dc: roll.dc, success: roll.success === true }),
+    ...(roll.rerollOf !== undefined && { rerollOf: roll.rerollOf }),
+    ...(roll.promptId && { promptId: roll.promptId }),
     ...(characterName && { characterName }),
   }
 }
@@ -74,8 +78,8 @@ export function rollPayload(roll: RollResult, characterName?: string): RollPaylo
  */
 export const FEED_FILTERS = [
   { id: 'all', label: 'Tudo', kinds: null },
-  { id: 'roll', label: 'Rolagens', kinds: ['roll'] },
-  { id: 'vitals', label: 'Vitalidade', kinds: ['hp', 'luck', 'xp'] },
+  { id: 'roll', label: 'Rolagens', kinds: ['roll', 'prompt'] },
+  { id: 'vitals', label: 'Vitalidade', kinds: ['hp', 'luck', 'xp', 'condition'] },
   { id: 'light', label: 'Luz', kinds: ['light'] },
   { id: 'table', label: 'Mesa', kinds: ['note', 'session'] },
 ] as const
@@ -89,6 +93,46 @@ export function matchesFilter(event: SessionEvent, filter: FeedFilterId): boolea
 }
 
 const SIGNED = (n: number) => (n > 0 ? `+${n}` : `${n}`)
+
+/** Um pedido é respondido pela rolagem que carrega o mesmo `promptId`. */
+function answerKey(promptId: string, characterId: string | null): string {
+  return `${promptId}::${characterId ?? ''}`
+}
+
+function answeredKeys(events: SessionEvent[]): Set<string> {
+  const keys = new Set<string>()
+  for (const event of events) {
+    if (event.kind !== 'roll') continue
+    const promptId = (event.payload as RollPayload).promptId
+    if (promptId) keys.add(answerKey(promptId, event.characterId))
+  }
+  return keys
+}
+
+/**
+ * Os pedidos do Mestre que ainda esperam por este personagem (§6.4).
+ *
+ * O pedido e a resposta são duas linhas do mesmo log — não há tabela de
+ * pendências, e não há estado para ficar dessincronizado: uma rolagem com o
+ * mesmo `promptId` fecha o pedido, e é só isso.
+ */
+export function pendingPrompts(events: SessionEvent[], characterId: string): SessionEvent[] {
+  const answered = answeredKeys(events)
+  return events
+    .filter(event => {
+      if (event.kind !== 'prompt' || event.characterId !== characterId) return false
+      return !answered.has(answerKey((event.payload as PromptPayload).promptId, characterId))
+    })
+    // Do mais antigo para o mais novo: responde-se na ordem em que foi pedido.
+    .sort((a, b) => a.at - b.at)
+}
+
+/** Se o pedido daquela linha do feed já foi respondido — o Mestre quer saber quem falta. */
+export function isPromptAnswered(events: SessionEvent[], prompt: SessionEvent): boolean {
+  const promptId = (prompt.payload as PromptPayload).promptId
+  if (!promptId) return true
+  return answeredKeys(events).has(answerKey(promptId, prompt.characterId))
+}
 
 /** O nome que encabeça a linha: o personagem quando há um, senão quem agiu. */
 export function eventActor(event: SessionEvent): string {
@@ -107,10 +151,29 @@ export function eventHeadline(event: SessionEvent): string {
     case 'roll': {
       const p = event.payload as RollPayload
       const verdict = p.dc !== undefined ? (p.success ? ' — sucesso' : ' — falha') : ''
-      return `${who} rolou ${p.label}: ${p.total}${verdict}`
+      const verb = p.rerollOf !== undefined ? 'rerrolou' : 'rolou'
+      const revealed = p.revealOf ? 'Revelado — ' : ''
+      return `${revealed}${who} ${verb} ${p.label}: ${p.total}${verdict}`
+    }
+    case 'prompt': {
+      const p = event.payload as PromptPayload
+      const test = p.attribute ? `${p.attribute} DC ${p.dc}` : `DC ${p.dc}`
+      return `O Mestre pediu ${test} de ${who}`
+    }
+    case 'condition': {
+      const p = event.payload as ConditionPayload
+      return p.action === 'applied'
+        ? `${who} está ${p.label}`
+        : `${who} não está mais ${p.label}`
     }
     case 'hp': {
       const p = event.payload as VitalsPayload
+      if (p.undo) return `${who}: ajuste de vida desfeito`
+      if (p.reason === 'rest') {
+        return p.delta > 0
+          ? `${who} descansou e recuperou ${p.delta} de vida`
+          : `${who} descansou sem recuperar nada`
+      }
       if (p.to <= 0) return `${who} caiu`
       return p.delta < 0
         ? `${who} sofreu ${Math.abs(p.delta)} de dano`
@@ -118,12 +181,14 @@ export function eventHeadline(event: SessionEvent): string {
     }
     case 'luck': {
       const p = event.payload as VitalsPayload
+      if (p.undo) return `${who}: ajuste de Fortuna desfeito`
       return p.delta < 0
         ? `${who} gastou ${Math.abs(p.delta)} de Fortuna`
         : `${who} recebeu ${p.delta} de Fortuna`
     }
     case 'xp': {
       const p = event.payload as VitalsPayload
+      if (p.undo) return `${who}: ajuste de XP desfeito`
       return p.delta < 0
         ? `${who} perdeu ${Math.abs(p.delta)} XP`
         : `${who} ganhou ${p.delta} XP`
@@ -159,11 +224,26 @@ export function eventDetail(event: SessionEvent): string | null {
       parts.push(dice)
       if (p.modifier) parts.push(SIGNED(p.modifier))
       if (p.dc !== undefined) parts.push(`DC ${p.dc}`)
+      // Os dois resultados lado a lado: a Fortuna comprou esta segunda chance.
+      if (p.rerollOf !== undefined) parts.push(`✦ antes ${p.rerollOf}`)
       return parts.join(' · ')
+    }
+    case 'prompt': {
+      const p = event.payload as PromptPayload
+      return p.secret ? 'só quem rolar e você' : 'a mesa vê o resultado'
+    }
+    case 'condition': {
+      const p = event.payload as ConditionPayload
+      const parts = [p.note, p.by === 'gm' ? 'pelo Mestre' : null].filter(Boolean)
+      return parts.length > 0 ? parts.join(' · ') : null
     }
     case 'hp': {
       const p = event.payload as VitalsPayload
-      return `PV ${p.from} → ${p.to}${p.by === 'gm' ? ' · pelo Mestre' : ''}`
+      const parts = [`PV ${p.from} → ${p.to}`]
+      if (p.reason === 'rest' && p.die) parts.push(`${p.die}: ${p.roll}`)
+      if (p.ration) parts.push('1 ração')
+      if (p.by === 'gm') parts.push('pelo Mestre')
+      return parts.join(' · ')
     }
     case 'luck':
     case 'xp': {
@@ -190,11 +270,16 @@ export function eventAccent(event: SessionEvent): string | null {
   }
   if (event.kind === 'hp') {
     const p = event.payload as VitalsPayload
+    if (p.undo) return 'var(--muted-foreground)'
     if (p.to <= 0) return 'var(--destructive)'
     return p.delta < 0 ? 'var(--destructive)' : 'var(--chart-2)'
   }
   if (event.kind === 'light') {
     return (event.payload as LightPayload).action === 'lit' ? 'var(--chart-1)' : 'var(--destructive)'
+  }
+  if (event.kind === 'prompt') return 'var(--primary)'
+  if (event.kind === 'condition') {
+    return (event.payload as ConditionPayload).action === 'applied' ? 'var(--primary)' : null
   }
   return null
 }
@@ -207,6 +292,8 @@ const KIND_GLYPH: Record<string, string> = {
   light: '🔥',
   note: '✎',
   session: '⚔',
+  prompt: '❔',
+  condition: '⚑',
 }
 
 export function eventGlyph(event: SessionEvent): string {

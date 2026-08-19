@@ -11,7 +11,8 @@ import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
 import type { SessionRow } from '@/types/session.types'
-import { recordEvent } from '@/lib/sessionEvents'
+import { recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { DiceRoller } from '@/components/sheet/DiceRoller'
 import type { RollResult } from '@/lib/dice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -114,6 +115,23 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     setSession(null)
     setSessionName('')
     setEnding(false)
+  }
+
+  /**
+   * A rolagem do Mestre fazia um toast local e morria ali (§6.7). Agora ela vai
+   * para o log como `gm_only` — só ele vê — e o feed oferece revelá-la à mesa
+   * quando ele decidir contar. Fora de sessão continua sendo só o toast.
+   */
+  function handleGmRoll(result: RollResult) {
+    setGmRolls(prev => [result, ...prev].slice(0, 10))
+    if (!session) return
+    void recordEvent({
+      sessionId: session.id,
+      actorName: gmName,
+      kind: 'roll',
+      payload: rollPayload(result),
+      visibility: 'gm_only',
+    })
   }
 
   async function copyCode() {
@@ -485,7 +503,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                         npc={selectedNpc}
                         onEdit={() => openEditor(selectedNpc)}
                         onDelete={() => deleteNPC(selectedNpc.id)}
-                        onRoll={r => setGmRolls(prev => [r, ...prev].slice(0, 10))}
+                        onRoll={handleGmRoll}
                       />
                     </div>
                   ) : (
@@ -508,6 +526,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
           onClose={closeCreator}
         />
       )}
+      {/* O Mestre também rola — e o que ele rola nasce escondido. */}
+      <DiceRoller onRoll={handleGmRoll} floating />
       <RollToasts rolls={gmRolls} />
     </AppShell>
   )
