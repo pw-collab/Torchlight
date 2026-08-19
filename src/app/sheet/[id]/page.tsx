@@ -25,13 +25,14 @@ export default async function SheetByIdPage({ params }: Props) {
 
   const viewerName = user.user_metadata?.full_name ?? 'Player'
   const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const isOwner = character.user_id === discordId
 
   // Characters forged before the wizard started writing `player_name` carry a
   // null one, and that null is what the roster card reads. The owner opening
   // their own sheet is the one moment the right name is at hand — a single
   // idempotent write per legacy character, and never for a visiting GM, whose
   // name is not the answer.
-  if (!character.player_name && character.user_id === discordId) {
+  if (!character.player_name && isOwner) {
     await supabase
       .from('characters')
       .update({ player_name: viewerName })
@@ -42,6 +43,7 @@ export default async function SheetByIdPage({ params }: Props) {
     <CharacterSheetClient
       characterId={character.id}
       playerName={character.player_name ?? viewerName}
+      isOwner={isOwner}
     />
   )
 }

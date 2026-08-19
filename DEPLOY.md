@@ -68,9 +68,14 @@ Salve e espere ~1 minuto. Teste de novo em `https://torchlight-nine.vercel.app/l
 ## 3.1 Migrações
 
 As migrações em `supabase/migrations/` são aplicadas à mão pelo SQL Editor do
-Supabase, em ordem. A `014_npcs_rls_fix.sql` **corrige uma falha de segurança**:
-até ela ser aplicada, qualquer usuário logado lê, edita e apaga as fichas de NPC
-de qualquer GM.
+Supabase, em ordem.
+
+- `014_npcs_rls_fix.sql` **corrige uma falha de segurança**: até ela ser
+  aplicada, qualquer usuário logado lê, edita e apaga as fichas de NPC de
+  qualquer GM.
+- `015_live_session.sql` cria a sessão viva — `session_members`,
+  `session_events`, o código de mesa e os RPCs de entrar/sair. Sem ela o painel
+  do Mestre continua vazio e o botão "Entrar na mesa" não acha função nenhuma.
 
 ## 4. Verificação
 

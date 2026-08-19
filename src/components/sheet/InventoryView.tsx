@@ -811,12 +811,14 @@ interface Props {
   onRoll?: (result: RollResult) => void
   meleeBonus: number
   rangedBonus: number
+  /** Acender e apagar são acontecimentos de mesa — a sessão quer saber. */
+  onLightChange?: (change: { action: 'lit' | 'out'; itemName: string; minutesLeft: number }) => void
 }
 
 export function InventoryView({
   inventory, str, dex,
   onUpdate, onAcChange, onMeleeRangedUpdate,
-  onRoll, meleeBonus, rangedBonus,
+  onRoll, meleeBonus, rangedBonus, onLightChange,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
@@ -1038,6 +1040,11 @@ export function InventoryView({
                         lightMinutesLeft: next.lightMinutesLeft,
                       })
                       if (!burning) sendToDiscord({ type: 'torch_lit', minutesLeft: remaining })
+                      onLightChange?.({
+                        action: burning ? 'out' : 'lit',
+                        itemName: item.name,
+                        minutesLeft: remaining,
+                      })
                     }}
                     disabled={!burning && remaining <= 0}
                     variant="outline" className={combatPill(burning ? 'amber' : 'dark')}>

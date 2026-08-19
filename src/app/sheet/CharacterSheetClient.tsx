@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import type { IconSvgElement } from '@hugeicons/react'
 import {
@@ -13,6 +13,9 @@ import { useCharacter } from '@/hooks/useCharacter'
 import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useTableSession } from '@/hooks/useTableSession'
+import { useSessionFeed } from '@/hooks/useSessionFeed'
+import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { FortuneTile } from '@/components/sheet/FortuneBar'
@@ -30,6 +33,10 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
+import { recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { TableBadge } from '@/components/sheet/TableBadge'
+import { TableToasts } from '@/components/sheet/TableToasts'
+import type { EventPayload, SessionEventKind, SessionPayload } from '@/types/session.types'
 import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
@@ -52,13 +59,70 @@ const TAB_KEYS = Object.keys(TAB_META) as Tab[]
 interface Props {
   characterId: string
   playerName: string
+  /**
+   * O Mestre também abre esta tela, e nela ele é visita: entrar e sair da mesa
+   * é do dono do personagem, e o RPC recusaria de qualquer forma.
+   */
+  isOwner: boolean
 }
 
-export function CharacterSheetClient({ characterId, playerName }: Props) {
+export function CharacterSheetClient({ characterId, playerName, isOwner }: Props) {
   const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   const isMobile = useIsMobile()
+
+  // ── A mesa ────────────────────────────────────────────────────────────────
+  // Enquanto o personagem está numa sessão, o que acontece aqui vira linha do
+  // log da mesa — e é isso que o painel do Mestre lê. Fora de uma mesa a ficha
+  // funciona exatamente como antes: `sessionId` nulo e nada é registrado.
+  const table = useTableSession(characterId)
+  const characterName = character?.name
+
+  // O feed continua ligado na mesa encerrada — o que aconteceu continua sendo
+  // legível —, mas a ficha para de escrever nela. São valores diferentes de
+  // propósito: desligar o feed apagaria justamente o evento de encerramento e
+  // a mesa "reabriria" sozinha no render seguinte.
+  const feedSessionId = table.session?.id ?? null
+  const { events: tableEvents } = useSessionFeed(feedSessionId, 60)
+
+  const tableClosed = useMemo(
+    () =>
+      tableEvents.some(
+        event => event.kind === 'session' && (event.payload as SessionPayload).action === 'end',
+      ),
+    [tableEvents],
+  )
+  const openSession = tableClosed ? null : table.session
+  const sessionId = openSession?.id ?? null
+
+  const presenceMe = useMemo(
+    () =>
+      characterName
+        ? { key: characterId, characterId, name: characterName, role: 'player' as const }
+        : null,
+    [characterId, characterName],
+  )
+  const { gmPresent } = useSessionPresence(sessionId, presenceMe)
+
+  // O feed carrega o histórico inteiro; só o que chegar depois de a ficha abrir
+  // merece um aviso na tela.
+  const [openedAt] = useState(() => Date.now())
+
+  /** Registra na mesa, quando há uma. Fora dela, silêncio — e nada quebra. */
+  const record = useCallback(
+    (kind: SessionEventKind, payload: EventPayload) => {
+      if (!sessionId) return
+      void recordEvent({
+        sessionId,
+        actorName: playerName,
+        characterId,
+        kind,
+        payload: { ...payload, characterName },
+      })
+    },
+    [sessionId, playerName, characterId, characterName],
+  )
 
   // Roll lifecycle: useDiceRoll drives the phase timeline (anticipation →
   // tumble → impact); history/toasts land exactly on the impact frame.
@@ -78,7 +142,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const handleRoll = useCallback((result: RollResult) => {
     startRoll(result)
     sendToDiscord({ type: 'roll', ...result })
-  }, [startRoll])
+    record('roll', rollPayload(result))
+  }, [startRoll, record])
 
   /**
    * Light burns on the wall clock now (see `lib/light`): the minutes on screen
@@ -92,6 +157,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
    */
   const updateRef = useRef(updateCharacter)
   useEffect(() => { updateRef.current = updateCharacter }, [updateCharacter])
+  const recordRef = useRef(record)
+  useEffect(() => { recordRef.current = record }, [record])
 
   const now = useNow()
   const inventory = character?.inventory
@@ -114,11 +181,26 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
     const settled = snuffBurnedOut(inventory, now)
     if (settled) updateRef.current({ equipment: settled as any } as Partial<CharacterRow>)
     sendToDiscord({ type: 'torch_out' })
+    for (const item of fresh) {
+      recordRef.current('light', { action: 'out', itemName: item.name, by: 'player' })
+    }
   }, [inventory, now])
+
+  const tableBadge = isOwner ? (
+    <TableBadge
+      session={openSession}
+      loading={table.loading}
+      busy={table.busy}
+      error={table.error}
+      onJoin={table.join}
+      onLeave={table.leave}
+      gmPresent={gmPresent}
+    />
+  ) : null
 
   if (loading) {
     return (
-      <AppShell backHref="/home" playerName={playerName}>
+      <AppShell backHref="/home" playerName={playerName} headerRight={tableBadge}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <span className="animate-flicker" style={{ fontFamily: 'var(--font-body)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
             ✦ O arquivo está sendo consultado...
@@ -130,7 +212,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   if (!character) {
     return (
-      <AppShell backHref="/home" playerName={playerName}>
+      <AppShell backHref="/home" playerName={playerName} headerRight={tableBadge}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, color: 'var(--destructive)' }}>
             Personagem não encontrado no arquivo.
@@ -144,12 +226,20 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
   const ancestry = getAncestry(character.ancestryId)
   const archetype = character.archetypeId ? getArchetype(character.archetypeId) : undefined
 
+  // O log guarda o antes e o depois, não só a diferença — é o que torna o
+  // "desfazer" possível mais adiante sem ninguém ter de adivinhar.
   async function handleHpChange(newHp: number) {
+    const from = character!.hpCurrent
+    if (newHp === from) return
     await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
+    record('hp', { from, to: newHp, delta: newHp - from, by: 'player' })
   }
 
   async function handleLuckChange(newValue: number) {
+    const from = character!.luckTokens
+    if (newValue === from) return
     await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>)
+    record('luck', { from, to: newValue, delta: newValue - from, by: 'player' })
   }
 
   async function handleInventoryUpdate(inventory: InventoryItem[]) {
@@ -261,6 +351,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onRoll={handleRoll}
           meleeBonus={character.meleeBonus}
           rangedBonus={character.rangedBonus}
+          onLightChange={change => record('light', { ...change, by: 'player' })}
         />
       ),
       secondary: (
@@ -300,6 +391,7 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
       backHref="/home"
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
+      headerRight={tableBadge}
     >
       {isMobile ? (
         <div style={{
@@ -381,6 +473,8 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
         onUnavailable={fallBackToTimed}
       />
       <RollToasts rolls={rollHistory} />
+      {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
+      <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
     </AppShell>
   )
