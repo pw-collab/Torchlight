@@ -52,9 +52,9 @@ export interface Character {
     traumaticEvents?: string
   }
   relations: {
-    family?: string[]
-    allies?: string[]
-    rivals?: string[]
+    family?: string
+    allies?: string
+    rivals?: string
     faction?: string
   }
   impulses: {
@@ -62,6 +62,34 @@ export interface Character {
     flaws?: string
     fears?: string
     objectives?: string
+  }
+}
+
+/**
+ * Relations as they come out of the DB. Família, Aliados and Rivais were
+ * rosters of names before they became free text, so old rows still hold
+ * arrays where new ones hold a string.
+ */
+export interface RawRelations {
+  family?: string | string[]
+  allies?: string | string[]
+  rivals?: string | string[]
+  faction?: string
+}
+
+/** Joins a legacy roster back into text, one name per line. */
+function relationText(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined
+  return Array.isArray(value) ? value.join('\n') : value
+}
+
+export function normalizeRelations(raw: RawRelations | undefined): Character['relations'] {
+  if (!raw) return {}
+  return {
+    family: relationText(raw.family),
+    allies: relationText(raw.allies),
+    rivals: relationText(raw.rivals),
+    faction: raw.faction,
   }
 }
 
@@ -150,7 +178,7 @@ export interface CharacterRow {
   faith?: string | null
   background_text?: string | null
   background_details?: Character['backgroundDetails']
-  relations?: Character['relations']
+  relations?: RawRelations
   impulses?: Character['impulses']
   player_name?: string
 }
@@ -201,7 +229,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     faith: row.faith ?? '',
     backgroundText: row.background_text ?? '',
     backgroundDetails: row.background_details ?? {},
-    relations: row.relations ?? {},
+    relations: normalizeRelations(row.relations),
     impulses: row.impulses ?? {},
   }
 }

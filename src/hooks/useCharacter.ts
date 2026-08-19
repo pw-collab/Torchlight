@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Character, CharacterRow } from '@/types/character.types'
-import { rowToCharacter } from '@/types/character.types'
+import { normalizeRelations, rowToCharacter } from '@/types/character.types'
 
 function patchCharacter(character: Character, updates: Partial<CharacterRow>): Character {
   return {
@@ -30,7 +30,7 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.domain_id !== undefined && { domainId: updates.domain_id ?? '' }),
     ...(updates.faith !== undefined && { faith: updates.faith ?? '' }),
     ...(updates.background_details !== undefined && { backgroundDetails: updates.background_details }),
-    ...(updates.relations !== undefined && { relations: updates.relations }),
+    ...(updates.relations !== undefined && { relations: normalizeRelations(updates.relations) }),
     ...(updates.impulses !== undefined && { impulses: updates.impulses }),
   }
 }

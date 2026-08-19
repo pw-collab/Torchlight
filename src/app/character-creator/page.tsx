@@ -98,7 +98,7 @@ export default function CharacterCreatorPage() {
     concept?: string; origin?: string; backstory?: string; traumaticEvents?: string
   }>({})
   const [relations, setRelations] = useState<{
-    family?: string[]; allies?: string[]; rivals?: string[]; faction?: string
+    family?: string; allies?: string; rivals?: string; faction?: string
   }>({})
   const [impulses, setImpulses] = useState<{
     secrets?: string; flaws?: string; fears?: string; objectives?: string
