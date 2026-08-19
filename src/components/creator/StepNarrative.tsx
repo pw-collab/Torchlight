@@ -1,8 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,9 +12,9 @@ interface BackgroundDetails {
 }
 
 interface Relations {
-  family?: string[]
-  allies?: string[]
-  rivals?: string[]
+  family?: string
+  allies?: string
+  rivals?: string
   faction?: string
 }
 
@@ -59,21 +56,6 @@ export function StepNarrative({
   onBackgroundChange, onRelationsChange, onImpulsesChange,
   name, onNameChange, hook,
 }: Props) {
-  const [relInput, setRelInput] = useState({ family: '', allies: '', rivals: '' })
-
-  function addRelItem(field: 'family' | 'allies' | 'rivals') {
-    const val = relInput[field].trim()
-    if (!val) return
-    const prev = relations[field] ?? []
-    if (prev.includes(val)) return
-    onRelationsChange({ ...relations, [field]: [...prev, val] })
-    setRelInput(r => ({ ...r, [field]: '' }))
-  }
-
-  function removeRelItem(field: 'family' | 'allies' | 'rivals', val: string) {
-    onRelationsChange({ ...relations, [field]: (relations[field] ?? []).filter(x => x !== val) })
-  }
-
   return (
     <div className="flex flex-col gap-7">
 
@@ -140,55 +122,25 @@ export function StepNarrative({
         <FieldGroup className="mt-2.5 flex flex-col gap-3">
           {(
             [
-              { key: 'family', label: 'Família' },
-              { key: 'allies', label: 'Aliados' },
-              { key: 'rivals', label: 'Rivais' },
-            ] as { key: 'family' | 'allies' | 'rivals'; label: string }[]
-          ).map(({ key, label }) => (
-            <Field key={key} className="gap-0">
+              { key: 'family', label: 'Família', placeholder: 'Quem o criou, quem o renegou — um por linha.' },
+              { key: 'allies', label: 'Aliados', placeholder: 'Quem atende quando ele chama, e a que preço.' },
+              { key: 'rivals', label: 'Rivais',  placeholder: 'Quem o procura, e o que quer dele.' },
+            ] as { key: 'family' | 'allies' | 'rivals'; label: string; placeholder: string }[]
+          ).map(({ key, label, placeholder }) => (
+            <Field key={key} className="gap-1">
               <FieldLabel htmlFor={`rel-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
-
-              <div className="my-[5px] flex flex-wrap gap-[5px]">
-                {(relations[key] ?? []).map(v => (
-                  <Badge
-                    key={v}
-                    variant="outline"
-                    render={
-                      <button
-                        type="button"
-                        onClick={() => removeRelItem(key, v)}
-                        aria-label={`Remover ${v}`}
-                      />
-                    }
-                    className="cursor-pointer rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--foreground)] transition-all duration-150"
-                  >
-                    {v} ×
-                  </Badge>
-                ))}
-              </div>
-
-              <div className="flex gap-1.5">
-                <Input
-                  id={`rel-${key}`}
-                  type="text"
-                  value={relInput[key]}
-                  onChange={e => setRelInput(r => ({ ...r, [key]: e.target.value }))}
-                  onKeyDown={e => e.key === 'Enter' && addRelItem(key)}
-                  placeholder={`Nome de ${label.toLowerCase()}...`}
-                  className={INPUT_CLASS}
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => addRelItem(key)}
-                  className="h-auto rounded-sm border-[var(--border)] bg-[var(--muted)] px-3 py-[7px] text-[8px] tracking-[0.1em] text-[var(--foreground)]"
-                >
-                  + Add
-                </Button>
-              </div>
+              <Textarea
+                id={`rel-${key}`}
+                defaultValue={relations[key] ?? ''}
+                onBlur={e => onRelationsChange({ ...relations, [key]: e.target.value })}
+                placeholder={placeholder}
+                rows={2}
+                className={TEXTAREA_CLASS}
+              />
             </Field>
           ))}
 
-          <Field className="gap-0">
+          <Field className="gap-1">
             <FieldLabel htmlFor="rel-faction" className={FIELD_LABEL_CLASS}>Facção</FieldLabel>
             <Input
               id="rel-faction"
@@ -196,7 +148,7 @@ export function StepNarrative({
               defaultValue={relations.faction ?? ''}
               onBlur={e => onRelationsChange({ ...relations, faction: e.target.value })}
               placeholder="Guilda, culto, ordem ou grupo..."
-              className={`${INPUT_CLASS} mt-[5px]`}
+              className={INPUT_CLASS}
             />
           </Field>
         </FieldGroup>

@@ -199,34 +199,6 @@ function AddRow({
   )
 }
 
-/** A named person on a roster — one per line, so long names stay readable. */
-function EntryList({
-  items, onRemove, emptyLabel, accent,
-}: {
-  items: string[]
-  onRemove: (item: string) => void
-  emptyLabel: string
-  accent: string
-}) {
-  if (!items.length) {
-    return <p className="text-muted-foreground py-1 text-[11px] leading-snug italic">{emptyLabel}</p>
-  }
-  return (
-    <ul className="flex flex-col">
-      {items.map((item, i) => (
-        <li
-          key={item}
-          className={cn('flex items-center gap-1.5 py-1.5', i > 0 && 'border-border border-t')}
-        >
-          <span aria-hidden className="shrink-0 text-[8px] leading-none" style={{ color: accent }}>✦</span>
-          <span className="text-foreground min-w-0 flex-1 text-[12.5px] leading-snug break-words">{item}</span>
-          <RemoveBtn onClick={() => onRemove(item)} label={`Remover ${item}`} />
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -296,32 +268,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
   }
 
   // ── Relações ──────────────────────────────────────────────────────────────
-  const [family, setFamily] = useState<string[]>(character.relations.family ?? [])
-  const [allies, setAllies] = useState<string[]>(character.relations.allies ?? [])
-  const [rivals, setRivals] = useState<string[]>(character.relations.rivals ?? [])
+  const [family, setFamily] = useState(character.relations.family ?? '')
+  const [allies, setAllies] = useState(character.relations.allies ?? '')
+  const [rivals, setRivals] = useState(character.relations.rivals ?? '')
   const [faction, setFaction] = useState(character.relations.faction ?? '')
-  const [famInput, setFamInput] = useState('')
-  const [allyInput, setAllyInput] = useState('')
-  const [rivalInput, setRivalInput] = useState('')
 
-  function saveRels(f: string[], a: string[], r: string[], fa: string) {
+  function saveRels(f: string, a: string, r: string, fa: string) {
     onUpdate({ relations: { family: f, allies: a, rivals: r, faction: fa } })
-  }
-
-  function addFamily() {
-    const t = famInput.trim(); if (!t) return
-    const next = [...family, t]; setFamily(next); setFamInput('')
-    saveRels(next, allies, rivals, faction)
-  }
-  function addAlly() {
-    const t = allyInput.trim(); if (!t) return
-    const next = [...allies, t]; setAllies(next); setAllyInput('')
-    saveRels(family, next, rivals, faction)
-  }
-  function addRival() {
-    const t = rivalInput.trim(); if (!t) return
-    const next = [...rivals, t]; setRivals(next); setRivalInput('')
-    saveRels(family, allies, next, faction)
   }
 
   // ── Impulsos ──────────────────────────────────────────────────────────────
@@ -555,54 +508,59 @@ export function BackstoryView({ character, onUpdate }: Props) {
         <SectionHeading className="mb-4">Relações e Conexões</SectionHeading>
 
         <div className="grid-6 grid-6--tight">
-          {/* Three rosters side by side, each with the accent its side of the
-              table earns: kin warm, allies cool, rivals red. */}
+          {/* Three open fields side by side, each with the accent its side of
+              the table earns: kin warm, allies cool, rivals red. A name alone
+              says little, so these take prose: who they are and what binds
+              them, one per line. */}
           <SubPanel
             icon={UserGroupIcon}
             title="Família"
-            count={family.length}
             accent="var(--chart-1)"
+            hint={family ? undefined : 'Quem o criou, quem o renegou, quem ainda espera notícias.'}
             className="col-span-2 col-sm-full"
           >
-            <EntryList
-              items={family}
-              accent="var(--chart-1)"
-              emptyLabel="Ninguém registrado."
-              onRemove={item => { const n = family.filter(x => x !== item); setFamily(n); saveRels(n, allies, rivals, faction) }}
+            <AutoTextarea
+              value={family}
+              onChange={setFamily}
+              onBlur={v => saveRels(v, allies, rivals, faction)}
+              ariaLabel="Família"
+              placeholder="Ex.: Mira, irmã mais velha — não fala com ele desde o enterro."
+              minRows={3}
             />
-            <AddRow value={famInput} onChange={setFamInput} onAdd={addFamily} placeholder="Nome do familiar…" />
           </SubPanel>
 
           <SubPanel
             icon={HandshakeIcon}
             title="Aliados"
-            count={allies.length}
             accent="var(--chart-2)"
+            hint={allies ? undefined : 'Quem atende quando ele chama, e a que preço.'}
             className="col-span-2 col-sm-full"
           >
-            <EntryList
-              items={allies}
-              accent="var(--chart-2)"
-              emptyLabel="Ninguém registrado."
-              onRemove={item => { const n = allies.filter(x => x !== item); setAllies(n); saveRels(family, n, rivals, faction) }}
+            <AutoTextarea
+              value={allies}
+              onChange={setAllies}
+              onBlur={v => saveRels(family, v, rivals, faction)}
+              ariaLabel="Aliados"
+              placeholder="Ex.: Padre Anselmo — deve-lhe um silêncio."
+              minRows={3}
             />
-            <AddRow value={allyInput} onChange={setAllyInput} onAdd={addAlly} placeholder="Nome do aliado…" />
           </SubPanel>
 
           <SubPanel
             icon={Sword03Icon}
             title="Rivais"
-            count={rivals.length}
             accent="var(--destructive)"
+            hint={rivals ? undefined : 'Quem o procura, e o que quer dele.'}
             className="col-span-2 col-sm-full"
           >
-            <EntryList
-              items={rivals}
-              accent="var(--destructive)"
-              emptyLabel="Ninguém registrado."
-              onRemove={item => { const n = rivals.filter(x => x !== item); setRivals(n); saveRels(family, allies, n, faction) }}
+            <AutoTextarea
+              value={rivals}
+              onChange={setRivals}
+              onBlur={v => saveRels(family, allies, v, faction)}
+              ariaLabel="Rivais"
+              placeholder="Ex.: Barão Krev — cobra uma dívida que ele não contraiu."
+              minRows={3}
             />
-            <AddRow value={rivalInput} onChange={setRivalInput} onAdd={addRival} placeholder="Nome do rival…" />
           </SubPanel>
 
           <SubPanel

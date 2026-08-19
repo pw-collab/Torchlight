@@ -28,7 +28,7 @@ interface Props {
   knowledgeAreas: KnowledgeArea[]
   spells: string[]
   backgroundDetails: { concept?: string; origin?: string; backstory?: string; traumaticEvents?: string }
-  relations: { family?: string[]; allies?: string[]; rivals?: string[]; faction?: string }
+  relations: { family?: string; allies?: string; rivals?: string; faction?: string }
   impulses: { secrets?: string; flaws?: string; fears?: string; objectives?: string }
   /** Creation extras — absent while editing an existing sheet. */
   archetypeId?: string
