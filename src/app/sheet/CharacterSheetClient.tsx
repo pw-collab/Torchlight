@@ -10,6 +10,7 @@ import {
   UserIcon,
 } from '@hugeicons/core-free-icons'
 import { useCharacter } from '@/hooks/useCharacter'
+import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AppShell } from '@/components/layout/AppShell'
@@ -28,6 +29,7 @@ import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
+import { minutesLeft, snuffBurnedOut } from '@/lib/light'
 import type { RollResult } from '@/lib/dice'
 import type { CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
@@ -75,33 +77,44 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
 
   const handleRoll = useCallback((result: RollResult) => {
     startRoll(result)
-    sendToDiscord({ type: 'roll', player: playerName, ...result })
-  }, [playerName, startRoll])
+    sendToDiscord({ type: 'roll', ...result })
+  }, [startRoll])
 
-  // Light-source burn-down
-  const inventoryRef = useRef<InventoryItem[]>([])
+  /**
+   * Light burns on the wall clock now (see `lib/light`): the minutes on screen
+   * are derived from when the source was lit, so nothing has to be running for
+   * time to pass — the old 60s interval rewrote the whole equipment JSONB every
+   * minute and stopped the moment the tab did.
+   *
+   * The one write left is settling the record when a source reaches zero, which
+   * also announces the dark. It's guarded by id because the tick that notices
+   * the burn-out can fire again before the write comes back.
+   */
   const updateRef = useRef(updateCharacter)
-  const playerRef = useRef(playerName)
-  useEffect(() => { inventoryRef.current = character?.inventory ?? [] }, [character?.inventory])
   useEffect(() => { updateRef.current = updateCharacter }, [updateCharacter])
-  useEffect(() => { playerRef.current = playerName }, [playerName])
+
+  const now = useNow()
+  const inventory = character?.inventory
+  const announcedRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
-    const id = setInterval(() => {
-      const inv = inventoryRef.current
-      if (!inv.some(i => i.equipped && i.isLight && i.isLit && (i.lightMinutesLeft ?? 0) > 0)) return
-      let burnedOut = false
-      const updated = inv.map(item => {
-        if (!item.equipped || !item.isLight || !item.isLit) return item
-        const mins = (item.lightMinutesLeft ?? 0) - 1
-        if (mins <= 0) { burnedOut = true; return { ...item, isLit: false, lightMinutesLeft: 0 } }
-        return { ...item, lightMinutesLeft: mins }
-      })
-      updateRef.current({ equipment: updated as any } as Partial<CharacterRow>)
-      if (burnedOut) sendToDiscord({ type: 'torch_out', player: playerRef.current })
-    }, 60_000)
-    return () => clearInterval(id)
-  }, [])
+    if (!inventory) return
+
+    // A source that is burning again has news to give when it next runs out.
+    for (const item of inventory) {
+      if (minutesLeft(item, now) > 0) announcedRef.current.delete(item.id)
+    }
+
+    const fresh = inventory.filter(
+      i => i.isLight && i.isLit && minutesLeft(i, now) <= 0 && !announcedRef.current.has(i.id),
+    )
+    if (fresh.length === 0) return
+    for (const item of fresh) announcedRef.current.add(item.id)
+
+    const settled = snuffBurnedOut(inventory, now)
+    if (settled) updateRef.current({ equipment: settled as any } as Partial<CharacterRow>)
+    sendToDiscord({ type: 'torch_out' })
+  }, [inventory, now])
 
   if (loading) {
     return (
@@ -248,7 +261,6 @@ export function CharacterSheetClient({ characterId, playerName }: Props) {
           onRoll={handleRoll}
           meleeBonus={character.meleeBonus}
           rangedBonus={character.rangedBonus}
-          playerName={playerName}
         />
       ),
       secondary: (

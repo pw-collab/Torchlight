@@ -31,6 +31,27 @@ export interface RollResult {
    * read `dice` for anything that has to be right per die.
    */
   sides?: number
+  /** Target number the roll was made against, when one was set. */
+  dc?: number
+  /** Whether the roll beat its DC. Undefined when no DC was set. */
+  success?: boolean
+}
+
+/**
+ * Stamps a target number onto a settled roll, so the toast, the Discord relay
+ * and (Fase 1) the table feed all report the same verdict instead of leaving
+ * the player to compare in their head.
+ *
+ * A natural 20 always succeeds and a natural 1 always fails, whatever the DC —
+ * that is the d20 rule, and it is also the only reading that matches the
+ * crit/fumble the toast is already shouting about.
+ */
+export function withDc(result: RollResult, dc?: number): RollResult {
+  // A cleared DC field reads as 0, and "SUCESSO vs DC 0" is worse than saying
+  // nothing — no target number means no verdict.
+  if (dc == null || !Number.isFinite(dc) || dc <= 0) return result
+  const success = result.isCritical ? true : result.isFumble ? false : result.total >= dc
+  return { ...result, dc, success }
 }
 
 export function modifier(stat: number): number {

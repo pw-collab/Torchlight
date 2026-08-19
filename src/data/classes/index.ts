@@ -63,7 +63,7 @@ export function getTalentForRoll(classId: string, roll: number): TalentTableEntr
  * Compute all active passive modifiers granted by a class's techniques.
  *
  * Returns an array of { applyTo, value } pairs that other components can
- * consume (e.g. SlotTracker adding Hauler's CON mod to gear capacity).
+ * consume (e.g. adding Hauler's CON mod to gear capacity).
  *
  * @param classId - The character's class id
  * @param stats   - The character's current ability scores

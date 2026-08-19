@@ -8,6 +8,9 @@ import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import { rollDie, rollFormula, modifier } from '@/lib/dice'
 import { sendToDiscord } from '@/lib/discord'
+import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
+import { maxSlots, usedSlots } from '@/lib/slots'
+import { useNow } from '@/hooks/useNow'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, type buttonVariants } from '@/components/ui/button'
@@ -178,8 +181,11 @@ function TypeIcon({ src, fallback, size = 44, style }: { src: string; fallback: 
 /** Resolves the correct icon (SVG, with emoji fallback) for an inventory item's type/light state. */
 function renderTypeIcon(item: InventoryItem, size = 44) {
   if (item.isLight) {
-    const fallback = item.isLit ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch']
-    const lightStyle: React.CSSProperties = item.isLit
+    // Burning, not merely flagged lit: a source read after its minutes ran out
+    // is dark, whether or not the record has caught up yet.
+    const burning = Boolean(item.isLit) && minutesLeft(item) > 0
+    const fallback = burning ? '🔥' : LIGHT_ICON[item.lightKind ?? 'torch']
+    const lightStyle: React.CSSProperties = burning
       ? { filter: 'drop-shadow(0 0 6px color-mix(in oklch, var(--chart-1), transparent 35%)) saturate(1.3)' }
       : { opacity: 0.5, filter: 'saturate(0.4)' }
     return <TypeIcon src={LIGHT_ICON_SRC} fallback={fallback} size={size} style={lightStyle} />
@@ -571,7 +577,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
           item.quantity > 1 ? `×${item.quantity}` : null,
           item.damageDie || null,
           item.acBonus ? `CA ${item.acBonus}` : null,
-          item.isLight && item.lightMinutesLeft != null ? `${item.lightMinutesLeft}min` : null,
+          item.isLight ? `${minutesLeft(item)}min` : null,
           item.cost || null,
         ].filter(Boolean).join(' · ')}
       </div>
@@ -805,13 +811,12 @@ interface Props {
   onRoll?: (result: RollResult) => void
   meleeBonus: number
   rangedBonus: number
-  playerName: string
 }
 
 export function InventoryView({
   inventory, str, dex,
   onUpdate, onAcChange, onMeleeRangedUpdate,
-  onRoll, meleeBonus, rangedBonus, playerName,
+  onRoll, meleeBonus, rangedBonus,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
@@ -828,10 +833,17 @@ export function InventoryView({
     ? inventory.find(i => i.id === editingId) ?? null
     : null
 
-  // NOTE: light-source burn-down now lives in CharacterSheetClient so it
-  // keeps ticking on every tab, not only while the inventory is open.
+  // NOTE: nothing counts light down any more — the minutes are derived from
+  // when the source was lit (see lib/light), so they keep running with the tab
+  // closed. CharacterSheetClient only settles the record once it hits zero.
 
-  const usedSlots = inventory.reduce((acc, i) => acc + i.slots * i.quantity, 0)
+  // Carga is defined once, in lib/slots — the sheet used to keep its own copy
+  // (`maxSlots = str`) and disagree with the creation wizard.
+  const carried = usedSlots(inventory)
+  const capacity = maxSlots(str)
+
+  // The wall clock drives the burn-down; this only re-renders it.
+  const now = useNow()
   const equipped  = (slot: EquipSlot) => inventory.find(i => i.equipped && i.slot === slot)
 
   function updateItem(id: string, patch: Partial<InventoryItem>) {
@@ -866,7 +878,7 @@ export function InventoryView({
     const next = inventory.map(i => {
       if (i.id === id) return { ...i, equipped: true, slot }
       // free the target slot if another item occupies it
-      if (i.equipped && i.slot === slot) return { ...i, equipped: false, slot: undefined as any, isLit: false }
+      if (i.equipped && i.slot === slot) return snuff({ ...i, equipped: false, slot: undefined as any })
       return i
     })
     onUpdate(next)
@@ -877,7 +889,7 @@ export function InventoryView({
 
   function unequipItem(id: string) {
     const next = inventory.map(i =>
-      i.id === id ? { ...i, equipped: false, slot: undefined as any, isLit: false } : i
+      i.id === id ? snuff({ ...i, equipped: false, slot: undefined as any }) : i
     )
     onUpdate(next)
     onAcChange(calculateAC(next, dex))
@@ -928,15 +940,14 @@ export function InventoryView({
   const calcAC = calculateAC(inventory, dex)
 
   // Carga (weight capacity) — shown inline in the Inventário header
-  const maxSlots = str
-  const isEncumbered = usedSlots > maxSlots
+  const isEncumbered = carried > capacity
 
   // Grid cells: existing items, then one "+" quick-add cell per slot of
   // remaining carga capacity, then diagonal filler padding the grid out to
   // a full row of GRID_COLS. 4 columns — the Mochila grid shares the row
   // with the Equipamento column.
   const GRID_COLS = 4
-  const availableCount = Math.max(0, maxSlots - usedSlots)
+  const availableCount = Math.max(0, capacity - carried)
   const preFillerCount = inventory.length + availableCount
   const totalCells = Math.ceil(preFillerCount / GRID_COLS) * GRID_COLS
   const emptyCellCount = totalCells - preFillerCount
@@ -1010,30 +1021,40 @@ export function InventoryView({
               </div>
             )}
 
-            {item.isLight && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Button
-                  onClick={() => {
-                    const igniting = !item.isLit
-                    updateItem(item.id, { isLit: igniting })
-                    if (igniting) sendToDiscord({ type: 'torch_lit', player: playerName, minutesLeft: item.lightMinutesLeft ?? item.lightMaxMinutes ?? 60 })
-                  }}
-                  variant="outline" className={combatPill(item.isLit ? 'amber' : 'dark')}>
-                  {item.isLit ? 'Apagar' : 'Acender'}
-                </Button>
-                {item.lightMinutesLeft != null && (
+            {item.isLight && (() => {
+              // One write to light, one to snuff — the minutes in between come
+              // off the wall clock, so they keep running with the tab closed.
+              const remaining = minutesLeft(item, now)
+              const burning = Boolean(item.isLit) && remaining > 0
+
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Button
+                    onClick={() => {
+                      const next = burning ? extinguishSource(item) : lightSource(item)
+                      updateItem(item.id, {
+                        isLit: next.isLit,
+                        litAt: next.litAt,
+                        lightMinutesLeft: next.lightMinutesLeft,
+                      })
+                      if (!burning) sendToDiscord({ type: 'torch_lit', minutesLeft: remaining })
+                    }}
+                    disabled={!burning && remaining <= 0}
+                    variant="outline" className={combatPill(burning ? 'amber' : 'dark')}>
+                    {burning ? 'Apagar' : remaining > 0 ? 'Acender' : 'Consumida'}
+                  </Button>
                   <span style={{
                     fontFamily: 'var(--font-mono)',
                     fontSize: 8,
-                    color: item.isLit
-                      ? item.lightMinutesLeft <= 10 ? 'var(--destructive)' : 'var(--chart-1)'
+                    color: burning
+                      ? remaining <= 10 ? 'var(--destructive)' : 'var(--chart-1)'
                       : 'var(--muted-foreground)',
                   }}>
-                    {item.lightMinutesLeft}min
+                    {remaining}min
                   </span>
-                )}
-              </div>
-            )}
+                </div>
+              )
+            })()}
 
             <Button
               variant="link"
@@ -1074,7 +1095,7 @@ export function InventoryView({
               <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 24, color: 'var(--muted-foreground)', lineHeight: 1, whiteSpace: 'nowrap' }}>Inventário</span>
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, marginLeft: 4 }}>
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 16, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
-                  {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
+                  {carried}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{capacity}</span>
                 </span>
                 <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                   {isEncumbered ? 'Sobrecarregado' : 'Carga'}
@@ -1127,7 +1148,7 @@ export function InventoryView({
               <SectionSubheading
                 trailing={
                   <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0 }}>
-                    {usedSlots}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{maxSlots}</span>
+                    {carried}<span style={{ color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)' }}>/{capacity}</span>
                   </span>
                 }
               >

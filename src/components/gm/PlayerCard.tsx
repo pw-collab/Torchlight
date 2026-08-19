@@ -1,6 +1,8 @@
 'use client'
 
 import type { Character } from '@/types/character.types'
+import { brightest, minutesLeft } from '@/lib/light'
+import { useNow } from '@/hooks/useNow'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
@@ -17,10 +19,14 @@ export function PlayerCard({ character, onClick, expanded }: Props) {
   const hpBarColor = hpPercent > 50 ? 'var(--chart-2)' : hpPercent > 25 ? 'var(--primary)' : 'var(--destructive)'
   const isDead = character.hpCurrent <= 0
 
-  const torchActive = character.torchEndAt !== null
-  const torchMins = torchActive
-    ? Math.max(0, Math.ceil((new Date(character.torchEndAt!).getTime() - Date.now()) / 60000))
-    : null
+  // The torch column read `torch_end_at`, which nothing has written since light
+  // became a per-item thing — every player showed 🌑, always. It now reads the
+  // same wall clock the player's own sheet does, so the GM sees the truth with
+  // no extra bookkeeping from anyone.
+  const now = useNow()
+  const light = brightest(character.inventory, now)
+  const torchMins = light ? minutesLeft(light, now) : null
+  const torchActive = torchMins !== null
   const torchLow = torchMins !== null && torchMins <= 10
 
   return (

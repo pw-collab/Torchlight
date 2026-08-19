@@ -19,8 +19,14 @@ export interface InventoryItem {
   isLight?: boolean
   lightKind?: LightKind
   lightMaxMinutes?: number
+  /**
+   * Minutes banked on the source. While it burns this is the reading taken at
+   * `litAt`, not the reading now — `lib/light` subtracts the elapsed time.
+   */
   lightMinutesLeft?: number
   isLit?: boolean
+  /** When the source was last lit. Null while it is out. */
+  litAt?: string | null
   cost?: string
   range?: string
   content?: string

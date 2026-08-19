@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { rollDie, rollPool } from '@/lib/dice'
+import { rollDie, rollPool, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieIcon } from '@/components/dice/DieIcon'
 import { DICE_SPRING, DICE_TAP } from '@/lib/diceMotion'
@@ -91,7 +91,9 @@ export function DiceRoller({ onRoll, floating = false }: Props) {
     result.isCritical = result.result === 20
     result.isFumble = result.result === 1
     setOpen(false)
-    onRoll?.(result)
+    // The target number rides along with the result, so the toast and the
+    // Discord relay say SUCESSO/FALHA instead of leaving the player to compare.
+    onRoll?.(withDc(result, dc))
   }
 
   const d20Modes = [

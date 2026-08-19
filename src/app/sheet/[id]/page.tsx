@@ -17,16 +17,31 @@ export default async function SheetByIdPage({ params }: Props) {
   // GMs see all (characters_select_gm_all). No app-layer user_id filter needed.
   const { data: character } = await supabase
     .from('characters')
-    .select('id, player_name')
+    .select('id, user_id, player_name')
     .eq('id', id)
     .single()
 
   if (!character) notFound()
 
+  const viewerName = user.user_metadata?.full_name ?? 'Player'
+  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+
+  // Characters forged before the wizard started writing `player_name` carry a
+  // null one, and that null is what the roster card reads. The owner opening
+  // their own sheet is the one moment the right name is at hand — a single
+  // idempotent write per legacy character, and never for a visiting GM, whose
+  // name is not the answer.
+  if (!character.player_name && character.user_id === discordId) {
+    await supabase
+      .from('characters')
+      .update({ player_name: viewerName })
+      .eq('id', character.id)
+  }
+
   return (
     <CharacterSheetClient
       characterId={character.id}
-      playerName={character.player_name ?? user.user_metadata?.full_name ?? 'Player'}
+      playerName={character.player_name ?? viewerName}
     />
   )
 }

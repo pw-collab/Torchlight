@@ -7,7 +7,7 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { MagicWand01Icon } from '@hugeicons/core-free-icons'
 import { getSpell, getSpellsForClass } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
-import { rollDie, modifier } from '@/lib/dice'
+import { rollDie, modifier, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
 import { FACE_CLEARANCE, FACE_FADE, POPOVER_BODY } from '@/components/shared/GlyphCard'
@@ -232,11 +232,14 @@ function SpellCard({
     if (!spell || !onRoll || !stats) return
     const castMod  = modifier(stats[castingAttr] ?? 10) + spellcastingBonus
     const spellDC  = 10 + spell.tier
-    const result   = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
-    result.isCritical = result.result === 20
-    result.isFumble   = result.result === 1
+    const rolled   = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
+    rolled.isCritical = rolled.result === 20
+    rolled.isFumble   = rolled.result === 1
+    const result   = withDc(rolled, spellDC)
     onRoll(result)
-    if (result.total < spellDC) onFail()
+    // The spell is lost on the same verdict the toast reports — a natural 20
+    // keeps it even when the total falls short.
+    if (!result.success) onFail()
   }
 
   const popover = open

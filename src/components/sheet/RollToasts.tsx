@@ -147,6 +147,39 @@ export function RollToasts({ rolls }: Props) {
               </span>
             </div>
 
+            {/* Verdict — the DC the roll was made against, already compared.
+                The field existed on the roller for months without anything
+                reading it; the player was left doing the arithmetic. */}
+            {roll.dc !== undefined && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 6,
+                marginTop: 6,
+                paddingTop: 6,
+                borderTop: '1px solid var(--border)',
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: roll.success ? 'var(--chart-2)' : 'var(--destructive)',
+                }}>
+                  {roll.success ? '✔ Sucesso' : '✖ Falha'}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9,
+                  color: 'var(--muted-foreground)',
+                }}>
+                  vs DC {roll.dc}
+                </span>
+              </div>
+            )}
+
             {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
                 <span style={{
