@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import type { Character } from '@/types/character.types'
+import type { ActiveCondition, Character } from '@/types/character.types'
 import { brightest, minutesLeft } from '@/lib/light'
 import { useNow } from '@/hooks/useNow'
+import { ConditionChips } from '@/components/sheet/ConditionChips'
+import { ConditionPicker } from './ConditionPicker'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +20,8 @@ export type GmAction =
   | { type: 'luck'; delta: number }
   | { type: 'xp'; delta: number }
   | { type: 'snuff' }
+  /** Aplica se não estiver ativa, remove se estiver — o mesmo gesto nos dois sentidos. */
+  | { type: 'condition'; condition: ActiveCondition }
 
 interface Props {
   character: Character
@@ -152,6 +156,14 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
           </span>
         </div>
 
+        {character.conditions.length > 0 && (
+          <ConditionChips
+            compact
+            conditions={character.conditions}
+            onRemove={condition => onAct({ type: 'condition', condition })}
+          />
+        )}
+
         {/* ── O painel de controle ──────────────────────────────────────── */}
         <div className="mt-1 flex flex-col gap-1.5 border-t border-[var(--border)] pt-2">
           <div className="flex items-center gap-1.5">
@@ -226,14 +238,30 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
             >
               🌑
             </Button>
+            <ConditionPicker
+              active={character.conditions}
+              disabled={busy}
+              onToggle={condition => onAct({ type: 'condition', condition })}
+            />
           </div>
 
-          <Link
-            href={`/sheet/${character.id}`}
-            className="font-heading text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 transition-colors hover:text-[var(--foreground)]"
-          >
-            Abrir ficha
-          </Link>
+          {/* A permissão de escrita em qualquer ficha existe desde a migração
+              008; o que faltava era a porta. Corrigir o que o jogador errou no
+              meio da cena não deveria depender de pedir a ele (§6.12). */}
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/sheet/${character.id}`}
+              className="font-heading text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 transition-colors hover:text-[var(--foreground)]"
+            >
+              Abrir ficha
+            </Link>
+            <Link
+              href={`/sheet/${character.id}/edit`}
+              className="font-heading text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 transition-colors hover:text-[var(--foreground)]"
+            >
+              Editar
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

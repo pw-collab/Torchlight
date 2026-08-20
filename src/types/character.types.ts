@@ -10,6 +10,19 @@ export interface KnowledgeArea {
   bonus: number
 }
 
+/**
+ * Uma condição em vigor. `id` vem do catálogo (`src/data/conditions`) quando é
+ * uma condição conhecida, ou é gerado quando o Mestre escreve uma à mão — a
+ * lista do livro não fecha o que pode acontecer numa mesa.
+ */
+export interface ActiveCondition {
+  id: string
+  label: string
+  note?: string
+  appliedBy?: string
+  appliedAt?: string
+}
+
 export interface Character {
   id: string
   name: string
@@ -42,6 +55,8 @@ export interface Character {
   spellcastingBonus: number
   castingAttr: string
   talents: Talent[]
+  /** O que está em vigor sobre o personagem agora — ver §5.6. */
+  conditions: ActiveCondition[]
   /** One record per level whose reward has been rolled — see the "Progresso" track. */
   levelProgress: LevelEntry[]
   techniqueStates: TechniqueState[]
@@ -176,6 +191,7 @@ export interface CharacterRow {
   spellcasting_bonus?: number
   casting_attr?: string
   talents?: Talent[]
+  conditions?: ActiveCondition[]
   level_progress?: LevelEntry[]
   technique_states?: TechniqueState[]
   languages?: string[]
@@ -227,6 +243,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     spellcastingBonus: row.spellcasting_bonus ?? 0,
     castingAttr: row.casting_attr ?? 'int',
     talents: row.talents ?? [],
+    conditions: Array.isArray(row.conditions) ? row.conditions : [],
     levelProgress: Array.isArray(row.level_progress) ? row.level_progress : [],
     techniqueStates: row.technique_states ?? [],
     languages: row.languages ?? [],

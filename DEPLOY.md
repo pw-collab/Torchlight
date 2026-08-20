@@ -76,6 +76,8 @@ Supabase, em ordem.
 - `015_live_session.sql` cria a sessão viva — `session_members`,
   `session_events`, o código de mesa e os RPCs de entrar/sair. Sem ela o painel
   do Mestre continua vazio e o botão "Entrar na mesa" não acha função nenhuma.
+- `016_conditions.sql` acrescenta `characters.conditions`. Sem ela os chips de
+  condição não têm onde ser gravados.
 
 ## 4. Verificação
 

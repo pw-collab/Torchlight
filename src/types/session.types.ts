@@ -80,6 +80,35 @@ export interface RollPayload {
   dc?: number
   success?: boolean
   characterName?: string
+  /** Responde a uma rolagem que o Mestre pediu (§6.4). */
+  promptId?: string
+  /** Rerrolagem paga com Fortuna: o total que ficou para trás (§5.2). */
+  rerollOf?: number
+  /** Este evento revela uma rolagem que estava escondida (§6.7). */
+  revealOf?: string
+}
+
+/** Uma rolagem que o Mestre pediu e ainda espera resposta. */
+export interface PromptPayload {
+  /** O mesmo em todas as fichas quando o pedido é para a mesa inteira. */
+  promptId: string
+  /** Atributo do teste — `null` para uma rolagem crua de d20. */
+  attribute: string | null
+  label: string
+  dc: number
+  /** Só quem rolou e o Mestre veem o resultado. */
+  secret?: boolean
+  characterName?: string
+  /** Sempre o Mestre — é o que faz o pedido virar aviso na tela do jogador. */
+  by?: 'gm'
+}
+
+export interface ConditionPayload {
+  action: 'applied' | 'removed'
+  label: string
+  note?: string
+  characterName?: string
+  by?: 'gm' | 'player'
 }
 
 /**
@@ -94,6 +123,18 @@ export interface VitalsPayload {
   characterName?: string
   /** Quem mexeu. O jogador vê um aviso quando a mudança não partiu dele. */
   by?: 'gm' | 'player'
+  /**
+   * Este evento desfaz outro. O log é append-only, então desfazer é escrever de
+   * volta — o erro continua registrado, e a correção também (§5.3).
+   */
+  undo?: boolean
+  /** De onde veio a mudança, quando não foi um ajuste solto. */
+  reason?: 'rest'
+  /** O dado da recuperação, quando `reason` é descanso (§5.7). */
+  die?: string
+  roll?: number
+  /** O descanso consumiu uma ração. */
+  ration?: boolean
 }
 
 export interface LightPayload {
@@ -116,6 +157,8 @@ export interface NotePayload {
 
 export type EventPayload =
   | RollPayload
+  | PromptPayload
+  | ConditionPayload
   | VitalsPayload
   | LightPayload
   | SessionPayload

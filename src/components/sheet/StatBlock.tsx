@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { modifier, rollDie } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
+import { STAT_FULL, STAT_LABELS } from '@/data/stats'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,14 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-
-const STAT_LABELS: Record<Stat, string> = {
-  str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
-}
-
-const STAT_FULL: Record<Stat, string> = {
-  str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma',
-}
 
 const ROLL_TYPES = [
   { id: 'normal' as const, label: 'Normal', className: 'text-[var(--foreground)]' },
