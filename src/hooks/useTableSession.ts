@@ -53,6 +53,30 @@ export function useTableSession(characterId: string) {
     return () => { cancelled = true }
   }, [characterId])
 
+  // O relógio da masmorra é da sessão, e o Mestre mexe nele no meio da cena: a
+  // ficha precisa saber no instante em que ele pausa, não no próximo refresh.
+  // A migração 017 abre a leitura da própria mesa justamente para isto — sem
+  // ela o Realtime não entregaria a linha a quem a RLS não deixa ler.
+  const sessionId = state.session?.id ?? null
+  useEffect(() => {
+    if (!sessionId) return
+    const supabase = createClient()
+
+    const channel = supabase
+      .channel(`session-row:${sessionId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` },
+        payload => {
+          const row = payload.new as SessionRow
+          setState(prev => (prev.session?.id === row.id ? { ...prev, session: rowToSession(row) } : prev))
+        },
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [sessionId])
+
   const join = useCallback(async (code: string): Promise<boolean> => {
     const trimmed = code.trim().toUpperCase()
     if (trimmed.length === 0) return false

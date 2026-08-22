@@ -10,7 +10,7 @@ import { RollToasts } from '@/components/sheet/RollToasts'
 import { AppShell } from '@/components/layout/AppShell'
 import type { NPC } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
-import type { SessionRow } from '@/types/session.types'
+import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
 import { recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import type { RollResult } from '@/lib/dice'
@@ -29,7 +29,11 @@ interface Props {
 type Tab = 'session' | 'npcs'
 
 export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
-  const [session, setSession] = useState(initialSession)
+  // A página carrega a linha crua; daqui para baixo a mesa circula já mapeada,
+  // porque o relógio da masmorra é lido dela.
+  const [session, setSession] = useState<TableSession | null>(
+    initialSession ? rowToSession(initialSession) : null,
+  )
   const [sessionName, setSessionName] = useState('')
   const [creating, setCreating] = useState(false)
   const [ending, setEnding] = useState(false)
@@ -78,7 +82,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       .select('*')
       .single()
     if (data) {
-      const row = data as SessionRow
+      const row = rowToSession(data as SessionRow)
       setSession(row)
       void recordEvent({
         sessionId: row.id,
@@ -440,7 +444,12 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   </Button>
                 </div>
 
-                <SessionPanel sessionId={session.id} gmName={gmName} gmId={gmId} />
+                <SessionPanel
+                  session={session}
+                  gmName={gmName}
+                  gmId={gmId}
+                  onSessionChange={setSession}
+                />
               </div>
             )}
           </div>

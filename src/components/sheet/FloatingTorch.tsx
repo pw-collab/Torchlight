@@ -2,6 +2,7 @@
 
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, fullMinutes, minutesLeft } from '@/lib/light'
+import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useNow } from '@/hooks/useNow'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,12 @@ import { cn } from '@/lib/utils'
 
 interface Props {
   inventory: InventoryItem[]
+  /**
+   * O relógio da mesa, quando o personagem está numa. A luz é lida contra ele,
+   * não contra o relógio de parede cru: é isso que faz a pausa do Mestre
+   * congelar a tocha (ver `lib/dungeonClock`).
+   */
+  clock?: TableClock | null
   onClick?: () => void
 }
 
@@ -23,10 +30,10 @@ const KIND_LABEL: Record<string, string> = {
  * light source is burning. Shows the remaining minutes and a burn-down bar;
  * clicking it jumps to the inventory tab where the light can be managed.
  */
-export function FloatingTorch({ inventory, onClick }: Props) {
+export function FloatingTorch({ inventory, onClick, clock }: Props) {
   const isMobile = useIsMobile()
-  // Derived from the wall clock (see `lib/light`) — the tick just re-renders.
-  const now = useNow()
+  // Lido contra o relógio da mesa — o tique só provoca o render.
+  const now = tableNow(clock, useNow())
 
   // With multiple sources burning, the longest-lasting one defines the party's light
   const source = brightest(inventory, now)

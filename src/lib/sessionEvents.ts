@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase'
 import type { RollResult } from '@/lib/dice'
 import type {
   ConditionPayload,
+  EncounterPayload,
   EventPayload,
   EventVisibility,
   LightPayload,
@@ -81,6 +82,7 @@ export const FEED_FILTERS = [
   { id: 'roll', label: 'Rolagens', kinds: ['roll', 'prompt'] },
   { id: 'vitals', label: 'Vitalidade', kinds: ['hp', 'luck', 'xp', 'condition'] },
   { id: 'light', label: 'Luz', kinds: ['light'] },
+  { id: 'encounter', label: 'Encontro', kinds: ['encounter'] },
   { id: 'table', label: 'Mesa', kinds: ['note', 'session'] },
 ] as const
 
@@ -160,6 +162,21 @@ export function eventHeadline(event: SessionEvent): string {
       const test = p.attribute ? `${p.attribute} DC ${p.dc}` : `DC ${p.dc}`
       return `O Mestre pediu ${test} de ${who}`
     }
+    case 'encounter': {
+      const p = event.payload as EncounterPayload
+      switch (p.action) {
+        case 'start': return `Começou: ${p.encounterName ?? 'um encontro'}`
+        case 'end':   return `Acabou: ${p.encounterName ?? 'o encontro'}`
+        case 'round': return `Rodada ${p.round ?? '?'}`
+        case 'turn':  return `Vez de ${p.actorName ?? 'alguém'}`
+        case 'down':  return `${p.actorName ?? 'Alguém'} caiu`
+        case 'attack':
+          return p.hit
+            ? `${p.actorName ?? 'O inimigo'} acertou ${p.targetName ?? 'o alvo'}`
+            : `${p.actorName ?? 'O inimigo'} errou ${p.targetName ?? 'o alvo'}`
+      }
+      return 'Encontro'
+    }
     case 'condition': {
       const p = event.payload as ConditionPayload
       return p.action === 'applied'
@@ -232,6 +249,14 @@ export function eventDetail(event: SessionEvent): string | null {
       const p = event.payload as PromptPayload
       return p.secret ? 'só quem rolar e você' : 'a mesa vê o resultado'
     }
+    case 'encounter': {
+      const p = event.payload as EncounterPayload
+      if (p.action === 'attack' && p.total != null && p.ac != null) {
+        return `${p.total} vs CA ${p.ac}`
+      }
+      if (p.action === 'turn' && p.round != null) return `rodada ${p.round}`
+      return null
+    }
     case 'condition': {
       const p = event.payload as ConditionPayload
       const parts = [p.note, p.by === 'gm' ? 'pelo Mestre' : null].filter(Boolean)
@@ -294,6 +319,7 @@ const KIND_GLYPH: Record<string, string> = {
   session: '⚔',
   prompt: '❔',
   condition: '⚑',
+  encounter: '⚔',
 }
 
 export function eventGlyph(event: SessionEvent): string {
