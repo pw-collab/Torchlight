@@ -9,6 +9,7 @@ import {
   SparklesIcon,
   UserIcon,
 } from '@hugeicons/core-free-icons'
+import { createClient } from '@/lib/supabase'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
@@ -16,6 +17,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTableSession } from '@/hooks/useTableSession'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
+import { useEncounter } from '@/hooks/useEncounter'
 import { AppShell } from '@/components/layout/AppShell'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { FortuneTile } from '@/components/sheet/FortuneBar'
@@ -33,13 +35,16 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
+import { tableNow } from '@/lib/dungeonClock'
 import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
 import { PromptCard } from '@/components/sheet/PromptCard'
+import { TurnBanner } from '@/components/sheet/TurnBanner'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
 import { consumeRation, findRation } from '@/lib/rest'
+import { maxSlots, usedSlots } from '@/lib/slots'
 import { STAT_LABELS, isStat } from '@/data/stats'
 import type {
   EventPayload,
@@ -138,6 +143,15 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     [sessionId, playerName, characterId, characterName],
   )
 
+  // ── O combate (§5.8) ──────────────────────────────────────────────────────
+  // A trilha inteira é do Mestre; aqui só interessa a linha deste personagem:
+  // entrar na ordem e saber quando é a vez dele.
+  const { encounter, actors: encounterActors } = useEncounter(sessionId)
+  const myActor = useMemo(
+    () => encounterActors.find(a => a.source === 'pc' && a.refId === characterId),
+    [encounterActors, characterId],
+  )
+
   /** O que o Mestre pediu e ainda espera desta ficha (§6.4). */
   const prompts = useMemo(
     () => pendingPrompts(tableEvents, characterId),
@@ -181,7 +195,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   const recordRef = useRef(record)
   useEffect(() => { recordRef.current = record }, [record])
 
-  const now = useNow()
+  // A mesa pode ter o tempo parado ou adiantado pelo Mestre (§6.9), e a luz
+  // segue o relógio dela — inclusive a hora de anunciar que apagou.
+  const now = tableNow(openSession, useNow())
   const inventory = character?.inventory
   const announcedRef = useRef<Set<string>>(new Set())
 
@@ -335,6 +351,25 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     })
   }
 
+  /**
+   * A iniciativa nasce na ficha e entra na ordem da mesa (§5.8). A escrita
+   * passa por um RPC: a trilha é do Mestre, e o jogador só pode mexer na
+   * própria linha — a checagem de quem é o personagem e de que ele está
+   * naquela mesa é feita no banco, não aqui.
+   */
+  async function handleRollInitiative() {
+    if (!character || !encounter) return
+    const result = rollDie('d20', 'Iniciativa', STAT_LABELS.dex, modifier(character.stats.dex))
+    handleRoll(result)
+
+    const supabase = createClient()
+    await supabase.rpc('set_initiative', {
+      p_encounter_id: encounter.id,
+      p_character_id: characterId,
+      p_value: result.total,
+    })
+  }
+
   async function handleTalentsUpdate(talents: Talent[]) {
     await updateCharacter({ talents: talents as any } as Partial<CharacterRow>)
   }
@@ -441,6 +476,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           meleeBonus={character.meleeBonus}
           rangedBonus={character.rangedBonus}
           onLightChange={change => record('light', { ...change, by: 'player' })}
+          clock={openSession}
         />
       ),
       secondary: (
@@ -474,7 +510,15 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   }
 
   const { primary, secondary } = tabBlocks[tab]
-  const disadvantages = disadvantageLabels(character.conditions)
+  // A sobrecarga era um texto vermelho no inventário e nada mais (§5.10). Com a
+  // regra de carga unificada na Fase 0, ela passa a se anunciar junto das
+  // condições — no mesmo lugar e do mesmo jeito, porque para quem rola é a
+  // mesma coisa: algo está pesando contra.
+  const overloaded = usedSlots(character.inventory) > maxSlots(character.stats.str)
+  const disadvantages = [
+    ...disadvantageLabels(character.conditions),
+    ...(overloaded ? ['Sobrecarga'] : []),
+  ]
   const ration = findRation(character.inventory)
 
   /**
@@ -484,6 +528,14 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    */
   const stateStrip = (
     <>
+      {encounter && (
+        <TurnBanner
+          encounter={encounter}
+          actors={encounterActors}
+          mine={myActor}
+          onRollInitiative={() => void handleRollInitiative()}
+        />
+      )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />
       {(character.conditions.length > 0 || isOwner) && (
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -550,7 +602,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           </div>
 
           <div className="sheet-torch">
-            <TorchStatus inventory={character.inventory} onClick={() => setTab('inventory')} />
+            <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
           </div>
 
           <div className="sheet-rail">
@@ -587,7 +639,13 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
       {/* Phones have no column to reserve for the light, so they keep the
           floating badge; the desktop grid carries TorchStatus instead. */}
-      {isMobile && <FloatingTorch inventory={character.inventory} onClick={() => setTab('inventory')} />}
+      {isMobile && (
+        <FloatingTorch
+          inventory={character.inventory}
+          clock={openSession}
+          onClick={() => setTab('inventory')}
+        />
+      )}
       <DiceOverlay
         phase={rollPhase}
         roll={activeRoll}

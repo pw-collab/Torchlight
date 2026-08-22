@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ActiveCondition, Character } from '@/types/character.types'
 import { brightest, minutesLeft } from '@/lib/light'
 import { useNow } from '@/hooks/useNow'
+import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { ConditionChips } from '@/components/sheet/ConditionChips'
 import { ConditionPicker } from './ConditionPicker'
 import { Badge } from '@/components/ui/badge'
@@ -33,6 +34,8 @@ interface Props {
   onToggle: () => void
   onAct: (action: GmAction) => void
   busy?: boolean
+  /** O relógio da mesa: a coluna da tocha congela junto com ele. */
+  clock?: TableClock | null
 }
 
 const PILL =
@@ -47,17 +50,18 @@ const PILL =
  * escuridão. Toda ação vira linha do log, então o jogador vê na tela dele o
  * que aconteceu — nada acontece em silêncio.
  */
-export function PlayerCard({ character, playerName, present, expanded, onToggle, onAct, busy }: Props) {
+export function PlayerCard({ character, playerName, present, expanded, onToggle, onAct, busy, clock }: Props) {
   const [amount, setAmount] = useState('')
 
   const hpPercent = Math.max(0, (character.hpCurrent / character.hpMax) * 100)
   const hpBarColor = hpPercent > 50 ? 'var(--chart-2)' : hpPercent > 25 ? 'var(--primary)' : 'var(--destructive)'
   const isDead = character.hpCurrent <= 0
 
-  // A luz vem do inventário (lib/light), o mesmo relógio de parede que a ficha
-  // do jogador lê — o card mostrava 🌑 para a mesa inteira enquanto lia o campo
-  // legado `torch_end_at`, que ninguém escreve desde a luz por item.
-  const now = useNow()
+  // A luz vem do inventário (lib/light), lida contra o mesmo relógio de mesa
+  // que a ficha do jogador usa — o card mostrava 🌑 para a mesa inteira
+  // enquanto lia o campo legado `torch_end_at`, que ninguém escreve desde a
+  // luz por item.
+  const now = tableNow(clock, useNow())
   const light = brightest(character.inventory, now)
   const torchMins = light ? minutesLeft(light, now) : null
   const torchLow = torchMins !== null && torchMins <= 10

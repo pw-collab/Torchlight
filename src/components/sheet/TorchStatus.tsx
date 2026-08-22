@@ -2,12 +2,19 @@
 
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, fullMinutes, minutesLeft, spareSource } from '@/lib/light'
+import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { useNow } from '@/hooks/useNow'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface Props {
   inventory: InventoryItem[]
+  /**
+   * O relógio da mesa, quando o personagem está numa. A luz é lida contra ele,
+   * não contra o relógio de parede cru: é isso que faz a pausa do Mestre
+   * congelar a tocha (ver `lib/dungeonClock`).
+   */
+  clock?: TableClock | null
   /** Jumps to the inventory tab, where the light can be lit or put out. */
   onClick?: () => void
 }
@@ -27,10 +34,10 @@ const KIND_LABEL: Record<string, string> = {
  * and everything turns red under ten minutes. Unlit: the same box, dimmed,
  * naming the source that is ready to light — or saying there is none.
  */
-export function TorchStatus({ inventory, onClick }: Props) {
-  // The minutes are derived from the wall clock (see `lib/light`); the ticking
-  // value is only here to make the render happen again.
-  const now = useNow()
+export function TorchStatus({ inventory, onClick, clock }: Props) {
+  // Os minutos saem do relógio da mesa (ver `lib/light` e `lib/dungeonClock`);
+  // o valor que tiquetaqueia só existe para o render acontecer de novo.
+  const now = tableNow(clock, useNow())
 
   const source = brightest(inventory, now)
   const mins = source ? minutesLeft(source, now) : 0

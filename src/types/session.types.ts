@@ -17,6 +17,9 @@ export interface SessionRow {
   active: boolean
   created_at: string
   ended_at?: string | null
+  /** O relógio da masmorra — ver `lib/dungeonClock`. */
+  paused_at?: string | null
+  clock_shift_seconds?: number | null
 }
 
 export interface TableSession {
@@ -27,6 +30,10 @@ export interface TableSession {
   gmId: string
   active: boolean
   createdAt: string
+  /** Preenchido enquanto o tempo da mesa está parado. */
+  pausedAt: string | null
+  /** O quanto a mesa corre à frente do relógio de parede, em segundos. */
+  shiftSeconds: number
 }
 
 export function rowToSession(row: SessionRow): TableSession {
@@ -37,6 +44,8 @@ export function rowToSession(row: SessionRow): TableSession {
     gmId: row.gm_id,
     active: row.active,
     createdAt: row.created_at,
+    pausedAt: row.paused_at ?? null,
+    shiftSeconds: row.clock_shift_seconds ?? 0,
   }
 }
 
@@ -155,8 +164,24 @@ export interface NotePayload {
   text: string
 }
 
+/** O que acontece na trilha de turnos (§6.5). */
+export interface EncounterPayload {
+  action: 'start' | 'end' | 'turn' | 'round' | 'down' | 'attack'
+  encounterName?: string
+  /** De quem é a vez, ou quem caiu. */
+  actorName?: string
+  round?: number
+  /** Ataque: o alvo e o veredito contra a CA dele (§6.6). */
+  targetName?: string
+  hit?: boolean
+  ac?: number
+  total?: number
+  characterName?: string
+}
+
 export type EventPayload =
   | RollPayload
+  | EncounterPayload
   | PromptPayload
   | ConditionPayload
   | VitalsPayload

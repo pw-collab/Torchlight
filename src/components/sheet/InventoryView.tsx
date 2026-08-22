@@ -11,6 +11,7 @@ import { sendToDiscord } from '@/lib/discord'
 import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
 import { maxSlots, usedSlots } from '@/lib/slots'
 import { useNow } from '@/hooks/useNow'
+import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, type buttonVariants } from '@/components/ui/button'
@@ -813,12 +814,14 @@ interface Props {
   rangedBonus: number
   /** Acender e apagar são acontecimentos de mesa — a sessão quer saber. */
   onLightChange?: (change: { action: 'lit' | 'out'; itemName: string; minutesLeft: number }) => void
+  /** O relógio da mesa, quando o personagem está numa (ver `lib/dungeonClock`). */
+  clock?: TableClock | null
 }
 
 export function InventoryView({
   inventory, str, dex,
   onUpdate, onAcChange, onMeleeRangedUpdate,
-  onRoll, meleeBonus, rangedBonus, onLightChange,
+  onRoll, meleeBonus, rangedBonus, onLightChange, clock,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
@@ -844,8 +847,8 @@ export function InventoryView({
   const carried = usedSlots(inventory)
   const capacity = maxSlots(str)
 
-  // The wall clock drives the burn-down; this only re-renders it.
-  const now = useNow()
+  // O relógio da mesa manda na queima; isto só provoca o render.
+  const now = tableNow(clock, useNow())
   const equipped  = (slot: EquipSlot) => inventory.find(i => i.equipped && i.slot === slot)
 
   function updateItem(id: string, patch: Partial<InventoryItem>) {

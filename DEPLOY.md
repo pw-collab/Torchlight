@@ -78,6 +78,10 @@ Supabase, em ordem.
   do Mestre continua vazio e o botão "Entrar na mesa" não acha função nenhuma.
 - `016_conditions.sql` acrescenta `characters.conditions`. Sem ela os chips de
   condição não têm onde ser gravados.
+- `017_encounters.sql` cria `encounters` e `encounter_actors`, dá à sessão o
+  relógio da masmorra (`paused_at`, `clock_shift_seconds`) e abre a leitura da
+  própria mesa para quem está nela. Sem ela não há trilha de turnos, e o botão
+  de pausar o tempo não acha coluna nenhuma.
 
 ## 4. Verificação
 

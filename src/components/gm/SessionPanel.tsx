@@ -12,6 +12,10 @@ import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
+import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
+import { DungeonClockBar } from './DungeonClockBar'
+import { EncounterPanel } from './EncounterPanel'
+import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
 import { recordEvent } from '@/lib/sessionEvents'
 import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
@@ -20,9 +24,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface Props {
-  sessionId: string
+  session: TableSession
   gmName: string
   gmId: string
+  /** Devolve a sessão recarregada ao pai quando o relógio muda. */
+  onSessionChange: (session: TableSession) => void
 }
 
 /** Um lugar na mesa: o personagem e de quem ele é. */
@@ -71,7 +77,8 @@ const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
  * Mestre aplica dano, concede Fortuna e XP e apaga a luz de quem quiser, e
  * cada ação vira linha do log que o jogador vê chegar na ficha dele.
  */
-export function SessionPanel({ sessionId, gmName, gmId }: Props) {
+export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) {
+  const sessionId = session.id
   // O elenco vem sempre acompanhado da mesa a que pertence, para o painel não
   // mostrar o elenco da sessão anterior por um quadro enquanto recarrega.
   const [roster, setRoster] = useState<{ sessionId: string | null; seats: Seat[] }>({
@@ -331,6 +338,54 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
     })
   }, [sessionId])
 
+  // ── O relógio da masmorra (§5.1/§6.9) ─────────────────────────────────────
+  // A luz de todo mundo é derivada do relógio, então tudo aqui é uma escrita só
+  // na sessão — nenhuma ficha é tocada. Apagar tudo é a exceção, e é por isso
+  // que ele passa pelo mesmo `act` de sempre, ficha por ficha.
+
+  const updateClock = useCallback(async (
+    patch: { paused_at?: string | null; clock_shift_seconds?: number },
+    note: string,
+  ) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('sessions')
+      .update(patch)
+      .eq('id', sessionId)
+      .select()
+      .single()
+
+    if (data) onSessionChange(rowToSession(data as SessionRow))
+    void recordEvent({ sessionId, actorName: gmName, kind: 'note', payload: { text: note } })
+  }, [sessionId, gmName, onSessionChange])
+
+  const togglePause = useCallback(() => {
+    const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
+    if (clock.pausedAt) {
+      // Retomar desconta o tempo em que a mesa esteve parada: a tocha volta com
+      // os minutos com que parou, em vez de dar um salto.
+      void updateClock(
+        { paused_at: null, clock_shift_seconds: resumeShift(clock) },
+        'O tempo da mesa voltou a correr.',
+      )
+    } else {
+      void updateClock({ paused_at: new Date().toISOString() }, 'O tempo da mesa parou.')
+    }
+  }, [session.pausedAt, session.shiftSeconds, updateClock])
+
+  const advanceClock = useCallback((minutes: number) => {
+    const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
+    void updateClock(
+      { clock_shift_seconds: advancedShift(clock, minutes) },
+      `Um turno de exploração: ${minutes} minutos passaram.`,
+    )
+  }, [session.pausedAt, session.shiftSeconds, updateClock])
+
+  /** A escuridão desce — uma escrita por ficha, e cada uma vira linha do log. */
+  const snuffEveryLight = useCallback(async () => {
+    for (const seat of seats) await act(seat.character, { type: 'snuff' })
+  }, [seats, act])
+
   /** XP para a mesa inteira — o fim de uma cena vale para todo mundo. */
   const grantXpToAll = useCallback(async () => {
     for (const seat of seats) await act(seat.character, { type: 'xp', delta: 1 })
@@ -369,8 +424,20 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
   const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
 
+  const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
+  const litCount = seats.filter(seat => brightest(seat.character.inventory, tableNow(clock))).length
+
   return (
     <div className="flex flex-col gap-4">
+      <DungeonClockBar
+        clock={clock}
+        litCount={litCount}
+        busy={busyId !== null}
+        onPauseToggle={togglePause}
+        onAdvance={advanceClock}
+        onSnuffAll={() => void snuffEveryLight()}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-heading text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           {loading
@@ -403,6 +470,14 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
           </div>
         )}
       </div>
+
+      <EncounterPanel
+        sessionId={sessionId}
+        gmName={gmName}
+        gmId={gmId}
+        seats={seats}
+        onAct={act}
+      />
 
       {undoable && (
         <div
@@ -447,6 +522,7 @@ export function SessionPanel({ sessionId, gmName, gmId }: Props) {
             busy={busyId === seat.character.id}
             onToggle={() => setExpandedId(expandedId === seat.character.id ? null : seat.character.id)}
             onAct={action => void act(seat.character, action)}
+            clock={clock}
           />
         ))}
 
