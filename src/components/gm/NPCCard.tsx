@@ -10,6 +10,8 @@ interface Props {
   npc: NPC
   onDelete?: () => void
   onEdit?: () => void
+  /** Cria uma variante do mesmo statblock, para não redigitar três goblins. */
+  onDuplicate?: () => void
   onRoll?: (r: RollResult) => void
 }
 
@@ -37,7 +39,7 @@ function formatMod(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
 
-export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
+export function NPCCard({ npc, onDelete, onEdit, onDuplicate, onRoll }: Props) {
   return (
     <div style={{
       fontFamily: 'var(--font-body)',
@@ -48,7 +50,7 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
       position: 'relative',
     }}>
       {/* Action buttons */}
-      {(onEdit || onDelete) && (
+      {(onEdit || onDelete || onDuplicate) && (
         <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 1 }}>
           {onEdit && (
             <Button
@@ -59,6 +61,17 @@ export function NPCCard({ npc, onDelete, onEdit, onRoll }: Props) {
               className="tactile text-foreground h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-3 text-[13px] tracking-[0.1em]"
             >
               ✎
+            </Button>
+          )}
+          {onDuplicate && (
+            <Button
+              onClick={onDuplicate}
+              title="Duplicar para criar uma variante"
+              aria-label="Duplicar ficha"
+              variant="outline"
+              className="tactile text-foreground h-9 min-h-9 min-w-10 rounded-[1px] border-[var(--border)] bg-[var(--card)] px-3 text-[13px] tracking-[0.1em]"
+            >
+              ⧉
             </Button>
           )}
           {onDelete && (

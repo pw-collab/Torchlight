@@ -23,6 +23,10 @@ export interface NPC {
   stats: { str: number; dex: number; con: number; int: number; wis: number; cha: number }
   experience: string
   features: NPCFeature[]
+  /** Agrupamento livre: "cripta", "chefe", "sessão 4" — cada mesa usa o seu. */
+  tags: string[]
+  /** Marcador de trabalho da sessão de hoje, não um atributo do monstro. */
+  favorite: boolean
   createdAt?: string
 }
 
@@ -45,6 +49,8 @@ export interface NPCRow {
   stats: { str: number; dex: number; con: number; int: number; wis: number; cha: number }
   experience: string | null
   features: NPCFeature[]
+  tags: string[] | null
+  favorite: boolean | null
   created_at: string
 }
 
@@ -68,6 +74,8 @@ export function rowToNPC(r: NPCRow): NPC {
     stats: r.stats ?? { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
     experience: r.experience ?? '',
     features: r.features ?? [],
+    tags: r.tags ?? [],
+    favorite: r.favorite ?? false,
     createdAt: r.created_at,
   }
 }
@@ -91,6 +99,8 @@ export function npcToRow(npc: Omit<NPC, 'id' | 'createdAt'>): Omit<NPCRow, 'id' 
     stats: npc.stats,
     experience: npc.experience || null,
     features: npc.features,
+    tags: npc.tags ?? [],
+    favorite: npc.favorite ?? false,
   }
 }
 

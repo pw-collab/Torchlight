@@ -6,11 +6,18 @@ import { SessionPanel } from '@/components/gm/SessionPanel'
 import { NPCCard } from '@/components/gm/NPCCard'
 import { NPCListItem } from '@/components/gm/NPCListItem'
 import { NPCCreatorModal } from '@/components/gm/NPCCreatorModal'
+import { BestiaryToolbar } from '@/components/gm/BestiaryToolbar'
+import { BestiaryImportModal } from '@/components/gm/BestiaryImportModal'
+import { NpcTagEditor } from '@/components/gm/NpcTagEditor'
+import { ScenesPanel } from '@/components/gm/ScenesPanel'
+import { SessionRecap } from '@/components/gm/SessionRecap'
+import { allTags, duplicateOf, filterBestiary } from '@/lib/bestiary'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { AppShell } from '@/components/layout/AppShell'
-import type { NPC } from '@/types/npc.types'
+import type { NPC, NPCRow } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
-import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
+import { rowToEvent, rowToSession } from '@/types/session.types'
+import type { SessionEvent, SessionEventRow, SessionRow, TableSession } from '@/types/session.types'
 import { recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
 import type { RollResult } from '@/lib/dice'
@@ -26,7 +33,7 @@ interface Props {
   session: SessionRow | null
 }
 
-type Tab = 'session' | 'npcs'
+type Tab = 'session' | 'npcs' | 'scenes'
 
 export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   // A página carrega a linha crua; daqui para baixo a mesa circula já mapeada,
@@ -46,6 +53,14 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [gmRolls, setGmRolls] = useState<RollResult[]>([])
+  /** O recap da mesa que acabou de ser encerrada (§5.11). */
+  const [recap, setRecap] = useState<{ id: string; name: string; events: SessionEvent[] } | null>(null)
+
+  // ── Bestiário (§6.10) ─────────────────────────────────────────────────────
+  const [query, setQuery] = useState('')
+  const [activeTags, setActiveTags] = useState<string[]>([])
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     if (tab === 'npcs') fetchNpcs()
@@ -116,6 +131,20 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       .from('sessions')
       .update({ active: false, ended_at: new Date().toISOString() })
       .eq('id', session.id)
+
+    // O log é lido aqui porque o painel da sessão sai da tela junto com ela, e
+    // com ele o feed de onde o recap sai (§5.11). A leitura é uma só, no fim.
+    const { data: rows } = await supabase
+      .from('session_events')
+      .select('*')
+      .eq('session_id', session.id)
+      .order('created_at', { ascending: true })
+    setRecap({
+      id: session.id,
+      name: session.name,
+      events: ((rows ?? []) as SessionEventRow[]).map(rowToEvent),
+    })
+
     setSession(null)
     setSessionName('')
     setEnding(false)
@@ -202,6 +231,53 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     setDeletingId(null)
   }
 
+  /** A estrela é do dia: marcar não abre a ficha nem mexe no statblock. */
+  async function toggleFavorite(npc: NPC) {
+    const next = !npc.favorite
+    setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, favorite: next } : n)))
+    const supabase = createClient()
+    await supabase.from('npcs').update({ favorite: next }).eq('id', npc.id)
+  }
+
+  async function setTags(npc: NPC, next: string[]) {
+    setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, tags: next } : n)))
+    const supabase = createClient()
+    await supabase.from('npcs').update({ tags: next }).eq('id', npc.id)
+  }
+
+  /** Uma variante do mesmo monstro, para os três goblins não serem redigitados. */
+  async function duplicateNPC(npc: NPC) {
+    await saveNPC(duplicateOf(npc))
+  }
+
+  /** Dez fichas de uma vez, do documento onde o bestiário já estava escrito. */
+  async function importNPCs(parsed: Partial<NPC>[]) {
+    const supabase = createClient()
+    const rows = parsed.map(p => npcToRow({
+      gmId,
+      name: p.name ?? 'Sem nome',
+      npcType: p.npcType ?? '',
+      flavorText: p.flavorText ?? '',
+      motives: p.motives ?? '',
+      difficulty: p.difficulty,
+      hp: p.hp,
+      ac: p.ac,
+      atkDesc: p.atkDesc ?? '',
+      weaponDesc: p.weaponDesc ?? '',
+      level: p.level,
+      movement: p.movement ?? '',
+      alignment: p.alignment ?? '',
+      stats: p.stats ?? { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
+      experience: p.experience ?? '',
+      features: p.features ?? [],
+      tags: [],
+      favorite: false,
+    }))
+
+    const { data } = await supabase.from('npcs').insert(rows).select('*')
+    if (data) setNpcs(prev => [...(data as NPCRow[]).map(rowToNPC), ...prev])
+  }
+
   function openCreator() {
     setEditingNpc(null)
     setShowCreator(true)
@@ -217,6 +293,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     setEditingNpc(null)
   }
 
+  const shownNpcs = filterBestiary(npcs, { query, tags: activeTags, onlyFavorites })
+  const tags = allTags(npcs)
   const selectedNpc = npcs.find(n => n.id === selectedNpcId) ?? null
 
   return (
@@ -290,12 +368,13 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         {/* Tabs */}
         <Tabs
           value={tab}
-          onValueChange={value => setTab(value as 'session' | 'npcs')}
+          onValueChange={value => setTab(value as Tab)}
           className="col-span-12 border-b border-[var(--border)]"
         >
           <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
             {([
               { value: 'session', label: 'Sessão' },
+              { value: 'scenes', label: 'Preparo' },
               { value: 'npcs', label: 'NPCs & Monstros' },
             ] as const).map(t => (
               <TabsTrigger
@@ -316,7 +395,17 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
         {/* Tab: Session */}
         {tab === 'session' && (
-          <div className="col-span-12">
+          <div className="col-span-12 flex flex-col gap-4">
+            {/* O recap fica de pé depois de a mesa se despedir: é o que o
+                Mestre lê para abrir a próxima sessão (§5.11). */}
+            {recap && (
+              <SessionRecap
+                sessionId={recap.id}
+                sessionName={recap.name}
+                events={recap.events}
+                onClose={() => setRecap(null)}
+              />
+            )}
             {!session ? (
               <div
                 className="worn-border card-surface animate-mist-rise"
@@ -455,10 +544,22 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
           </div>
         )}
 
+        {/* Tab: Preparo (§6.11) */}
+        {tab === 'scenes' && (
+          <div className="animate-ink-spread col-span-12">
+            <ScenesPanel
+              gmId={gmId}
+              gmName={gmName}
+              session={session}
+              onStarted={() => setTab('session')}
+            />
+          </div>
+        )}
+
         {/* Tab: NPCs */}
         {tab === 'npcs' && (
           <div className="animate-ink-spread col-span-12">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
               </span>
@@ -470,6 +571,25 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 + Nova Ficha
               </Button>
             </div>
+
+            {npcs.length > 0 && (
+              <div style={{ marginBottom: 18 }}>
+                <BestiaryToolbar
+                  query={query}
+                  onQuery={setQuery}
+                  tags={tags}
+                  activeTags={activeTags}
+                  onToggleTag={tag =>
+                    setActiveTags(prev => (prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]))
+                  }
+                  onlyFavorites={onlyFavorites}
+                  onToggleFavorites={() => setOnlyFavorites(v => !v)}
+                  onImport={() => setImporting(true)}
+                  shown={shownNpcs.length}
+                  total={npcs.length}
+                />
+              </div>
+            )}
 
             {loadingNpcs ? (
               <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)' }}>
@@ -494,24 +614,37 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               <div className="grid-12" style={{ alignItems: 'start' }}>
                 {/* Master list — span 4; full width on small screens */}
                 <div className="npc-master-list col-span-4 col-sm-12">
-                  {npcs.map(npc => (
-                    <NPCListItem
-                      key={npc.id}
-                      npc={npc}
-                      selected={npc.id === selectedNpcId}
-                      onSelect={() => setSelectedNpcId(npc.id)}
-                    />
-                  ))}
+                  {shownNpcs.length === 0 ? (
+                    <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12, color: 'var(--muted-foreground)', padding: '12px 2px' }}>
+                      Nada com esse filtro.
+                    </p>
+                  ) : (
+                    shownNpcs.map(npc => (
+                      <NPCListItem
+                        key={npc.id}
+                        npc={npc}
+                        selected={npc.id === selectedNpcId}
+                        onSelect={() => setSelectedNpcId(npc.id)}
+                        onToggleFavorite={() => void toggleFavorite(npc)}
+                      />
+                    ))
+                  )}
                 </div>
 
                 {/* Detail pane — span 8; full width on small screens */}
                 <div className="npc-detail-pane col-span-8 col-sm-12">
                   {selectedNpc ? (
                     <div style={{ opacity: deletingId === selectedNpc.id ? 0.4 : 1, transition: 'opacity 300ms' }}>
+                      <NpcTagEditor
+                        tags={selectedNpc.tags}
+                        suggestions={tags}
+                        onChange={next => void setTags(selectedNpc, next)}
+                      />
                       <NPCCard
                         npc={selectedNpc}
                         onEdit={() => openEditor(selectedNpc)}
                         onDelete={() => deleteNPC(selectedNpc.id)}
+                        onDuplicate={() => void duplicateNPC(selectedNpc)}
                         onRoll={handleGmRoll}
                       />
                     </div>
@@ -536,6 +669,9 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         />
       )}
       {/* O Mestre também rola — e o que ele rola nasce escondido. */}
+      {importing && (
+        <BestiaryImportModal onImport={importNPCs} onClose={() => setImporting(false)} />
+      )}
       <DiceRoller onRoll={handleGmRoll} floating />
       <RollToasts rolls={gmRolls} />
     </AppShell>

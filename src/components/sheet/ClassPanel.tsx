@@ -14,8 +14,9 @@ import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.t
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
 import type { TechniqueState } from '@/types/technique.types'
-import { rollDie, modifier, modifierStr, withDc } from '@/lib/dice'
-import type { RollResult } from '@/lib/dice'
+import { rollWithMode, modifier, modifierStr, withDc } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
+import type { RollMode, RollResult } from '@/lib/dice'
 import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
@@ -289,11 +290,11 @@ function SpellLikeSection({
   const cfg = technique.spellLike!
   const expended = state.expendedAbilities ?? []
 
-  function activate(abilityId: string, abilityName: string, dc: number, abilityCastStat?: Stat) {
+  function activate(abilityId: string, abilityName: string, dc: number, abilityCastStat?: Stat, mode: RollMode = 'normal') {
     const resolvedStat = abilityCastStat ?? cfg.castStat
     const statScore = stats[resolvedStat] ?? 10
     const castMod = modifier(statScore)
-    const result = withDc(rollDie('d20', abilityName, `DC ${dc}`, castMod), dc)
+    const result = withDc(rollWithMode('d20', abilityName, `DC ${dc}`, castMod, mode), dc)
     onRoll?.(result)
     // One verdict for both the toast and the ability: a natural 20 that lands
     // under the DC must not read SUCESSO and expend the ability anyway.
@@ -350,12 +351,18 @@ function SpellLikeSection({
                   Restaurar
                 </Button>
               ) : (
-                <Button
-                  onClick={() => activate(ability.id, ability.name, dc, ability.castStat)}
-                  className="tactile text-primary-foreground w-full border-[var(--primary)] bg-[var(--primary)] hover:bg-[var(--primary)]/80"
+                <RollModeMenu
+                  label={`Ativar ${ability.name}`}
+                  onRoll={mode => activate(ability.id, ability.name, dc, ability.castStat, mode)}
+                  className="w-full"
                 >
-                  Ativar
-                </Button>
+                  <Button
+                    render={<span />}
+                    className="tactile text-primary-foreground w-full border-[var(--primary)] bg-[var(--primary)] hover:bg-[var(--primary)]/80"
+                  >
+                    Ativar
+                  </Button>
+                </RollModeMenu>
               )}
             </div>
           </div>

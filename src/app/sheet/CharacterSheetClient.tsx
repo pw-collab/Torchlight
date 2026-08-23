@@ -19,6 +19,7 @@ import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { useEncounter } from '@/hooks/useEncounter'
 import { AppShell } from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { FortuneTile } from '@/components/sheet/FortuneBar'
 import { TorchStatus } from '@/components/sheet/TorchStatus'
@@ -37,10 +38,14 @@ import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
 import { tableNow } from '@/lib/dungeonClock'
 import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
 import { PromptCard } from '@/components/sheet/PromptCard'
 import { TurnBanner } from '@/components/sheet/TurnBanner'
+import { TableMode } from '@/components/sheet/TableMode'
+import { HandoutShelf } from '@/components/sheet/HandoutShelf'
+import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
 import { consumeRation, findRation } from '@/lib/rest'
@@ -54,8 +59,8 @@ import type {
   SessionEventKind,
   SessionPayload,
 } from '@/types/session.types'
-import { modifier, reroll, rollDie, withDc } from '@/lib/dice'
-import type { RollResult } from '@/lib/dice'
+import { modifier, reroll, rollDie, rollWithMode, withDc } from '@/lib/dice'
+import type { RollMode, RollResult } from '@/lib/dice'
 import type { ActiveCondition, CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
@@ -88,6 +93,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
+  // A vista de longe (§5.12): a mesma ficha, só que legível do outro lado da mesa.
+  const [tableMode, setTableMode] = useState(false)
   const isMobile = useIsMobile()
 
   // ── A mesa ────────────────────────────────────────────────────────────────
@@ -157,6 +164,28 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     () => pendingPrompts(tableEvents, characterId),
     [tableEvents, characterId],
   )
+
+  // ── O que foi entregue (§6.8) ─────────────────────────────────────────────
+  // Uma revelação que chega enquanto a ficha está aberta abre sozinha: é o
+  // ponto do recurso — a carta cai na tela de quem recebeu, sem o Mestre ter
+  // de dizer "abre lá". O que já estava no feed quando a ficha abriu, não:
+  // senão todo refresh reabriria a sessão inteira de documentos.
+  const [readHandoutIds, setReadHandoutIds] = useState<string[]>([])
+  const [reopened, setReopened] = useState<SessionEvent | null>(null)
+
+  const handouts = useMemo(
+    () => handoutsFor(tableEvents, characterId),
+    [tableEvents, characterId],
+  )
+  // Do fim para o começo porque o feed vem do mais novo para o mais antigo:
+  // uma rajada de entregas é lida na ordem em que o Mestre as mandou.
+  const unread = handouts.filter(e => e.at > openedAt && !readHandoutIds.includes(e.id))
+  const openHandout = reopened ?? unread[unread.length - 1] ?? null
+
+  function closeHandout() {
+    if (reopened) setReopened(null)
+    else if (openHandout) setReadHandoutIds(prev => [...prev, openHandout.id])
+  }
 
   // Roll lifecycle: useDiceRoll drives the phase timeline (anticipation →
   // tumble → impact); history/toasts land exactly on the impact frame.
@@ -294,11 +323,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    * sempre; o que muda é que a rolagem já nasce com o DC do pedido e volta
    * carimbada com o `promptId`, que é o que fecha a pendência.
    */
-  function answerPrompt(prompt: SessionEvent) {
+  function answerPrompt(prompt: SessionEvent, mode: RollMode = 'normal') {
     const p = prompt.payload as SessionPromptPayload
     const stat = isStat(p.attribute) ? p.attribute : null
     const mod = stat ? modifier(character!.stats[stat]) : 0
-    const rolled = rollDie('d20', p.label, stat ? STAT_LABELS[stat] : undefined, mod)
+    const rolled = rollWithMode('d20', p.label, stat ? STAT_LABELS[stat] : undefined, mod, mode)
     const result: RollResult = { ...withDc(rolled, p.dc), promptId: p.promptId }
     handleRoll(result, p.secret ? 'gm_only' : 'table')
   }
@@ -357,9 +386,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    * própria linha — a checagem de quem é o personagem e de que ele está
    * naquela mesa é feita no banco, não aqui.
    */
-  async function handleRollInitiative() {
+  async function handleRollInitiative(mode: RollMode = 'normal') {
     if (!character || !encounter) return
-    const result = rollDie('d20', 'Iniciativa', STAT_LABELS.dex, modifier(character.stats.dex))
+    const result = rollWithMode('d20', 'Iniciativa', STAT_LABELS.dex, modifier(character.stats.dex), mode)
     handleRoll(result)
 
     const supabase = createClient()
@@ -533,13 +562,25 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           encounter={encounter}
           actors={encounterActors}
           mine={myActor}
-          onRollInitiative={() => void handleRollInitiative()}
+          onRollInitiative={mode => void handleRollInitiative(mode)}
         />
       )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />
+      <HandoutShelf handouts={handouts} onOpen={setReopened} />
       {(character.conditions.length > 0 || isOwner) && (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <ConditionChips conditions={character.conditions} onRemove={handleConditionRemove} />
+          {isOwner && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTableMode(true)}
+              title="Números grandes, para ler com o celular do outro lado da mesa"
+              className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase"
+            >
+              ⛶ Modo mesa
+            </Button>
+          )}
           {isOwner && (
             <RestButton
               rations={ration?.quantity ?? 0}
@@ -661,6 +702,18 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       />
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
+      {tableMode && (
+        <TableMode character={character} clock={openSession} onClose={() => setTableMode(false)} />
+      )}
+      {openHandout && (
+        <BookViewerModal
+          item={handoutItem(openHandout)}
+          onClose={closeHandout}
+          /* Somente leitura: o leitor nunca oferece a edição, e nada há a salvar. */
+          onSaveContent={() => {}}
+          readOnly
+        />
+      )}
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
     </AppShell>
   )

@@ -57,6 +57,11 @@ export interface Character {
   talents: Talent[]
   /** O que está em vigor sobre o personagem agora — ver §5.6. */
   conditions: ActiveCondition[]
+  /**
+   * O caderno do jogador (§5.9): o nome do NPC, a senha da porta, o que o
+   * taverneiro deixou escapar. Antes disso ia para o WhatsApp e se perdia.
+   */
+  notes: string
   /** One record per level whose reward has been rolled — see the "Progresso" track. */
   levelProgress: LevelEntry[]
   techniqueStates: TechniqueState[]
@@ -192,6 +197,7 @@ export interface CharacterRow {
   casting_attr?: string
   talents?: Talent[]
   conditions?: ActiveCondition[]
+  notes?: string | null
   level_progress?: LevelEntry[]
   technique_states?: TechniqueState[]
   languages?: string[]
@@ -244,6 +250,7 @@ export function rowToCharacter(row: CharacterRow): Character {
     castingAttr: row.casting_attr ?? 'int',
     talents: row.talents ?? [],
     conditions: Array.isArray(row.conditions) ? row.conditions : [],
+    notes: row.notes ?? '',
     levelProgress: Array.isArray(row.level_progress) ? row.level_progress : [],
     techniqueStates: row.technique_states ?? [],
     languages: row.languages ?? [],

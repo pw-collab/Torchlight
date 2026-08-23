@@ -72,6 +72,7 @@ export type SessionEventKind =
   | 'condition'
   | 'prompt'
   | 'encounter'
+  | 'handout'
 
 export type EventVisibility = 'table' | 'gm_only'
 
@@ -164,6 +165,21 @@ export interface NotePayload {
   text: string
 }
 
+/**
+ * Uma revelação: a carta, o mapa em texto, a página de diário (§6.8).
+ *
+ * O conteúdo viaja no próprio evento em vez de um id para a gaveta do Mestre —
+ * o jogador não lê a gaveta, e o que foi entregue continua legível mesmo que o
+ * Mestre apague o original depois. O log é o registro do que a mesa viu.
+ */
+export interface HandoutPayload {
+  title: string
+  content: string
+  /** Nulo quando a entrega foi para a mesa inteira. */
+  characterName?: string
+  by?: 'gm'
+}
+
 /** O que acontece na trilha de turnos (§6.5). */
 export interface EncounterPayload {
   action: 'start' | 'end' | 'turn' | 'round' | 'down' | 'attack'
@@ -182,6 +198,7 @@ export interface EncounterPayload {
 export type EventPayload =
   | RollPayload
   | EncounterPayload
+  | HandoutPayload
   | PromptPayload
   | ConditionPayload
   | VitalsPayload
