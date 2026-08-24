@@ -7,8 +7,9 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { MagicWand01Icon } from '@hugeicons/core-free-icons'
 import { getSpell, getSpellsForClass } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
-import { rollDie, modifier, withDc } from '@/lib/dice'
-import type { RollResult } from '@/lib/dice'
+import { rollWithMode, modifier, withDc } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
+import type { RollMode, RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
 import { FACE_CLEARANCE, FACE_FADE, POPOVER_BODY } from '@/components/shared/GlyphCard'
 import { RollableText } from '@/components/shared/RollableText'
@@ -228,11 +229,11 @@ function SpellCard({
   const dc      = spell ? 10 + spell.tier : null
   const school  = spell?.school ?? 'Arcano'
 
-  function cast() {
+  function cast(mode: RollMode = 'normal') {
     if (!spell || !onRoll || !stats) return
     const castMod  = modifier(stats[castingAttr] ?? 10) + spellcastingBonus
     const spellDC  = 10 + spell.tier
-    const rolled   = rollDie('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod)
+    const rolled   = rollWithMode('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod, mode)
     rolled.isCritical = rolled.result === 20
     rolled.isFumble   = rolled.result === 1
     const result   = withDc(rolled, spellDC)
@@ -323,13 +324,19 @@ function SpellCard({
               {(onForget || (spell && onRoll && stats && !isFailed)) && (
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginTop: 2 }}>
                   {spell && onRoll && stats && !isFailed && (
-                    <Button
-                      onClick={cast}
-                      className="tactile flex-1 border-[var(--background)] text-[var(--background)]"
-                      style={{ background: color }}
+                    <RollModeMenu
+                      label={`Conjurar ${spell.name}`}
+                      onRoll={cast}
+                      className="flex-1"
                     >
-                      Conjurar
-                    </Button>
+                      <Button
+                        render={<span />}
+                        className="tactile w-full border-[var(--background)] text-[var(--background)]"
+                        style={{ background: color }}
+                      >
+                        Conjurar
+                      </Button>
+                    </RollModeMenu>
                   )}
                   {onForget && (
                     <Button onClick={onForget} variant="hollow" className="tactile flex-1">

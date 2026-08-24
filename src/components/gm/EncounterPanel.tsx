@@ -10,7 +10,7 @@ import type { NPC, NPCRow } from '@/types/npc.types'
 import { rowToNPC } from '@/types/npc.types'
 import { recordEvent } from '@/lib/sessionEvents'
 import { rollDie } from '@/lib/dice'
-import { attackBonusFrom, damageFrom } from '@/lib/npcAttack'
+import { npcActorFields, uniqueActorName } from '@/lib/encounterSetup'
 import type { GmAction } from './PlayerCard'
 import { NpcAttack } from './NpcAttack'
 import { Button } from '@/components/ui/button'
@@ -116,8 +116,7 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
     if (!encounter) return
     setBusy(true)
 
-    const sameName = actors.filter(a => a.name.replace(/ \d+$/, '') === npc.name).length
-    const label = sameName > 0 ? `${npc.name} ${sameName + 1}` : npc.name
+    const label = uniqueActorName(npc.name, actors.map(a => a.name))
     const initiative = rollDie('d20', 'Iniciativa', npc.name, npc.stats.dex).total
     const maxSort = actors.reduce((max, a) => Math.max(max, a.sortKey), 0)
 
@@ -127,11 +126,7 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
       source: 'npc',
       ref_id: npc.id,
       name: label,
-      hp_current: npc.hp ?? 1,
-      hp_max: npc.hp ?? 1,
-      ac: npc.ac ?? 10,
-      atk_bonus: attackBonusFrom(npc.atkDesc),
-      damage_die: damageFrom(npc.atkDesc) ?? damageFrom(npc.weaponDesc),
+      ...npcActorFields(npc),
       initiative,
       sort_key: maxSort + 1,
     })

@@ -90,6 +90,29 @@ export function withDc(result: RollResult, dc?: number): RollResult {
   return { ...result, dc, success }
 }
 
+/**
+ * Como o d20 vai à mesa. Vantagem e desvantagem são "joga dois, guarda um" —
+ * não um bônus —, então elas são um modo da rolagem, não um número somado.
+ */
+export type RollMode = 'normal' | 'advantage' | 'disadvantage'
+
+/**
+ * Um teste de d20 no modo escolhido.
+ *
+ * `rollDie` recebe os dois booleanos separados, o que abre espaço para o par
+ * impossível (vantagem *e* desvantagem) e obriga cada chamador a traduzir a
+ * escolha. Aqui a escolha é um valor só, e é ele que circula pela interface.
+ */
+export function rollWithMode(
+  die: string,
+  label: string,
+  subLabel: string | undefined,
+  mod: number,
+  mode: RollMode = 'normal',
+): RollResult {
+  return rollDie(die, label, subLabel, mod, mode === 'advantage', mode === 'disadvantage')
+}
+
 export function modifier(stat: number): number {
   return Math.floor((stat - 10) / 2)
 }

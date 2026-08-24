@@ -6,7 +6,9 @@ import type { InventoryItem, EquipSlot, ItemType, WeaponKind } from '@/types/inv
 import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
-import { rollDie, rollFormula, modifier } from '@/lib/dice'
+import { rollFormula, rollWithMode, modifier } from '@/lib/dice'
+import type { RollMode } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { sendToDiscord } from '@/lib/discord'
 import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
 import { maxSlots, usedSlots } from '@/lib/slots'
@@ -518,7 +520,7 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
   onEquipToggle?: () => void
   onConsume?: () => void
   onOpen?: () => void
-  onRollAttack?: () => void
+  onRollAttack?: (mode: RollMode) => void
   onRollDamage?: () => void
   onRollParry?: () => void
 }) {
@@ -605,7 +607,11 @@ function ItemDetailPane({ item, onClose, onEdit, onRemove, onEquipToggle, onCons
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-        {onRollAttack && <Button onClick={onRollAttack} variant={BTN_VARIANT_MAP.blood} className="justify-center">⚔ Atacar</Button>}
+        {onRollAttack && (
+          <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={onRollAttack}>
+            <Button render={<span />} variant={BTN_VARIANT_MAP.blood} className="w-full justify-center">⚔ Atacar</Button>
+          </RollModeMenu>
+        )}
         {onRollDamage && <Button onClick={onRollDamage} variant={BTN_VARIANT_MAP.mist} className="justify-center">Dano</Button>}
         {onRollParry && <Button onClick={onRollParry} variant={BTN_VARIANT_MAP.mist} className="justify-center">Aparar</Button>}
         {onOpen && <Button onClick={onOpen} variant={BTN_VARIANT_MAP.dark} className="justify-center">📖 Ler</Button>}
@@ -922,12 +928,11 @@ export function InventoryView({
     onRoll(result)
   }
 
-  function rollAttack(item: InventoryItem) {
+  function rollAttack(item: InventoryItem, mode: RollMode) {
     if (!onRoll) return
     const isRanged = item.weaponKind === 'ranged'
     const bonus = (isRanged ? rangedBonus : meleeBonus) + (item.attackBonus ?? 0)
-    const result = rollDie('d20', `Ataque: ${item.name}`, item.weaponKind ?? 'melee', bonus)
-    onRoll(result)
+    onRoll(rollWithMode('d20', `Ataque: ${item.name}`, item.weaponKind ?? 'melee', bonus, mode))
   }
 
   function rollDamage(item: InventoryItem) {
@@ -1015,7 +1020,9 @@ export function InventoryView({
 
             {item.type === 'weapon' && (
               <div style={{ display: 'flex', gap: 4 }}>
-                <Button onClick={() => rollAttack(item)} variant="outline" className={combatPill('blood')}>Atk</Button>
+                <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={mode => rollAttack(item, mode)}>
+                  <Button render={<span />} variant="outline" className={combatPill('blood')}>Atk</Button>
+                </RollModeMenu>
                 {item.damageDie && <Button onClick={() => rollDamage(item)} variant="outline" className={combatPill('mist')}>Dmg</Button>}
               </div>
             )}
@@ -1206,7 +1213,7 @@ export function InventoryView({
                   onEquipToggle={isEquippable(selectedItem) ? () => toggleEquipFromList(selectedItem) : undefined}
                   onConsume={selectedItem.type === 'gear' ? () => consumeItem(selectedItem.id) : undefined}
                   onOpen={selectedItem.type === 'document' ? () => setBookViewItem(selectedItem) : undefined}
-                  onRollAttack={selectedItem.type === 'weapon' && onRoll ? () => rollAttack(selectedItem) : undefined}
+                  onRollAttack={selectedItem.type === 'weapon' && onRoll ? mode => rollAttack(selectedItem, mode) : undefined}
                   onRollDamage={selectedItem.damageDie && onRoll ? () => rollDamage(selectedItem) : undefined}
                   onRollParry={selectedItem.type === 'shield' && onRoll ? () => rollParry(selectedItem) : undefined}
                 />

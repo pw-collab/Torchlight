@@ -5,6 +5,7 @@ import type {
   EncounterPayload,
   EventPayload,
   EventVisibility,
+  HandoutPayload,
   LightPayload,
   NotePayload,
   PromptPayload,
@@ -83,7 +84,7 @@ export const FEED_FILTERS = [
   { id: 'vitals', label: 'Vitalidade', kinds: ['hp', 'luck', 'xp', 'condition'] },
   { id: 'light', label: 'Luz', kinds: ['light'] },
   { id: 'encounter', label: 'Encontro', kinds: ['encounter'] },
-  { id: 'table', label: 'Mesa', kinds: ['note', 'session'] },
+  { id: 'table', label: 'Mesa', kinds: ['note', 'session', 'handout'] },
 ] as const
 
 export type FeedFilterId = (typeof FEED_FILTERS)[number]['id']
@@ -161,6 +162,12 @@ export function eventHeadline(event: SessionEvent): string {
       const p = event.payload as PromptPayload
       const test = p.attribute ? `${p.attribute} DC ${p.dc}` : `DC ${p.dc}`
       return `O Mestre pediu ${test} de ${who}`
+    }
+    case 'handout': {
+      const p = event.payload as HandoutPayload
+      return p.characterName
+        ? `${p.characterName} recebeu "${p.title}"`
+        : `A mesa recebeu "${p.title}"`
     }
     case 'encounter': {
       const p = event.payload as EncounterPayload
@@ -302,6 +309,9 @@ export function eventAccent(event: SessionEvent): string | null {
   if (event.kind === 'light') {
     return (event.payload as LightPayload).action === 'lit' ? 'var(--chart-1)' : 'var(--destructive)'
   }
+  // A mesma cor da prateleira de recebidos na ficha (§6.8): o que foi revelado
+  // se reconhece de um lado e do outro.
+  if (event.kind === 'handout') return 'var(--chart-2)'
   if (event.kind === 'prompt') return 'var(--primary)'
   if (event.kind === 'condition') {
     return (event.payload as ConditionPayload).action === 'applied' ? 'var(--primary)' : null
@@ -320,6 +330,7 @@ const KIND_GLYPH: Record<string, string> = {
   prompt: '❔',
   condition: '⚑',
   encounter: '⚔',
+  handout: '📖',
 }
 
 export function eventGlyph(event: SessionEvent): string {

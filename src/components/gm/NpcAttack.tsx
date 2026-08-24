@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import type { Character } from '@/types/character.types'
-import { rollDie, rollFormula, withDc } from '@/lib/dice'
+import { rollFormula, rollWithMode, withDc } from '@/lib/dice'
+import type { RollMode } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -55,8 +57,8 @@ export function NpcAttack({ attacker, bonus, damage, targets, onResolved, onAppl
   const attackBonus = Number.isFinite(parsedBonus) ? parsedBonus : 0
   const target = targets.find(t => t.id === result?.targetId) ?? null
 
-  function attack(against: Character) {
-    const rolled = rollDie('d20', `${attacker} ataca`, against.name, attackBonus)
+  function attack(against: Character, mode: RollMode) {
+    const rolled = rollWithMode('d20', `${attacker} ataca`, against.name, attackBonus, mode)
     // Contra CA o veredito é o mesmo do DC: natural 20 sempre acerta, natural
     // 1 sempre erra — é a mesma regra de d20 que o resto do app já aplica.
     const settled = withDc(rolled, against.ac)
@@ -127,16 +129,21 @@ export function NpcAttack({ attacker, bonus, damage, targets, onResolved, onAppl
 
           <div className="flex flex-wrap gap-1">
             {targets.map(t => (
-              <Button
+              <RollModeMenu
                 key={t.id}
-                type="button"
-                variant="outline"
-                onClick={() => attack(t)}
-                title={`CA ${t.ac} · PV ${t.hpCurrent}/${t.hpMax}`}
-                className="font-heading h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase"
+                label={`Atacar ${t.name}`}
+                onRoll={mode => attack(t, mode)}
               >
-                {t.name}
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  render={<span />}
+                  title={`CA ${t.ac} · PV ${t.hpCurrent}/${t.hpMax}`}
+                  className="font-heading h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase"
+                >
+                  {t.name}
+                </Button>
+              </RollModeMenu>
             ))}
           </div>
 

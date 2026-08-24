@@ -82,6 +82,12 @@ Supabase, em ordem.
   relógio da masmorra (`paused_at`, `clock_shift_seconds`) e abre a leitura da
   própria mesa para quem está nela. Sem ela não há trilha de turnos, e o botão
   de pausar o tempo não acha coluna nenhuma.
+- `018_notes_handouts_scenes.sql` acrescenta o caderno do jogador
+  (`characters.notes`), as tags e o favorito do bestiário (`npcs.tags`,
+  `npcs.favorite`), e cria `handouts` e `scenes` — as duas gavetas privadas do
+  Mestre. Ela também **afrouxa a restrição de tipo de `session_events`** para
+  aceitar `'handout'`: sem isso a entrega de um documento é rejeitada pelo
+  banco, e a aba **Preparo** do painel não encontra tabela nenhuma.
 
 ## 4. Verificação
 

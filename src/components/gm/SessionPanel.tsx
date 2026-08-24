@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { PlayerCard, type GmAction } from './PlayerCard'
 import { PromptComposer, type PromptRequest } from './PromptComposer'
+import { HandoutDrawer, type Delivery } from './HandoutDrawer'
+import { SessionRecap } from './SessionRecap'
 import { SessionFeed } from './SessionFeed'
 import { STAT_LABELS } from '@/data/stats'
 import { StatBlock } from '@/components/sheet/StatBlock'
@@ -89,6 +91,8 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [composing, setComposing] = useState(false)
+  const [delivering, setDelivering] = useState(false)
+  const [recapping, setRecapping] = useState(false)
 
   const loaded = roster.sessionId === sessionId
   const seats = loaded ? roster.seats : NO_SEATS
@@ -421,6 +425,35 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
   }, [seats, sessionId, gmName])
 
+  /**
+   * A revelação (§6.8): o conteúdo vai junto no evento, e não um id para a
+   * gaveta — o jogador não lê a gaveta, e o que foi revelado tem de continuar
+   * legível mesmo que o Mestre apague o original depois.
+   *
+   * À mesa inteira é uma linha só, sem personagem: "a mesa recebeu". A um
+   * punhado de personagens é uma linha por ficha, como nos pedidos de rolagem,
+   * porque cada uma abre na tela de quem recebeu.
+   */
+  const deliverHandout = useCallback((delivery: Delivery) => {
+    const base = { sessionId, actorName: gmName } as const
+    const payload = { title: delivery.title, content: delivery.content, by: 'gm' as const }
+
+    if (delivery.characterIds === null) {
+      void recordEvent({ ...base, kind: 'handout', payload })
+      return
+    }
+
+    for (const characterId of delivery.characterIds) {
+      const seat = seats.find(s => s.character.id === characterId)
+      void recordEvent({
+        ...base,
+        characterId,
+        kind: 'handout',
+        payload: { ...payload, characterName: seat?.character.name },
+      })
+    }
+  }, [seats, sessionId, gmName])
+
   const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
 
@@ -456,6 +489,24 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
               className="font-heading h-8 min-h-8 rounded-[1px] border-[var(--primary)] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
             >
               ❔ Pedir rolagem
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDelivering(true)}
+              title="Entregar uma carta, um mapa em texto, uma página de diário"
+              className="font-heading h-8 min-h-8 rounded-[1px] border-[var(--primary)] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+            >
+              📖 Entregar
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRecapping(r => !r)}
+              title="O que já aconteceu nesta sessão, lido do log"
+              className="font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+            >
+              📜 Recap
             </Button>
             <Button
               type="button"
@@ -501,6 +552,15 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
             ↩ Desfazer
           </Button>
         </div>
+      )}
+
+      {recapping && (
+        <SessionRecap
+          sessionId={sessionId}
+          sessionName={session.name}
+          events={events}
+          onClose={() => setRecapping(false)}
+        />
       )}
 
       {composing && (
@@ -557,6 +617,15 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
             )}
           </CardContent>
         </Card>
+      )}
+
+      {delivering && (
+        <HandoutDrawer
+          gmId={gmId}
+          seats={seats.map(s => ({ id: s.character.id, name: s.character.name }))}
+          onDeliver={deliverHandout}
+          onClose={() => setDelivering(false)}
+        />
       )}
 
       <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />

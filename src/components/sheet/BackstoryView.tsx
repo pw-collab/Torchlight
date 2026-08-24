@@ -208,6 +208,9 @@ interface Props {
 
 export function BackstoryView({ character, onUpdate }: Props) {
 
+  // ── Caderno (§5.9) ────────────────────────────────────────────────────────
+  const [notes, setNotes] = useState(character.notes)
+
   // ── Conhecimentos: Languages ───────────────────────────────────────────────
   const [langs, setLangs] = useState<string[]>(character.languages)
   const [langInput, setLangInput] = useState('')
@@ -608,6 +611,30 @@ export function BackstoryView({ character, onUpdate }: Props) {
             </SubPanel>
           ))}
         </div>
+      </section>
+
+      {/* ── Seção 5: Caderno ───────────────────────────────────────────── */}
+      {/* O que o jogador anotava no WhatsApp e perdia: o nome do NPC, a senha
+          da porta, o que o taverneiro deixou escapar. Fica no fim porque é a
+          única parte da aba que muda toda sessão. */}
+      <section className="card-surface" style={card}>
+        <SectionHeading className="mb-4">Caderno</SectionHeading>
+
+        <SubPanel
+          icon={QuillWrite02Icon}
+          title="Anotações da campanha"
+          accent="var(--chart-2)"
+          hint={notes ? undefined : 'Nomes, senhas, dívidas, promessas — o que a mesa vai cobrar depois.'}
+        >
+          <AutoTextarea
+            value={notes}
+            onChange={setNotes}
+            onBlur={value => onUpdate({ notes: value })}
+            ariaLabel="Anotações da campanha"
+            placeholder="O ferreiro deve um favor. A porta do porão abre com…"
+            minRows={6}
+          />
+        </SubPanel>
       </section>
 
     </div>

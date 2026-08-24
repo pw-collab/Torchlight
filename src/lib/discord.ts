@@ -43,6 +43,27 @@ export function formatDiscordMessage(event: DiscordEvent): string {
 }
 
 /**
+ * Publishes the session's recap (§5.11) to the campaign channel.
+ *
+ * Only the id travels: the summary is built on the server, out of the log, so
+ * what reaches the channel is what actually happened at the table and not what
+ * a browser says happened. Returns whether the channel took it — this one is
+ * an explicit gesture by the GM, so the button has to be able to say it failed.
+ */
+export async function publishRecap(sessionId: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/discord', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'recap', sessionId }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/**
  * Hands an event to the relay. Who sent it is not part of the payload — the
  * route reads that from the session — so nothing here can sign a message with
  * someone else's name.

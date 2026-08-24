@@ -20,6 +20,12 @@ interface Props {
   item: InventoryItem
   onClose: () => void
   onSaveContent: (content: string) => void
+  /**
+   * Um handout entregue pelo Mestre (§6.8) é lido, não escrito: quem recebe a
+   * carta não a reescreve. Sem isto o botão de editar apareceria e a edição
+   * seria descartada em silêncio.
+   */
+  readOnly?: boolean
 }
 
 function paginateMarkdown(md: string, charsPerPage = 600): string[] {
@@ -62,7 +68,7 @@ const mdComponents: Components = {
 const PAGE_CLASS =
   'relative w-[min(340px,calc(100vw-3rem))] min-h-[480px] shrink-0 overflow-y-hidden bg-[var(--foreground)] px-7 py-8 text-[13px] leading-[1.55] text-[var(--background)]'
 
-export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
+export function BookViewerModal({ item, onClose, onSaveContent, readOnly }: Props) {
   // Two pages side by side need ~760-800px of viewport before the spread
   // clips — below that, page one at a time instead.
   const singlePage = useIsMobile(899)
@@ -105,14 +111,16 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
               Leitor de {item.name}, página {leftNum} de {totalPages}.
             </DialogDescription>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
-                className="border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em] text-[var(--foreground)]"
-              >
-                ✎ Editar Conteúdo
-              </Button>
+              {!readOnly && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { setDraft(item.content ?? ''); setEditingContent(true) }}
+                  className="border-[var(--border)] bg-[var(--card)] text-[9px] tracking-[0.12em] text-[var(--foreground)]"
+                >
+                  ✎ Editar Conteúdo
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -155,7 +163,9 @@ export function BookViewerModal({ item, onClose, onSaveContent }: Props) {
                     <ReactMarkdown components={mdComponents}>{rightPage}</ReactMarkdown>
                   ) : (
                     <span className="text-[11px] text-[var(--muted-foreground)] italic">
-                      {totalPages > 1 ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
+                      {/* Quem recebeu um handout não tem esse botão — mandá-lo
+                          usar o que não existe seria pior do que uma página vazia. */}
+                      {totalPages > 1 || readOnly ? '' : 'Use ✎ Editar Conteúdo para adicionar texto.'}
                     </span>
                   )}
                 </div>

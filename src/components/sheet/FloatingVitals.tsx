@@ -6,8 +6,9 @@ import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AvatarUpload } from '@/components/sheet/AvatarUpload'
 import { FortuneBar } from '@/components/sheet/FortuneBar'
-import { modifier, modifierStr, rollDie } from '@/lib/dice'
-import type { RollResult } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
+import { modifier, modifierStr, rollWithMode } from '@/lib/dice'
+import type { RollMode, RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
 import { STAT_FULL, STAT_KEYS, STAT_LABELS } from '@/data/stats'
 import { Button } from '@/components/ui/button'
@@ -101,11 +102,9 @@ export function FloatingVitals({
     setEntry('')
   }
 
-  function rollStat(stat: Stat) {
+  function rollStat(stat: Stat, mode: RollMode) {
     if (!onRoll) return
-    const mod = modifier(stats![stat])
-    const result = rollDie(`d20`, STAT_FULL[stat], STAT_LABELS[stat], mod, false, false)
-    onRoll(result)
+    onRoll(rollWithMode('d20', STAT_FULL[stat], STAT_LABELS[stat], modifier(stats![stat]), mode))
   }
 
   // ── HP / XP controls — centered overlay (portal) ─────────────────────────
@@ -295,14 +294,19 @@ export function FloatingVitals({
           {stats && (
             <div className="vitals-stats">
               {STAT_KEYS.map(key => (
-                <Button
+                <RollModeMenu
                   key={key}
+                  label={`Rolar ${STAT_FULL[key]}`}
+                  disabled={!onRoll}
+                  onRoll={mode => rollStat(key, mode)}
+                >
+                <Button
                   type="button"
                   variant="secondary"
                   title={`Rolar ${STAT_FULL[key]}`}
-                  onClick={() => rollStat(key)}
+                  render={<span />}
                   className={cn(
-                    'h-auto min-w-0 flex-col items-center justify-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
+                    'h-auto w-full min-w-0 flex-col items-center justify-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
                     'bg-input border-input hover:border-ring',
                     onRoll ? 'cursor-pointer' : 'cursor-default',
                   )}
@@ -311,6 +315,7 @@ export function FloatingVitals({
                   <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                   <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
                 </Button>
+                </RollModeMenu>
               ))}
             </div>
           )}
@@ -381,14 +386,19 @@ export function FloatingVitals({
         {stats && (
           <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)' }}>
             {STAT_KEYS.map(key => (
-              <Button
+              <RollModeMenu
                 key={key}
+                label={`Rolar ${STAT_FULL[key]}`}
+                disabled={!onRoll}
+                onRoll={mode => rollStat(key, mode)}
+              >
+              <Button
                 type="button"
                 variant="secondary"
                 title={`Rolar ${STAT_FULL[key]}`}
-                onClick={() => rollStat(key)}
+                render={<span />}
                 className={cn(
-                  'h-auto flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
+                  'h-auto w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
                   'bg-input border-input hover:border-ring',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
@@ -397,6 +407,7 @@ export function FloatingVitals({
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
               </Button>
+              </RollModeMenu>
             ))}
           </div>
         )}

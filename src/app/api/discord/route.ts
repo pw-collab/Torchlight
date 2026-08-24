@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import { formatDiscordMessage } from '@/lib/discord'
+import { buildRecap, formatRecap, type Recap } from '@/lib/recap'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { DiscordEvent, DiscordEventInput } from '@/types/discord.types'
+import type { SessionEventRow } from '@/types/session.types'
+import { rowToEvent } from '@/types/session.types'
 
 /** Rolls carry at most an advantage pair; anything longer is not a roll. */
 const MAX_REPORTED_ROLLS = 12
+
+/** A recap is a summary, not a transcript: long lists and long messages get cut. */
+const MAX_RECAP_ITEMS = 12
+const MAX_DISCORD_MESSAGE = 1900
 
 /**
  * Discord renders whatever it is handed, and everything here still originates
@@ -72,6 +79,71 @@ function parseEvent(raw: unknown): DiscordEventInput | null {
   }
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * The recap is derived here, not relayed.
+ *
+ * The browser sends a session id and nothing else: the summary is read out of
+ * `session_events` under the caller's own RLS, so what reaches the channel is
+ * what the log actually says — not what a client claims it says.
+ *
+ * Every string still passes through `clean`, because the log itself is written
+ * by players: a character named with backticks would otherwise break out of the
+ * message.
+ */
+function sanitizeRecap(recap: Recap): Recap {
+  const text = (value: string, max = 48) => clean(value, max) ?? '—'
+  const cap = <T,>(list: T[]) => list.slice(0, MAX_RECAP_ITEMS)
+
+  return {
+    sessionName: text(recap.sessionName, 60),
+    minutes: Math.max(0, recap.minutes),
+    cast: cap(recap.cast).map(name => text(name)),
+    rolls: Math.max(0, recap.rolls),
+    criticals: cap(recap.criticals).map(r => ({ who: text(r.who), label: text(r.label), total: r.total })),
+    fumbles: cap(recap.fumbles).map(r => ({ who: text(r.who), label: text(r.label), total: r.total })),
+    downs: cap(recap.downs).map(name => text(name)),
+    xp: cap(recap.xp).map(x => ({ who: text(x.who), gained: x.gained })),
+    torchMinutes: Math.max(0, recap.torchMinutes),
+    encounters: cap(recap.encounters).map(name => text(name, 60)),
+    handouts: cap(recap.handouts).map(title => text(title, 60)),
+  }
+}
+
+/** The recap text, or a reason it cannot be published. */
+async function recapContent(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
+  discordId: unknown,
+  sessionId: unknown,
+): Promise<{ content: string } | { error: string; status: number }> {
+  if (typeof sessionId !== 'string' || !UUID.test(sessionId)) {
+    return { error: 'Invalid payload', status: 400 }
+  }
+
+  const { data: session } = await supabase
+    .from('sessions')
+    .select('id, name, gm_id')
+    .eq('id', sessionId)
+    .single()
+
+  // Only the table's own GM publishes its recap. A player at the table can read
+  // the log, but the summary is the GM's to hand to the channel.
+  if (!session || (session as { gm_id: string }).gm_id !== discordId) {
+    return { error: 'Forbidden', status: 403 }
+  }
+
+  const { data: rows } = await supabase
+    .from('session_events')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('created_at', { ascending: true })
+
+  const events = ((rows ?? []) as SessionEventRow[]).map(rowToEvent)
+  const recap = buildRecap(events, (session as { name: string }).name)
+  return { content: formatRecap(sanitizeRecap(recap)).slice(0, MAX_DISCORD_MESSAGE) }
+}
+
 function displayName(user: User): string {
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>
   return (
@@ -121,12 +193,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
-  const event = parseEvent(raw)
-  if (!event) {
-    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  // The recap does not come from the browser at all — only the session id does.
+  let content: string
+  if (typeof raw === 'object' && raw !== null && (raw as { type?: unknown }).type === 'recap') {
+    const built = await recapContent(supabase, discordId, (raw as { sessionId?: unknown }).sessionId)
+    if ('error' in built) {
+      return NextResponse.json({ error: built.error }, { status: built.status })
+    }
+    content = built.content
+  } else {
+    const event = parseEvent(raw)
+    if (!event) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+    content = formatDiscordMessage({ ...event, player: displayName(user) } as DiscordEvent)
   }
 
-  const content = formatDiscordMessage({ ...event, player: displayName(user) } as DiscordEvent)
   const res = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

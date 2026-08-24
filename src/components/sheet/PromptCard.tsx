@@ -3,11 +3,13 @@
 import { motion } from 'framer-motion'
 import type { SessionEvent, PromptPayload } from '@/types/session.types'
 import { STAT_FULL, isStat } from '@/data/stats'
+import type { RollMode } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
 
 interface Props {
   prompts: SessionEvent[]
-  onAnswer: (prompt: SessionEvent) => void
+  onAnswer: (prompt: SessionEvent, mode: RollMode) => void
 }
 
 /**
@@ -66,14 +68,20 @@ export function PromptCard({ prompts, onAnswer }: Props) {
               )}
             </span>
 
-            <Button
-              type="button"
-              variant="hollow"
-              onClick={() => onAnswer(prompt)}
-              className="font-heading bg-primary text-primary-foreground h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase"
+            <RollModeMenu
+              label={`Rolar ${attribute ?? 'o teste'} DC ${p.dc}`}
+              align="end"
+              onRoll={mode => onAnswer(prompt, mode)}
             >
-              Rolar
-            </Button>
+              <Button
+                type="button"
+                variant="hollow"
+                render={<span />}
+                className="font-heading bg-primary text-primary-foreground h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase"
+              >
+                Rolar
+              </Button>
+            </RollModeMenu>
           </motion.div>
         )
       })}

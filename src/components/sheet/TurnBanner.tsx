@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion'
 import type { Encounter, EncounterActor } from '@/types/encounter.types'
 import { turnOrder } from '@/types/encounter.types'
+import type { RollMode } from '@/lib/dice'
+import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
 
 interface Props {
@@ -10,7 +12,7 @@ interface Props {
   actors: EncounterActor[]
   /** A linha deste personagem na trilha, se ele estiver nela. */
   mine: EncounterActor | undefined
-  onRollInitiative: () => void
+  onRollInitiative: (mode: RollMode) => void
   busy?: boolean
 }
 
@@ -71,15 +73,16 @@ export function TurnBanner({ encounter, actors, mine, onRollInitiative, busy }: 
       </span>
 
       {needsInitiative && (
-        <Button
-          type="button"
-          variant="hollow"
-          onClick={onRollInitiative}
-          disabled={busy}
-          className="font-heading bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
-        >
-          Rolar iniciativa
-        </Button>
+        <RollModeMenu label="Rolar iniciativa" align="end" onRoll={onRollInitiative} disabled={busy}>
+          <Button
+            type="button"
+            variant="hollow"
+            render={<span />}
+            className="font-heading bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
+          >
+            Rolar iniciativa
+          </Button>
+        </RollModeMenu>
       )}
     </motion.div>
   )
