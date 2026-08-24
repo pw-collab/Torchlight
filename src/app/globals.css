@@ -198,6 +198,69 @@ html, body {
 .card-lift { transition: transform 250ms var(--ease-ritual), box-shadow 250ms var(--ease-ritual); }
 .card-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.55); }
 
+/* ------------------------------------------------------------
+   Card flip — how a deck card opens
+
+   A card is the same object open or shut: the detail is the far side of
+   the same piece of card, reached by turning it over rather than by
+   throwing a copy of it onto a backdrop. Both faces are laid on top of
+   one another at the card's own size, so opening one never moves the
+   cards around it.
+   ------------------------------------------------------------ */
+.card-flip {
+  position: relative;
+  perspective: 1400px;
+}
+.card-flip__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 520ms var(--ease-ritual);
+}
+.card-flip[data-open='true'] .card-flip__inner { transform: rotateY(180deg); }
+
+.card-flip__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-flip__face--back { transform: rotateY(180deg); }
+
+/* Actions float clear of the card. Both faces are the same size, so there
+   is no room inside for a row of buttons — they hang off the bottom edge
+   as a popover instead, wide enough for their own content.
+
+   It arrives on inkSpread's curve rather than on `.animate-ink-spread`
+   itself: that animation ends on a transform of its own, and `both` would
+   hold it there — wiping out the translate that centres this on the card. */
+@keyframes cardActionsIn {
+  0%   { opacity: 0; transform: translateX(-50%) scale(0.96) translateY(8px); filter: blur(3px); }
+  60%  { filter: blur(0); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+.card-actions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  animation: cardActionsIn 420ms cubic-bezier(0.4,0,0.2,1) both;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(92vw, 420px);
+  padding: 8px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+}
+.card-actions__row { display: flex; gap: 8px; }
+.card-actions__row > * { flex: 1; }
+
 /* Value pulse — confirms a stat/attribute roll. */
 @keyframes valuePulse {
   0%   { transform: scale(1); }

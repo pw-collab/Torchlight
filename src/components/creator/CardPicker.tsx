@@ -21,9 +21,9 @@ interface Props {
   /** The chosen card. Nothing is chosen while this is empty. */
   selectedId: string
   onSelect: (id: string) => void
-  /** The full entry, rendered inside the card's popover. */
+  /** The full entry, rendered on the card's detail face. */
   renderDetail: (option: CardOption) => ReactNode
-  /** Verb on the popover's action, e.g. "Escolher esta classe". */
+  /** Verb on the card's action, e.g. "Escolher esta classe". */
   actionLabel: string
   /** How the action reads once this card is the chosen one. */
   chosenLabel: string
@@ -38,9 +38,9 @@ const IDLE_ACCENT = 'var(--muted-foreground)'
 /**
  * A deck of sheet cards used as a picker.
  *
- * Same face and popover as the talents and spells on the sheet: the card shows
- * the name and a preview, opening onto the full entry, and the action that
- * commits the choice sits in the popover's footer.
+ * Same card as the talents and spells on the sheet: the face shows the name and
+ * a preview, turning over onto the full entry, with the action that commits the
+ * choice floating below the open card.
  */
 export function CardPicker({
   options, selectedId, onSelect, renderDetail, actionLabel, chosenLabel, emptyHint,
@@ -72,7 +72,6 @@ export function CardPicker({
             status={chosen ? { text: '✓', color: accent } : null}
             open={openId === option.id}
             onOpenChange={open => setOpenId(open ? option.id : null)}
-            popoverHeight={460}
             footer={
               <Button
                 variant={chosen ? 'hollow' : 'secondary'}
@@ -92,7 +91,7 @@ export function CardPicker({
   )
 }
 
-/** Labelled block inside a card's popover — "Talento", "Traços", "Magia"… */
+/** Labelled block on a card's detail face — "Talento", "Traços", "Magia"… */
 export function DetailBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mb-3 flex flex-col gap-1 last:mb-0">
