@@ -931,7 +931,8 @@ export function InventoryView({
   function rollAttack(item: InventoryItem, mode: RollMode) {
     if (!onRoll) return
     const isRanged = item.weaponKind === 'ranged'
-    const bonus = (isRanged ? rangedBonus : meleeBonus) + (item.attackBonus ?? 0)
+    const attrMod = modifier(isRanged ? dex : str)
+    const bonus = attrMod + (isRanged ? rangedBonus : meleeBonus) + (item.attackBonus ?? 0)
     onRoll(rollWithMode('d20', `Ataque: ${item.name}`, item.weaponKind ?? 'melee', bonus, mode))
   }
 
