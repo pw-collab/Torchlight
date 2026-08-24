@@ -212,7 +212,17 @@ function ItemGlyph({ item, size = 40, now }: {
       : { opacity: 0.5 }
     : undefined
 
-  return <HugeiconsIcon icon={iconFor(item, burning)} size={size} strokeWidth={1.5} style={style} />
+  return (
+    <HugeiconsIcon
+      icon={iconFor(item, burning)}
+      size={size}
+      strokeWidth={1.5}
+      // Width and height inline, not just as attributes: `.cn-button` pins every
+      // svg it contains to size-4, so inside a tile the asked-for size was
+      // simply ignored.
+      style={{ width: size, height: size, ...style }}
+    />
+  )
 }
 
 /**
@@ -444,6 +454,10 @@ const TYPE_ACCENT: Record<ItemType, { color: string }> = {
   document: { color: 'var(--muted-foreground)' },
 }
 
+/** Icon size inside a pack cell. The tile and the echoes of the space it spills
+    into share it, so one item reads as one object across all its slots. */
+const TILE_ICON_SIZE = 26
+
 const TILE_LABEL_STYLE: React.CSSProperties = {
   fontFamily: 'var(--font-heading)',
   fontSize: 8,
@@ -521,7 +535,7 @@ function ItemIconSlot({ item, selected, now, onSelect }: {
     <GridItemTile
       label={item.name}
       title={item.name}
-      icon={<ItemGlyph item={item} size={40} now={now} />}
+      icon={<ItemGlyph item={item} size={TILE_ICON_SIZE} now={now} />}
       selected={selected}
       badge={item.quantity > 1 ? `×${item.quantity}` : undefined}
       dot={item.equipped}
@@ -544,7 +558,14 @@ function CoinPurseTile({ total, selected, onSelect }: {
     <GridItemTile
       label="Bolsa de moedas"
       title={`Bolsa de moedas — ${total} ${total === 1 ? 'moeda' : 'moedas'}`}
-      icon={<HugeiconsIcon icon={MoneyBag01Icon} size={40} strokeWidth={1.5} style={{ color: 'var(--chart-1)' }} />}
+      icon={
+        <HugeiconsIcon
+          icon={MoneyBag01Icon}
+          size={TILE_ICON_SIZE}
+          strokeWidth={1.5}
+          style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE, color: 'var(--chart-1)' }}
+        />
+      }
       selected={selected}
       badge={total > 0 ? total : undefined}
       onSelect={onSelect}
@@ -579,7 +600,7 @@ function GridEchoTile({ label, icon }: { label: string; icon: IconSvgElement }) 
         opacity: 0.45,
       }}
     >
-      <HugeiconsIcon icon={icon} size={26} strokeWidth={1.5} />
+      <HugeiconsIcon icon={icon} size={TILE_ICON_SIZE} strokeWidth={1.5} />
       <span style={{ ...TILE_LABEL_STYLE, fontSize: 7 }}>{label}</span>
     </div>
   )
