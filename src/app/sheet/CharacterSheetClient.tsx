@@ -28,7 +28,7 @@ import { TabBar } from '@/components/sheet/TabBar'
 import { TabRail } from '@/components/sheet/TabRail'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
 import { RollToasts } from '@/components/sheet/RollToasts'
-import { InventoryView, TreasureVault } from '@/components/sheet/InventoryView'
+import { InventoryView } from '@/components/sheet/InventoryView'
 import { FloatingTorch } from '@/components/sheet/FloatingTorch'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
@@ -49,7 +49,7 @@ import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
 import { consumeRation, findRation } from '@/lib/rest'
-import { maxSlots, usedSlots } from '@/lib/slots'
+import { coinSlots, maxSlots, usedSlots } from '@/lib/slots'
 import { STAT_LABELS, isStat } from '@/data/stats'
 import type {
   EventPayload,
@@ -492,6 +492,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
       ),
     },
+    // Um bloco só: o tesouro deixou de ter uma linha própria na página e
+    // virou a Bolsa de moedas, um item da mochila como qualquer outro.
     inventory: {
       primary: (
         <InventoryView
@@ -504,16 +506,12 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           onRoll={handleRoll}
           meleeBonus={character.meleeBonus}
           rangedBonus={character.rangedBonus}
-          onLightChange={change => record('light', { ...change, by: 'player' })}
-          clock={openSession}
-        />
-      ),
-      secondary: (
-        <TreasureVault
           gold={character.gold}
           silver={character.silver}
           copper={character.copper}
-          onUpdate={handleCurrencyUpdate}
+          onCurrencyUpdate={handleCurrencyUpdate}
+          onLightChange={change => record('light', { ...change, by: 'player' })}
+          clock={openSession}
         />
       ),
     },
@@ -543,7 +541,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   // regra de carga unificada na Fase 0, ela passa a se anunciar junto das
   // condições — no mesmo lugar e do mesmo jeito, porque para quem rola é a
   // mesma coisa: algo está pesando contra.
-  const overloaded = usedSlots(character.inventory) > maxSlots(character.stats.str)
+  const overloaded =
+    usedSlots(character.inventory) + coinSlots(character) > maxSlots(character.stats.str)
   const disadvantages = [
     ...disadvantageLabels(character.conditions),
     ...(overloaded ? ['Sobrecarga'] : []),
