@@ -41,6 +41,16 @@ export function catalogToInventoryItem(cat: CatalogItem): InventoryItem {
 }
 
 /**
+ * Weapons the catalog marks `2 Handed`. The property travels in the item's
+ * description — that is where the catalog writes it, and where anything typed
+ * by hand ends up too — so the rule reads it from there rather than from a
+ * field nothing fills in.
+ */
+export function isTwoHanded(item: { description?: string }): boolean {
+  return /\b2\s*handed\b|duas\s+m[ãa]os/i.test(item.description ?? '')
+}
+
+/**
  * Resolve one entry of an archetype's kit. Entries that name a catalog item
  * come back as that item; the rest — a silvered dagger, a reliquary — are
  * carried as written.
