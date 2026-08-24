@@ -41,6 +41,17 @@ export function getSpellsByTradition(tradition: SpellTradition): Spell[] {
 }
 
 /**
+ * A spell's circle in Roman numerals, as every card face writes it. Indexed by
+ * `tier - 1`; use `tierNumeral` rather than reaching in directly.
+ */
+const TIER_NUMERAL = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']
+
+/** The circle of `tier`, falling back to the bare number past the table. */
+export function tierNumeral(tier: number): string {
+  return TIER_NUMERAL[tier - 1] ?? String(tier)
+}
+
+/**
  * Highest spell tier a character of `level` may learn — one new tier every two
  * levels, capped at 5 (the top tier a player character reaches).
  */

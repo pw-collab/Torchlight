@@ -1,15 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
-import {
-  FourFinger03Icon,
-  HourglassIcon,
-  JusticeScale01Icon,
-  Moon02Icon,
-  RotateRight02Icon,
-  StarAward01Icon,
-} from '@hugeicons/core-free-icons'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
@@ -17,7 +8,8 @@ import type { TechniqueState } from '@/types/technique.types'
 import { rollWithMode, modifier, modifierStr, withDc } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import type { RollMode, RollResult } from '@/lib/dice'
-import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
+import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
+import { OriginIcon, type CardOrigin } from '@/components/shared/CardOrigin'
 import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
@@ -31,11 +23,6 @@ type ButtonVariants = VariantProps<typeof buttonVariants>
 
 const STAT_SHORT: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
-}
-
-/** The 32px symbol every card carries in its masthead. */
-export function CardIcon({ icon }: { icon: IconSvgElement }) {
-  return <HugeiconsIcon icon={icon} size={32} strokeWidth={1.5} />
 }
 
 type BtnVariant = 'blood' | 'amber' | 'mist' | 'dark' | 'danger' | 'green'
@@ -308,7 +295,9 @@ function SpellLikeSection({
   }
 
   return (
-    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', maxWidth: '100%', overflowX: 'auto', padding: '0 16px 2px', boxSizing: 'border-box' }}>
+    // Sits inside the card's floating actions popover, so it brings no padding
+    // of its own beyond the room the hover lift needs.
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', maxWidth: '100%', overflowX: 'auto', padding: '4px 0 2px', boxSizing: 'border-box' }}>
       {cfg.abilities.map(ability => {
         const isExpended = expended.includes(ability.id)
         const dc = ability.dc ?? cfg.dc
@@ -317,7 +306,7 @@ function SpellLikeSection({
         const abilityCastMod = modifier(abilityStatScore)
         const statusColor = isExpended ? 'var(--destructive)' : 'var(--chart-1)'
         return (
-          <div key={ability.id} style={{ background: 'var(--secondary)', border: '1px solid var(--border)', boxShadow: '0 4px 7px rgba(0,0,0,0.65)', padding: 4, width: 180, flexShrink: 0 }}>
+          <div key={ability.id} className="card-lift" style={{ background: 'var(--secondary)', border: '1px solid var(--border)', padding: 4, width: 180, flexShrink: 0 }}>
             <div style={{ border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 6, padding: 9 }}>
               {/* Title */}
               <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--foreground)', textAlign: 'center', width: '100%', lineHeight: 1.1, opacity: isExpended ? 0.25 : 1 }}>
@@ -374,6 +363,10 @@ function SpellLikeSection({
 
 // ─── Technique Card ───────────────────────────────────────────────────────────
 
+// What the technique *is*, kept in the label under the masthead rule. Where it
+// came from is a separate fact, carried by the masthead symbol — a class
+// technique is a class technique whichever of these four it happens to be.
+//
 // The four kinds used to be told apart by hue (purple / parchment / red /
 // verdigris). This theme is monochrome apart from the reds, so they are told
 // apart by lightness instead — every value still clears 4.5:1 on --card.
@@ -381,12 +374,12 @@ function SpellLikeSection({
 // sit on the sheet stay hollow.
 const KIND_STYLE: Record<
   TechniqueKind,
-  { label: string; color: string; icon: IconSvgElement; tone: 'passive' | 'activation' }
+  { label: string; color: string; tone: 'passive' | 'activation' }
 > = {
-  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          icon: FourFinger03Icon,  tone: 'passive' },
-  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', icon: JusticeScale01Icon, tone: 'passive' },
-  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      icon: HourglassIcon,      tone: 'activation' },
-  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       icon: RotateRight02Icon,  tone: 'activation' },
+  passive:      { label: 'Passivo',  color: 'var(--chart-1)',          tone: 'passive' },
+  choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', tone: 'passive' },
+  limited_use:  { label: 'Usos',     color: 'var(--destructive)',      tone: 'activation' },
+  spell_like:   { label: 'Ativação', color: 'var(--foreground)',       tone: 'activation' },
 }
 
 function TechniqueCard({
@@ -426,23 +419,23 @@ function TechniqueCard({
 
   return (
     <GlyphCard
-      glyph={<CardIcon icon={style.icon} />}
+      // A technique comes from the class, whatever kind it is — the symbol says
+      // so, and the label under the rule is left to say which kind.
+      glyph={<OriginIcon origin="class" />}
       title={technique.name}
       caption={style.label}
       accent={style.color}
       tone={style.tone}
       description={technique.description}
       status={statusLine}
-      overlay={
-        // Ability cards — activation techniques, pinned to the bottom of the screen
+      controls={
+        // Ability cards — activation techniques, floating beneath the card
         kind === 'spell_like' && technique.spellLike ? (
-          <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', left: 0, right: 0, bottom: 16 }}>
-            <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
-          </div>
+          <SpellLikeSection technique={technique} state={state} stats={stats} onChange={onStateChange} onRoll={onRoll} />
         ) : null
       }
     >
-      <p style={POPOVER_BODY}>
+      <p style={DETAIL_BODY}>
         <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
       </p>
       {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
@@ -476,13 +469,15 @@ interface GrantedTechnique {
   key: string
   name: string
   description: string
-  caption: string
+  origin: CardOrigin
   accent: string
-  icon: IconSvgElement
 }
 
-const ANCESTRY_STYLE = { caption: 'Ancestralidade', accent: 'var(--foreground)', icon: Moon02Icon }
-const ARCHETYPE_STYLE = { caption: 'Arquétipo', accent: 'var(--chart-1)', icon: StarAward01Icon }
+// Neither is spent or chosen: they simply hold. Where they came from is the
+// masthead symbol's business, so the label under the rule reads as the type,
+// the same way it does across the rest of the deck.
+const ANCESTRY_STYLE = { origin: 'ancestry' as const, accent: 'var(--foreground)' }
+const ARCHETYPE_STYLE = { origin: 'archetype' as const, accent: 'var(--chart-1)' }
 
 /** Every trait of the ancestry, then the archetype's talent. */
 function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedTechnique[] {
@@ -511,15 +506,15 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
 function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: RollResult) => void }) {
   return (
     <GlyphCard
-      glyph={<CardIcon icon={entry.icon} />}
+      glyph={<OriginIcon origin={entry.origin} />}
       title={entry.name}
-      caption={entry.caption}
+      caption={KIND_STYLE.passive.label}
       accent={entry.accent}
       description={entry.description}
     >
       {/* Archetype talents are written as a paragraph of flavour followed by
           the rule itself — the line break between them has to survive. */}
-      <p style={{ ...POPOVER_BODY, whiteSpace: 'pre-line' }}>
+      <p style={{ ...DETAIL_BODY, whiteSpace: 'pre-line' }}>
         <RollableText text={entry.description} label={entry.name} onRoll={onRoll} />
       </p>
     </GlyphCard>

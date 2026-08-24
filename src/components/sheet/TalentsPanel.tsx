@@ -1,18 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import type { IconSvgElement } from '@hugeicons/react'
-import {
-  FourFinger03Icon,
-  Moon02Icon,
-  StarAward01Icon,
-} from '@hugeicons/core-free-icons'
 import type { Talent, TalentOrigin } from '@/types/talent.types'
 import type { RollResult } from '@/lib/dice'
-import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
+import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
+import { OriginIcon, ORIGIN_LABEL } from '@/components/shared/CardOrigin'
 import { RollableText } from '@/components/shared/RollableText'
 import { SectionHeading } from '@/components/shared/SectionHeading'
-import { CardIcon } from '@/components/sheet/ClassPanel'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -24,12 +18,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-const ORIGIN_LABEL: Record<TalentOrigin, string> = {
-  ancestry: 'Ancestralidade',
-  class: 'Classe',
-  general: 'Geral',
-}
-
 // Mirrors the class block's technique palette — every value clears 4.5:1 on
 // the card face.
 const ORIGIN_ACCENT: Record<TalentOrigin, string> = {
@@ -38,12 +26,12 @@ const ORIGIN_ACCENT: Record<TalentOrigin, string> = {
   ancestry: 'var(--foreground)',
 }
 
-/** Mirrors the technique deck's symbols so the two decks read as one set. */
-const ORIGIN_ICON: Record<TalentOrigin, IconSvgElement> = {
-  ancestry: Moon02Icon,
-  class: FourFinger03Icon,
-  general: StarAward01Icon,
-}
+/**
+ * Nothing in this deck is spent: a talent earned in play is a standing rule,
+ * so every card reads Passivo. Which of the three origins it came from is the
+ * masthead symbol's job, one line up.
+ */
+const TALENT_KIND_LABEL = 'Passivo'
 
 const FIELD_LABEL_CLASS =
   'font-heading mb-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
@@ -148,9 +136,9 @@ export function TalentsPanel({ talents, onUpdate, onRoll }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ancestry">Ancestralidade</SelectItem>
-                    <SelectItem value="class">Classe</SelectItem>
-                    <SelectItem value="general">Geral</SelectItem>
+                    {(['ancestry', 'class', 'general'] as TalentOrigin[]).map(origin => (
+                      <SelectItem key={origin} value={origin}>{ORIGIN_LABEL[origin]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
@@ -209,9 +197,9 @@ function TalentCard({ talent, expanded, onOpenChange, onRemove, onEdit, onRoll }
 }) {
   return (
     <GlyphCard
-      glyph={<CardIcon icon={ORIGIN_ICON[talent.origin]} />}
+      glyph={<OriginIcon origin={talent.origin} />}
       title={talent.name}
-      caption={ORIGIN_LABEL[talent.origin]}
+      caption={TALENT_KIND_LABEL}
       accent={ORIGIN_ACCENT[talent.origin]}
       description={talent.description}
       open={expanded}
@@ -227,7 +215,7 @@ function TalentCard({ talent, expanded, onOpenChange, onRemove, onEdit, onRoll }
         </>
       }
     >
-      <p style={POPOVER_BODY}>
+      <p style={DETAIL_BODY}>
         <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
       </p>
     </GlyphCard>

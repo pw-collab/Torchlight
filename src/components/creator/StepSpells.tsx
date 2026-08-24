@@ -1,10 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { getLearnableSpells, getSpell, maxSpellTier } from '@/data/spells/index'
+import { getLearnableSpells, getSpell, maxSpellTier, tierNumeral } from '@/data/spells/index'
 import { getClass } from '@/data/classes/index'
 import { TRADITION_LABEL, type SpellTradition } from '@/types/class.types'
-import { GlyphCard, POPOVER_BODY } from '@/components/shared/GlyphCard'
+import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
+import { OriginIcon } from '@/components/shared/CardOrigin'
 import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -136,9 +137,10 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
           return (
             <GlyphCard
               key={spell.id}
-              glyph={String(spell.tier)}
+              glyph={<OriginIcon origin="spell" />}
               title={spell.name}
-              caption={spell.school || spell.type}
+              // Same label the sheet's grimoire carries: school then circle.
+              caption={`${spell.school || spell.type} ${tierNumeral(spell.tier)}`}
               accent={accent}
               description={spell.description}
               status={learned ? { text: '✓', color: accent } : null}
@@ -168,7 +170,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
                   <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.duration}</Badge>
                 )}
               </div>
-              <p style={POPOVER_BODY}>{spell.description}</p>
+              <p style={DETAIL_BODY}>{spell.description}</p>
               <p className="font-mono text-muted-foreground mt-2 text-[8px] tracking-[0.08em] uppercase">
                 {spell.classes.join(' · ')}
               </p>
