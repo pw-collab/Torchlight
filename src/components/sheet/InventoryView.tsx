@@ -34,6 +34,7 @@ import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { VariantProps } from 'class-variance-authority'
 
 type ButtonVariants = VariantProps<typeof buttonVariants>
@@ -225,97 +226,6 @@ function ItemGlyph({ item, size = 40, now }: {
   )
 }
 
-/**
- * The purse, opened. It sits where an item's details would sit, because in the
- * pack the purse *is* an item — clicking it should give you the coins, not a
- * description of a bag.
- */
-function CoinPursePane({ gold, silver, copper, slots, onUpdate, onClose }: {
-  gold: number
-  silver: number
-  copper: number
-  slots: number
-  onUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
-  onClose: () => void
-}) {
-  const coins = [
-    { key: 'gold'   as const, label: 'PO', color: 'text-[var(--chart-1)]',           value: gold },
-    { key: 'silver' as const, label: 'PP', color: 'text-[var(--foreground)]',        value: silver },
-    { key: 'copper' as const, label: 'PC', color: 'text-[var(--muted-foreground)]',  value: copper },
-  ]
-  const total = gold + silver + copper
-  const toNextSlot = COINS_PER_SLOT - (total % COINS_PER_SLOT)
-
-  return (
-    <div className="animate-ink-spread" style={{
-      width: '100%',
-      boxSizing: 'border-box',
-      background: 'var(--background)',
-      border: '1px solid var(--destructive)',
-      borderTop: '2px solid var(--destructive)',
-      padding: 12,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
-            Bolsa de moedas
-          </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 3 }}>
-            Tesouro
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          onClick={onClose}
-          aria-label="Fechar"
-          className="text-muted-foreground shrink-0 text-[11px] leading-none hover:bg-transparent"
-        >
-          ✕
-        </Button>
-      </div>
-
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)', lineHeight: 1.7 }}>
-        {[
-          `${slots} slot${slots !== 1 ? 's' : ''}`,
-          `${total} ${total === 1 ? 'moeda' : 'moedas'}`,
-        ].join(' · ')}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-        {coins.map(({ key, label, color, value }) => (
-          <div
-            key={key}
-            className="worn-border"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
-          >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
-              {label}
-            </div>
-            <NumInput
-              value={value}
-              min={0}
-              aria-label={label}
-              onCommit={n => onUpdate({ [key]: n })}
-              className={cn(
-                'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
-                color,
-              )}
-            />
-          </div>
-        ))}
-      </div>
-
-      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', lineHeight: 1.55, margin: 0 }}>
-        {COINS_PER_SLOT} moedas = 1 slot de carga · faltam {toNextSlot} para o próximo.
-      </p>
-    </div>
-  )
-}
-
 type CatalogTab = 'weapons' | 'armors' | 'gear'
 const CATALOG_TABS: Record<CatalogTab, { label: string; items: CatalogItem[] }> = {
   weapons: { label: 'Armas',        items: WEAPONS },
@@ -477,99 +387,62 @@ const TILE_LABEL_STYLE: React.CSSProperties = {
   overflow: 'hidden',
 }
 
-/** Occupied grid cell ("Default" state, Figma 91-1044) — icon + name, gold border. */
-function GridItemTile({ label, title, icon, selected, badge, dot, onSelect }: {
+/**
+ * Occupied grid cell ("Default" state, Figma 91-1044) — icon + name, gold
+ * border — and the anchor its own details hang from. The cell is the trigger,
+ * so the popup opens against the thing that was clicked; `children` is the
+ * `PopoverContent` that belongs to it.
+ */
+function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, children }: {
   label: string
   title: string
   icon: React.ReactNode
-  selected: boolean
+  open: boolean
   /** Top-right numeral — a stack's count, or the coins in the purse. */
   badge?: React.ReactNode
   /** Top-left pip, marking something in hand or worn. */
   dot?: boolean
-  onSelect: () => void
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
 }) {
   return (
-    <Button
-      onClick={onSelect}
-      title={title}
-      variant="outline"
-      aria-pressed={selected}
-      className={cn(
-        'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
-        'bg-[var(--background)] hover:bg-[var(--background)]',
-        selected ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--muted-foreground)]',
-      )}
-    >
-      {dot && (
-        <span aria-hidden style={{
-          position: 'absolute', top: 4, left: 4,
-          width: 5, height: 5, borderRadius: '50%',
-          background: 'var(--chart-2)',
-        }} />
-      )}
-      {badge != null && (
-        <span style={{
-          position: 'absolute', top: 4, right: 4,
-          fontFamily: 'var(--font-numeral)', fontSize: 11,
-          color: 'var(--muted-foreground)', lineHeight: 1,
-        }}>
-          {badge}
-        </span>
-      )}
-      <div style={{ flex: '1 0 0', minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {icon}
-      </div>
-      <span style={TILE_LABEL_STYLE}>{label}</span>
-    </Button>
-  )
-}
-
-function ItemIconSlot({ item, selected, now, onSelect }: {
-  item: InventoryItem
-  selected: boolean
-  now?: number
-  onSelect: () => void
-}) {
-  return (
-    <GridItemTile
-      label={item.name}
-      title={item.name}
-      icon={<ItemGlyph item={item} size={TILE_ICON_SIZE} now={now} />}
-      selected={selected}
-      badge={item.quantity > 1 ? `×${item.quantity}` : undefined}
-      dot={item.equipped}
-      onSelect={onSelect}
-    />
-  )
-}
-
-/**
- * The purse. It is always in the pack — nothing adds it and nothing takes it
- * away — and it weighs only what the coins in it weigh, which is nothing at all
- * until they reach a hundred (see `coinSlots`).
- */
-function CoinPurseTile({ total, selected, onSelect }: {
-  total: number
-  selected: boolean
-  onSelect: () => void
-}) {
-  return (
-    <GridItemTile
-      label="Bolsa de moedas"
-      title={`Bolsa de moedas — ${total} ${total === 1 ? 'moeda' : 'moedas'}`}
-      icon={
-        <HugeiconsIcon
-          icon={MoneyBag01Icon}
-          size={TILE_ICON_SIZE}
-          strokeWidth={1.5}
-          style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE, color: 'var(--chart-1)' }}
-        />
-      }
-      selected={selected}
-      badge={total > 0 ? total : undefined}
-      onSelect={onSelect}
-    />
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger
+        render={
+          <Button
+            title={title}
+            variant="outline"
+            className={cn(
+              'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
+              'bg-[var(--background)] hover:bg-[var(--background)]',
+              open ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--muted-foreground)]',
+            )}
+          >
+            {dot && (
+              <span aria-hidden style={{
+                position: 'absolute', top: 4, left: 4,
+                width: 5, height: 5, borderRadius: '50%',
+                background: 'var(--chart-2)',
+              }} />
+            )}
+            {badge != null && (
+              <span style={{
+                position: 'absolute', top: 4, right: 4,
+                fontFamily: 'var(--font-numeral)', fontSize: 11,
+                color: 'var(--muted-foreground)', lineHeight: 1,
+              }}>
+                {badge}
+              </span>
+            )}
+            <span style={{ flex: '1 0 0', minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {icon}
+            </span>
+            <span style={TILE_LABEL_STYLE}>{label}</span>
+          </Button>
+        }
+      />
+      {children}
+    </Popover>
   )
 }
 
@@ -644,42 +517,102 @@ function GridEmptyTile() {
   )
 }
 
-/** Placeholder pane shown when no item is selected — keeps the 2-column layout stable. */
-function ItemDetailSkeleton() {
-  const line = (w: string, h = 8): React.CSSProperties => ({
-    width: w,
-    height: h,
-    background: 'var(--border)',
-    borderRadius: 2,
-  })
+// ─── The item popover ─────────────────────────────────────────────────────────
+
+/**
+ * Where a pack popup hangs and how it gets out of its own way. Anchored under
+ * the tile, it flips above when the row is near the bottom of the screen and
+ * slides sideways — rather than jumping end to end — when the tile is in the
+ * first or last column. The padding keeps it off the viewport edge, and
+ * `PopoverContent` caps it to the room actually found, so a long popup scrolls
+ * inside itself instead of running off the screen.
+ */
+const PACK_POPOVER_POSITION = {
+  side: 'bottom',
+  align: 'center',
+  sideOffset: 8,
+  collisionPadding: 16,
+  collisionAvoidance: { side: 'flip', align: 'shift', fallbackAxisSide: 'start' },
+} as const
+
+/** Shared chrome: the blood top rule and square edges the old pane carried. */
+const PACK_POPOVER_CLASS =
+  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--destructive)] bg-[var(--background)] p-0'
+
+const POPOVER_SECTION = 'border-b border-[var(--border)] px-3 py-2.5 last:border-b-0'
+
+function PopoverCloseButton() {
   return (
-    <div aria-hidden style={{
-      width: '100%',
-      boxSizing: 'border-box',
-      background: 'var(--background)',
-      border: '1px dashed var(--border)',
-      padding: 12,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-    }}>
-      <div style={line('70%', 12)} />
-      <div style={line('40%', 7)} />
-      <div style={{ height: 1, background: 'var(--border)' }} />
-      <div style={line('100%')} />
-      <div style={line('85%')} />
-      <div style={line('92%')} />
-      <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 11, color: 'var(--muted-foreground)', textAlign: 'center', margin: '10px 0 4px' }}>
-        Selecione um item para ver os detalhes
-      </p>
+    <PopoverClose
+      render={
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Fechar"
+          className="text-muted-foreground shrink-0 text-[11px] leading-none hover:bg-transparent"
+        >
+          ✕
+        </Button>
+      }
+    />
+  )
+}
+
+/** One labelled figure in the popup's stat strip. */
+function StatCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--foreground)', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {value}
+      </div>
     </div>
   )
 }
 
-function ItemDetailPane({ item, now, onClose, onEdit, onRemove, onEquipToggle, onConsume, onOpen, onRollAttack, onRollDamage, onRollParry }: {
+/** Only the figures an item actually has — a rope has no damage die. */
+function itemStats(item: InventoryItem, now?: number): { label: string; value: string }[] {
+  const stats: { label: string; value: string }[] = [
+    { label: 'Slots', value: String(item.slots) },
+  ]
+  if (item.quantity > 1)  stats.push({ label: 'Qtd',     value: `×${item.quantity}` })
+  if (item.damageDie)     stats.push({ label: 'Dano',    value: item.damageDie })
+  if (item.acBonus)       stats.push({ label: 'CA',      value: item.type === 'shield' ? `+${item.acBonus}` : String(item.acBonus) })
+  if (item.range)         stats.push({ label: 'Alcance', value: item.range })
+  if (item.isLight)       stats.push({ label: 'Luz',     value: `${minutesLeft(item, now)}min` })
+  if (item.cost)          stats.push({ label: 'Custo',   value: item.cost })
+  return stats
+}
+
+function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: React.ReactNode }) {
+  const color = tone === 'equipped' ? 'var(--chart-2)' : 'var(--primary)'
+  return (
+    <span style={{
+      fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+      color: tone === 'equipped' ? color : 'var(--primary-foreground)',
+      background: `color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 80 : 85}%)`,
+      border: `1px solid color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 65 : 70}%)`,
+      padding: '1px 5px',
+      whiteSpace: 'nowrap',
+    }}>
+      {children}
+    </span>
+  )
+}
+
+/**
+ * An item's details and what can be done with it, hung off its own tile.
+ * This used to be a fixed block under the grid that sat empty — with a
+ * skeleton in it — whenever nothing was selected.
+ *
+ * The actions are grouped by weight: what you roll, what you do with the thing,
+ * and what you do to the record of it.
+ */
+function ItemDetailPopover({ item, now, onEdit, onRemove, onEquipToggle, onConsume, onOpen, onRollAttack, onRollDamage, onRollParry }: {
   item: InventoryItem
   now?: number
-  onClose: () => void
   onEdit: () => void
   onRemove: () => void
   onEquipToggle?: () => void
@@ -690,115 +623,163 @@ function ItemDetailPane({ item, now, onClose, onEdit, onRemove, onEquipToggle, o
   onRollParry?: () => void
 }) {
   const accent = TYPE_ACCENT[item.type] ?? TYPE_ACCENT.gear
+  const stats = itemStats(item, now)
+  const hasRolls = Boolean(onRollAttack || onRollDamage || onRollParry)
+  const hasUses  = Boolean(onEquipToggle || onConsume || onOpen)
+  const described = Boolean(item.description && item.description !== '-')
 
   return (
-    <div className="animate-ink-spread" style={{
-      width: '100%',
-      boxSizing: 'border-box',
-      background: 'var(--background)',
-      border: '1px solid var(--destructive)',
-      borderTop: '2px solid var(--destructive)',
-      padding: 12,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 6,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+    <PopoverContent {...PACK_POPOVER_POSITION} className={PACK_POPOVER_CLASS}>
+      {/* Identity */}
+      <div className={POPOVER_SECTION} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         <span style={{ flexShrink: 0, color: accent.color, marginTop: 1 }}>
-          <ItemGlyph item={item} size={18} now={now} />
+          <ItemGlyph item={item} size={20} now={now} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 13,
-            color: 'var(--foreground)',
-            lineHeight: 1.2,
-            letterSpacing: '0.02em',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
             {item.name}
           </div>
-          <div style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 7,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: accent.color,
-            marginTop: 3,
-          }}>
-            {TYPE_LABEL[item.type] ?? item.type}
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
+              {TYPE_LABEL[item.type] ?? item.type}
+            </span>
+            {item.equipped && <StateBadge tone="equipped">Equipado</StateBadge>}
+            {item.isLit && <StateBadge tone="lit">Acesa</StateBadge>}
+            {isTwoHanded(item) && (
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+                2 mãos
+              </span>
+            )}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          onClick={onClose}
-          aria-label="Fechar"
-          className="text-muted-foreground shrink-0 text-[11px] leading-none hover:bg-transparent"
-        >
-          ✕
-        </Button>
+        <PopoverCloseButton />
       </div>
 
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)', lineHeight: 1.7 }}>
-        {[
-          `${item.slots} slot${item.slots !== 1 ? 's' : ''}`,
-          item.quantity > 1 ? `×${item.quantity}` : null,
-          item.damageDie || null,
-          item.acBonus ? `CA ${item.acBonus}` : null,
-          item.isLight ? `${minutesLeft(item)}min` : null,
-          item.cost || null,
-        ].filter(Boolean).join(' · ')}
+      {/* Figures */}
+      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px 10px' }}>
+        {stats.map(stat => <StatCell key={stat.label} {...stat} />)}
       </div>
 
-      {(item.equipped || item.isLit) && (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {item.equipped && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--chart-2)', background: 'color-mix(in oklch, var(--chart-2), transparent 80%)', border: '1px solid color-mix(in oklch, var(--chart-2), transparent 65%)', padding: '1px 5px' }}>
-              Equipado
-            </span>
-          )}
-          {item.isLit && (
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--primary-foreground)', background: 'color-mix(in oklch, var(--primary), transparent 85%)', border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)', padding: '1px 5px' }}>
-              Acesa
-            </span>
-          )}
-        </div>
-      )}
-
-      {item.description && item.description !== '-' && (
-        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', lineHeight: 1.55, margin: 0 }}>
+      {described && (
+        <p className={POPOVER_SECTION} style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', lineHeight: 1.55, margin: 0 }}>
           {item.description}
         </p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-        {onRollAttack && (
-          <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={onRollAttack}>
-            <Button render={<span />} variant={BTN_VARIANT_MAP.blood} className="w-full justify-center">
-              <HugeiconsIcon icon={Sword03Icon} size={13} strokeWidth={1.8} /> Atacar
+      {hasRolls && (
+        <div className={POPOVER_SECTION} style={{ display: 'flex', gap: 6 }}>
+          {onRollAttack && (
+            <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={onRollAttack}>
+              <Button render={<span />} variant={BTN_VARIANT_MAP.blood} size="sm" className="flex-1 justify-center gap-1.5">
+                <HugeiconsIcon icon={Sword03Icon} size={13} strokeWidth={1.8} /> Atacar
+              </Button>
+            </RollModeMenu>
+          )}
+          {onRollDamage && <Button onClick={onRollDamage} variant={BTN_VARIANT_MAP.mist} size="sm" className="flex-1 justify-center">Dano</Button>}
+          {onRollParry && <Button onClick={onRollParry} variant={BTN_VARIANT_MAP.mist} size="sm" className="flex-1 justify-center">Aparar</Button>}
+        </div>
+      )}
+
+      {hasUses && (
+        <div className={POPOVER_SECTION} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {onEquipToggle && (
+            <Button
+              onClick={onEquipToggle}
+              variant={BTN_VARIANT_MAP[item.equipped ? 'amber' : 'dark']}
+              size="sm"
+              className="flex-1 justify-center"
+            >
+              {item.equipped ? 'Desequipar' : 'Equipar'}
             </Button>
-          </RollModeMenu>
-        )}
-        {onRollDamage && <Button onClick={onRollDamage} variant={BTN_VARIANT_MAP.mist} className="justify-center">Dano</Button>}
-        {onRollParry && <Button onClick={onRollParry} variant={BTN_VARIANT_MAP.mist} className="justify-center">Aparar</Button>}
-        {onOpen && (
-          <Button onClick={onOpen} variant={BTN_VARIANT_MAP.dark} className="justify-center">
-            <HugeiconsIcon icon={BookOpen02Icon} size={13} strokeWidth={1.8} /> Ler
-          </Button>
-        )}
-        {onConsume && <Button onClick={onConsume} variant={BTN_VARIANT_MAP.green} className="justify-center">Consumir</Button>}
-        {onEquipToggle && (
-          <Button onClick={onEquipToggle} variant={BTN_VARIANT_MAP[item.equipped ? 'amber' : 'dark']} className="justify-center">
-            {item.equipped ? 'Desequipar' : 'Equipar'}
-          </Button>
-        )}
-        <Button onClick={onEdit} variant={BTN_VARIANT_MAP.dark} className="justify-center">✎ Editar</Button>
-        <Button onClick={onRemove} variant={BTN_VARIANT_MAP.danger} className="justify-center">✕ Remover</Button>
+          )}
+          {onConsume && <Button onClick={onConsume} variant={BTN_VARIANT_MAP.green} size="sm" className="flex-1 justify-center">Consumir</Button>}
+          {onOpen && (
+            <Button onClick={onOpen} variant={BTN_VARIANT_MAP.dark} size="sm" className="flex-1 justify-center gap-1.5">
+              <HugeiconsIcon icon={BookOpen02Icon} size={13} strokeWidth={1.8} /> Ler
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* The record itself — kept last, and quieter than the rest. */}
+      <div className={POPOVER_SECTION} style={{ display: 'flex', gap: 6 }}>
+        <Button onClick={onEdit} variant="ghost" size="sm" className="text-muted-foreground flex-1 justify-center">✎ Editar</Button>
+        <Button onClick={onRemove} variant={BTN_VARIANT_MAP.danger} size="sm" className="flex-1 justify-center">✕ Remover</Button>
       </div>
-    </div>
+    </PopoverContent>
+  )
+}
+
+/**
+ * The purse, opened. It sits where an item's details would sit, because in the
+ * pack the purse *is* an item — clicking it should give you the coins, not a
+ * description of a bag.
+ */
+function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
+  gold: number
+  silver: number
+  copper: number
+  slots: number
+  onUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
+}) {
+  const coins = [
+    { key: 'gold'   as const, label: 'PO', color: 'text-[var(--chart-1)]',          value: gold },
+    { key: 'silver' as const, label: 'PP', color: 'text-[var(--foreground)]',       value: silver },
+    { key: 'copper' as const, label: 'PC', color: 'text-[var(--muted-foreground)]', value: copper },
+  ]
+  const total = gold + silver + copper
+  const toNextSlot = COINS_PER_SLOT - (total % COINS_PER_SLOT)
+
+  return (
+    <PopoverContent {...PACK_POPOVER_POSITION} className={PACK_POPOVER_CLASS}>
+      <div className={POPOVER_SECTION} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+        <span style={{ flexShrink: 0, color: 'var(--chart-1)', marginTop: 1, display: 'inline-flex' }}>
+          <HugeiconsIcon icon={MoneyBag01Icon} size={20} strokeWidth={1.5} style={{ width: 20, height: 20 }} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
+            Bolsa de moedas
+          </div>
+          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
+            Tesouro
+          </div>
+        </div>
+        <PopoverCloseButton />
+      </div>
+
+      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px 10px' }}>
+        <StatCell label="Slots" value={String(slots)} />
+        <StatCell label="Moedas" value={String(total)} />
+      </div>
+
+      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        {coins.map(({ key, label, color, value }) => (
+          <div
+            key={key}
+            className="worn-border"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
+          >
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+              {label}
+            </div>
+            <NumInput
+              value={value}
+              min={0}
+              aria-label={label}
+              onCommit={n => onUpdate({ [key]: n })}
+              className={cn(
+                'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
+                color,
+              )}
+            />
+          </div>
+        ))}
+      </div>
+
+      <p className={POPOVER_SECTION} style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0 }}>
+        {COINS_PER_SLOT} moedas = 1 slot de carga · faltam {toNextSlot} para o próximo.
+      </p>
+    </PopoverContent>
   )
 }
 
@@ -949,7 +930,13 @@ function AddItemForm({ onAdd, onCancel, initialForm }: {
   )
 }
 
-function EditItemForm({ item, onSave, onCancel }: {
+/**
+ * Editing is a modal, not a popup. The form is three columns of fields wide —
+ * it used to share the fixed block under the grid, and there is nothing that
+ * shape can be hung off a 64px tile. The catalog and the equip picker already
+ * open this way, so it is the shape the pack already speaks.
+ */
+function EditItemModal({ item, onSave, onCancel }: {
   item: InventoryItem
   onSave: (p: Partial<InventoryItem>) => void
   onCancel: () => void
@@ -957,24 +944,49 @@ function EditItemForm({ item, onSave, onCancel }: {
   const [form, setForm] = useState<Partial<InventoryItem>>(item)
   return (
     <div
-      className="worn-border animate-ink-spread"
+      onClick={onCancel}
       style={{
-        background: 'var(--card)',
-        border: '1px solid var(--border)',
-        padding: 12,
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        background: 'rgba(0,0,0,0.7)',
+        backdropFilter: 'blur(2px)',
         display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-      <ItemFormFields form={form} onChange={setForm} />
-      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-        <Button onClick={() => onSave(form)} variant={BTN_VARIANT_MAP.blood} className="flex-1 h-auto py-1.5">
-          Salvar
-        </Button>
-        <Button onClick={onCancel} variant={BTN_VARIANT_MAP.dark} className="flex-1 h-auto py-1.5">
-          Cancelar
-        </Button>
+      <div
+        onClick={e => e.stopPropagation()}
+        className="worn-border animate-ink-spread"
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderTop: '2px solid var(--border)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+          padding: 18,
+          minWidth: 340,
+          maxWidth: 460,
+          width: '90vw',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        <div style={{ marginBottom: 4 }}>
+          <OrnateTitle color="var(--foreground)" fontSize={10}>Editar {item.name}</OrnateTitle>
+        </div>
+        <ItemFormFields form={form} onChange={setForm} />
+        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+          <Button onClick={() => onSave(form)} variant={BTN_VARIANT_MAP.blood} className="flex-1 h-auto py-1.5">
+            Salvar
+          </Button>
+          <Button onClick={onCancel} variant={BTN_VARIANT_MAP.dark} className="flex-1 h-auto py-1.5">
+            Cancelar
+          </Button>
+        </div>
       </div>
     </div>
   )
@@ -1030,10 +1042,9 @@ export function InventoryView({
   const [replaceFor, setReplaceFor]       = useState<string | null>(null)
   const [bookViewItem, setBookViewItem]   = useState<InventoryItem | null>(null)
 
-  const purseOpen = !editingId && selectedItemId === COIN_PURSE_ID
-  const selectedItem = (!editingId && selectedItemId && !purseOpen)
-    ? inventory.find(i => i.id === selectedItemId) ?? null
-    : null
+  // One popup at a time: the pack tracks which cell is open, and each cell asks
+  // whether the open one is itself.
+  const purseOpen = selectedItemId === COIN_PURSE_ID
   const editingItem = editingId
     ? inventory.find(i => i.id === editingId) ?? null
     : null
@@ -1045,6 +1056,7 @@ export function InventoryView({
   // Carga is defined once, in lib/slots — the sheet used to keep its own copy
   // (`maxSlots = str`) and disagree with the creation wizard. Coins weigh too,
   // a hundred to the slot, now that the purse rides in the pack.
+  const purseTotal = gold + silver + copper
   const purseSlots = coinSlots({ gold, silver, copper })
   const carried = usedSlots(inventory) + purseSlots
   const capacity = maxSlots(str)
@@ -1087,7 +1099,11 @@ export function InventoryView({
       ? inventory.filter(i => i.id !== id)
       : inventory.map(i => i.id === id ? { ...i, quantity: nextQty } : i)
     onUpdate(next)
-    if (nextQty <= 0 && item.equipped) onAcChange(calculateAC(next, dex))
+    // The last of a stack takes its popup with it — the tile it hung on is gone.
+    if (nextQty <= 0) {
+      if (id === selectedItemId) setSelectedItemId(null)
+      if (item.equipped) onAcChange(calculateAC(next, dex))
+    }
   }
 
   function addItem(item: InventoryItem) {
@@ -1496,31 +1512,59 @@ export function InventoryView({
 
             {/* Item grid — purse / occupied / echo / available / empty-filler
                 cells. Fluid: fills the column width, tiles stay square via
-                aspect-ratio. */}
+                aspect-ratio. Each occupied cell is the anchor its own details
+                hang from; there is no fixed pane under the grid any more. */}
             <div className="col-span-6" style={{ border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
-                <CoinPurseTile
-                  total={gold + silver + copper}
-                  selected={purseOpen}
-                  onSelect={() => {
-                    setSelectedItemId(purseOpen ? null : COIN_PURSE_ID)
-                    setEditingId(null)
-                  }}
-                />
+                <GridItemTile
+                  label="Bolsa de moedas"
+                  title={`Bolsa de moedas — ${purseTotal} ${purseTotal === 1 ? 'moeda' : 'moedas'}`}
+                  icon={
+                    <HugeiconsIcon
+                      icon={MoneyBag01Icon}
+                      size={TILE_ICON_SIZE}
+                      strokeWidth={1.5}
+                      style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE, color: 'var(--chart-1)' }}
+                    />
+                  }
+                  badge={purseTotal > 0 ? purseTotal : undefined}
+                  open={purseOpen}
+                  onOpenChange={next => setSelectedItemId(next ? COIN_PURSE_ID : null)}
+                >
+                  <CoinPursePopover
+                    gold={gold}
+                    silver={silver}
+                    copper={copper}
+                    slots={purseSlots}
+                    onUpdate={onCurrencyUpdate}
+                  />
+                </GridItemTile>
                 {Array.from({ length: purseCells - 1 }).map((_, i) => (
                   <GridEchoTile key={`purse-echo-${i}`} label="Bolsa de moedas" icon={MoneyBag01Icon} />
                 ))}
                 {inventory.map(item => (
                   <Fragment key={item.id}>
-                    <ItemIconSlot
-                      item={item}
-                      now={now}
-                      selected={selectedItemId === item.id || editingId === item.id}
-                      onSelect={() => {
-                        if (editingId === item.id) return
-                        setSelectedItemId(selectedItemId === item.id ? null : item.id)
-                        setEditingId(null)
-                      }}
-                    />
+                    <GridItemTile
+                      label={item.name}
+                      title={item.name}
+                      icon={<ItemGlyph item={item} size={TILE_ICON_SIZE} now={now} />}
+                      badge={item.quantity > 1 ? `×${item.quantity}` : undefined}
+                      dot={item.equipped}
+                      open={selectedItemId === item.id}
+                      onOpenChange={next => setSelectedItemId(next ? item.id : null)}
+                    >
+                      <ItemDetailPopover
+                        item={item}
+                        now={now}
+                        onEdit={() => { setSelectedItemId(null); setEditingId(item.id) }}
+                        onRemove={() => removeItem(item.id)}
+                        onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
+                        onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
+                        onOpen={item.type === 'document' ? () => { setSelectedItemId(null); setBookViewItem(item) } : undefined}
+                        onRollAttack={item.type === 'weapon' && onRoll ? mode => rollAttack(item, mode) : undefined}
+                        onRollDamage={item.damageDie && onRoll ? () => rollDamage(item) : undefined}
+                        onRollParry={item.type === 'shield' && onRoll ? () => rollParry(item) : undefined}
+                      />
+                    </GridItemTile>
                     {Array.from({ length: tileCount(item) - 1 }).map((_, i) => (
                       <GridEchoTile key={`${item.id}-echo-${i}`} label={item.name} icon={iconFor(item)} />
                     ))}
@@ -1532,42 +1576,6 @@ export function InventoryView({
                 {Array.from({ length: emptyCellCount }).map((_, i) => (
                   <GridEmptyTile key={`empty-${i}`} />
                 ))}
-              </div>
-
-              {/* Detail pane — always present so the column height never collapses */}
-              <div className="col-span-6">
-              {editingItem ? (
-                <EditItemForm
-                  item={editingItem}
-                  onSave={updated => { updateItem(editingItem.id, updated); setEditingId(null) }}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : purseOpen ? (
-                <CoinPursePane
-                  gold={gold}
-                  silver={silver}
-                  copper={copper}
-                  slots={purseSlots}
-                  onUpdate={onCurrencyUpdate}
-                  onClose={() => setSelectedItemId(null)}
-                />
-              ) : selectedItem ? (
-                <ItemDetailPane
-                  item={selectedItem}
-                  now={now}
-                  onClose={() => setSelectedItemId(null)}
-                  onEdit={() => setEditingId(selectedItem.id)}
-                  onRemove={() => removeItem(selectedItem.id)}
-                  onEquipToggle={isEquippable(selectedItem) ? () => toggleEquipFromList(selectedItem) : undefined}
-                  onConsume={selectedItem.type === 'gear' ? () => consumeItem(selectedItem.id) : undefined}
-                  onOpen={selectedItem.type === 'document' ? () => setBookViewItem(selectedItem) : undefined}
-                  onRollAttack={selectedItem.type === 'weapon' && onRoll ? mode => rollAttack(selectedItem, mode) : undefined}
-                  onRollDamage={selectedItem.damageDie && onRoll ? () => rollDamage(selectedItem) : undefined}
-                  onRollParry={selectedItem.type === 'shield' && onRoll ? () => rollParry(selectedItem) : undefined}
-                />
-              ) : (
-                <ItemDetailSkeleton />
-              )}
               </div>
           </div>
           </div>
@@ -1689,6 +1697,14 @@ export function InventoryView({
             </Button>
           </div>
         </div>
+      )}
+
+      {editingItem && (
+        <EditItemModal
+          item={editingItem}
+          onSave={updated => { updateItem(editingItem.id, updated); setEditingId(null) }}
+          onCancel={() => setEditingId(null)}
+        />
       )}
 
       {showCatalog && (
