@@ -287,8 +287,8 @@ export function FloatingVitals({
 
         {/* Stats: stacked under the portrait on wide screens, beside it once
             the column goes full-width (see .vitals-* in globals.css). Fortuna
-            is no longer part of this stack — the design gives it its own row
-            of the page grid, under the vitals (see .sheet-fortune). */}
+            is no longer part of this stack — the design pairs it with the die
+            on the last row of the vitals column (see .sheet-tools). */}
         <div className="vitals-meta">
           {/* Stats 2×3 grid */}
           {stats && (

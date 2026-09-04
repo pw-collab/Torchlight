@@ -432,12 +432,29 @@ html, body {
 
    One grid carries the whole sheet, placed exactly as the Figma
    auto-layout: twelve flexible columns (no fixed track widths),
-   24px gutters, capped at 1760px and padded 16/48/56/48. Three rows:
+   24px gutters, capped at 1760px and padded 16/48. Six rows — the
+   heading sized to its content, then five equal flexible ones:
 
-     row 1   heading (4–9) · fortuna (10) · light status (11)
-     row 2   nav rail (col 3, spanning rows 2–3) ·
-             content (4–9) · vitals (10–11)
-     row 3   content (4–9)
+     row 1     heading (4–6) · identity chips (7–9) · light (10–11)
+     rows 2–5  content (4–9)
+     rows 2–4  vitals: portrait over stats (10–11)
+     row 5     fortuna + the dice button (10–11), pinned to its foot
+     row 6     the state strip (4–9)
+
+   The vitals column reads as two boxes of two rows each in the
+   design — the portrait over rows 2–3, the stats and the dice over
+   4–5, inset 9px. Here the portrait and the stats stay in the one
+   component that draws them, and the 9px is spent where the design
+   spends it: as the stat grid's inset and the dice row's.
+
+   The nav rail holds column 3 down every row, so its vertical rule
+   runs the page's full height.
+
+   The five 1fr rows only have a height to share because the grid
+   stretches to the viewport — `flex: 1 0 0; align-self: stretch` in
+   the Figma frame. AppShell's scroll box is `h-dvh`, so a percentage
+   min-height resolves against it and gets the same result without
+   re-boxing the shell for every other page.
 
    Nothing here is sticky: the page scrolls as one sheet, the way the
    design lays it out. Below 1280px the empty outer columns are handed
@@ -448,37 +465,85 @@ html, body {
 .sheet-grid {
   /* Self-contained rather than composed with .grid-12: the tablet tier below
      re-templates the columns, and .grid-12 is declared later in this file.
-     .grid-12-wide mirrors this box for the campaign roster — keep the two
-     in step if the cap, gutter, or padding steps change. */
+     .grid-12-wide carries the campaign roster on the same cap and gutter;
+     the two no longer share a padding step (see the note on that class). */
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: repeat(3, auto);
+  grid-template-rows: fit-content(100%) repeat(5, minmax(0, 1fr));
   gap: 24px;
-  align-items: start;
   max-width: 1760px;
   margin-inline: auto;
   /* AppShell already offsets the fixed header; this is the gap below it. */
-  padding: 16px 48px 56px;
+  padding: 16px 48px;
+  min-height: 100%;
 }
 
 /* grid-area: row-start / column-start / row-end / column-end */
-.sheet-header    { grid-area: 1 / 4 / 2 / 10; min-width: 0; }
-.sheet-primary   { grid-area: 2 / 4 / 3 / 10; min-width: 0; }
-.sheet-secondary { grid-area: 3 / 4 / 4 / 10; min-width: 0; }
-.sheet-vitals    { grid-area: 2 / 10 / 3 / 12; min-width: 0; }
-/* Fortuna and the light status ride the heading's row, one column each, so
-   both counters stay in view no matter how far the sheet is scrolled to. */
-.sheet-fortune   { grid-area: 1 / 10 / 2 / 11; min-width: 0; align-self: end; }
-.sheet-torch     { grid-area: 1 / 11 / 2 / 12; min-width: 0; align-self: end; }
+/* The heading and the chips are two areas rather than one flex row, as the
+   design has them: a long name truncates at its own column instead of
+   shoving what the character is off to the side. */
+.sheet-header    { grid-area: 1 / 4 / 2 / 7;  min-width: 0; align-self: start; }
+.sheet-torch     { grid-area: 1 / 10 / 2 / 12; min-width: 0; align-self: end; }
 
-/* Tabs that carry a single block of content let it take both content rows
-   rather than leaving the second one hollow. */
-.sheet-primary--full { grid-row: 2 / 4; }
+/* Placed here, above the tiers, and not down with the chip plates: the tiers
+   re-place it, and a rule declared after them would quietly win. */
+.sheet-chips {
+  grid-area: 1 / 7 / 2 / 10;
+  min-width: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sheet-vitals    { grid-area: 2 / 10 / 5 / 12; min-width: 0; align-self: start; }
 
-/* The rail owns its column across both content rows: one vertical rule down
-   the full height, with the tab squares parked at its top centre. */
+/* What the mesa is waiting on, what is in force, and the camp button. It sits
+   at the foot of the page rather than inside the content block, so switching
+   tabs never takes it off screen. */
+.sheet-state {
+  grid-area: 6 / 4 / 7 / 10;
+  min-width: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* The content block fills the four rows it spans rather than sitting at the
+   top of them: the card's own surface is what the design draws down to row 5,
+   and `.panel-grid` already parks its deck at the top of that box. */
+.sheet-primary {
+  grid-area: 2 / 4 / 6 / 10;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Only a tab that renders a single box gets stretched to that height. The
+   inventory hands the column a run of sections instead, and those keep the
+   heights they ask for rather than sharing the row out between them. */
+.sheet-primary > :only-child { flex: 1 1 auto; min-height: 0; }
+
+/* Fortuna and the dice button share the last vitals row, sitting on its
+   floor: the tally keeps its square and the die takes what is left. */
+.sheet-tools {
+  grid-area: 5 / 10 / 6 / 12;
+  min-width: 0;
+  align-self: end;
+  display: flex;
+  gap: 12px;
+  /* The same 9px the stat grid is inset by: in the design both sit in one
+     box that pads its contents away from the column's edges. */
+  padding: 0 9px 9px;
+}
+.sheet-tools > :first-child { flex: 0 0 auto; }
+.sheet-tools > :last-child  { flex: 1 1 auto; min-width: 0; }
+
+/* The rail owns its column across every row: one vertical rule down the full
+   page height, with the tab squares parked at its top centre. */
 .sheet-rail {
-  grid-area: 2 / 3 / 4 / 4;
+  grid-area: 1 / 3 / 7 / 4;
   align-self: stretch;
   display: flex;
   align-items: flex-start;
@@ -488,32 +553,37 @@ html, body {
 }
 
 @media (max-width: 1280px) {
-  .sheet-rail      { grid-column: 1 / span 1; }
-  .sheet-header,
+  /* The empty outer columns go back to the content, and the heading's half of
+     row 1 splits the wider track the same three-to-three way. */
+  .sheet-rail    { grid-column: 1 / 2; }
+  .sheet-header  { grid-column: 2 / 6; }
+  .sheet-chips   { grid-column: 6 / 10; }
   .sheet-primary,
-  .sheet-secondary { grid-column: 2 / span 8; }
-  .sheet-vitals    { grid-column: 10 / span 3; }
-  .sheet-fortune   { grid-column: 10 / span 1; }
-  .sheet-torch     { grid-column: 11 / span 2; }
+  .sheet-state   { grid-column: 2 / 10; }
+  .sheet-torch,
+  .sheet-vitals,
+  .sheet-tools   { grid-column: 10 / 13; }
 }
 
 @media (max-width: 1000px) {
   .sheet-grid {
     grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: repeat(5, auto);
+    grid-template-rows: repeat(7, auto);
+    align-content: start;
     padding: 8px 24px 40px;
   }
-  /* Rows are explicit here so `-1` reaches the bottom of the stack. The
-     heading gives up its row to fortuna and the light status, which keep the
-     pairing they have on the wide grid. */
-  .sheet-rail      { grid-area: 1 / 1 / -1 / 2; padding: 0 16px 0 0; }
-  .sheet-header    { grid-area: 1 / 2 / 2 / 4; }
-  .sheet-fortune   { grid-area: 2 / 2 / 3 / 3; align-self: start; }
-  .sheet-torch     { grid-area: 2 / 3 / 3 / 4; align-self: start; }
-  .sheet-vitals    { grid-area: 3 / 2 / 4 / 4; }
-  .sheet-primary   { grid-area: 4 / 2 / 5 / 4; }
-  .sheet-secondary { grid-area: 5 / 2 / 6 / 4; }
-  .sheet-primary--full { grid-row: 4 / 6; }
+  /* Rows are explicit here so `-1` reaches the bottom of the stack. One column
+     is too narrow to seat the chips beside the name, so they take a line of
+     their own under it. The state strip climbs back above the content too:
+     what the mesa is waiting on shouldn't be a scroll away. */
+  .sheet-rail    { grid-area: 1 / 1 / -1 / 2; padding: 0 16px 0 0; }
+  .sheet-header  { grid-area: 1 / 2 / 2 / 4; }
+  .sheet-chips   { grid-area: 2 / 2 / 3 / 4; justify-content: flex-start; }
+  .sheet-torch   { grid-area: 3 / 2 / 4 / 4; align-self: start; }
+  .sheet-vitals  { grid-area: 4 / 2 / 5 / 4; }
+  .sheet-tools   { grid-area: 5 / 2 / 6 / 4; align-self: start; }
+  .sheet-state   { grid-area: 6 / 2 / 7 / 4; }
+  .sheet-primary { grid-area: 7 / 2 / 8 / 4; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
@@ -521,6 +591,33 @@ html, body {
    before that decision lands. */
 @media (max-width: 640px) {
   .sheet-grid { padding: 8px 16px 40px; }
+}
+
+/* Identity chips — class (with its hit die), archetype and ancestry, riding
+   the heading's right edge. They are the only place the desktop sheet still
+   names what the character is; the phone layout keeps saying it in prose
+   above the portrait instead. Their placement lives with the other grid
+   areas above; what follows is the plate each one is drawn on. */
+.sheet-chip {
+  display: flex;
+  align-items: center;
+  background: var(--input);
+  border: 1px solid var(--input);
+  color: var(--foreground);
+  font-family: var(--font-heading);
+  /* The design's box: 32 tall on a 24px line, inset 7px from the text. The
+     border is the fill's own colour, so it reads as one flat plate. */
+  font-size: 16px;
+  line-height: 24px;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+/* The hit die is a second reading of the same chip, not a chip of its own. */
+.sheet-chip__die {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+  color: var(--muted-foreground);
 }
 
 /* ============================================================
@@ -552,13 +649,56 @@ html, body {
   .panel-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* ============================================================
+   Split panel — two sections sharing one card
+
+   The design stops giving talents a card of their own and seats them
+   beside the techniques on the same surface, three quarters to one,
+   parted by a single rule. The nested panels keep their padding and
+   their deck; what they give up is the box, which this class now owns
+   — so the rule runs the card's full height instead of stopping where
+   the shorter of the two columns ends.
+   ============================================================ */
+.panel-split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  background: var(--card);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.panel-split > * { min-width: 0; }
+.panel-split > * + * { border-left: 1px solid var(--border); }
+.panel-split .panel-grid {
+  background: none;
+  border: none;
+  height: 100%;
+}
+/* One column on the narrow side: a quarter of the content track has no room
+   for the three the deck normally runs. */
+.panel-split > :last-child .panel-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Stacked once the sheet gives up its second column, with the rule turning
+   to meet it. */
+@media (max-width: 1000px) {
+  .panel-split { grid-template-columns: minmax(0, 1fr); }
+  .panel-split > * + * {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
 /* Vitals column internals: portrait over stats while it owns a narrow track,
    portrait beside stats once the column goes full-width on tablets. */
 .vitals-stack {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* The design parts the portrait from the stats by a whole row gutter: the
+     two are separate boxes of the page grid there, and this stack stands in
+     for the boundary between them. */
+  gap: 24px;
   box-sizing: border-box;
 }
 .vitals-portrait {
@@ -573,8 +713,9 @@ html, body {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  /* The design insets the stat grid by 4px inside the vitals column. */
-  padding: 4px;
+  /* The design insets the stat grid by 9px inside the vitals column — the
+     same inset the dice row below it carries (see .sheet-tools). */
+  padding: 9px;
 }
 .vitals-stats {
   display: grid;
@@ -585,8 +726,9 @@ html, body {
 @media (max-width: 1000px) {
   /* Portrait beside the stats rather than above them. The tiles keep their
      own height instead of stretching to the portrait's — with fortuna moved
-     out to its own row, nothing else is left to share that space. */
-  .vitals-stack { flex-direction: row; align-items: flex-start; }
+     out to its own row, nothing else is left to share that space. Side by
+     side they need a gutter, not a row boundary. */
+  .vitals-stack { flex-direction: row; align-items: flex-start; gap: 12px; }
   .vitals-portrait { width: 240px; max-width: 45%; }
   .vitals-meta { flex: 1 1 auto; }
   .vitals-stats { flex: 0 0 auto; }
@@ -714,10 +856,11 @@ html, body {
    Wide 12-column page container
    The campaign roster (/home) sits on the same box as the
    character sheet: twelve columns, 24px gutter, capped at 1760px
-   and centred, with the sheet's padding steps. It can't just be
-   .sheet-grid — that class re-templates its columns below 1000px
-   to place the icon rail — so the two mirror each other and must
-   be changed together (see .sheet-grid above).
+   and centred. It can't just be .sheet-grid — that class
+   re-templates its columns below 1000px to place the icon rail.
+   The two no longer share a foot: the sheet's grid now stretches to
+   the viewport and closes at 16px, while the roster is a list that
+   ends where its cards do and keeps the 56px run-out.
    ============================================================ */
 .grid-12-wide {
   display: grid;
