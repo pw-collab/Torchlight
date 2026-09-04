@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import Link from 'next/link'
 import type { IconSvgElement } from '@hugeicons/react'
 import {
   Backpack03Icon,
@@ -471,9 +470,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     />
   )
 
-  // Every tab hands the page the same shape: the block that fills the content
-  // column's first row and, where the tab has one, the block that fills the
-  // second. The page owns placement — tab components only render blocks.
+  // Every tab hands the page the same shape: its main block and, where the tab
+  // has one, a companion block. The page owns placement — on desktop the pair
+  // shares one card, on the phone they stack. Tab components only render
+  // blocks; neither of them knows which it is.
   const tabBlocks: Record<Tab, { primary: React.ReactNode; secondary?: React.ReactNode }> = {
     stats: {
       primary: cls && (
@@ -515,8 +515,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         />
       ),
     },
-    // The grimoire and the backstory are each a single block, so they take
-    // both content rows rather than leaving the second one hollow.
+    // The grimoire and the backstory are each a single block, so the card is
+    // theirs undivided — no rule down it, nothing beside them.
     spells: {
       primary: (
         <Spells
@@ -537,6 +537,23 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   }
 
   const { primary, secondary } = tabBlocks[tab]
+
+  /**
+   * O desktop junta os dois blocos numa carta só, repartida três por um: é
+   * assim que os Talentos deixam de ter uma linha própria e passam a ficar ao
+   * lado das Técnicas (ver `.panel-split`). As abas de um bloco só entregam
+   * esse bloco direto, e ele fica com a carta inteira. O celular continua
+   * empilhando os dois, como sempre fez.
+   */
+  const content = secondary ? (
+    <div className="panel-split">
+      {primary}
+      {secondary}
+    </div>
+  ) : (
+    primary
+  )
+
   // A sobrecarga era um texto vermelho no inventário e nada mais (§5.10). Com a
   // regra de carga unificada na Fase 0, ela passa a se anunciar junto das
   // condições — no mesmo lugar e do mesmo jeito, porque para quem rola é a
@@ -617,29 +634,28 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         </div>
       ) : (
         // The whole sheet sits on one twelve-column grid, laid out as the
-        // design's auto-layout: on row 1 the heading (columns 4-9) with
-        // fortuna and the light status beside it (10 and 11); the nav rail
-        // holding column 3 down rows 2-3; the tab's content filling columns
-        // 4-9 of those same rows; the vitals in columns 10-11 of row 2
-        // (see .sheet-* in globals.css).
+        // design's auto-layout: row 1 carries the heading and its identity
+        // chips (columns 4-9) with the light status beside them (10-11); the
+        // nav rail holds column 3 down every row; the tab's content fills
+        // columns 4-9 of rows 2-5; the vitals stack sits in 10-11 of rows
+        // 2-4, with fortuna and the die on the floor of row 5; and the state
+        // strip closes the page on row 6 (see .sheet-* in globals.css).
         <div className="sheet-grid">
           <header className="sheet-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {character.name}
             </h1>
-            <Link
-              href={editHref}
-              style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-            >
-              Editar
-            </Link>
+            {/* O que o personagem é, ao lado de quem ele é: classe (com o dado
+                de vida), arquétipo e ancestralidade. */}
+            <div className="sheet-chips">
+              <span className="sheet-chip">
+                <span>{cls?.name ?? character.classId}</span>
+                {cls && <span className="sheet-chip__die">D{cls.hitDie}</span>}
+              </span>
+              {archetype && <span className="sheet-chip">{archetype.name}</span>}
+              {ancestry && <span className="sheet-chip">{ancestry.name}</span>}
+            </div>
           </header>
-
-          <div className="sheet-fortune">
-            <FortuneTile luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
-          </div>
 
           <div className="sheet-torch">
             <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
@@ -649,32 +665,36 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
             <TabRail tabs={railItems} active={tab} onChange={setTab} />
           </div>
 
-          <div className={secondary ? 'sheet-primary' : 'sheet-primary sheet-primary--full'}>
-            {/* O pedido do Mestre abre o conteúdo em vez de flutuar sobre ele:
-                uma rolagem que a mesa está esperando não pode ser um aviso
-                que some sozinho. */}
-            {stateStrip}
-            {primary}
-          </div>
-          {secondary && <div className="sheet-secondary">{secondary}</div>}
+          <div className="sheet-primary">{content}</div>
 
           <aside className="sheet-vitals">
             {vitals}
           </aside>
+
+          {/* A Fortuna e o dado dividem o pé da coluna: gastar um token e
+              rolar de novo é o mesmo gesto, e agora ficam à mão um do outro. */}
+          <div className="sheet-tools">
+            <FortuneTile luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
+            <DiceRoller onRoll={handleRoll} docked disadvantageFrom={disadvantages} />
+          </div>
+
+          {/* O pedido do Mestre fica no rodapé da página, fora do bloco de
+              conteúdo: uma rolagem que a mesa está esperando não pode sumir
+              só porque a aba mudou. */}
+          <div className="sheet-state">{stateStrip}</div>
         </div>
       )}
 
-      {/* Navigation: labelled bottom bar on mobile (dice as its trailing
-          button), icon rail + free-floating dice button on desktop. */}
-      {isMobile ? (
+      {/* Navigation: labelled bottom bar on mobile, with the dice as its
+          trailing button. Desktop navigates by the icon rail and keeps its
+          die anchored in the page grid instead (see .sheet-tools). */}
+      {isMobile && (
         <TabBar
           tabs={tabItems}
           active={tab}
           onChange={setTab}
           trailing={<DiceRoller onRoll={handleRoll} disadvantageFrom={disadvantages} />}
         />
-      ) : (
-        <DiceRoller onRoll={handleRoll} floating disadvantageFrom={disadvantages} />
       )}
 
       {/* Phones have no column to reserve for the light, so they keep the

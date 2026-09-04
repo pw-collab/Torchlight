@@ -28,6 +28,12 @@ interface Props {
   /** Anchors the button to the bottom-right of the viewport (desktop layout). */
   floating?: boolean
   /**
+   * Fills the cell it is given, at the height of the fortuna tally it sits
+   * beside — the desktop layout parks the die in the page grid rather than
+   * floating it over the sheet (see `.sheet-tools`).
+   */
+  docked?: boolean
+  /**
    * Condições ativas que impõem desvantagem (§5.6). O painel avisa e destaca o
    * botão; quem decide se a condição alcança *esta* rolagem é a mesa, não o
    * app — por isso ele não rola por ninguém.
@@ -110,7 +116,7 @@ function grouped(pool: number[]): { sides: number; count: number }[] {
  *   them would mean nothing; "Normal" stays here too so the commonest roll in
  *   the game is still one tap away.
  */
-export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: Props) {
+export function DiceRoller({ onRoll, floating = false, docked = false, disadvantageFrom = [] }: Props) {
   const [pool, setPool] = useState<number[]>([])
   const [mod, setMod] = useState(0)
   // O DC volta a ser o último usado, não 14: numa masmorra a dificuldade se
@@ -179,7 +185,9 @@ export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: 
               'bg-input border-input data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
               floating
                 ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
-                : 'h-12 min-h-12 w-14',
+                : docked
+                  ? 'h-14 min-h-14 w-full'
+                  : 'h-12 min-h-12 w-14',
             )}
           />
         }
