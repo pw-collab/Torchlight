@@ -634,28 +634,30 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         </div>
       ) : (
         // The whole sheet sits on one twelve-column grid, laid out as the
-        // design's auto-layout: row 1 carries the heading and its identity
-        // chips (columns 4-9) with the light status beside them (10-11); the
-        // nav rail holds column 3 down every row; the tab's content fills
-        // columns 4-9 of rows 2-5; the vitals stack sits in 10-11 of rows
-        // 2-4, with fortuna and the die on the floor of row 5; and the state
-        // strip closes the page on row 6 (see .sheet-* in globals.css).
+        // design's auto-layout: row 1 carries the heading (columns 4-6), the
+        // identity chips (7-9) and the light status (10-11); the nav rail
+        // holds column 3 down every row; the tab's content fills columns 4-9
+        // of rows 2-5; the vitals stack sits in 10-11 of rows 2-4, with
+        // fortuna and the die on the floor of row 5; and the state strip
+        // closes the page on row 6 (see .sheet-* in globals.css).
         <div className="sheet-grid">
-          <header className="sheet-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <header className="sheet-header">
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {character.name}
             </h1>
-            {/* O que o personagem é, ao lado de quem ele é: classe (com o dado
-                de vida), arquétipo e ancestralidade. */}
-            <div className="sheet-chips">
-              <span className="sheet-chip">
-                <span>{cls?.name ?? character.classId}</span>
-                {cls && <span className="sheet-chip__die">D{cls.hitDie}</span>}
-              </span>
-              {archetype && <span className="sheet-chip">{archetype.name}</span>}
-              {ancestry && <span className="sheet-chip">{ancestry.name}</span>}
-            </div>
           </header>
+
+          {/* O que o personagem é, ao lado de quem ele é: classe (com o dado
+              de vida), arquétipo e ancestralidade. Coluna própria, não um
+              apêndice do título — um nome comprido corta em vez de empurrar. */}
+          <div className="sheet-chips">
+            <span className="sheet-chip">
+              <span>{cls?.name ?? character.classId}</span>
+              {cls && <span className="sheet-chip__die">D{cls.hitDie}</span>}
+            </span>
+            {archetype && <span className="sheet-chip">{archetype.name}</span>}
+            {ancestry && <span className="sheet-chip">{ancestry.name}</span>}
+          </div>
 
           <div className="sheet-torch">
             <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
