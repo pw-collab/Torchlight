@@ -1,11 +1,11 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { rollDie, rollPool, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieIcon } from '@/components/dice/DieIcon'
-import { DieGlyph } from '@/components/dice/DieGlyph'
 import { FortuneBar } from '@/components/sheet/FortuneBar'
 import { DOCK_BUTTON_CLASS } from '@/components/sheet/dock'
 import { DICE_SPRING, DICE_TAP } from '@/lib/diceMotion'
@@ -204,15 +204,9 @@ export function DiceRoller({
         }
       >
         {docked ? (
-          // The painted die would sit purple on the dock's red; the plain
-          // silhouette in the button's own foreground reads as the design's
-          // white d20.
-          <DieGlyph
-            sides={20}
-            size={30}
-            shapeColor="var(--sidebar-primary-foreground)"
-            numberColor={open ? 'var(--primary)' : 'var(--sidebar-primary)'}
-          />
+          // The design's own d20, line-drawn in white for the dock's red —
+          // the painted die below would sit purple on it.
+          <Image src="/dice/d20-outline.svg" alt="" aria-hidden width={31} height={30} />
         ) : (
           <DieIcon
             className="animate-die-idle"

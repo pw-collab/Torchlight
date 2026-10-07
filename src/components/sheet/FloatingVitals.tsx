@@ -45,6 +45,10 @@ interface Props {
  * One attribute on the desktop vitals: the modifier large on top — it is what
  * gets added to the roll — and the abbreviation with the raw score along the
  * foot. Pressing it opens the normal / advantage / disadvantage menu.
+ *
+ * The --input fill belongs to the grid holding the six (see .vitals-stats);
+ * each tile only draws its --input rule over it, which is what reads as the
+ * lines between them.
  */
 function AttributeTile({ stat, score, onRoll }: {
   stat: Stat
@@ -60,8 +64,8 @@ function AttributeTile({ stat, score, onRoll }: {
         render={<span />}
         nativeButton={false}
         className={cn(
-          'h-auto min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
-          'bg-input border-input hover:border-ring',
+          'h-full min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
+          'border-input hover:border-ring bg-transparent',
           onRoll ? 'cursor-pointer' : 'cursor-default',
         )}
       >
@@ -392,9 +396,10 @@ export function FloatingVitals({
           </div>
         </div>
 
-        {/* Stats 2×3 grid — fills the space beside the portrait, matching its height */}
+        {/* Stats 2×3 grid — fills the space beside the portrait, matching its
+            height. The --input fill is the grid's, the tiles only rule it. */}
         {stats && (
-          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', background: 'var(--input)' }}>
             {STAT_KEYS.map(key => (
               <RollModeMenu
                 key={key}
@@ -407,9 +412,10 @@ export function FloatingVitals({
                 variant="secondary"
                 title={`Rolar ${STAT_FULL[key]}`}
                 render={<span />}
+                nativeButton={false}
                 className={cn(
-                  'h-auto w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
-                  'bg-input border-input hover:border-ring',
+                  'h-full w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
+                  'border-input hover:border-ring bg-transparent',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >

@@ -638,7 +638,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
               and the attack and dice buttons on its floor. */}
           <section className="sheet-dock" aria-label="Mesa e rolagens">
             <div className="sheet-dock__strip">{stateStrip}</div>
-            <RollHistory rolls={rollHistory} />
+            <RollHistory
+              rolls={rollHistory}
+              fortuneLeft={character.luckTokens}
+              onSpendFortune={handleFortuneReroll}
+            />
             <div className="sheet-dock__actions">
               <AttacksMenu
                 inventory={character.inventory}
@@ -704,11 +708,15 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onSettled={settleRoll}
         onUnavailable={fallBackToTimed}
       />
-      <RollToasts
-        rolls={rollHistory}
-        fortuneLeft={character.luckTokens}
-        onSpendFortune={handleFortuneReroll}
-      />
+      {/* Phones get the fresh rolls as toasts; the desktop shows the same
+          cards in the dock's history instead. */}
+      {isMobile && (
+        <RollToasts
+          rolls={rollHistory}
+          fortuneLeft={character.luckTokens}
+          onSpendFortune={handleFortuneReroll}
+        />
+      )}
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       {tableMode && (

@@ -666,11 +666,14 @@ html, body {
   width: 100%;
   background: var(--background);
 }
+/* The six attributes share one --input fill; each tile draws only its own
+   --input rule over it, and those rules are the lines between the tiles. */
 .vitals-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
   flex-shrink: 0;
+  background: var(--input);
 }
 
 @media (max-width: 1100px) {
