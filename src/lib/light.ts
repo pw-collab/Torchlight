@@ -31,6 +31,20 @@ export function minutesLeft(item: InventoryItem, now: number = Date.now()): numb
   return Math.max(0, banked - Math.floor(Math.max(0, elapsedMs) / 60_000))
 }
 
+/**
+ * The same clock to the second, for a countdown that shows them. It runs out
+ * at the very moment `minutesLeft` does, so the display and the burn-out never
+ * disagree about when the dark comes.
+ */
+export function secondsLeft(item: InventoryItem, now: number = Date.now()): number {
+  const banked = Math.max(0, item.lightMinutesLeft ?? fullMinutes(item)) * 60
+  if (!item.isLit || !item.litAt) return banked
+
+  const elapsedMs = now - new Date(item.litAt).getTime()
+  if (!Number.isFinite(elapsedMs)) return banked
+  return Math.max(0, banked - Math.floor(Math.max(0, elapsedMs) / 1000))
+}
+
 /** Burning means equipped, lit, and with time still on it. */
 export function isBurning(item: InventoryItem, now: number = Date.now()): boolean {
   return Boolean(item.equipped && item.isLight && item.isLit) && minutesLeft(item, now) > 0

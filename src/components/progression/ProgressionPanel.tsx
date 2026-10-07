@@ -115,6 +115,7 @@ export function ProgressionPanel({
         name: result.entry.effect,
         origin: 'class',
         description: `Nível ${state.level} — 2d6: ${result.roll} (${result.die1}+${result.die2}) — ${classData.name}`,
+        level: state.level,
       }
       const entry: LevelEntry = {
         ...existing,

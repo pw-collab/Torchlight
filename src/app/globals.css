@@ -55,6 +55,9 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
+  /* The one warm colour outside the reds: a light source that is burning
+     (the design's #fb9e32). Same in both themes — a flame doesn't change. */
+  --torch: oklch(0.777 0.159 64.5);
 
   /* Two families cover every role. Bricolage Grotesque takes the display
      work; Libre Franklin takes running text and the small technical labels.
@@ -234,17 +237,19 @@ html, body {
 
    It arrives on inkSpread's curve rather than on `.animate-ink-spread`
    itself: that animation ends on a transform of its own, and `both` would
-   hold it there — wiping out the translate that centres this on the card. */
+   hold it there — wiping out the translate that centres this on the card.
+   `--actions-shift` slides it back inside a deck that clips its edges (set
+   by GlyphCard once the popover is measured). */
 @keyframes cardActionsIn {
-  0%   { opacity: 0; transform: translateX(-50%) scale(0.96) translateY(8px); filter: blur(3px); }
+  0%   { opacity: 0; transform: translateX(calc(-50% + var(--actions-shift, 0px))) scale(0.96) translateY(8px); filter: blur(3px); }
   60%  { filter: blur(0); }
-  100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+  100% { opacity: 1; transform: translateX(calc(-50% + var(--actions-shift, 0px))) scale(1) translateY(0); }
 }
 .card-actions {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--actions-shift, 0px)));
   animation: cardActionsIn 420ms cubic-bezier(0.4,0,0.2,1) both;
   z-index: 1;
   display: flex;
@@ -427,93 +432,121 @@ html, body {
   );
 }
 
+/* The header's middle lane. The sheet's light status rides here, lined up
+   with the first column of the content grid underneath (the same 1440px box
+   and 48px gutter as .sheet-grid) — but never nearer the left edge than
+   184px, which is where the logo menu and the back link end. */
+.app-header-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.app-header-center__box {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 48px;
+  padding-left: max(48px, calc(184px - max(0px, (100vw - 1440px) / 2)));
+}
+.app-header-center__box > * { pointer-events: auto; }
+
 /* ============================================================
-   Character sheet — the design's twelve-column page grid
+   Character sheet — the design's ten-column screen grid
 
-   One grid carries the whole sheet, placed exactly as the Figma
-   auto-layout: twelve flexible columns (no fixed track widths),
-   24px gutters, capped at 1760px and padded 16/48/56/48. Three rows:
+   The sheet is one screen rather than a page that scrolls: ten
+   flexible columns and eight flexible rows, 24px gutters, capped at
+   1440px, as the Figma auto-layout draws it.
 
-     row 1   heading (4–9) · fortuna (10) · light status (11)
-     row 2   nav rail (col 3, spanning rows 2–3) ·
-             content (4–9) · vitals (10–11)
-     row 3   content (4–9)
+     cols 1–2    vitals (rows 1–4) · dock (rows 5–8)
+     col  3      nav rail (rows 1–8)
+     cols 4–10   the tab's panel (rows 1–7)
 
-   Nothing here is sticky: the page scrolls as one sheet, the way the
-   design lays it out. Below 1280px the empty outer columns are handed
-   back to the content so the vitals column never gets narrower than
-   the portrait needs; below 1000px the grid collapses to
-   "rail + stacked content".
+   The rows split whatever height the viewport leaves, so the blocks
+   keep their proportions on any screen, and whatever does not fit
+   scrolls inside its own block. The top padding is the design's 16px
+   plus the 16px its 96px header has over AppShell's 80px one. Under
+   760px of height the grid stops shrinking and the page scrolls;
+   under 1100px of width it gives up the screen and stacks.
    ============================================================ */
 .sheet-grid {
-  /* Self-contained rather than composed with .grid-12: the tablet tier below
-     re-templates the columns, and .grid-12 is declared later in this file.
-     .grid-12-wide mirrors this box for the campaign roster — keep the two
-     in step if the cap, gutter, or padding steps change. */
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: repeat(3, auto);
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   gap: 24px;
-  align-items: start;
-  max-width: 1760px;
+  max-width: 1440px;
   margin-inline: auto;
-  /* AppShell already offsets the fixed header; this is the gap below it. */
-  padding: 16px 48px 56px;
+  padding: 32px 48px 48px;
+  /* AppShell offsets the fixed header; the grid takes the rest. */
+  height: calc(100dvh - 80px - var(--safe-top));
+  min-height: 760px;
 }
 
 /* grid-area: row-start / column-start / row-end / column-end */
-.sheet-header    { grid-area: 1 / 4 / 2 / 10; min-width: 0; }
-.sheet-primary   { grid-area: 2 / 4 / 3 / 10; min-width: 0; }
-.sheet-secondary { grid-area: 3 / 4 / 4 / 10; min-width: 0; }
-.sheet-vitals    { grid-area: 2 / 10 / 3 / 12; min-width: 0; }
-/* Fortuna and the light status ride the heading's row, one column each, so
-   both counters stay in view no matter how far the sheet is scrolled to. */
-.sheet-fortune   { grid-area: 1 / 10 / 2 / 11; min-width: 0; align-self: end; }
-.sheet-torch     { grid-area: 1 / 11 / 2 / 12; min-width: 0; align-self: end; }
+.sheet-vitals { grid-area: 1 / 1 / 5 / 3;  min-width: 0; min-height: 0; }
+.sheet-dock   { grid-area: 5 / 1 / 9 / 3;  min-width: 0; min-height: 0; }
+.sheet-panel  { grid-area: 1 / 4 / 8 / 11; min-width: 0; min-height: 0; overflow-y: auto; }
 
-/* Tabs that carry a single block of content let it take both content rows
-   rather than leaving the second one hollow. */
-.sheet-primary--full { grid-row: 2 / 4; }
-
-/* The rail owns its column across both content rows: one vertical rule down
-   the full height, with the tab squares parked at its top centre. */
+/* The rail owns its column top to bottom: a rule down its left edge and
+   the tab squares pressed against its right one, beside the panel. */
 .sheet-rail {
-  grid-area: 2 / 3 / 4 / 4;
-  align-self: stretch;
+  grid-area: 1 / 3 / 9 / 4;
+  min-width: 0;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 16px;
-  border-right: 1px solid var(--sidebar-border);
+  flex-direction: column;
+  align-items: flex-end;
+  border-left: 1px solid var(--sidebar-border);
 }
 
-@media (max-width: 1280px) {
-  .sheet-rail      { grid-column: 1 / span 1; }
-  .sheet-header,
-  .sheet-primary,
-  .sheet-secondary { grid-column: 2 / span 8; }
-  .sheet-vitals    { grid-column: 10 / span 3; }
-  .sheet-fortune   { grid-column: 10 / span 1; }
-  .sheet-torch     { grid-column: 11 / span 2; }
+/* The dock — the vitals' second card. What the table is waiting on sits on
+   top, the rolls fill the middle, and the two roll buttons hold the floor. */
+.sheet-dock {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.sheet-dock__strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  /* Whatever the table piles up here, the rolls keep some of the card. */
+  max-height: 60%;
+  overflow-y: auto;
+}
+.sheet-dock__strip:empty { display: none; }
+.sheet-dock__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .sheet-grid {
-    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: repeat(5, auto);
+    /* The vitals keep a portrait-sized column; the dock takes the rest of
+       the row beside them, and the panel runs full width underneath. */
+    grid-template-columns: auto minmax(200px, 280px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 0;
     padding: 8px 24px 40px;
   }
-  /* Rows are explicit here so `-1` reaches the bottom of the stack. The
-     heading gives up its row to fortuna and the light status, which keep the
-     pairing they have on the wide grid. */
-  .sheet-rail      { grid-area: 1 / 1 / -1 / 2; padding: 0 16px 0 0; }
-  .sheet-header    { grid-area: 1 / 2 / 2 / 4; }
-  .sheet-fortune   { grid-area: 2 / 2 / 3 / 3; align-self: start; }
-  .sheet-torch     { grid-area: 2 / 3 / 3 / 4; align-self: start; }
-  .sheet-vitals    { grid-area: 3 / 2 / 4 / 4; }
-  .sheet-primary   { grid-area: 4 / 2 / 5 / 4; }
-  .sheet-secondary { grid-area: 5 / 2 / 6 / 4; }
-  .sheet-primary--full { grid-row: 4 / 6; }
+  .sheet-rail {
+    grid-area: 1 / 1 / 3 / 2;
+    align-items: flex-start;
+    padding-right: 16px;
+    border-left: 0;
+    border-right: 1px solid var(--sidebar-border);
+  }
+  .sheet-vitals { grid-area: 1 / 2 / 2 / 3; }
+  .sheet-dock   { grid-area: 1 / 3 / 2 / 4; }
+  .sheet-panel  { grid-area: 2 / 2 / 3 / 4; overflow: visible; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
@@ -524,12 +557,76 @@ html, body {
 }
 
 /* ============================================================
-   Sheet panel — the design's content container
+   Atributos panel — the techniques (three of four columns) beside
+   the talent list (the fourth), on one card surface. Each side
+   scrolls on its own, and the deck fades out where it is cut.
+   ============================================================ */
+.attr-panel {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.attr-panel__deck {
+  grid-column: span 3;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* A grid that scrolls inside a fixed height squeezes auto rows to fit it,
+     and the cards — sized by their ratio — would ride over the next row.
+     Rows take their content's full height and the deck scrolls instead. */
+  grid-auto-rows: max-content;
+  gap: 16px;
+  align-content: start;
+  /* The extra bottom room lets the last row scroll clear of the fade. */
+  padding: 24px 24px 56px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
+}
+/* The name-and-tags row takes the deck's full width. */
+.attr-panel__heading { grid-column: 1 / -1; min-width: 0; }
+.attr-panel__talents {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-left: 1px solid var(--border);
+}
+
+@media (max-width: 1100px) {
+  .attr-panel { height: auto; grid-template-columns: minmax(0, 1fr); }
+  .attr-panel__deck {
+    grid-column: auto;
+    overflow: visible;
+    padding-bottom: 24px;
+    mask-image: none;
+  }
+  .attr-panel__talents {
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+/* The cards bottom out around 143px wide, so the deck drops a column before
+   the panel gets narrower than that. */
+@media (max-width: 767px) {
+  .attr-panel__deck { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px; }
+  .attr-panel__talents { padding: 16px; }
+}
+@media (max-width: 420px) {
+  .attr-panel__deck { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================
+   Sheet panel — the grimoire's content container
 
    A card surface holding a three-column grid: full-width section rows
    (the tag strip, the headings) first, then one card per column with
-   the rows growing as the deck does. Techniques, talents and the
-   grimoire all sit on this same box.
+   the rows growing as the deck does.
    ============================================================ */
 .panel-grid {
   display: grid;
@@ -552,44 +649,33 @@ html, body {
   .panel-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Vitals column internals: portrait over stats while it owns a narrow track,
-   portrait beside stats once the column goes full-width on tablets. */
+/* Vitals column internals: the portrait takes whatever height the stat grid
+   leaves in the block. Once the sheet stacks there is no height to share, so
+   the portrait falls back to a ratio of its own. */
 .vitals-stack {
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-sizing: border-box;
+  gap: 8px;
 }
 .vitals-portrait {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  aspect-ratio: 268 / 356;
   background: var(--background);
-  flex-shrink: 0;
-}
-.vitals-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  /* The design insets the stat grid by 4px inside the vitals column. */
-  padding: 4px;
 }
 .vitals-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
+  flex-shrink: 0;
 }
 
-@media (max-width: 1000px) {
-  /* Portrait beside the stats rather than above them. The tiles keep their
-     own height instead of stretching to the portrait's — with fortuna moved
-     out to its own row, nothing else is left to share that space. */
-  .vitals-stack { flex-direction: row; align-items: flex-start; }
-  .vitals-portrait { width: 240px; max-width: 45%; }
-  .vitals-meta { flex: 1 1 auto; }
-  .vitals-stats { flex: 0 0 auto; }
+@media (max-width: 1100px) {
+  .vitals-stack { height: auto; }
+  .vitals-portrait { flex: none; aspect-ratio: 268 / 356; }
 }
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
@@ -712,12 +798,11 @@ html, body {
 
 /* ============================================================
    Wide 12-column page container
-   The campaign roster (/home) sits on the same box as the
-   character sheet: twelve columns, 24px gutter, capped at 1760px
-   and centred, with the sheet's padding steps. It can't just be
-   .sheet-grid — that class re-templates its columns below 1000px
-   to place the icon rail — so the two mirror each other and must
-   be changed together (see .sheet-grid above).
+   The campaign roster (/home): twelve columns, 24px gutter,
+   capped at 1760px and centred, padded 16/48/56 and stepping
+   down at 1000px and 640px. It was drawn on the box the character
+   sheet used before the sheet became a ten-column screen (see
+   .sheet-grid above), and keeps that box for now.
    ============================================================ */
 .grid-12-wide {
   display: grid;
@@ -917,6 +1002,7 @@ html, body {
   --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.56 0.021 213.5);
+  --torch: oklch(0.777 0.159 64.5);
 }
 
 @theme inline {
@@ -935,6 +1021,7 @@ html, body {
   --color-chart-4:        var(--chart-4);
   --color-chart-3:        var(--chart-3);
   --color-chart-2:        var(--chart-2);
+  --color-torch:        var(--torch);
   --color-chart-1:        var(--chart-1);
   --color-ring:        var(--ring);
   --color-input:        var(--input);

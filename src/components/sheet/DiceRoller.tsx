@@ -5,6 +5,9 @@ import { motion } from 'framer-motion'
 import { rollDie, rollPool, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DieIcon } from '@/components/dice/DieIcon'
+import { DieGlyph } from '@/components/dice/DieGlyph'
+import { FortuneBar } from '@/components/sheet/FortuneBar'
+import { DOCK_BUTTON_CLASS } from '@/components/sheet/dock'
 import { DICE_SPRING, DICE_TAP } from '@/lib/diceMotion'
 import { MAX_DICE } from '@/lib/diceEngine'
 import { Button } from '@/components/ui/button'
@@ -25,8 +28,19 @@ type RollMode = 'normal' | 'advantage' | 'disadvantage'
 
 interface Props {
   onRoll?: (result: RollResult) => void
-  /** Anchors the button to the bottom-right of the viewport (desktop layout). */
+  /** Anchors the button to the bottom-right of the viewport. */
   floating?: boolean
+  /**
+   * The desktop sheet's dock: a solid red button filling its cell on the
+   * card's floor, opening the panel upward from its left edge.
+   */
+  docked?: boolean
+  /**
+   * Fortuna, at the foot of the panel — the tokens a reroll spends. Left out,
+   * the panel has no Fortuna row (phones keep theirs with the vitals).
+   */
+  luckTokens?: number
+  onLuckChange?: (next: number) => void
   /**
    * Condições ativas que impõem desvantagem (§5.6). O painel avisa e destaca o
    * botão; quem decide se a condição alcança *esta* rolagem é a mesa, não o
@@ -94,10 +108,11 @@ function grouped(pool: number[]): { sides: number; count: number }[] {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
- * Dice roller: a single squared d20 button that toggles a compact popover
- * anchored just above it — never a fullscreen overlay. `floating` pins it to
- * the bottom-right of the screen (desktop); otherwise it renders inline as the
- * trailing button of the mobile bottom bar (see TabBar).
+ * Dice roller: a single d20 button that toggles a compact popover anchored
+ * just above it — never a fullscreen overlay. `docked` sets it on the desktop
+ * sheet's dock, `floating` pins it to the bottom-right of the screen;
+ * otherwise it renders inline as the trailing button of the mobile bottom bar
+ * (see TabBar).
  *
  * Two ways to roll, kept visually apart because they behave differently:
  *
@@ -110,7 +125,9 @@ function grouped(pool: number[]): { sides: number; count: number }[] {
  *   them would mean nothing; "Normal" stays here too so the commonest roll in
  *   the game is still one tap away.
  */
-export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: Props) {
+export function DiceRoller({
+  onRoll, floating = false, docked = false, disadvantageFrom = [], luckTokens, onLuckChange,
+}: Props) {
   const [pool, setPool] = useState<number[]>([])
   const [mod, setMod] = useState(0)
   // O DC volta a ser o último usado, não 14: numa masmorra a dificuldade se
@@ -159,38 +176,52 @@ export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: 
         setOpen(next)
       }}
     >
-      {/* Square d20 button — floating bottom-right on desktop, trailing button
-          of the bottom bar on mobile */}
+      {/* d20 button — on the dock's floor on the desktop sheet, floating
+          bottom-right where asked, trailing button of the bottom bar on mobile */}
       <PopoverTrigger
         render={
           <Button
             type="button"
             title="Rolar dados"
             aria-label="Abrir painel de dados"
-            variant="hollow"
+            variant={docked ? 'default' : 'hollow'}
             render={
               <motion.button
-                whileHover={{ scale: 1.04 }}
+                whileHover={{ scale: docked ? 1.02 : 1.04 }}
                 whileTap={{ scale: 0.9 }}
                 transition={DICE_SPRING.tap}
               />
             }
             className={cn(
-              'bg-input border-input data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
-              floating
+              docked
+                ? DOCK_BUTTON_CLASS
+                : 'bg-input border-input data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
+              !docked && (floating
                 ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
-                : 'h-12 min-h-12 w-14',
+                : 'h-12 min-h-12 w-14'),
             )}
           />
         }
       >
-        <DieIcon
-          className="animate-die-idle"
-          sides={20}
-          size={30}
-          shapeColor={open ? 'var(--primary-foreground)' : 'var(--primary)'}
-          numberColor={open ? 'var(--primary)' : 'var(--primary-foreground)'}
-        />
+        {docked ? (
+          // The painted die would sit purple on the dock's red; the plain
+          // silhouette in the button's own foreground reads as the design's
+          // white d20.
+          <DieGlyph
+            sides={20}
+            size={30}
+            shapeColor="var(--sidebar-primary-foreground)"
+            numberColor={open ? 'var(--primary)' : 'var(--sidebar-primary)'}
+          />
+        ) : (
+          <DieIcon
+            className="animate-die-idle"
+            sides={20}
+            size={30}
+            shapeColor={open ? 'var(--primary-foreground)' : 'var(--primary)'}
+            numberColor={open ? 'var(--primary)' : 'var(--primary-foreground)'}
+          />
+        )}
         {/* Badge so a pool built and left behind isn't invisible once closed. */}
         {pool.length > 0 && (
           <span
@@ -207,7 +238,7 @@ export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: 
 
       <PopoverContent
         side="top"
-        align="end"
+        align={docked ? 'start' : 'end'}
         sideOffset={12}
         aria-label="Rolar dados"
         className={cn(
@@ -384,6 +415,15 @@ export function DiceRoller({ onRoll, floating = false, disadvantageFrom = [] }: 
             ))}
           </div>
         </div>
+
+        {/* ── Fortuna — what a second chance costs, at hand where the rolls
+            are made. The toast of a fresh roll is where it gets spent. ──── */}
+        {luckTokens !== undefined && onLuckChange && (
+          <>
+            <Separator />
+            <FortuneBar luckTokens={luckTokens} onLuckChange={onLuckChange} />
+          </>
+        )}
       </PopoverContent>
     </Popover>
   )

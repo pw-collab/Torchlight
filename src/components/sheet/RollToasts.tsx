@@ -26,7 +26,8 @@ export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
   const visible = rolls.filter(r => now - r.timestamp < 15000)
 
   // On mobile: stack in the top-right so they don't overlap the dice bar.
-  // On desktop: stack upward from just above the floating dice button.
+  // On desktop: stack upward from the bottom-right corner, clear of the save
+  // seal under them — the dice themselves live in the dock, on the left.
   const positionStyle: React.CSSProperties = isMobile
     ? { top: 58, right: 10, bottom: 'auto', flexDirection: 'column' }
     : { bottom: 96, right: 24, top: 'auto', flexDirection: 'column-reverse' }

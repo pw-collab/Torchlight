@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { clipBounds } from '@/lib/clip'
 import { cn } from '@/lib/utils'
 
 /**
@@ -28,6 +29,15 @@ export const DETAIL_BODY: React.CSSProperties = {
 interface Props {
   /** Symbol drawn in the card's masthead and beside the detail heading. */
   glyph: ReactNode
+  /** Symbol beside the detail heading, when it differs from the face's. */
+  detailGlyph?: ReactNode
+  /**
+   * How the face is laid out. `masthead` stacks a large symbol, the name and
+   * the label under a rule over the description. `compact` — the sheet's
+   * technique deck — runs the name across a ruled title bar with a small
+   * symbol at its end, and moves the label down beside the description.
+   */
+  face?: 'masthead' | 'compact'
   title: string
   /** Small uppercase category label under the masthead rule. */
   caption: string
@@ -63,11 +73,11 @@ interface Props {
  * Opening turns the card over in place — same card, same size, same spot in
  * the deck, the detail written on its far side. Anything to press comes up as
  * a popover hanging off the bottom edge, since the two faces leave no room
- * for it. Shared by the class block's techniques, the talent list and the
- * grimoire.
+ * for it. Shared by the class block's techniques (on the compact face), the
+ * grimoire and the creator's pickers.
  */
 export function GlyphCard({
-  glyph, title, caption, accent, description, status,
+  glyph, detailGlyph, face = 'masthead', title, caption, accent, description, status,
   tone = 'passive', children, footer, controls, className,
   open: openProp, onOpenChange,
 }: Props) {
@@ -77,6 +87,27 @@ export function GlyphCard({
   const rootRef = useRef<HTMLDivElement>(null)
   const faceRef = useRef<HTMLButtonElement>(null)
   const detailRef = useRef<HTMLDivElement>(null)
+  const actionsRef = useRef<HTMLDivElement>(null)
+
+  const hasActions = Boolean(footer || controls)
+
+  // The actions hang centred under the card, which runs them past the edge of
+  // the deck for a card in its first or last column — and a deck that scrolls
+  // on its own cuts off whatever crosses its edge. Slide them back inside,
+  // measured off the card's layout box so the entry animation's scale doesn't
+  // skew the reading.
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    const actions = actionsRef.current
+    if (!open || !hasActions || !root || !actions) return
+    const bounds = clipBounds(root)
+    const card = root.getBoundingClientRect()
+    const centre = card.left + card.width / 2
+    const left = centre - actions.offsetWidth / 2
+    const right = centre + actions.offsetWidth / 2
+    const shift = left < bounds.left ? bounds.left - left : right > bounds.right ? bounds.right - right : 0
+    actions.style.setProperty('--actions-shift', `${shift}px`)
+  }, [open, hasActions])
 
   // Held in a ref so the Escape listener below never has to re-bind.
   const onOpenChangeRef = useRef(onOpenChange)
@@ -113,10 +144,12 @@ export function GlyphCard({
       ref={rootRef}
       data-open={open}
       className={cn(
-        // The design's face ratio (246 × 384): the card takes its width from
-        // the panel column and its height from that ratio, so a deck keeps
-        // its shape at any width — and never drops below the 224px floor.
-        'card-flip card-lift aspect-[246/384] min-h-[224px] w-full',
+        // The card takes its width from the deck's column and its height from
+        // the design's face ratio (246 × 384 for the masthead, 3 × 4 for the
+        // compact face), so a deck keeps its shape at any width — down to a
+        // floor where the description would have no room left.
+        'card-flip card-lift w-full',
+        face === 'compact' ? 'aspect-[3/4] min-h-[180px]' : 'aspect-[246/384] min-h-[224px]',
         className,
       )}
       // Enough to lift the open card and its popover over the rest of the deck,
@@ -141,8 +174,19 @@ export function GlyphCard({
             // Button's base is a label: nowrap + uppercase. The face holds
             // prose, so it wraps and keeps the casing it was written in.
             'whitespace-normal normal-case',
+            face === 'compact' && 'items-stretch justify-start gap-0 p-[3px] tracking-normal',
           )}
         >
+          {face === 'compact' ? (
+            <CompactFace
+              glyph={glyph}
+              title={title}
+              caption={caption}
+              description={description}
+              status={status}
+              tone={tone}
+            />
+          ) : (
           <div style={{
             position: 'relative',
             flex: 1,
@@ -228,6 +272,7 @@ export function GlyphCard({
               </p>
             </div>
           </div>
+          )}
         </Button>
 
         {/* ── Back: the detail ──────────────────────────────────────────── */}
@@ -246,7 +291,7 @@ export function GlyphCard({
                 className="[&>svg]:size-4"
                 style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${accent}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: accent, lineHeight: 1 }}
               >
-                {glyph}
+                {detailGlyph ?? glyph}
               </span>
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
                 <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: accent, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -277,12 +322,87 @@ export function GlyphCard({
       </div>
 
       {/* ── Actions — floating clear of the turned card ───────────────────── */}
-      {open && (footer || controls) && (
-        <div className="card-actions">
+      {open && hasActions && (
+        <div ref={actionsRef} className="card-actions">
           {controls}
           {footer && <div className="card-actions__row">{footer}</div>}
         </div>
       )}
     </div>
+  )
+}
+
+/**
+ * The compact face: a ruled title bar carrying the name and a small symbol,
+ * over a ruled body with the type label and the clamped description. The
+ * rules, the label and the corner marks are a step brighter on the cards the
+ * character spends — same weight-not-hue idea as the masthead face.
+ */
+function CompactFace({ glyph, title, caption, description, status, tone }: {
+  glyph: ReactNode
+  title: string
+  caption: string
+  description?: string
+  status?: { text: string; color: string } | null
+  tone: 'passive' | 'activation'
+}) {
+  const rule = tone === 'activation' ? 'var(--input)' : 'var(--border)'
+  const mark: React.CSSProperties = { fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 6, lineHeight: '6px', color: rule }
+
+  return (
+    <>
+      {/* Title bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: 8, border: `1px solid ${rule}`, flexShrink: 0 }}>
+        <p style={{ flex: 1, minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: 'var(--foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+          {title}
+        </p>
+        <span aria-hidden className="[&>svg]:size-[18px]" style={{ display: 'flex', flexShrink: 0, color: 'var(--foreground)' }}>
+          {glyph}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `1px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
+        {/* Corner marks + roll arrow */}
+        <div aria-hidden style={{ position: 'absolute', inset: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', ...mark }}>
+            <span>✦</span><span>✦</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...mark }}>
+            <span>✦</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
+            <span>✦</span>
+          </div>
+        </div>
+
+        {/* Type label, with the use counter at the other end when there is one */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, flexShrink: 0 }}>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontWeight: 600,
+            fontSize: 8,
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            lineHeight: '11.429px',
+            margin: 0,
+            color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+          }}>
+            {caption}
+          </p>
+          {status && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11.429px', letterSpacing: '0.04em' }}>
+              {status.text}
+            </span>
+          )}
+        </div>
+
+        {/* Description — fills the rest of the body, fading at the cut */}
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+            {description}
+          </p>
+        </div>
+      </div>
+    </>
   )
 }

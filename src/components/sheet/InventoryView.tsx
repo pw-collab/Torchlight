@@ -20,8 +20,8 @@ import type { InventoryItem, EquipSlot, ItemType, LightKind, WeaponKind } from '
 import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
-import { rollFormula, rollWithMode, modifier } from '@/lib/dice'
 import type { RollMode } from '@/lib/dice'
+import { attackRoll, damageRoll, parryRoll } from '@/lib/attacks'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { sendToDiscord } from '@/lib/discord'
 import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
@@ -1167,24 +1167,21 @@ export function InventoryView({
     return item.type === 'weapon' || item.type === 'armor' || item.type === 'shield' || !!item.isLight
   }
 
+  // The rolls themselves live in lib/attacks, shared with the sheet's quick
+  // attack menu.
   function rollParry(item: InventoryItem) {
     if (!onRoll) return
-    const n = Math.max(1, modifier(dex))
-    const result = rollFormula(`${n}d6`, `Aparar: ${item.name}`, `Bloqueio (${n}d6)`)
-    onRoll(result)
+    onRoll(parryRoll(item, dex))
   }
 
   function rollAttack(item: InventoryItem, mode: RollMode) {
     if (!onRoll) return
-    const isRanged = item.weaponKind === 'ranged'
-    const attrMod = modifier(isRanged ? dex : str)
-    const bonus = attrMod + (isRanged ? rangedBonus : meleeBonus) + (item.attackBonus ?? 0)
-    onRoll(rollWithMode('d20', `Ataque: ${item.name}`, item.weaponKind ?? 'melee', bonus, mode))
+    onRoll(attackRoll(item, { str, dex, meleeBonus, rangedBonus }, mode))
   }
 
   function rollDamage(item: InventoryItem) {
-    if (!onRoll || !item.damageDie) return
-    const result = rollFormula(item.damageDie, `Dano: ${item.name}`, 'Arma')
+    const result = damageRoll(item)
+    if (!onRoll || !result) return
     onRoll(result)
   }
 

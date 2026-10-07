@@ -41,6 +41,42 @@ interface Props {
 }
 
 
+/**
+ * One attribute on the desktop vitals: the modifier large on top — it is what
+ * gets added to the roll — and the abbreviation with the raw score along the
+ * foot. Pressing it opens the normal / advantage / disadvantage menu.
+ */
+function AttributeTile({ stat, score, onRoll }: {
+  stat: Stat
+  score: number
+  onRoll?: (mode: RollMode) => void
+}) {
+  return (
+    <RollModeMenu label={`Rolar ${STAT_FULL[stat]}`} disabled={!onRoll} onRoll={mode => onRoll?.(mode)}>
+      <Button
+        type="button"
+        variant="secondary"
+        title={`Rolar ${STAT_FULL[stat]}`}
+        render={<span />}
+        nativeButton={false}
+        className={cn(
+          'h-auto min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
+          'bg-input border-input hover:border-ring',
+          onRoll ? 'cursor-pointer' : 'cursor-default',
+        )}
+      >
+        <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 500, fontSize: 24, letterSpacing: '1.12px', color: 'var(--muted-foreground)', lineHeight: '26px' }}>
+          {modifierStr(score)}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, lineHeight: 1.5, textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 400, letterSpacing: '1.2px', color: 'var(--input)' }}>{STAT_LABELS[stat]}</span>
+          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 500, letterSpacing: '1.12px', color: 'var(--muted-foreground)' }}>{score}</span>
+        </span>
+      </Button>
+    </RollModeMenu>
+  )
+}
+
 export function FloatingVitals({
   ac, hpMax, hpCurrent, luckTokens, onHpChange, onLuckChange,
   characterId, portraitUrl, characterName, level, xp, onXpUpdate,
@@ -226,16 +262,16 @@ export function FloatingVitals({
   )
 
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — fills the two-column vitals track the parent page lays out to
-  // the right of the main block (see CharacterSheetClient). Identity (name,
-  // class, ancestry) and the Editar link live in the main block's header, so
-  // this column carries only the portrait, its overlays and the stats.
+  // DESKTOP — fills the vitals block the page grid lays out above the dock
+  // (see CharacterSheetClient). The portrait takes whatever height the stat
+  // grid leaves; the level reads in the class tag beside the name, so the
+  // portrait carries only the AC badge and the HP bar.
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
       <div className="vitals-stack">
 
-        {/* Portrait container with LV / AC badges + HP bar overlays */}
+        {/* Portrait container with the AC badge and HP bar overlays */}
         <div className="vitals-portrait">
           <AvatarUpload
             characterId={characterId}
@@ -244,35 +280,32 @@ export function FloatingVitals({
             onUpload={onAvatarUpload}
           />
 
-          {/* LV badge — top-left overlay */}
-          <div style={{ position: 'absolute', top: 5, left: 5, height: 34, background: 'var(--secondary)', border: '1px solid var(--border)', padding: '0 10px', display: 'flex', alignItems: 'center', gap: 4, boxSizing: 'border-box', zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>LV</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 22, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{level}</span>
-          </div>
-
           {/* AC badge — top-right overlay */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 52, height: 50, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: 4, right: 4, width: 52, height: 50, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
+            <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 20, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
           </div>
 
-          {/* HP bar — bottom overlay */}
-          <div
-            style={{ position: 'absolute', bottom: 5, left: 5, right: 5, height: 36, overflow: 'hidden', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', cursor: 'pointer', zIndex: 5 }}
+          {/* HP bar — bottom overlay, and the way into damage / heal / XP */}
+          <button
+            type="button"
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
+            aria-label={`Pontos de vida: ${hpCurrent} de ${hpMax}. Abrir dano, cura e XP.`}
+            className="focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]"
+            style={{ position: 'absolute', bottom: 4, left: 4, right: 4, height: 36, overflow: 'hidden', cursor: 'pointer', zIndex: 5, padding: 0, border: 0, background: 'none' }}
           >
             {/* Depleted track */}
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
+            <span style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
             {/* HP fill (red from left) */}
-            <div
+            <span
               key={flash ?? 'idle'}
               style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
             />
             {/* Text */}
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 20, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
+            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 20, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
                 <span
                   key={`flash-${flash ?? 'idle'}`}
                   className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
@@ -280,47 +313,24 @@ export function FloatingVitals({
                 >{hpCurrent}</span>
                 <span style={{ color: 'var(--sidebar-foreground)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 9, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
-            </div>
+              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 9, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
+            </span>
+          </button>
+        </div>
+
+        {/* Stats 3×2 grid, flush under the portrait */}
+        {stats && (
+          <div className="vitals-stats">
+            {STAT_KEYS.map(key => (
+              <AttributeTile
+                key={key}
+                stat={key}
+                score={stats[key]}
+                onRoll={onRoll ? mode => rollStat(key, mode) : undefined}
+              />
+            ))}
           </div>
-        </div>
-
-        {/* Stats: stacked under the portrait on wide screens, beside it once
-            the column goes full-width (see .vitals-* in globals.css). Fortuna
-            is no longer part of this stack — the design gives it its own row
-            of the page grid, under the vitals (see .sheet-fortune). */}
-        <div className="vitals-meta">
-          {/* Stats 2×3 grid */}
-          {stats && (
-            <div className="vitals-stats">
-              {STAT_KEYS.map(key => (
-                <RollModeMenu
-                  key={key}
-                  label={`Rolar ${STAT_FULL[key]}`}
-                  disabled={!onRoll}
-                  onRoll={mode => rollStat(key, mode)}
-                >
-                <Button
-                  type="button"
-                  variant="secondary"
-                  title={`Rolar ${STAT_FULL[key]}`}
-                  render={<span />}
-                  className={cn(
-                    'h-auto w-full min-w-0 flex-col items-center justify-center gap-0 px-[3px] pt-[9px] pb-[11px] transition-colors duration-150',
-                    'bg-input border-input hover:border-ring',
-                    onRoll ? 'cursor-pointer' : 'cursor-default',
-                  )}
-                >
-                  <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                  <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                  <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '17px', paddingTop: 2 }}>{stats[key]}</span>
-                </Button>
-                </RollModeMenu>
-              ))}
-            </div>
-          )}
-
-        </div>
+        )}
 
         {/* HP / XP overlay */}
         {hpOverlay}

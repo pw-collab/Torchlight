@@ -26,6 +26,12 @@ interface Props {
    * the only strip both the phone and the desktop layouts leave open.
    */
   headerRight?: React.ReactNode
+  /**
+   * The top bar's middle lane, lined up with the first column of the page's
+   * 1440px content box (see `.app-header-center`). The character sheet keeps
+   * its light status here, above the vitals.
+   */
+  headerCenter?: React.ReactNode
 }
 
 /**
@@ -94,7 +100,7 @@ function LogoMenu({
   )
 }
 
-export function AppShell({ children, playerName, playerRole, backHref, headerRight }: Props) {
+export function AppShell({ children, playerName, playerRole, backHref, headerRight, headerCenter }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -106,16 +112,23 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
 
   return (
     <div className="bg-background h-dvh">
-      {/* Top bar — logo menu and the back link only, sitting straight on the
-          page with no plate behind them. Sheet navigation is the icon rail
-          beside the content (TabRail); the dice roller floats bottom-right. */}
+      {/* Top bar — logo menu and the back link, sitting straight on the page
+          with no plate behind them, plus whatever lanes the page hands over
+          (the sheet's light status, the table it sits at). Sheet navigation
+          is the icon rail beside the content (TabRail). */}
       <div
         className={cn(
           'app-header-scrim pointer-events-none fixed inset-x-0 top-0 z-60 flex items-center',
           isMobile ? 'h-16 px-2' : 'h-20 px-6',
         )}
       >
-        <div className="pointer-events-auto flex min-w-0 items-center gap-1">
+        {headerCenter && (
+          <div className="app-header-center">
+            <div className="app-header-center__box">{headerCenter}</div>
+          </div>
+        )}
+
+        <div className="pointer-events-auto relative flex min-w-0 items-center gap-1">
           <LogoMenu
             playerName={playerName}
             playerRole={playerRole}
@@ -141,7 +154,7 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
         </div>
 
         {headerRight && (
-          <div className="pointer-events-auto ml-auto flex min-w-0 shrink-0 items-center pl-2">
+          <div className="pointer-events-auto relative ml-auto flex min-w-0 shrink-0 items-center pl-2">
             {headerRight}
           </div>
         )}

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { FourFinger03Icon, RotateRight02Icon } from '@hugeicons/core-free-icons'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
@@ -12,7 +14,6 @@ import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
 import { OriginIcon, type CardOrigin } from '@/components/shared/CardOrigin'
 import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
-import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { VariantProps } from 'class-variance-authority'
@@ -370,8 +371,8 @@ function SpellLikeSection({
 // The four kinds used to be told apart by hue (purple / parchment / red /
 // verdigris). This theme is monochrome apart from the reds, so they are told
 // apart by lightness instead — every value still clears 4.5:1 on --card.
-// The two the character *spends* carry the filled masthead; the two that just
-// sit on the sheet stay hollow.
+// The two the character *spends* carry the brighter rules and the turning
+// symbol; the two that just sit on the sheet stay dim, under the open hand.
 const KIND_STYLE: Record<
   TechniqueKind,
   { label: string; color: string; tone: 'passive' | 'activation' }
@@ -380,6 +381,21 @@ const KIND_STYLE: Record<
   choice:       { label: 'Escolha',  color: 'var(--muted-foreground)', tone: 'passive' },
   limited_use:  { label: 'Usos',     color: 'var(--destructive)',      tone: 'activation' },
   spell_like:   { label: 'Ativação', color: 'var(--foreground)',       tone: 'activation' },
+}
+
+/**
+ * The symbol on a card's face says how the card is used — an open hand for
+ * what simply holds, a turning arrow for what is spent and comes back. Where
+ * the card came from moved to the far side, beside the detail heading.
+ */
+function KindIcon({ tone }: { tone: 'passive' | 'activation' }) {
+  return (
+    <HugeiconsIcon
+      icon={tone === 'activation' ? RotateRight02Icon : FourFinger03Icon}
+      size={18}
+      strokeWidth={1.5}
+    />
+  )
 }
 
 function TechniqueCard({
@@ -419,9 +435,11 @@ function TechniqueCard({
 
   return (
     <GlyphCard
-      // A technique comes from the class, whatever kind it is — the symbol says
-      // so, and the label under the rule is left to say which kind.
-      glyph={<OriginIcon origin="class" />}
+      face="compact"
+      glyph={<KindIcon tone={style.tone} />}
+      // A technique comes from the class, whatever kind it is — the far side
+      // says so beside the detail heading.
+      detailGlyph={<OriginIcon origin="class" />}
       title={technique.name}
       caption={style.label}
       accent={style.color}
@@ -506,7 +524,9 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
 function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: RollResult) => void }) {
   return (
     <GlyphCard
-      glyph={<OriginIcon origin={entry.origin} />}
+      face="compact"
+      glyph={<KindIcon tone={KIND_STYLE.passive.tone} />}
+      detailGlyph={<OriginIcon origin={entry.origin} />}
       title={entry.name}
       caption={KIND_STYLE.passive.label}
       accent={entry.accent}
@@ -524,6 +544,15 @@ function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface Props {
+  /** The heading's name. */
+  characterName: string
+  /** Rides the class tag, after the divider — `[ Bard | 3 ]`. */
+  level: number
+  /**
+   * Phones already carry the name above the portrait, so they leave it out
+   * here and keep only the tags.
+   */
+  showName?: boolean
   classData: Class
   /** Fills the ancestry tag beside the class one. Omitted, the tag is dropped. */
   ancestry?: Ancestry
@@ -537,7 +566,10 @@ interface Props {
   onRoll?: (result: RollResult) => void
 }
 
-export function ClassPanel({ classData, ancestry, archetype, languages = [], stats, techniqueStates, onStateChange, onRoll }: Props) {
+export function ClassPanel({
+  characterName, level, showName = true,
+  classData, ancestry, archetype, languages = [], stats, techniqueStates, onStateChange, onRoll,
+}: Props) {
   const activeTechniques = classData.techniques.filter(
     (t): t is ClassTechnique => t !== null,
   )
@@ -548,44 +580,50 @@ export function ClassPanel({ classData, ancestry, archetype, languages = [], sta
   }
 
   return (
-    // The design's technique container: a card surface on a three-column grid
-    // whose first row is the tag strip, second the section heading, and every
-    // row after that a line of technique cards (see .panel-grid).
-    <section className="panel-grid">
-      {/* Row 1 — class, ancestry and archetype condensed into tags, with the
-          proficiencies, languages and concept one hover (or tap) away. The
-          ancestry traits and the archetype talent are not repeated here: they
-          have their own cards among the techniques below. */}
-      <div className="panel-grid__row" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, paddingBottom: 8 }}>
-        <DetailChip
-          label={classData.name}
-          trailing={`d${classData.hitDie}`}
-          detailLabel="proficiências da classe"
-        >
-          <ChipDetail label="Armas">{classData.weaponProficiency}</ChipDetail>
-          <ChipDetail label="Armaduras">{classData.armorProficiency}</ChipDetail>
-        </DetailChip>
-
-        {ancestry && (
-          <DetailChip label={ancestry.name} detailLabel="idiomas da ancestralidade">
-            <ChipDetail label="Idiomas">
-              {languages.length > 0 ? languages.join(', ') : 'Nenhum idioma registrado.'}
-            </ChipDetail>
-          </DetailChip>
+    // The Atributos panel's deck: three columns whose first row is the heading
+    // — the name, then the tags — and every row after that a line of technique
+    // cards (see .attr-panel__deck). The page sets it beside the talent list.
+    <section className="attr-panel__deck" aria-label="Técnicas">
+      {/* Row 1 — the name, and class, archetype and ancestry condensed into
+          tags with the level, proficiencies, concept and languages one hover
+          (or tap) away. The ancestry traits and the archetype talent are not
+          repeated here: they have their own cards among the techniques. */}
+      <div className="attr-panel__heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px 16px' }}>
+        {showName && (
+          <h1 style={{ flex: '1 1 auto', minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 22, lineHeight: 1.45, color: 'var(--card-foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {characterName}
+          </h1>
         )}
 
-        {archetype && (
-          <DetailChip label={archetype.name} detailLabel="conceito e gancho do arquétipo">
-            <ChipDetail label="Conceito">{archetype.summary}</ChipDetail>
-            {archetype.hook && <ChipDetail label="Gancho">{archetype.hook}</ChipDetail>}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8, marginLeft: showName ? 'auto' : undefined }}>
+          <DetailChip
+            label={classData.name}
+            trailing={String(level)}
+            detailLabel="nível e proficiências da classe"
+          >
+            <ChipDetail label="Nível">{level} · dado de vida d{classData.hitDie}</ChipDetail>
+            <ChipDetail label="Armas">{classData.weaponProficiency}</ChipDetail>
+            <ChipDetail label="Armaduras">{classData.armorProficiency}</ChipDetail>
           </DetailChip>
-        )}
+
+          {archetype && (
+            <DetailChip label={archetype.name} detailLabel="conceito e gancho do arquétipo">
+              <ChipDetail label="Conceito">{archetype.summary}</ChipDetail>
+              {archetype.hook && <ChipDetail label="Gancho">{archetype.hook}</ChipDetail>}
+            </DetailChip>
+          )}
+
+          {ancestry && (
+            <DetailChip label={ancestry.name} detailLabel="idiomas da ancestralidade">
+              <ChipDetail label="Idiomas">
+                {languages.length > 0 ? languages.join(', ') : 'Nenhum idioma registrado.'}
+              </ChipDetail>
+            </DetailChip>
+          )}
+        </div>
       </div>
 
-      {/* Row 2 — the section heading, ruled across the full panel. */}
-      <SectionSubheading className="panel-grid__row">Técnicas</SectionSubheading>
-
-      {/* Rows 3 and on — everything the character starts play with: the class's
+      {/* Rows 2 and on — everything the character starts play with: the class's
           own techniques, the ancestry's traits and the archetype's talent. One
           card per column, three to a row. */}
       {activeTechniques.map(t => (
