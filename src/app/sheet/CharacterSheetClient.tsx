@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import Link from 'next/link'
 import type { IconSvgElement } from '@hugeicons/react'
 import {
-  Backpack03Icon,
-  Book02Icon,
-  SparklesIcon,
-  UserIcon,
+  AdventureIcon,
+  AiLearningIcon,
+  MoneyBag01Icon,
+  ScrollIcon,
+  Settings03Icon,
 } from '@hugeicons/core-free-icons'
 import { createClient } from '@/lib/supabase'
 import { useCharacter } from '@/hooks/useCharacter'
@@ -21,9 +21,10 @@ import { useEncounter } from '@/hooks/useEncounter'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
-import { FortuneTile } from '@/components/sheet/FortuneBar'
 import { TorchStatus } from '@/components/sheet/TorchStatus'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
+import { AttacksMenu } from '@/components/sheet/AttacksMenu'
+import { RollHistory } from '@/components/sheet/RollHistory'
 import { TabBar } from '@/components/sheet/TabBar'
 import { TabRail } from '@/components/sheet/TabRail'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
@@ -72,10 +73,10 @@ type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
 // Labels drive the mobile bottom bar; the icons drive the desktop rail.
 const TAB_META: Record<Tab, { label: string; icon: IconSvgElement }> = {
-  stats:     { label: 'Atributos',  icon: SparklesIcon },
-  inventory: { label: 'Inventário', icon: Backpack03Icon },
-  spells:    { label: 'Grimório',   icon: Book02Icon },
-  backstory: { label: 'História',   icon: UserIcon },
+  stats:     { label: 'Atributos',  icon: AdventureIcon },
+  inventory: { label: 'Inventário', icon: MoneyBag01Icon },
+  spells:    { label: 'Grimório',   icon: AiLearningIcon },
+  backstory: { label: 'História',   icon: ScrollIcon },
 }
 const TAB_KEYS = Object.keys(TAB_META) as Tab[]
 
@@ -471,72 +472,75 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     />
   )
 
-  // Every tab hands the page the same shape: the block that fills the content
-  // column's first row and, where the tab has one, the block that fills the
-  // second. The page owns placement — tab components only render blocks.
-  const tabBlocks: Record<Tab, { primary: React.ReactNode; secondary?: React.ReactNode }> = {
-    stats: {
-      primary: cls && (
-        <ClassPanel
-          classData={cls}
-          ancestry={ancestry}
-          archetype={archetype}
-          languages={character.languages}
-          stats={character.stats}
-          techniqueStates={character.techniqueStates}
-          onStateChange={handleTechniqueStatesChange}
+  // Every tab hands the page one block for the panel. The page owns placement
+  // — tab components only render blocks.
+  const panels: Record<Tab, React.ReactNode> = {
+    // The techniques and the talent list share one card: the deck takes three
+    // of its four columns, the list the last (see .attr-panel). The name and
+    // the class / archetype / ancestry tags head this tab only.
+    stats: (
+      <div className="attr-panel">
+        {cls && (
+          <ClassPanel
+            characterName={character.name}
+            level={character.level}
+            showName={!isMobile}
+            classData={cls}
+            ancestry={ancestry}
+            archetype={archetype}
+            languages={character.languages}
+            stats={character.stats}
+            techniqueStates={character.techniqueStates}
+            onStateChange={handleTechniqueStatesChange}
+            onRoll={handleRoll}
+          />
+        )}
+        <TalentsPanel
+          talents={character.talents}
+          levelProgress={character.levelProgress}
+          currentLevel={character.level}
+          onUpdate={handleTalentsUpdate}
           onRoll={handleRoll}
         />
-      ),
-      secondary: (
-        <TalentsPanel talents={character.talents} onUpdate={handleTalentsUpdate} onRoll={handleRoll} />
-      ),
-    },
+      </div>
+    ),
     // Um bloco só: o tesouro deixou de ter uma linha própria na página e
     // virou a Bolsa de moedas, um item da mochila como qualquer outro.
-    inventory: {
-      primary: (
-        <InventoryView
-          inventory={character.inventory}
-          str={character.stats.str}
-          dex={character.stats.dex}
-          onUpdate={handleInventoryUpdate}
-          onAcChange={handleAcChange}
-          onMeleeRangedUpdate={handleMeleeRangedUpdate}
-          onRoll={handleRoll}
-          meleeBonus={character.meleeBonus}
-          rangedBonus={character.rangedBonus}
-          gold={character.gold}
-          silver={character.silver}
-          copper={character.copper}
-          onCurrencyUpdate={handleCurrencyUpdate}
-          onLightChange={change => record('light', { ...change, by: 'player' })}
-          clock={openSession}
-        />
-      ),
-    },
-    // The grimoire and the backstory are each a single block, so they take
-    // both content rows rather than leaving the second one hollow.
-    spells: {
-      primary: (
-        <Spells
-          classId={character.classId}
-          equippedSpells={character.spells}
-          spellcastingBonus={character.spellcastingBonus}
-          castingAttr={character.castingAttr}
-          stats={character.stats}
-          onRoll={handleRoll}
-          onUpdate={handleSpellcastingUpdate}
-          onSpellsChange={handleSpellsChange}
-        />
-      ),
-    },
-    backstory: {
-      primary: <BackstoryView character={character} onUpdate={updateCharacter} />,
-    },
+    inventory: (
+      <InventoryView
+        inventory={character.inventory}
+        str={character.stats.str}
+        dex={character.stats.dex}
+        onUpdate={handleInventoryUpdate}
+        onAcChange={handleAcChange}
+        onMeleeRangedUpdate={handleMeleeRangedUpdate}
+        onRoll={handleRoll}
+        meleeBonus={character.meleeBonus}
+        rangedBonus={character.rangedBonus}
+        gold={character.gold}
+        silver={character.silver}
+        copper={character.copper}
+        onCurrencyUpdate={handleCurrencyUpdate}
+        onLightChange={change => record('light', { ...change, by: 'player' })}
+        clock={openSession}
+      />
+    ),
+    spells: (
+      <Spells
+        classId={character.classId}
+        equippedSpells={character.spells}
+        spellcastingBonus={character.spellcastingBonus}
+        castingAttr={character.castingAttr}
+        stats={character.stats}
+        onRoll={handleRoll}
+        onUpdate={handleSpellcastingUpdate}
+        onSpellsChange={handleSpellsChange}
+      />
+    ),
+    backstory: <BackstoryView character={character} onUpdate={updateCharacter} />,
   }
 
-  const { primary, secondary } = tabBlocks[tab]
+  const panel = panels[tab]
   // A sobrecarga era um texto vermelho no inventário e nada mais (§5.10). Com a
   // regra de carga unificada na Fase 0, ela passa a se anunciar junto das
   // condições — no mesmo lugar e do mesmo jeito, porque para quem rola é a
@@ -551,8 +555,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   /**
    * A faixa de estado: o que a mesa está esperando desta ficha, o que está em
-   * vigor sobre ela, e o botão de acampar. Abre o conteúdo em qualquer aba,
-   * porque nada disso é assunto de uma aba só.
+   * vigor sobre ela, e o botão de acampar. Nada disso é assunto de uma aba só:
+   * no desktop ela abre o card de baixo, acima das rolagens; no celular, o
+   * topo da ficha.
    */
   const stateStrip = (
     <>
@@ -598,6 +603,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
       headerRight={tableBadge}
+      // The light rides the top bar over the vitals, so it stays in view
+      // whatever the panel is showing. Phones keep their floating badge.
+      headerCenter={isMobile ? undefined : (
+        <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
+      )}
     >
       {isMobile ? (
         <div style={{
@@ -612,73 +622,77 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         }}>
           {stateStrip}
           {vitals}
-          {primary}
-          {secondary}
+          {panel}
         </div>
       ) : (
-        // The whole sheet sits on one twelve-column grid, laid out as the
-        // design's auto-layout: on row 1 the heading (columns 4-9) with
-        // fortuna and the light status beside it (10 and 11); the nav rail
-        // holding column 3 down rows 2-3; the tab's content filling columns
-        // 4-9 of those same rows; the vitals in columns 10-11 of row 2
-        // (see .sheet-* in globals.css).
+        // The whole sheet is one screen on a ten-column, eight-row grid, laid
+        // out as the design's auto-layout: the vitals over the dock in columns
+        // 1-2, the nav rail down column 3, and the tab's panel across columns
+        // 4-10 (see .sheet-* in globals.css).
         <div className="sheet-grid">
-          <header className="sheet-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 48, color: 'var(--primary-foreground)', lineHeight: 1.15, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {character.name}
-            </h1>
-            <Link
-              href={editHref}
-              style={{ fontFamily: 'var(--font-heading)', fontSize: 14, letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--card-foreground)', textDecoration: 'underline', textUnderlineOffset: '2px', flexShrink: 0 }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = '0.7' }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
-            >
-              Editar
-            </Link>
-          </header>
-
-          <div className="sheet-fortune">
-            <FortuneTile luckTokens={character.luckTokens} onLuckChange={handleLuckChange} />
-          </div>
-
-          <div className="sheet-torch">
-            <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
-          </div>
-
-          <div className="sheet-rail">
-            <TabRail tabs={railItems} active={tab} onChange={setTab} />
-          </div>
-
-          <div className={secondary ? 'sheet-primary' : 'sheet-primary sheet-primary--full'}>
-            {/* O pedido do Mestre abre o conteúdo em vez de flutuar sobre ele:
-                uma rolagem que a mesa está esperando não pode ser um aviso
-                que some sozinho. */}
-            {stateStrip}
-            {primary}
-          </div>
-          {secondary && <div className="sheet-secondary">{secondary}</div>}
-
           <aside className="sheet-vitals">
             {vitals}
           </aside>
+
+          {/* The dock: what the table is waiting on, the rolls made so far,
+              and the attack and dice buttons on its floor. */}
+          <section className="sheet-dock" aria-label="Mesa e rolagens">
+            <div className="sheet-dock__strip">{stateStrip}</div>
+            <RollHistory
+              rolls={rollHistory}
+              fortuneLeft={character.luckTokens}
+              onSpendFortune={handleFortuneReroll}
+            />
+            <div className="sheet-dock__actions">
+              <AttacksMenu
+                inventory={character.inventory}
+                str={character.stats.str}
+                dex={character.stats.dex}
+                meleeBonus={character.meleeBonus}
+                rangedBonus={character.rangedBonus}
+                onRoll={handleRoll}
+                onOpenInventory={() => setTab('inventory')}
+              />
+              <div className="col-span-2 flex min-w-0">
+                <DiceRoller
+                  onRoll={handleRoll}
+                  docked
+                  disadvantageFrom={disadvantages}
+                  luckTokens={character.luckTokens}
+                  onLuckChange={handleLuckChange}
+                />
+              </div>
+            </div>
+          </section>
+
+          <div className="sheet-rail">
+            <TabRail
+              tabs={railItems}
+              active={tab}
+              onChange={setTab}
+              link={{ href: editHref, label: 'Editar personagem', icon: Settings03Icon }}
+            />
+          </div>
+
+          <div className="sheet-panel">
+            {panel}
+          </div>
         </div>
       )}
 
-      {/* Navigation: labelled bottom bar on mobile (dice as its trailing
-          button), icon rail + free-floating dice button on desktop. */}
-      {isMobile ? (
+      {/* Navigation: labelled bottom bar on mobile, with the dice as its
+          trailing button. The desktop has the rail, and the dice in the dock. */}
+      {isMobile && (
         <TabBar
           tabs={tabItems}
           active={tab}
           onChange={setTab}
           trailing={<DiceRoller onRoll={handleRoll} disadvantageFrom={disadvantages} />}
         />
-      ) : (
-        <DiceRoller onRoll={handleRoll} floating disadvantageFrom={disadvantages} />
       )}
 
-      {/* Phones have no column to reserve for the light, so they keep the
-          floating badge; the desktop grid carries TorchStatus instead. */}
+      {/* Phones have no top-bar lane to give the light, so they keep the
+          floating badge; the desktop carries TorchStatus in the header. */}
       {isMobile && (
         <FloatingTorch
           inventory={character.inventory}
@@ -694,11 +708,15 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onSettled={settleRoll}
         onUnavailable={fallBackToTimed}
       />
-      <RollToasts
-        rolls={rollHistory}
-        fortuneLeft={character.luckTokens}
-        onSpendFortune={handleFortuneReroll}
-      />
+      {/* Phones get the fresh rolls as toasts; the desktop shows the same
+          cards in the dock's history instead. */}
+      {isMobile && (
+        <RollToasts
+          rolls={rollHistory}
+          fortuneLeft={character.luckTokens}
+          onSpendFortune={handleFortuneReroll}
+        />
+      )}
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       {tableMode && (
@@ -734,10 +752,10 @@ function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean })
       className="animate-seal"
       style={{
         position: 'fixed',
-        // Mobile sits above the bottom bar; desktop tucks into the bottom-left
-        // so it never collides with the floating dice button.
+        // Mobile sits above the bottom bar; desktop takes the bottom-right
+        // corner, clear of the dock and its roll buttons on the left.
         bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 24,
-        ...(isMobile ? { right: 16 } : { left: 24 }),
+        right: isMobile ? 16 : 24,
         zIndex: 120,
         fontFamily: 'var(--font-heading)',
         fontSize: 10,

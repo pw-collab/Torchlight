@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { clipBounds } from '@/lib/clip'
 
 interface Props {
   /** Name shown on the closed chip, e.g. `Bard`. */
@@ -52,17 +53,19 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
   const panelRef = useRef<HTMLDivElement>(null)
 
   // The panel hangs off the chip's left edge, which pushes it past the right
-  // of the screen for any chip that isn't the first one. Measure once it is up
-  // and slide it back inside, never past the left edge either. Written onto
-  // the node rather than held in state: the panel mounts fresh at left: 0 on
-  // every open, so there is nothing to keep between them.
+  // of its block for any chip that isn't the first one. Measure once it is up
+  // and slide it back inside — the block's own edges when it scrolls on its
+  // own, the screen's otherwise — never past the left edge either. Written
+  // onto the node rather than held in state: the panel mounts fresh at
+  // left: 0 on every open, so there is nothing to keep between them.
   useLayoutEffect(() => {
     const wrap = wrapRef.current
     const panel = panelRef.current
     if (!open || !wrap || !panel) return
     const { left } = wrap.getBoundingClientRect()
-    const overflow = left + panel.offsetWidth - (window.innerWidth - 16)
-    if (overflow > 0) panel.style.left = `${-Math.min(overflow, Math.max(0, left - 16))}px`
+    const bounds = clipBounds(wrap, 16)
+    const overflow = left + panel.offsetWidth - bounds.right
+    if (overflow > 0) panel.style.left = `${-Math.min(overflow, Math.max(0, left - bounds.left))}px`
   }, [open])
 
   // Tapping opens on mobile, so tapping elsewhere is what closes it again.
