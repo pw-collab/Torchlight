@@ -98,80 +98,65 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
 
   // ── O menu ────────────────────────────────────────────────────────────────
 
+  const idle = actor.defeated
+    ? `${actor.name} caiu. Cura o põe de pé de novo; Tirar da trilha o remove do combate.`
+    : myTurn
+      ? `Vez de ${actor.name}: ataque, habilidade ou teste. Depois, ▸ Próximo turno.`
+      : `Comandos para ${actor.name}. Passe o mouse para ver o que cada um faz.`
+
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-heading text-[16px] text-[var(--destructive)]">{actor.name}</span>
-        <span className="font-body text-[11px] text-[var(--muted-foreground)] italic">
-          {sheet?.npcType || (sheet ? 'Do bestiário' : 'Sem ficha no bestiário')}
-          {sheet?.level != null && ` · NV ${sheet.level}`}
-        </span>
-        {myTurn && (
-          <span className="font-heading animate-flicker text-[9px] tracking-[0.16em] text-[var(--chart-1)] uppercase">
-            ▶ Vez dele
-          </span>
-        )}
-      </div>
-
-      {actor.defeated ? (
-        <p className="font-body text-[11px] text-[var(--muted-foreground)] italic">
-          Derrotado. Cura o põe de pé de novo; ✕ tira da trilha.
-        </p>
-      ) : null}
-
-      <CommandGrid>
-        <CommandTile
-          icon="⚔"
-          label="Atacar"
-          hint={`${signed(bonus)} · ${actor.damageDie ?? '1d6'} — clique no alvo`}
-          tone="danger"
-          highlight={myTurn && !actor.defeated}
-          disabled={actor.defeated}
-          onClick={() => ctl.beginTargeting({ kind: 'attack', attackerId: actor.id, mode: 'normal' })}
-        />
-        <CommandTile
-          icon="✨"
-          label="Habilidades"
-          hint={sheet ? `${sheet.features.length} no statblock` : 'Sem ficha'}
-          onClick={() => setView('abilities')}
-          disabled={!sheet}
-        />
-        <CommandTile icon="🎲" label="Teste" hint="Atributo contra DC" onClick={() => setView('check')} />
-        <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${hp}/${max}`} tone="danger" onClick={() => setView('hp')} />
-        <CommandTile
-          icon="⚑"
-          label="Condições"
-          hint={actor.conditions.length > 0 ? actor.conditions.map(c => c.label).join(', ') : 'nenhuma'}
-          onClick={() => setView('conditions')}
-        />
-        <CommandTile
-          icon="🏳"
-          label={isFleeing(actor) ? 'Voltar à luta' : 'Fugir'}
-          hint={isFleeing(actor) ? 'Recobra a coragem' : 'Sai da briga'}
-          tone="gold"
-          disabled={actor.defeated}
-          onClick={() => void ctl.enc.toggleActorCondition(actor, { id: FLEEING.id, label: FLEEING.label })}
-        />
-        <CommandTile
-          icon="🎲"
-          label="Iniciativa"
-          hint={actor.initiative == null ? 'Ainda não rolou' : `Agora ${actor.initiative} · rolar de novo`}
-          onClick={() => void ctl.enc.rollInitiativeFor(actor)}
-        />
-        <CommandTile icon="✎" label="Editar" hint={`CA ${actor.ac ?? 10} · PV máx ${max}`} onClick={() => setView('edit')} />
-        <CommandTile
-          icon="✕"
-          label="Tirar da trilha"
-          hint="Some do combate"
-          onClick={() => {
-            if (window.confirm(`Tirar ${actor.name} do combate?`)) {
-              ctl.focus(null)
-              void ctl.enc.removeActor(actor)
-            }
-          }}
-        />
-      </CommandGrid>
-    </div>
+    <CommandGrid idle={idle}>
+      <CommandTile
+        icon="⚔"
+        label="Atacar"
+        hint={`${signed(bonus)} · ${actor.damageDie ?? '1d6'}: clique no alvo`}
+        tone="danger"
+        highlight={myTurn && !actor.defeated}
+        disabled={actor.defeated}
+        onClick={() => ctl.beginTargeting({ kind: 'attack', attackerId: actor.id, mode: 'normal' })}
+      />
+      <CommandTile
+        icon="✨"
+        label="Habilidades"
+        hint={sheet ? `${sheet.features.length} no statblock, com dados clicáveis` : 'Sem ficha no bestiário'}
+        onClick={() => setView('abilities')}
+        disabled={!sheet}
+      />
+      <CommandTile icon="🎲" label="Teste" hint="Atributo do monstro contra um DC" onClick={() => setView('check')} />
+      <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${hp}/${max}`} tone="danger" onClick={() => setView('hp')} />
+      <CommandTile
+        icon="⚑"
+        label="Condições"
+        hint={actor.conditions.length > 0 ? actor.conditions.map(c => c.label).join(', ') : 'Nenhuma em vigor'}
+        onClick={() => setView('conditions')}
+      />
+      <CommandTile
+        icon="🏳"
+        label={isFleeing(actor) ? 'Voltar à luta' : 'Fugir'}
+        hint={isFleeing(actor) ? 'Recobra a coragem' : 'Sai da briga'}
+        tone="gold"
+        disabled={actor.defeated}
+        onClick={() => void ctl.enc.toggleActorCondition(actor, { id: FLEEING.id, label: FLEEING.label })}
+      />
+      <CommandTile
+        icon="🎲"
+        label="Iniciativa"
+        hint={actor.initiative == null ? 'Ainda não rolou' : `Agora ${actor.initiative}: rolar de novo`}
+        onClick={() => void ctl.enc.rollInitiativeFor(actor)}
+      />
+      <CommandTile icon="✎" label="Editar" hint={`PV, CA (${actor.ac ?? 10}), ataque, dano, iniciativa`} onClick={() => setView('edit')} />
+      <CommandTile
+        icon="✕"
+        label="Tirar da trilha"
+        hint="Some do combate"
+        onClick={() => {
+          if (window.confirm(`Tirar ${actor.name} do combate?`)) {
+            ctl.focus(null)
+            void ctl.enc.removeActor(actor)
+          }
+        }}
+      />
+    </CommandGrid>
   )
 }
 

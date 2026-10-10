@@ -1,80 +1,103 @@
 'use client'
 
+import type { Seat } from '@/lib/gmActions'
 import type { TableClock } from '@/lib/dungeonClock'
-import { EXPLORATION_TURN_MINUTES } from '@/lib/dungeonClock'
-import { Button } from '@/components/ui/button'
-import { LABEL, PILL } from './ui'
+import { EXPLORATION_TURN_MINUTES, tableNow } from '@/lib/dungeonClock'
+import { brightest, fullMinutes, minutesLeft } from '@/lib/light'
+import { useNow } from '@/hooks/useNow'
 import { cn } from '@/lib/utils'
 
 /**
- * A barra de cima: o relógio da masmorra e quem está na mesa.
+ * A barra de cima: a chama do grupo, o relógio da masmorra e quem está na
+ * mesa.
  *
- * Em Shadowdark o tempo é um instrumento do Mestre. A luz de todo mundo é
- * derivada deste relógio (`lib/light`), então pausar, adiantar e apagar tudo
- * mexem na mesa inteira de uma vez.
+ * A chama é a luz mais forte que o grupo carrega agora — em Shadowdark é ela
+ * que separa a exploração do pânico, então fica no alto, à vista, como o
+ * medidor de tocha dos RPGs de masmorra. Pausar, adiantar e apagar tudo mexem
+ * no relógio da mesa inteira de uma vez (ver `lib/light`).
  */
 export function TableHud({
-  clock, litCount, present, total, busy, onPauseToggle, onAdvance, onSnuffAll,
+  seats, clock, present, busy, onPauseToggle, onAdvance, onSnuffAll,
 }: {
+  seats: Seat[]
   clock: TableClock
-  litCount: number
   present: number
-  total: number
   busy?: boolean
   onPauseToggle: () => void
   onAdvance: (minutes: number) => void
   onSnuffAll: () => void
 }) {
+  const now = tableNow(clock, useNow())
+  const lights = seats
+    .map(seat => ({ seat, light: brightest(seat.character.inventory, now) }))
+    .filter(entry => entry.light !== null)
+  const best = lights.reduce<{ minutes: number; max: number; who: string } | null>((top, { seat, light }) => {
+    const minutes = minutesLeft(light!, now)
+    return !top || minutes > top.minutes
+      ? { minutes, max: fullMinutes(light!), who: seat.character.name }
+      : top
+  }, null)
+
   const paused = Boolean(clock.pausedAt)
   const drift = Math.round(clock.shiftSeconds / 60)
+  const pct = best ? Math.max(0, Math.min(100, (best.minutes / Math.max(1, best.max)) * 100)) : 0
+  const low = best !== null && best.minutes <= 10
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="flex items-center gap-1.5">
-        <span aria-hidden className={cn('text-[13px] leading-none', !paused && 'animate-flicker')}>
-          {paused ? '⏸' : '⏳'}
+    <div className="dd-frame flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
+      <div className={cn('dd-flame', !best && 'is-out', low && 'is-low')}>
+        <span aria-hidden className="dd-flame__glyph">🔥</span>
+        <span className="flex flex-col gap-1">
+          <span className="font-heading text-[10px] font-bold tracking-[0.16em] uppercase">
+            {best ? `Luz · ${best.minutes} min` : 'Escuridão'}
+          </span>
+          <span className="dd-flame__bar" role="meter" aria-label="Luz do grupo" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(pct)}>
+            <span style={{ width: `${pct}%` }} />
+          </span>
         </span>
-        <span className={LABEL}>{paused ? 'Tempo parado' : 'Relógio correndo'}</span>
-        {drift !== 0 && (
-          <span className="font-mono text-[8.5px] text-[var(--muted-foreground)]" title="O quanto a mesa correu à frente do relógio de parede">
-            {drift > 0 ? `+${drift}` : drift}min
+        {best && (
+          <span className="dd-plate__sub hidden sm:inline">
+            {lights.length > 1 ? `${lights.length} fontes acesas` : `a tocha de ${best.who}`}
           </span>
         )}
-      </span>
+      </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onPauseToggle}
-        disabled={busy}
-        title={paused ? 'Retomar: a tocha volta de onde parou' : 'Pausar o tempo de toda a mesa'}
-        className={cn(PILL, paused && 'border-[var(--chart-2)] text-[var(--chart-2)]')}
-      >
-        {paused ? '▶ Retomar' : '⏸ Pausar'}
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => onAdvance(EXPLORATION_TURN_MINUTES)}
-        disabled={busy || paused}
-        title={paused ? 'Retome o tempo antes de gastar um turno' : `${EXPLORATION_TURN_MINUTES} minutos queimam para todo mundo`}
-        className={cn(PILL, 'disabled:opacity-30')}
-      >
-        +{EXPLORATION_TURN_MINUTES} min
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onSnuffAll}
-        disabled={busy || litCount === 0}
-        title={litCount === 0 ? 'Ninguém está com luz acesa' : `Apagar a luz de todos (${litCount} acesa${litCount === 1 ? '' : 's'})`}
-        className={cn(PILL, 'border-[var(--destructive)] text-[var(--destructive)] disabled:opacity-30')}
-      >
-        🌑 Escuridão
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-heading text-[9px] font-bold tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+          {paused ? '⏸ Tempo parado' : '⏳ Relógio correndo'}
+          {drift !== 0 && <span className="ml-1 font-normal">({drift > 0 ? `+${drift}` : drift} min)</span>}
+        </span>
+        <button
+          type="button"
+          onClick={onPauseToggle}
+          disabled={busy}
+          title={paused ? 'Retomar: a tocha volta de onde parou' : 'Pausar o tempo de toda a mesa'}
+          className={cn('dd-btn dd-btn--sm', paused && 'dd-btn--gold')}
+        >
+          {paused ? '▶ Retomar' : '⏸ Pausar'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onAdvance(EXPLORATION_TURN_MINUTES)}
+          disabled={busy || paused}
+          title={paused ? 'Retome o tempo antes de gastar um turno' : `${EXPLORATION_TURN_MINUTES} minutos queimam para todo mundo`}
+          className="dd-btn dd-btn--sm"
+        >
+          +{EXPLORATION_TURN_MINUTES} min
+        </button>
+        <button
+          type="button"
+          onClick={onSnuffAll}
+          disabled={busy || lights.length === 0}
+          title={lights.length === 0 ? 'Ninguém está com luz acesa' : 'Apagar a luz de todos'}
+          className="dd-btn dd-btn--sm dd-btn--blood"
+        >
+          🌑 Escuridão
+        </button>
+      </div>
 
-      <span className={cn(LABEL, 'ml-auto')}>
-        {total === 0 ? 'Mesa vazia' : `● ${present} de ${total} presente${present === 1 ? '' : 's'}`}
+      <span className="font-heading ml-auto text-[9px] font-bold tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        {seats.length === 0 ? 'Mesa vazia' : `● ${present} de ${seats.length} na mesa`}
       </span>
     </div>
   )

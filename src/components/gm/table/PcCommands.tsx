@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { Seat } from '@/lib/gmActions'
 import type { GmAction } from '@/lib/gmActions'
-import { getClass } from '@/data/classes/index'
 import { brightest } from '@/lib/light'
 import { tableNow } from '@/lib/dungeonClock'
 import { STABILIZE_DC, dyingRounds, mortalState, roundsLabel } from '@/lib/dying'
@@ -17,7 +16,7 @@ import { AmountPad } from './AmountPad'
 import { ConditionGrid } from './ConditionGrid'
 import { TreasureForm } from './TreasureForm'
 import type { TableController } from './controller'
-import { CommandGrid, CommandTile, LABEL, SubView } from './ui'
+import { CommandGrid, CommandTile, SubView } from './ui'
 
 type View = 'menu' | 'hp' | 'luck' | 'xp' | 'conditions' | 'prompt' | 'treasure' | 'sheet'
 
@@ -161,80 +160,63 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
 
   // ── O menu ────────────────────────────────────────────────────────────────
 
-  const cls = getClass(c.classId)
+  const idle = mortal === 'dying' && rounds !== null
+    ? `${c.name} está à beira da morte: ${roundsLabel(rounds)}. Na vez dele, um d20; só o 20 natural levanta.`
+    : myTurn
+      ? `Vez de ${c.name}: o jogador age na ficha. O dano que ele rolar aparece no palco esperando o alvo.`
+      : !ration
+        ? `${c.name} está sem rações: não recupera nada ao acampar.`
+        : `Comandos para ${c.name}. Passe o mouse para ver o que cada um faz.`
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-heading text-[16px] text-[var(--foreground)]">{c.name}</span>
-        <span className="font-body text-[11px] text-[var(--muted-foreground)] italic">
-          {[cls ? `${cls.name} ${c.level}` : `Nível ${c.level}`, seat.playerName].filter(Boolean).join(' · ')}
-        </span>
-        {myTurn && (
-          <span className="font-heading animate-flicker text-[9px] tracking-[0.16em] text-[var(--chart-1)] uppercase">
-            ▶ Vez dele · aguardando o jogador
-          </span>
-        )}
-      </div>
-
+    <CommandGrid idle={idle}>
       {mortal === 'dying' && rounds !== null && (
-        <div className="flex flex-col gap-2">
-          <span className={LABEL}>☠ Morrendo · {roundsLabel(rounds)} para a morte</span>
-          <CommandGrid>
-            <CommandTile
-              icon="🎲"
-              label="Contra a morte"
-              hint="d20: só o 20 natural levanta"
-              tone="danger"
-              highlight={myTurn}
-              disabled={busy}
-              onClick={() => act({ type: 'death-roll' })}
-              title="Rolar a vez de quem está fora do app"
-            />
-            <CommandTile
-              icon="✚"
-              label="Estabilizar"
-              hint={`Um aliado passou no INT DC ${STABILIZE_DC}`}
-              tone="heal"
-              disabled={busy}
-              onClick={() => act({ type: 'stabilize' })}
-            />
-          </CommandGrid>
-        </div>
-      )}
-
-      <CommandGrid>
-        <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${c.hpCurrent}/${c.hpMax}`} tone="danger" onClick={() => setView('hp')} disabled={busy} />
-        <CommandTile icon="⚑" label="Condições" hint={c.conditions.length > 0 ? `${c.conditions.length} em vigor` : 'nenhuma'} onClick={() => setView('conditions')} disabled={busy} />
-        <CommandTile icon="❔" label="Pedir teste" hint="Atributo e DC" onClick={() => setView('prompt')} />
-        {encounter && actor && actor.initiative == null && (
+        <>
           <CommandTile
             icon="🎲"
-            label="Iniciativa"
-            hint="Rolar por ele: d20 + DES"
-            tone="gold"
-            onClick={() => void ctl.enc.rollInitiativeFor(actor)}
+            label="Contra a morte"
+            hint="d20: só o 20 natural levanta. Para quem está fora do app."
+            tone="danger"
+            highlight={myTurn}
+            disabled={busy}
+            onClick={() => act({ type: 'death-roll' })}
           />
-        )}
-        {encounter && !actor && (
-          <CommandTile icon="🧍" label="Pôr na trilha" hint="Entrou depois do combate" tone="gold" onClick={() => void ctl.enc.seatPc(seat)} />
-        )}
-        <CommandTile icon="✦" label="Fortuna" hint={`${c.luckTokens} token${c.luckTokens === 1 ? '' : 's'}`} tone="gold" onClick={() => setView('luck')} disabled={busy} />
-        <CommandTile icon="△" label="XP" hint={`${c.xp} XP`} onClick={() => setView('xp')} disabled={busy} />
-        <CommandTile icon="💰" label="Tesouro" hint="Moedas, item, XP" tone="gold" onClick={() => setView('treasure')} disabled={busy} />
-        <CommandTile
-          icon="🌑"
-          label="Apagar luz"
-          hint={light ? light.name : 'Sem luz acesa'}
-          onClick={() => act({ type: 'snuff' })}
-          disabled={busy || !light}
-        />
-        <CommandTile icon="📋" label="Ficha" hint={lost.length > 0 ? `${lost.length} magia(s) perdida(s)` : 'Atributos e magias'} onClick={() => setView('sheet')} />
-      </CommandGrid>
-
-      {!ration && (
-        <p className="font-body text-[10.5px] text-[var(--destructive)] italic">Sem rações na mochila: não recupera nada ao acampar.</p>
+          <CommandTile
+            icon="✚"
+            label="Estabilizar"
+            hint={`Um aliado passou no INT DC ${STABILIZE_DC}: o relógio da morte para`}
+            tone="heal"
+            disabled={busy}
+            onClick={() => act({ type: 'stabilize' })}
+          />
+        </>
       )}
-    </div>
+      <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${c.hpCurrent}/${c.hpMax}`} tone="danger" onClick={() => setView('hp')} disabled={busy} />
+      <CommandTile icon="⚑" label="Condições" hint={c.conditions.length > 0 ? `${c.conditions.length} em vigor` : 'Nenhuma em vigor'} onClick={() => setView('conditions')} disabled={busy} />
+      <CommandTile icon="❔" label="Pedir teste" hint="Atributo e DC, para este personagem" onClick={() => setView('prompt')} />
+      {encounter && actor && actor.initiative == null && (
+        <CommandTile
+          icon="🎲"
+          label="Iniciativa"
+          hint="Rolar por ele: d20 + DES"
+          tone="gold"
+          onClick={() => void ctl.enc.rollInitiativeFor(actor)}
+        />
+      )}
+      {encounter && !actor && (
+        <CommandTile icon="🧍" label="Pôr na trilha" hint="Entrou depois do combate" tone="gold" onClick={() => void ctl.enc.seatPc(seat)} />
+      )}
+      <CommandTile icon="✦" label="Fortuna" hint={`${c.luckTokens} token${c.luckTokens === 1 ? '' : 's'}: dar ou gastar`} tone="gold" onClick={() => setView('luck')} disabled={busy} />
+      <CommandTile icon="△" label="XP" hint={`${c.xp} XP: dar qualquer valor`} onClick={() => setView('xp')} disabled={busy} />
+      <CommandTile icon="💰" label="Tesouro" hint="Moedas, item e o XP do achado" tone="gold" onClick={() => setView('treasure')} disabled={busy} />
+      <CommandTile
+        icon="🌑"
+        label="Apagar luz"
+        hint={light ? `Uma rajada apaga: ${light.name}` : 'Sem luz acesa'}
+        onClick={() => act({ type: 'snuff' })}
+        disabled={busy || !light}
+      />
+      <CommandTile icon="📋" label="Ficha" hint={lost.length > 0 ? `Atributos e magias: ${lost.length} perdida(s)` : 'Atributos e magias'} onClick={() => setView('sheet')} />
+    </CommandGrid>
   )
 }

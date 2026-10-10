@@ -2,9 +2,7 @@
 
 import type { RollMode, RollResult } from '@/lib/dice'
 import { ROLL_MODES } from '@/components/shared/RollModeMenu'
-import { Button } from '@/components/ui/button'
 import type { Targeting } from './controller'
-import { CHIP, PILL } from './ui'
 import { cn } from '@/lib/utils'
 
 /** O ataque de um monstro, rolado e esperando o Mestre aplicar o dano. */
@@ -21,9 +19,9 @@ export interface AttackOutcome {
 }
 
 /**
- * A faixa que aparece enquanto o Mestre escolhe em quem clicar. Diz o que
- * está no ar, deixa trocar vantagem e desvantagem no ataque, e confirma o
- * dano em área depois de marcar os alvos. Esc cancela.
+ * O pergaminho que paira sobre o palco enquanto o Mestre escolhe em quem
+ * clicar: o que está no ar, vantagem e desvantagem no ataque, e a
+ * confirmação do dano em área depois de marcar os alvos. Esc cancela.
  */
 export function TargetingBar({
   targeting, attackerName, onMode, onConfirmArea, onCancel, busy,
@@ -36,19 +34,9 @@ export function TargetingBar({
   busy?: boolean
 }) {
   return (
-    <div
-      role="status"
-      className="animate-ink-spread flex flex-wrap items-center gap-2 px-3 py-2.5"
-      style={{
-        background: 'color-mix(in oklch, var(--destructive), var(--card) 85%)',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        borderColor: 'var(--destructive)',
-      }}
-    >
-      <span aria-hidden className="animate-flicker text-[16px] leading-none">🎯</span>
-      <span className="font-heading text-[11px] tracking-[0.06em] text-[var(--foreground)]">
+    <div role="status" className="dd-scroll dd-scroll--blood animate-ink-spread">
+      <span className="dd-scroll__title" style={{ color: 'var(--dd-blood-hi)' }}>
+        🎯{' '}
         {targeting.kind === 'attack' && `${attackerName ?? 'O monstro'} ataca: clique no alvo`}
         {targeting.kind === 'damage' && `${targeting.label}: clique em quem levou o golpe`}
         {targeting.kind === 'area' && `${targeting.amount} de dano em área: marque os alvos (${targeting.picked.length})`}
@@ -57,40 +45,33 @@ export function TargetingBar({
       {targeting.kind === 'attack' && (
         <span className="flex items-center gap-1" role="group" aria-label="Modo da rolagem">
           {ROLL_MODES.map(mode => (
-            <Button
+            <button
               key={mode.id}
               type="button"
-              variant="outline"
               aria-pressed={targeting.mode === mode.id}
               onClick={() => onMode(mode.id)}
-              className={cn(
-                CHIP,
-                targeting.mode === mode.id
-                  ? 'border-[var(--foreground)] text-[var(--foreground)]'
-                  : 'border-[var(--border)] text-[var(--muted-foreground)]',
-              )}
+              className={cn('dd-btn dd-btn--sm', targeting.mode === mode.id && 'dd-btn--gold')}
             >
               {mode.label}
-            </Button>
+            </button>
           ))}
         </span>
       )}
 
-      <span className="ml-auto flex items-center gap-1.5">
+      <span className="flex items-center gap-1.5">
         {targeting.kind === 'area' && (
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={onConfirmArea}
             disabled={busy || targeting.picked.length === 0}
-            className={cn(PILL, 'border-[var(--destructive)] text-[var(--destructive)] disabled:opacity-30')}
+            className="dd-btn dd-btn--sm dd-btn--blood"
           >
             💥 Aplicar em {targeting.picked.length}
-          </Button>
+          </button>
         )}
-        <Button type="button" variant="ghost" onClick={onCancel} className={cn(PILL, 'text-[var(--muted-foreground)]')}>
+        <button type="button" onClick={onCancel} className="dd-btn dd-btn--sm">
           Cancelar · Esc
-        </Button>
+        </button>
       </span>
     </div>
   )
@@ -112,51 +93,35 @@ export function AttackOutcomeCard({
 }) {
   const { roll, hit, damage } = outcome
   const crit = roll.isCritical === true
-  const accent = crit ? 'var(--chart-1)' : hit ? 'var(--destructive)' : 'var(--muted-foreground)'
+  const accent = crit ? 'var(--dd-gold)' : hit ? 'var(--dd-blood-hi)' : 'var(--dd-bone-dim)'
 
   return (
-    <div
-      role="status"
-      className="animate-ink-spread flex flex-wrap items-center gap-3 px-3 py-2.5"
-      style={{
-        background: 'var(--card)',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        borderColor: accent,
-      }}
-    >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-heading text-[12px] tracking-[0.04em] text-[var(--foreground)]">
+    <div role="status" className="dd-scroll animate-ink-spread" style={{ borderColor: accent }}>
+      <span className="flex min-w-0 flex-col items-center gap-0.5 text-center">
+        <span className="dd-scroll__title">
           {outcome.attackerName} → {outcome.targetName}:{' '}
           <span style={{ color: accent }}>
-            {crit ? '✦ CRÍTICO' : hit ? 'ACERTOU' : roll.isFumble ? '☠ ERROU FEIO' : 'ERROU'}
+            {crit ? '✦ Crítico' : hit ? 'Acertou' : roll.isFumble ? '☠ Errou feio' : 'Errou'}
           </span>
         </span>
-        <span className="font-mono text-[10px] text-[var(--muted-foreground)]">
-          {roll.total} vs CA {outcome.ac}
+        <span className="dd-scroll__text">
+          {roll.total} contra CA {outcome.ac}
           {roll.rolls && roll.rolls.length > 1 ? ` · d20 ${roll.rolls.join('/')}` : ` · d20 ${roll.result}`}
           {damage && ` · dano ${damage.die} = ${damage.total}`}
         </span>
       </span>
       <span className="flex items-center gap-1.5">
         {hit && damage && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onApply}
-            disabled={busy}
-            className={cn(PILL, 'h-10 border-[var(--destructive)] text-[var(--destructive)]')}
-          >
+          <button type="button" onClick={onApply} disabled={busy} className="dd-btn dd-btn--sm dd-btn--blood">
             🗡 Aplicar {damage.total}
-          </Button>
+          </button>
         )}
-        <Button type="button" variant="outline" onClick={onAgain} className={PILL} title="Mais um ataque do mesmo monstro">
+        <button type="button" onClick={onAgain} className="dd-btn dd-btn--sm" title="Mais um ataque do mesmo monstro">
           ⚔ De novo
-        </Button>
-        <Button type="button" variant="ghost" onClick={onDismiss} aria-label="Fechar" className={cn(PILL, 'text-[var(--muted-foreground)]')}>
+        </button>
+        <button type="button" onClick={onDismiss} aria-label="Fechar" className="dd-btn dd-btn--sm">
           ✕
-        </Button>
+        </button>
       </span>
     </div>
   )

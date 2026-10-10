@@ -1,22 +1,22 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * As peças miúdas da mesa do Mestre: o rótulo de seção, os botões em pílula e
- * o ladrilho do menu de comandos. Ficam juntas para a tela inteira falar a
- * mesma língua — a fila de turnos, os cards e o menu.
+ * As peças miúdas da mesa do Mestre: rótulos, pílulas e o botão de
+ * habilidade do painel de baixo. O visual mora em `.dd-*` (globals.css);
+ * aqui fica o comportamento.
  */
 
 export const LABEL =
-  'font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase'
+  'font-heading text-[9px] font-bold tracking-[0.16em] text-[var(--muted-foreground)] uppercase'
 
 export const PILL =
-  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase'
+  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[9px] font-bold tracking-[0.12em] uppercase'
 
 export const CHIP =
-  'font-heading h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase'
+  'font-heading h-7 min-h-7 rounded-[1px] px-2 text-[9px] font-bold tracking-[0.08em] uppercase'
 
 export const FIELD =
   'font-mono border-border bg-secondary h-9 px-2 text-center text-[13px]'
@@ -24,17 +24,22 @@ export const FIELD =
 type Tone = 'default' | 'primary' | 'danger' | 'heal' | 'gold'
 
 const TONE: Record<Tone, string> = {
-  default: 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]',
-  primary: 'border-[var(--primary)] bg-[color-mix(in_oklch,var(--primary),transparent_88%)] hover:bg-[color-mix(in_oklch,var(--primary),transparent_80%)]',
-  danger: 'border-[var(--destructive)] bg-[color-mix(in_oklch,var(--destructive),transparent_90%)] hover:bg-[color-mix(in_oklch,var(--destructive),transparent_82%)]',
-  heal: 'border-[var(--chart-2)] bg-[color-mix(in_oklch,var(--chart-2),transparent_90%)] hover:bg-[color-mix(in_oklch,var(--chart-2),transparent_82%)]',
-  gold: 'border-[var(--chart-1)] bg-[color-mix(in_oklch,var(--chart-1),transparent_88%)] hover:bg-[color-mix(in_oklch,var(--chart-1),transparent_80%)]',
+  default: '',
+  primary: 'dd-skill--gold',
+  danger: 'dd-skill--danger',
+  heal: 'dd-skill--heal',
+  gold: 'dd-skill--gold',
 }
 
+/** Quem está sob o cursor no menu — a linha de baixo conta o que ele faz. */
+const HintContext = createContext<(hint: { label: string; text: string } | null) => void>(() => {})
+
 /**
- * Um comando do menu, como num RPG de turno: ícone grande, nome curto e, por
- * baixo, o que ele faz agora ("Goblin 2: +1 · 1d6"). `highlight` acende o que
- * a regra está pedindo — a moral depois de metade cair, a vez de quem morre.
+ * Um comando como habilidade de RPG de turno: o ícone pintado de osso e o
+ * nome por baixo. O que ele faz agora ("+1 · 1d6, clique no alvo") aparece na
+ * linha de descrição ao passar o mouse ou focar — e vai junto no nome
+ * acessível, para quem lê a tela. `highlight` acende o que a regra está
+ * pedindo: a moral depois de metade cair, a vez de quem morre.
  */
 export function CommandTile({
   icon, label, hint, onClick, disabled, tone = 'default', highlight, title,
@@ -48,72 +53,76 @@ export function CommandTile({
   highlight?: boolean
   title?: string
 }) {
+  const setHint = useContext(HintContext)
+  const text = [typeof hint === 'string' ? hint : '', title ?? ''].filter(Boolean).join(' — ')
+  const show = () => setHint(text ? { label, text } : null)
+  const hide = () => setHint(null)
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      title={title}
-      className={cn(
-        'tactile flex min-h-[68px] cursor-pointer flex-col items-start justify-between gap-1 border px-3 py-2 text-left',
-        'transition-colors duration-150 focus-visible:ring-[3px] focus-visible:ring-[var(--ring)]/50 focus-visible:outline-none',
-        'disabled:cursor-not-allowed disabled:opacity-30',
-        TONE[tone],
-        highlight && 'animate-flicker',
-      )}
+      title={text || undefined}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+      className={cn('dd-skill', TONE[tone], highlight && !disabled && 'is-hot')}
     >
-      <span aria-hidden className="text-[18px] leading-none">{icon}</span>
-      <span className="font-heading text-[9.5px] font-bold tracking-[0.14em] text-[var(--foreground)] uppercase">
-        {label}
-      </span>
-      {hint && (
-        <span className="font-body text-[10px] leading-tight text-[var(--muted-foreground)] italic">
-          {hint}
-        </span>
-      )}
+      <span aria-hidden className="dd-skill__icon">{icon}</span>
+      <span className="dd-skill__label">{label}</span>
+      {text && <span className="sr-only">{text}</span>}
     </button>
   )
 }
 
-/** A grade de comandos: dois por linha no celular, até quatro no desktop. */
-export function CommandGrid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">{children}</div>
+/**
+ * A grade de habilidades e, por baixo, a linha que descreve a que está sob o
+ * cursor. Sem nada em foco, ela diz `idle` — o que vale saber agora.
+ */
+export function CommandGrid({ children, idle }: { children: ReactNode; idle?: ReactNode }) {
+  const [hint, setHint] = useState<{ label: string; text: string } | null>(null)
+  return (
+    <HintContext.Provider value={setHint}>
+      <div className="flex flex-col gap-3">
+        <div className="dd-skills">{children}</div>
+        <p className="dd-hintline m-0" aria-live="polite">
+          {hint ? (
+            <>
+              <b>{hint.label}</b>
+              {hint.text}
+            </>
+          ) : (
+            idle ?? 'Passe o mouse num comando para ver o que ele faz.'
+          )}
+        </p>
+      </div>
+    </HintContext.Provider>
+  )
 }
 
 /** Um comando aberto: o formulário dele no lugar do menu, com a volta à mão. */
 export function SubView({ title, onBack, children }: { title: string; onBack: () => void; children: ReactNode }) {
   return (
     <div className="animate-ink-spread flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="font-heading cursor-pointer text-[9px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase hover:text-[var(--foreground)]"
-        >
+      <div className="flex items-center gap-3 border-b border-[var(--border)] pb-2">
+        <button type="button" onClick={onBack} className="dd-btn dd-btn--sm">
           ← Voltar
         </button>
-        <span className="font-heading text-[11px] tracking-[0.1em] text-[var(--foreground)] uppercase">
-          {title}
-        </span>
+        <span className="dd-title text-[12px]">{title}</span>
       </div>
       {children}
     </div>
   )
 }
 
-/** A barra de vida dos cards e da fila: verde, depois âmbar, depois sangue. */
+/** A vida em gomos de sangue. */
 export function HpBar({ current, max, thin }: { current: number; max: number; thin?: boolean }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0
-  const color = pct > 50 ? 'var(--chart-2)' : pct > 25 ? 'var(--chart-1)' : 'var(--destructive)'
   return (
-    <span
-      aria-hidden
-      className={cn('block w-full overflow-hidden bg-[var(--muted)]', thin ? 'h-[3px]' : 'h-[5px]')}
-    >
-      <span
-        className="block h-full transition-[width] duration-[400ms]"
-        style={{ width: `${pct}%`, background: color, boxShadow: `0 0 4px ${color}` }}
-      />
+    <span aria-hidden className={cn('dd-hp block', thin && 'dd-hp--thin')}>
+      <span style={{ width: `${pct}%` }} />
     </span>
   )
 }

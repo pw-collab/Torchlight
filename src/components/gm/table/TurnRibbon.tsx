@@ -4,8 +4,7 @@ import type { Encounter, EncounterActor } from '@/types/encounter.types'
 import type { Seat } from '@/lib/gmActions'
 import { DANGER_LEVELS, type DangerLevel } from '@/lib/crawl'
 import { mortalState } from '@/lib/dying'
-import { Button } from '@/components/ui/button'
-import { HpBar, LABEL } from './ui'
+import { initials } from './Figure'
 import { cn } from '@/lib/utils'
 
 /** A chave que a tela usa para dizer de quem se está falando. */
@@ -16,13 +15,11 @@ export function actorKey(actor: EncounterActor): string {
   return actor.source === 'pc' && actor.refId ? pcKey(actor.refId) : npcKey(actor.id)
 }
 
-const NEXT =
-  'font-heading h-11 min-h-11 shrink-0 rounded-[1px] border-[var(--chart-1)] px-4 text-[10px] font-bold tracking-[0.16em] text-[var(--foreground)] uppercase ' +
-  'bg-[color-mix(in_oklch,var(--chart-1),transparent_82%)] hover:bg-[color-mix(in_oklch,var(--chart-1),transparent_72%)]'
-
 /**
- * A fila de turnos, como num RPG de turno: quem age, em que ordem, e o botão
- * grande que passa a vez. Clicar num rosto da fila abre os comandos dele.
+ * A faixa de cima no combate: a rodada em letras de pedra, a ordem de turnos
+ * em fichas redondas (osso para o grupo, sangue para os inimigos, ouro para
+ * quem age) e o botão que passa a vez. Clicar numa ficha abre os comandos
+ * daquele combatente — ou o escolhe como alvo, se um golpe está no ar.
  */
 export function CombatRibbon({
   encounter, order, seatOf, focusKey, onSelect, onAdvance, busy,
@@ -38,85 +35,52 @@ export function CombatRibbon({
   const started = encounter.activeActorId !== null
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-3 px-3 py-2.5"
-      style={{
-        background: 'var(--card)',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        borderColor: 'var(--border)',
-        borderLeftColor: 'var(--destructive)',
-      }}
-    >
-      <span className="flex shrink-0 flex-col">
-        <span className={LABEL}>Combate · rodada {encounter.round}</span>
-        <span className="font-heading max-w-[180px] truncate text-[13px] text-[var(--foreground)]">
-          ⚔ {encounter.name}
-        </span>
-      </span>
+    <div className="dd-frame flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
+      <div className="flex shrink-0 flex-col items-start gap-0.5">
+        <span className="dd-title text-[16px]">Rodada {encounter.round}</span>
+        <span className="dd-plate__sub max-w-[220px] truncate">{encounter.name}</span>
+      </div>
 
-      <ol
-        aria-label="Ordem de turnos"
-        className="m-0 flex min-w-0 flex-1 list-none gap-1.5 overflow-x-auto p-0 pb-1"
-      >
+      <ol aria-label="Ordem de turnos" className="m-0 flex min-w-0 flex-1 list-none items-center gap-2 overflow-x-auto p-0 py-1">
         {order.length === 0 && (
-          <li className="font-body py-2 text-[11px] text-[var(--muted-foreground)] italic">
-            Ninguém na trilha ainda.
-          </li>
+          <li className="dd-plate__sub">Ninguém na trilha ainda.</li>
         )}
-        {order.map(actor => {
+        {order.map((actor, index) => {
           const seat = seatOf(actor)
-          const active = actor.id === encounter.activeActorId
           const key = actorKey(actor)
-          const hp = seat ? seat.character.hpCurrent : actor.hpCurrent ?? 0
-          const max = seat ? seat.character.hpMax : actor.hpMax ?? hp
           const out = seat ? mortalState(seat.character.conditions) === 'dead' : actor.defeated
           return (
-            <li key={actor.id} className="shrink-0">
+            <li key={actor.id} className="flex shrink-0 items-center gap-2">
+              {index > 0 && <span aria-hidden className="text-[10px] text-[var(--dd-gold-dim)]">›</span>}
               <button
                 type="button"
                 onClick={() => onSelect(key)}
                 title={`${actor.name} · iniciativa ${actor.initiative ?? '—'}`}
+                aria-label={`${actor.name}, iniciativa ${actor.initiative ?? 'não rolada'}`}
                 className={cn(
-                  'flex w-[104px] cursor-pointer flex-col gap-1 border px-2 py-1.5 text-left transition-colors',
-                  active
-                    ? 'border-[var(--chart-1)] bg-[color-mix(in_oklch,var(--chart-1),transparent_85%)]'
-                    : focusKey === key
-                      ? 'border-[var(--primary)] bg-[var(--input)]'
-                      : 'border-[var(--border)] bg-[var(--background)]',
-                  out && 'opacity-40',
+                  'dd-token',
+                  actor.source === 'npc' && 'dd-token--foe',
+                  actor.id === encounter.activeActorId && 'is-active',
+                  focusKey === key && 'is-focused',
+                  out && 'is-out',
                 )}
               >
-                <span className="flex items-center gap-1">
-                  <span className="font-mono text-[9px] text-[var(--muted-foreground)]">{actor.initiative ?? '—'}</span>
-                  <span
-                    className={cn(
-                      'font-heading min-w-0 flex-1 truncate text-[10px]',
-                      actor.source === 'pc' ? 'text-[var(--foreground)]' : 'text-[var(--destructive)]',
-                      out && 'line-through',
-                    )}
-                  >
-                    {active && '▶ '}{actor.name}
-                  </span>
-                </span>
-                <HpBar current={hp} max={max} thin />
+                {initials(actor.name)}
               </button>
             </li>
           )
         })}
       </ol>
 
-      <Button
+      <button
         type="button"
-        variant="outline"
         onClick={onAdvance}
         disabled={busy || order.length === 0}
         title="Passar a vez (atalho: N)"
-        className={NEXT}
+        className="dd-btn dd-btn--gold shrink-0"
       >
         {started ? '▸ Próximo turno' : '▶ Começar'}
-      </Button>
+      </button>
     </div>
   )
 }
@@ -126,16 +90,11 @@ export function CombatRibbon({
  * O perigo dita de quantas em quantas rodadas a masmorra responde.
  */
 export function ExplorationRibbon({
-  round, danger, roundsToCheck, seats, presentIds, focusKey,
-  onSelect, onNextRound, onSetDanger, onReset,
+  round, danger, roundsToCheck, onNextRound, onSetDanger, onReset,
 }: {
   round: number
   danger: DangerLevel
   roundsToCheck: number
-  seats: Seat[]
-  presentIds: ReadonlySet<string>
-  focusKey: string | null
-  onSelect: (key: string) => void
   onNextRound: () => void
   onSetDanger: (danger: DangerLevel) => void
   onReset: () => void
@@ -144,95 +103,43 @@ export function ExplorationRibbon({
   const justChecked = round > 0 && roundsToCheck === level.every
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-3 px-3 py-2.5"
-      style={{
-        background: 'var(--card)',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        borderColor: 'var(--border)',
-        borderLeftColor: 'var(--muted-foreground)',
-      }}
-    >
-      <span className="flex shrink-0 flex-col gap-1">
-        <span className={LABEL}>
-          Exploração · rodada {round}
-          {round > 0 && (
-            <button
-              type="button"
-              onClick={onReset}
-              title="Zerar a contagem: uma área nova, um descanso"
-              className="ml-1.5 cursor-pointer text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-            >
-              ↺
-            </button>
-          )}
+    <div className="dd-frame flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
+      <div className="flex shrink-0 flex-col items-start gap-0.5">
+        <span className="dd-title text-[16px]">Exploração · rodada {round}</span>
+        <span className="dd-plate__sub">
+          {justChecked ? 'A masmorra acabou de responder.' : `A masmorra responde em ${roundsToCheck} rodada${roundsToCheck === 1 ? '' : 's'}.`}
         </span>
-        <span className="flex items-center gap-1" role="group" aria-label="Nível de perigo">
-          {DANGER_LEVELS.map(d => (
-            <button
-              key={d.id}
-              type="button"
-              aria-pressed={danger === d.id}
-              onClick={() => onSetDanger(d.id)}
-              title={`Checagem de encontro a cada ${d.every} rodada${d.every === 1 ? '' : 's'}`}
-              className={cn(
-                'font-heading cursor-pointer border px-1.5 py-0.5 text-[7.5px] tracking-[0.1em] uppercase',
-                danger === d.id
-                  ? 'border-[var(--primary)] text-[var(--foreground)]'
-                  : 'border-[var(--border)] text-[var(--muted-foreground)]',
-              )}
-            >
-              {d.label}
-            </button>
-          ))}
-          <span className="font-mono ml-1 text-[8.5px] text-[var(--muted-foreground)]">
-            {justChecked ? 'checou agora' : `checa em ${roundsToCheck}`}
-          </span>
-        </span>
-      </span>
+      </div>
 
-      <ol aria-label="O grupo" className="m-0 flex min-w-0 flex-1 list-none gap-1.5 overflow-x-auto p-0 pb-1">
-        {seats.map(seat => {
-          const key = `pc:${seat.character.id}`
-          const present = presentIds.has(seat.character.id)
-          return (
-            <li key={seat.character.id} className="shrink-0">
-              <button
-                type="button"
-                onClick={() => onSelect(key)}
-                className={cn(
-                  'flex w-[104px] cursor-pointer flex-col gap-1 border px-2 py-1.5 text-left',
-                  focusKey === key ? 'border-[var(--primary)] bg-[var(--input)]' : 'border-[var(--border)] bg-[var(--background)]',
-                )}
-              >
-                <span className="flex items-center gap-1">
-                  <span
-                    aria-hidden
-                    className="size-1.5 shrink-0 rounded-full"
-                    style={{ background: present ? 'var(--chart-2)' : 'var(--muted-foreground)', opacity: present ? 1 : 0.35 }}
-                  />
-                  <span className="font-heading min-w-0 flex-1 truncate text-[10px] text-[var(--foreground)]">
-                    {seat.character.name}
-                  </span>
-                </span>
-                <HpBar current={seat.character.hpCurrent} max={seat.character.hpMax} thin />
-              </button>
-            </li>
-          )
-        })}
-      </ol>
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2" role="group" aria-label="Nível de perigo">
+        <span className="font-heading text-[9px] font-bold tracking-[0.16em] text-[var(--muted-foreground)] uppercase">Perigo</span>
+        {DANGER_LEVELS.map(d => (
+          <button
+            key={d.id}
+            type="button"
+            aria-pressed={danger === d.id}
+            onClick={() => onSetDanger(d.id)}
+            title={`Checagem de encontro a cada ${d.every} rodada${d.every === 1 ? '' : 's'}`}
+            className={cn('dd-btn dd-btn--sm', danger === d.id && 'dd-btn--blood')}
+          >
+            {d.label}
+          </button>
+        ))}
+        {round > 0 && (
+          <button type="button" onClick={onReset} title="Zerar a contagem: uma área nova, um descanso" className="dd-btn dd-btn--sm">
+            ↺
+          </button>
+        )}
+      </div>
 
-      <Button
+      <button
         type="button"
-        variant="outline"
         onClick={onNextRound}
         title={`Passar uma rodada de exploração. ${level.label}: a checagem rola sozinha a cada ${level.every} (atalho: N)`}
-        className={NEXT}
+        className="dd-btn dd-btn--gold shrink-0"
       >
         ▸ Rodada
-      </Button>
+      </button>
     </div>
   )
 }

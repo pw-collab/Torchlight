@@ -227,7 +227,7 @@ export function TableCommands({
     const missing = seats.some(seat => !enc.actors.some(a => a.source === 'pc' && a.refId === seat.character.id))
     const due = moraleDue(enc.actors)
     return (
-      <CommandGrid>
+      <CommandGrid idle={`Rodada ${encounter.round}. Clique numa figura para comandá-la. N passa a vez, Esc cancela.`}>
         <CommandTile
           icon="▸"
           label={encounter.activeActorId ? 'Próximo turno' : 'Começar'}
@@ -255,7 +255,7 @@ export function TableCommands({
 
   const found = crawl.last?.check.encounter === true
   return (
-    <CommandGrid>
+    <CommandGrid idle={found ? 'Algo se aproxima! Monte o encontro com ⚔ Iniciar combate.' : 'Exploração: N passa uma rodada, e a masmorra responde no ritmo do perigo.'}>
       <CommandTile
         icon="⚔"
         label="Iniciar combate"

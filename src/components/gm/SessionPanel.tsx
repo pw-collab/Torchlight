@@ -11,7 +11,7 @@ import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
-import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
+import { advancedShift, resumeShift, type TableClock } from '@/lib/dungeonClock'
 import { doubledDice, modifier, rollFormula, rollWithMode, withDc, type RollResult } from '@/lib/dice'
 import { consumeRation, findRation, lostSpells, restoredStates } from '@/lib/rest'
 import { describeGrant, treasureItem } from '@/lib/treasure'
@@ -25,17 +25,15 @@ import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { useBestiary } from '@/hooks/useBestiary'
 import { useCrawl } from '@/hooks/useCrawl'
 import { useEncounterControls } from '@/hooks/useEncounterControls'
-import { Button } from '@/components/ui/button'
 import { TableHud } from './table/TableHud'
 import { CombatRibbon, ExplorationRibbon, actorKey, npcKey, pcKey } from './table/TurnRibbon'
-import { FoeCard, PartyCard } from './table/CombatantCard'
+import { FoeFigure, PartyFigure, type Callout } from './table/Figure'
+import { Nameplate } from './table/Nameplate'
 import { TableCommands, type TableView } from './table/TableCommands'
 import { PcCommands } from './table/PcCommands'
 import { FoeCommands } from './table/FoeCommands'
 import { AttackOutcomeCard, TargetingBar, type AttackOutcome } from './table/Targeting'
 import type { TableController, Targeting } from './table/controller'
-import { LABEL, PILL } from './table/ui'
-import { cn } from '@/lib/utils'
 
 interface Props {
   session: TableSession
@@ -806,26 +804,57 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
 
   const focused = resolveKey(focusKey)
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
-  const litCount = seats.filter(seat => brightest(seat.character.inventory, tableNow(clock))).length
   const foes = enc.order.filter(a => a.source === 'npc')
   const attacker = targeting?.kind === 'attack' ? enc.actors.find(a => a.id === targeting.attackerId) : undefined
 
-  const cardState = (key: string, active: boolean) => ({
+  const figState = (key: string, active: boolean) => ({
     active,
     focused: focusKey === key,
     targetable: isTargetable(key),
     picked: targeting?.kind === 'area' && targeting.picked.includes(key),
   })
 
+  // O veredito do golpe sobe em cima de quem levou.
+  const calloutFor = (key: string): Callout | null =>
+    outcome && outcome.targetKey === key
+      ? {
+          id: `${outcome.attackerId}:${outcome.roll.id}`,
+          text: outcome.roll.isCritical ? 'Crítico!' : outcome.hit ? 'Acertou' : 'Errou',
+          tone: outcome.roll.isCritical ? 'crit' : outcome.hit ? 'hit' : 'miss',
+        }
+      : null
+
+  const standingFoes = foes.filter(a => !a.defeated).length
+  const tablePlate = encounter
+    ? {
+        mode: 'combat' as const,
+        title: encounter.name,
+        detail: `Combate · rodada ${encounter.round}`,
+        stats: [
+          { label: 'Inimigos', value: standingFoes },
+          { label: 'De pé', value: seats.filter(s => s.character.hpCurrent > 0).length },
+          { label: 'Rodada', value: encounter.round },
+        ],
+      }
+    : {
+        mode: 'exploration' as const,
+        title: session.name,
+        detail: `Exploração · perigo ${crawl.dangerLevel.label.toLowerCase()}`,
+        stats: [
+          { label: 'Na mesa', value: `${presentCount}/${seats.length}` },
+          { label: 'Rodada', value: crawl.round },
+          { label: 'Checa em', value: crawl.roundsToCheck },
+        ],
+      }
+
   // ── A tela ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="dd flex flex-col gap-3">
       <TableHud
+        seats={seats}
         clock={clock}
-        litCount={litCount}
         present={presentCount}
-        total={seats.length}
         busy={busyId !== null}
         onPauseToggle={togglePause}
         onAdvance={advanceClock}
@@ -847,10 +876,6 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
           round={crawl.round}
           danger={crawl.danger}
           roundsToCheck={crawl.roundsToCheck}
-          seats={seats}
-          presentIds={presentCharacterIds}
-          focusKey={focusKey}
-          onSelect={key => onCardClick(key)}
           onNextRound={crawl.nextRound}
           onSetDanger={crawl.setDanger}
           onReset={crawl.reset}
@@ -866,9 +891,9 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
         />
       )}
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
-        {/* ── O palco ─────────────────────────────────────────────────── */}
-        <div ref={stageRef} className="flex min-w-0 scroll-mt-20 flex-col gap-3">
+      {/* ── O palco: o grupo à esquerda, os inimigos à direita ────────── */}
+      <div ref={stageRef} className="dd-stage scroll-mt-20">
+        <div className="dd-overlay">
           {targeting && (
             <TargetingBar
               targeting={targeting}
@@ -888,136 +913,122 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
               onDismiss={() => setOutcome(null)}
             />
           )}
-
-          <div className={cn('grid gap-4', encounter && 'md:grid-cols-2')}>
-            {encounter && (
-              <section aria-label="Inimigos" className="flex min-w-0 flex-col gap-2">
-                <span className={LABEL}>
-                  Inimigos · {foes.filter(a => !a.defeated).length} de pé
+          {!targeting && pendingDamage.map(event => {
+            const p = event.payload as RollPayload
+            const who = p.characterName ?? event.actorName
+            return (
+              <div key={event.id} className="dd-scroll dd-scroll--blood animate-ink-spread">
+                <span className="dd-scroll__text" style={{ color: 'var(--dd-bone)' }}>
+                  🗡 {who} rolou <b className="font-heading text-[15px] not-italic">{p.total}</b> de dano
                 </span>
-
-                {pendingDamage.map(event => {
-                  const p = event.payload as RollPayload
-                  const who = p.characterName ?? event.actorName
-                  return (
-                    <div key={event.id} className="flex flex-wrap items-center gap-1.5 border border-dashed border-[var(--destructive)] px-2.5 py-1.5">
-                      <span className="font-body flex-1 text-[11px] text-[var(--foreground)]">
-                        🗡 {who} rolou <span className="font-mono font-bold">{p.total}</span> de dano
-                      </span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => ctl.beginTargeting({ kind: 'damage', amount: p.total, label: `${who}: ${p.total} de dano`, eventId: event.id })}
-                        className={cn(PILL, 'h-7 min-h-7 border-[var(--destructive)] text-[var(--destructive)]')}
-                      >
-                        🎯 Em quem?
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => settleDamage(event.id)}
-                        title="Errou, ou já foi aplicado à mão"
-                        aria-label="Dispensar este dano"
-                        className="h-7 min-h-7 px-1 text-[10px] text-[var(--muted-foreground)]"
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  )
-                })}
-
-                {foes.length === 0 && (
-                  <p className="font-body m-0 border border-dashed border-[var(--border)] px-3 py-4 text-[11px] text-[var(--muted-foreground)] italic">
-                    Nenhum inimigo na trilha. Use 👹 Reforços no menu da mesa.
-                  </p>
-                )}
-                {foes.map(actor => (
-                  <FoeCard
-                    key={actor.id}
-                    actor={actor}
-                    kind={enc.sheetOf(actor)?.npcType}
-                    state={cardState(npcKey(actor.id), actor.id === turnId)}
-                    onClick={() => onCardClick(npcKey(actor.id))}
-                  />
-                ))}
-              </section>
-            )}
-
-            <section aria-label="O grupo" className="flex min-w-0 flex-col gap-2">
-              {!encounter && crawl.last && (
-                <EncounterAlert
-                  last={crawl.last}
-                  onBuild={() => { focus(null); setTableView('start') }}
-                  onDismiss={crawl.dismiss}
-                />
-              )}
-              <span className={LABEL}>
-                {loading ? 'Consultando o elenco…' : `O grupo · ${seats.length}`}
-              </span>
-              {!loading && seats.length === 0 && (
-                <p className="font-body m-0 border border-dashed border-[var(--border)] px-3 py-4 text-[11px] text-[var(--muted-foreground)] italic">
-                  Nenhum aventureiro entrou ainda. Passe o código da sessão para a mesa: cada jogador entra pela própria ficha.
-                </p>
-              )}
-              <div className={cn('grid gap-2', !encounter && 'sm:grid-cols-2 xl:grid-cols-3')}>
-                {seats.map(seat => {
-                  const actor = enc.actors.find(a => a.source === 'pc' && a.refId === seat.character.id)
-                  const key = pcKey(seat.character.id)
-                  return (
-                    <PartyCard
-                      key={seat.character.id}
-                      seat={seat}
-                      actor={actor}
-                      inEncounter={Boolean(encounter)}
-                      present={presentCharacterIds.has(seat.character.id)}
-                      clock={clock}
-                      state={cardState(key, Boolean(actor && actor.id === turnId))}
-                      onClick={() => onCardClick(key)}
-                    />
-                  )
-                })}
-              </div>
-            </section>
-          </div>
-        </div>
-
-        {/* ── Comandos e registro ─────────────────────────────────────── */}
-        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
-          <section
-            ref={commandsRef}
-            aria-label="Comandos"
-            className="worn-border flex scroll-mt-20 flex-col gap-3 p-3"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-2">
-              <span className={LABEL}>
-                {focused
-                  ? `Comandos · ${focused.kind === 'pc' ? 'aventureiro' : 'inimigo'}`
-                  : encounter ? 'Comandos da mesa · combate' : 'Comandos da mesa · exploração'}
-              </span>
-              {focused && (
                 <button
                   type="button"
-                  onClick={() => focus(null)}
-                  className="font-heading ml-auto cursor-pointer text-[9px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase hover:text-[var(--foreground)]"
+                  onClick={() => ctl.beginTargeting({ kind: 'damage', amount: p.total, label: `${who}: ${p.total} de dano`, eventId: event.id })}
+                  className="dd-btn dd-btn--sm dd-btn--blood"
                 >
-                  ↩ Mesa
+                  🎯 Em quem?
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => settleDamage(event.id)}
+                  title="Errou, ou já foi aplicado à mão"
+                  aria-label="Dispensar este dano"
+                  className="dd-btn dd-btn--sm"
+                >
+                  ✕
+                </button>
+              </div>
+            )
+          })}
+        </div>
 
-            {focused?.kind === 'pc' ? (
-              <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
-            ) : focused?.kind === 'npc' ? (
-              <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
-            ) : (
-              <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
+        <div className="dd-arena">
+          <div role="group" aria-label="O grupo" className="dd-side dd-side--party">
+            {loading && <p className="dd-void">Chamando o grupo…</p>}
+            {!loading && seats.length === 0 && (
+              <p className="dd-void">Ninguém entrou ainda. Passe o código da sessão para a mesa.</p>
             )}
-          </section>
-
-          <div className="max-h-[70vh] overflow-y-auto lg:max-h-none lg:overflow-visible">
-            <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+            {seats.map(seat => {
+              const actor = enc.actors.find(a => a.source === 'pc' && a.refId === seat.character.id)
+              const key = pcKey(seat.character.id)
+              return (
+                <PartyFigure
+                  key={seat.character.id}
+                  seat={seat}
+                  actor={actor}
+                  inEncounter={Boolean(encounter)}
+                  present={presentCharacterIds.has(seat.character.id)}
+                  clock={clock}
+                  state={figState(key, Boolean(actor && actor.id === turnId))}
+                  callout={calloutFor(key)}
+                  onClick={() => onCardClick(key)}
+                />
+              )
+            })}
           </div>
+
+          <div role="group" aria-label="Inimigos" className="dd-side dd-side--foes">
+            {encounter ? (
+              foes.length === 0 ? (
+                <p className="dd-void">Nenhum inimigo na trilha. Chame 👹 Reforços.</p>
+              ) : (
+                foes.map(actor => (
+                  <FoeFigure
+                    key={actor.id}
+                    actor={actor}
+                    state={figState(npcKey(actor.id), actor.id === turnId)}
+                    callout={calloutFor(npcKey(actor.id))}
+                    onClick={() => onCardClick(npcKey(actor.id))}
+                  />
+                ))
+              )
+            ) : crawl.last ? (
+              <EncounterAlert
+                last={crawl.last}
+                onBuild={() => { focus(null); setTableView('start') }}
+                onDismiss={crawl.dismiss}
+              />
+            ) : (
+              <p className="dd-void">A escuridão adiante…</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── O painel de baixo: a placa, os comandos, o registro ──────── */}
+      <div className="dd-frame dd-deck">
+        <Nameplate
+          pc={focused?.kind === 'pc' ? focused.seat : undefined}
+          foe={focused?.kind === 'npc' ? focused.actor : undefined}
+          sheet={focused?.kind === 'npc' ? enc.sheetOf(focused.actor) : undefined}
+          table={tablePlate}
+        />
+
+        <section ref={commandsRef} aria-label="Comandos" className="flex scroll-mt-20 flex-col gap-3 p-4">
+          <div className="flex items-center gap-2">
+            <span className="dd-title text-[11px]">
+              {focused
+                ? focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'
+                : encounter ? 'A mesa · combate' : 'A mesa · exploração'}
+            </span>
+            {focused && (
+              <button type="button" onClick={() => focus(null)} className="dd-btn dd-btn--sm ml-auto">
+                ↩ Mesa
+              </button>
+            )}
+          </div>
+
+          {focused?.kind === 'pc' ? (
+            <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
+          ) : focused?.kind === 'npc' ? (
+            <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
+          ) : (
+            <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
+          )}
+        </section>
+
+        <div className="dd-deck__log max-h-[480px] overflow-y-auto p-1">
+          <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
         </div>
       </div>
 
@@ -1032,28 +1043,20 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
 
       {undoable && (
         <div
-          className="animate-ink-spread fixed bottom-4 left-1/2 z-[140] flex -translate-x-1/2 items-center gap-3 px-3 py-2"
-          style={{
-            background: 'var(--card)',
-            borderStyle: 'solid',
-            borderWidth: 1,
-            borderLeftWidth: 3,
-            borderColor: 'var(--muted-foreground)',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.7)',
-          }}
+          className="dd-scroll animate-ink-spread fixed bottom-4 left-1/2 z-[140] -translate-x-1/2"
+          style={{ width: 'auto', maxWidth: 'calc(100vw - 32px)' }}
         >
-          <span className="font-body text-[11px] text-[var(--muted-foreground)] italic">
+          <span className="dd-scroll__text">
             {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
           </span>
-          <Button
+          <button
             type="button"
-            variant="outline"
             onClick={() => void undo()}
             disabled={busyId !== null}
-            className={cn(PILL, 'shrink-0')}
+            className="dd-btn dd-btn--sm dd-btn--gold"
           >
             ↩ Desfazer
-          </Button>
+          </button>
         </div>
       )}
     </div>
@@ -1071,50 +1074,32 @@ function EncounterAlert({
   const { check, round } = last
   if (!check.encounter) {
     return (
-      <div className="flex items-center gap-2 border border-[var(--border)] px-3 py-2">
-        <span className="font-body flex-1 text-[11px] text-[var(--muted-foreground)] italic">
-          🎲 d6 {check.die}: nada se aproxima{round ? ` na rodada ${round}` : ''}.
-        </span>
-        <Button type="button" variant="ghost" onClick={onDismiss} aria-label="Dispensar" className="h-7 min-h-7 px-1 text-[10px] text-[var(--muted-foreground)]">
+      <p className="dd-void flex items-center gap-2">
+        🎲 d6 {check.die}: nada se aproxima{round ? ` na rodada ${round}` : ''}.
+        <button type="button" onClick={onDismiss} aria-label="Dispensar" className="dd-btn dd-btn--sm">
           ✕
-        </Button>
-      </div>
+        </button>
+      </p>
     )
   }
   return (
-    <div
-      role="status"
-      className="animate-ink-spread flex flex-wrap items-center gap-2 px-3 py-2.5"
-      style={{
-        background: 'color-mix(in oklch, var(--destructive), var(--card) 85%)',
-        borderStyle: 'solid',
-        borderWidth: 1,
-        borderLeftWidth: 3,
-        borderColor: 'var(--destructive)',
-      }}
-    >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-heading text-[12px] tracking-[0.06em] text-[var(--destructive)]">
+    <div role="status" className="dd-scroll dd-scroll--blood animate-ink-spread mx-auto self-center" style={{ maxWidth: 340 }}>
+      <span className="flex flex-col items-center gap-1 text-center">
+        <span className="dd-scroll__title" style={{ color: 'var(--dd-blood-hi)' }}>
           Algo se aproxima!{round ? ` · rodada ${round}` : ''}
         </span>
-        <span className="font-body text-[11px] text-[var(--foreground)] italic">
-          {check.distance?.label} · {check.activity?.label} · {check.reaction?.label}
-          <span className="font-mono not-italic text-[9px] text-[var(--muted-foreground)]">
-            {' '}(reação {check.reaction?.total})
-          </span>
+        <span className="dd-scroll__text">
+          {check.distance?.label} · {check.activity?.label} · {check.reaction?.label} (reação {check.reaction?.total})
         </span>
       </span>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBuild}
-        className={cn(PILL, 'h-9 border-[var(--destructive)] text-[var(--destructive)]')}
-      >
-        ⚔ Montar o encontro
-      </Button>
-      <Button type="button" variant="ghost" onClick={onDismiss} aria-label="Dispensar" className="h-9 min-h-9 px-1 text-[10px] text-[var(--muted-foreground)]">
-        ✕
-      </Button>
+      <span className="flex items-center gap-1.5">
+        <button type="button" onClick={onBuild} className="dd-btn dd-btn--sm dd-btn--blood">
+          ⚔ Montar o encontro
+        </button>
+        <button type="button" onClick={onDismiss} aria-label="Dispensar" className="dd-btn dd-btn--sm">
+          ✕
+        </button>
+      </span>
     </div>
   )
 }
