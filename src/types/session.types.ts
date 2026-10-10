@@ -176,6 +176,10 @@ export interface SessionPayload {
 
 export interface NotePayload {
   text: string
+  /** Narração do Mestre para a mesa inteira: aparece como aviso em todas as fichas. */
+  narration?: boolean
+  characterName?: string
+  by?: 'gm' | 'player'
 }
 
 /**

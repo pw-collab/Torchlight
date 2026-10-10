@@ -21,6 +21,8 @@ interface Props {
   onSend: (request: PromptRequest) => void
   onClose: () => void
   busy?: boolean
+  /** Já marcados ao abrir: o pedido feito do card de um personagem é para ele. */
+  initialTargets?: string[]
 }
 
 const CHIP =
@@ -36,12 +38,12 @@ const CHIP =
  * Não há tabela de pendências: o pedido é uma linha do log e a resposta é
  * outra, amarradas pelo mesmo `promptId`.
  */
-export function PromptComposer({ seats, onSend, onClose, busy }: Props) {
+export function PromptComposer({ seats, onSend, onClose, busy, initialTargets }: Props) {
   const [attribute, setAttribute] = useState<Stat | null>('con')
   const [dc, setDc] = useState('12')
   const [label, setLabel] = useState('')
   const [secret, setSecret] = useState(false)
-  const [targets, setTargets] = useState<string[]>([])
+  const [targets, setTargets] = useState<string[]>(initialTargets ?? [])
 
   // Ninguém marcado quer dizer a mesa inteira — é o caso comum, e forçar seis
   // toques antes de pedir um teste de grupo seria trabalho à toa.

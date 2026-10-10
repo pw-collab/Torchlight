@@ -538,6 +538,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   gmName={gmName}
                   gmId={gmId}
                   onSessionChange={setSession}
+                  onRoll={handleGmRoll}
                 />
               </div>
             )}

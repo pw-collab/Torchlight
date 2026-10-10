@@ -2,32 +2,40 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { PlayerCard, type GmAction } from './PlayerCard'
-import { PromptComposer, type PromptRequest } from './PromptComposer'
+import type { PromptRequest } from './PromptComposer'
 import { HandoutDrawer, type Delivery } from './HandoutDrawer'
 import { SessionRecap } from './SessionRecap'
 import { SessionFeed } from './SessionFeed'
 import { STAT_LABELS } from '@/data/stats'
-import { StatBlock } from '@/components/sheet/StatBlock'
-import { Spells } from '@/components/sheet/Spells'
 import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
-import { DungeonClockBar } from './DungeonClockBar'
-import { CrawlBar } from './CrawlBar'
-import { modifier } from '@/lib/dice'
-import { lostSpells } from '@/lib/rest'
-import { EncounterPanel } from './EncounterPanel'
-import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
+import { doubledDice, modifier, rollFormula, rollWithMode, withDc, type RollResult } from '@/lib/dice'
+import { consumeRation, findRation, lostSpells, restoredStates } from '@/lib/rest'
+import { describeGrant, treasureItem } from '@/lib/treasure'
+import type { GmAction, Seat, TreasureGrant } from '@/lib/gmActions'
+import { rowToSession, type RollPayload, type SessionRow, type TableSession } from '@/types/session.types'
 import { recordEvent, rollPayload } from '@/lib/sessionEvents'
-import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, stabilize } from '@/lib/dying'
+import { afterDeathRoll, dyingRounds, hpShift, mortalState, rollAgainstDeath, stabilize } from '@/lib/dying'
 import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
+import { useBestiary } from '@/hooks/useBestiary'
+import { useCrawl } from '@/hooks/useCrawl'
+import { useEncounterControls } from '@/hooks/useEncounterControls'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TableHud } from './table/TableHud'
+import { CombatRibbon, ExplorationRibbon, actorKey, npcKey, pcKey } from './table/TurnRibbon'
+import { FoeCard, PartyCard } from './table/CombatantCard'
+import { TableCommands, type TableView } from './table/TableCommands'
+import { PcCommands } from './table/PcCommands'
+import { FoeCommands } from './table/FoeCommands'
+import { AttackOutcomeCard, TargetingBar, type AttackOutcome } from './table/Targeting'
+import type { TableController, Targeting } from './table/controller'
+import { LABEL, PILL } from './table/ui'
+import { cn } from '@/lib/utils'
 
 interface Props {
   session: TableSession
@@ -35,12 +43,8 @@ interface Props {
   gmId: string
   /** Devolve a sessão recarregada ao pai quando o relógio muda. */
   onSessionChange: (session: TableSession) => void
-}
-
-/** Um lugar na mesa: o personagem e de quem ele é. */
-interface Seat {
-  character: Character
-  playerName: string | null
+  /** As rolagens do Mestre: escondidas da mesa, com aviso na tela dele. */
+  onRoll: (roll: RollResult) => void
 }
 
 interface MemberRow {
@@ -74,16 +78,28 @@ const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
   xp: 'XP',
 }
 
+/** Quantas rolagens de dano dos jogadores esperam alvo ao mesmo tempo, no máximo. */
+const PENDING_DAMAGE = 3
+
+type Resolved =
+  | { kind: 'pc'; seat: Seat; name: string }
+  | { kind: 'npc'; actor: import('@/types/encounter.types').EncounterActor; name: string }
+
+type LogLine = { kind: SessionEventKind; payload: Record<string, unknown> }
+
 /**
- * A mesa acontecendo.
+ * A mesa do Mestre, jogada como um RPG de turno — sem tabuleiro.
  *
- * O painel filtrava `characters.session_id`, um campo que nada escrevia, e por
- * isso ficava permanentemente vazio em produção. Agora o elenco vem de
- * `session_members` — quem entrou pelo código — e cada card é operável: o
- * Mestre aplica dano, concede Fortuna e XP e apaga a luz de quem quiser, e
- * cada ação vira linha do log que o jogador vê chegar na ficha dele.
+ * Em cima, o relógio da masmorra e a fila de turnos (de combate, ou das
+ * rodadas de exploração). No meio, o palco: os inimigos de um lado e o grupo
+ * do outro, cada um num card. Ao lado, o menu de comandos de quem está em
+ * foco — a vez de quem é, ou o card que o Mestre clicou — e, abaixo dele, o
+ * registro da mesa.
+ *
+ * Toda ação do Mestre passa por aqui: escreve na ficha ou na trilha e vira
+ * linha do log, que o jogador vê chegar na tela dele.
  */
-export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) {
+export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }: Props) {
   const sessionId = session.id
   // O elenco vem sempre acompanhado da mesa a que pertence, para o painel não
   // mostrar o elenco da sessão anterior por um quadro enquanto recarrega.
@@ -92,9 +108,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     seats: [],
   })
   const [reloadToken, setReloadToken] = useState(0)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [composing, setComposing] = useState(false)
   const [delivering, setDelivering] = useState(false)
   const [recapping, setRecapping] = useState(false)
 
@@ -195,10 +209,10 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     const common = { sessionId, actorName: gmName, characterId: character.id }
     const named = { characterName: character.name, by: 'gm' as const }
 
-    let patch: Record<string, unknown> | null = null
-    let event: { kind: SessionEventKind; payload: Record<string, unknown> } | null = null
+    let patch: Record<string, unknown> = {}
+    let event: LogLine | null = null
     /** O que mais a mesma ação conta ao log, depois da linha principal. */
-    const extra: { kind: SessionEventKind; payload: Record<string, unknown> }[] = []
+    const extra: LogLine[] = []
     /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
     let undoField: UndoField | null = null
 
@@ -287,27 +301,71 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
           ...named,
         },
       }
+    } else if (action.type === 'treasure') {
+      // Moedas e XP somam; o item entra na mochila como qualquer outro. O log
+      // diz o que chegou, e o XP vai numa linha própria para o recap contar.
+      const grant = action.grant
+      if (grant.gold > 0) patch.gold = character.gold + grant.gold
+      if (grant.silver > 0) patch.silver = character.silver + grant.silver
+      if (grant.copper > 0) patch.copper = character.copper + grant.copper
+      if (grant.item?.name.trim()) patch.equipment = [...character.inventory, treasureItem(grant.item)]
+      if (grant.xp > 0) patch.xp = character.xp + grant.xp
+
+      const xpLine: LogLine | null = grant.xp > 0
+        ? { kind: 'xp', payload: { from: character.xp, to: character.xp + grant.xp, delta: grant.xp, ...named } }
+        : null
+      const text = describeGrant(grant)
+      event = text ? { kind: 'note', payload: { text: `recebeu ${text}`, ...named } } : xpLine
+      if (text && xpLine) extra.push(xpLine)
+    } else if (action.type === 'rest') {
+      // O grupo acampa: a mesma regra do botão da ficha, por personagem.
+      const ration = findRation(character.inventory)
+      const from = character.hpCurrent
+      const to = ration ? Math.max(from, character.hpMax) : from
+      const spellsBack = ration ? lostSpells(character.techniqueStates).length : 0
+      if (ration) {
+        patch.equipment = consumeRation(character.inventory, ration.id)
+        patch.technique_states = restoredStates(character.techniqueStates)
+      }
+      if (to !== from) patch.hp_current = to
+      const shift = to !== from ? hpShift(character.conditions, character.stats.con, from, to, gmName) : null
+      if (shift) {
+        patch.conditions = shift.conditions
+        extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
+      }
+      event = {
+        kind: 'hp',
+        payload: {
+          from, to, delta: to - from, reason: 'rest', ration: Boolean(ration),
+          ...(spellsBack > 0 && { spells: spellsBack }),
+          ...named,
+        },
+      }
     }
 
-    if (!patch || !event) return
+    if (!event) return
 
-    setBusyId(character.id)
-    const { data, error } = await supabase
-      .from('characters')
-      .update(patch)
-      .eq('id', character.id)
-      .select()
-      .single()
-    setBusyId(null)
+    // Um descanso sem ração não escreve nada — mas ainda conta à mesa.
+    if (Object.keys(patch).length > 0) {
+      setBusyId(character.id)
+      const { data, error } = await supabase
+        .from('characters')
+        .update(patch)
+        .eq('id', character.id)
+        .select()
+        .single()
+      setBusyId(null)
 
-    if (error) {
-      console.error('[SessionPanel] a ficha não aceitou a mudança', error)
-      return
+      if (error) {
+        console.error('[SessionPanel] a ficha não aceitou a mudança', error)
+        return
+      }
+      if (data) {
+        const updated = rowToCharacter(data as CharacterRow)
+        setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
+      }
     }
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
     for (const line of extra) void recordEvent({ ...common, kind: line.kind, payload: line.payload })
 
@@ -448,9 +506,10 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     for (const seat of seats) await act(seat.character, { type: 'snuff' })
   }, [seats, act])
 
-  /** XP para a mesa inteira — o fim de uma cena vale para todo mundo. */
-  const grantXpToAll = useCallback(async () => {
-    for (const seat of seats) await act(seat.character, { type: 'xp', delta: 1 })
+  // ── O que vale para a mesa inteira ────────────────────────────────────────
+
+  const grantXpToAll = useCallback(async (amount: number) => {
+    for (const seat of seats) await act(seat.character, { type: 'xp', delta: amount })
   }, [seats, act])
 
   /**
@@ -487,10 +546,6 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
    * A revelação (§6.8): o conteúdo vai junto no evento, e não um id para a
    * gaveta — o jogador não lê a gaveta, e o que foi revelado tem de continuar
    * legível mesmo que o Mestre apague o original depois.
-   *
-   * À mesa inteira é uma linha só, sem personagem: "a mesa recebeu". A um
-   * punhado de personagens é uma linha por ficha, como nos pedidos de rolagem,
-   * porque cada uma abre na tela de quem recebeu.
    */
   const deliverHandout = useCallback((delivery: Delivery) => {
     const base = { sessionId, actorName: gmName } as const
@@ -512,6 +567,25 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
   }, [seats, sessionId, gmName])
 
+  /** Uma linha de narração: vai para o log e aparece em todas as fichas. */
+  const narrate = useCallback((text: string) => {
+    void recordEvent({
+      sessionId,
+      actorName: gmName,
+      kind: 'note',
+      payload: { text, narration: true, by: 'gm' },
+    })
+  }, [sessionId, gmName])
+
+  const giveTreasure = useCallback(async (characterIds: string[], grant: TreasureGrant) => {
+    for (const id of characterIds) {
+      const seat = seats.find(s => s.character.id === id)
+      // O item é um objeto só: com várias pessoas marcadas ele não viaja.
+      const share = characterIds.length > 1 ? { ...grant, item: undefined } : grant
+      if (seat) await act(seat.character, { type: 'treasure', grant: share })
+    }
+  }, [seats, act])
+
   /**
    * A checagem de encontro vai para o log escondida da mesa: o Mestre decide
    * quando a coisa aparece — a mesa descobre quando ela chega.
@@ -525,107 +599,262 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     ? Math.max(...seats.map(s => modifier(s.character.stats.cha)))
     : 0
 
-  const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
-  const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
+  const crawl = useCrawl(sessionId, partyChaMod, recordCrawlCheck)
+
+  const partyRest = useCallback(async () => {
+    for (const seat of seats) await act(seat.character, { type: 'rest' })
+    // Um descanso é um capítulo novo da exploração.
+    crawl.reset()
+  }, [seats, act, crawl])
+
+  const { npcs: bestiary } = useBestiary(gmId)
+  const enc = useEncounterControls({ sessionId, gmName, seats, act, bestiary })
+  const encounter = enc.encounter
+
+  // ── Foco: de quem é o menu de comandos ────────────────────────────────────
+  //
+  // Por padrão, de quem é a vez. Clicar num card muda o foco até a vez virar —
+  // quando ela vira, o menu segue o turno de novo, como num RPG de turno.
+
+  const turnId = encounter?.activeActorId ?? null
+  const activeActor = encounter ? enc.actors.find(a => a.id === turnId) : undefined
+  const activeKey = activeActor ? actorKey(activeActor) : null
+  const [pick, setPick] = useState<{ key: string | null; turn: string | null } | null>(null)
+  const focusKey = pick && pick.turn === turnId ? pick.key : activeKey
+  const focus = useCallback((key: string | null) => setPick({ key, turn: turnId }), [turnId])
+
+  const resolveKey = useCallback((key: string | null): Resolved | null => {
+    if (!key) return null
+    if (key.startsWith('pc:')) {
+      const seat = seats.find(s => s.character.id === key.slice(3))
+      return seat ? { kind: 'pc', seat, name: seat.character.name } : null
+    }
+    const actor = enc.actors.find(a => a.id === key.slice(4))
+    return actor ? { kind: 'npc', actor, name: actor.name } : null
+  }, [seats, enc.actors])
+
+  // ── Alvos ─────────────────────────────────────────────────────────────────
+
+  const [targeting, setTargeting] = useState<Targeting | null>(null)
+  const [outcome, setOutcome] = useState<AttackOutcome | null>(null)
+  const [applying, setApplying] = useState(false)
+  /** As rolagens de dano dos jogadores que o Mestre já aplicou ou dispensou. */
+  const [settledDamage, setSettledDamage] = useState<ReadonlySet<string>>(() => new Set())
+  const settleDamage = (id: string) => setSettledDamage(prev => new Set(prev).add(id))
+
+  function isTargetable(key: string): boolean {
+    if (!targeting) return false
+    const target = resolveKey(key)
+    if (!target) return false
+    if (target.kind === 'npc' && target.actor.defeated) return false
+    if (target.kind === 'pc' && mortalState(target.seat.character.conditions) === 'dead') return false
+    if (targeting.kind === 'attack') return key !== npcKey(targeting.attackerId)
+    return true
+  }
+
+  async function applyDamage(key: string, amount: number) {
+    const target = resolveKey(key)
+    if (!target) return
+    if (target.kind === 'pc') await act(target.seat.character, { type: 'hp', delta: -amount })
+    else await enc.damageActor(target.actor, amount)
+  }
+
+  /**
+   * O ataque do monstro contra a CA de verdade (§6.6): o número contra a CA do
+   * alvo, crítico dobrando os dados, e o dano esperando o Mestre aplicar.
+   */
+  function resolveAttack(t: Extract<Targeting, { kind: 'attack' }>, key: string) {
+    const attacker = enc.actors.find(a => a.id === t.attackerId)
+    const target = resolveKey(key)
+    setTargeting(null)
+    if (!attacker || !target) return
+
+    const ac = target.kind === 'pc' ? target.seat.character.ac : target.actor.ac ?? 10
+    const roll = withDc(rollWithMode('d20', `${attacker.name} ataca`, target.name, attacker.atkBonus ?? 0, t.mode), ac)
+    const hit = roll.success === true
+    const formula = (attacker.damageDie || '1d6').trim()
+    const damage = hit ? rollFormula(roll.isCritical ? doubledDice(formula) : formula, 'Dano', attacker.name) : null
+
+    enc.log({ action: 'attack', actorName: attacker.name, targetName: target.name, hit, ac, total: roll.total })
+    setOutcome({
+      attackerId: attacker.id,
+      attackerName: attacker.name,
+      targetKey: key,
+      targetName: target.name,
+      roll,
+      ac,
+      hit,
+      damage,
+    })
+  }
+
+  const commandsRef = useRef<HTMLElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const isNarrow = () => window.matchMedia('(max-width: 1023px)').matches
+
+  function onCardClick(key: string) {
+    if (!targeting) {
+      focus(key)
+      // No celular o menu mora abaixo do palco: tocar num card leva até ele.
+      if (isNarrow()) commandsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    if (!isTargetable(key)) return
+    if (targeting.kind === 'attack') {
+      resolveAttack(targeting, key)
+    } else if (targeting.kind === 'damage') {
+      const t = targeting
+      setTargeting(null)
+      if (t.eventId) settleDamage(t.eventId)
+      void applyDamage(key, t.amount)
+    } else {
+      const picked = targeting.picked.includes(key)
+        ? targeting.picked.filter(k => k !== key)
+        : [...targeting.picked, key]
+      setTargeting({ ...targeting, picked })
+    }
+  }
+
+  async function confirmArea() {
+    if (targeting?.kind !== 'area') return
+    const t = targeting
+    setTargeting(null)
+    setApplying(true)
+    for (const key of t.picked) await applyDamage(key, t.amount)
+    setApplying(false)
+  }
+
+  async function applyOutcome() {
+    if (!outcome?.damage) return
+    setApplying(true)
+    await applyDamage(outcome.targetKey, outcome.damage.total)
+    setApplying(false)
+    setOutcome(null)
+  }
+
+  // O jogador rola o dano na ficha; aqui ele espera um alvo. Só o que foi
+  // rolado depois de o combate abrir — o dano de ontem não tem alvo.
+  const pendingDamage = useMemo(() => {
+    if (!encounter) return []
+    const since = new Date(encounter.createdAt).getTime()
+    return events
+      .filter(e => e.kind === 'roll' && e.at >= since && !settledDamage.has(e.id))
+      .filter(e => (e.payload as RollPayload).isDamage)
+      .slice(0, PENDING_DAMAGE)
+  }, [encounter, events, settledDamage])
+
+  // ── Atalhos: N passa a vez, Esc desfaz o que está no ar ───────────────────
+
+  const advanceRef = useRef<() => void>(() => {})
+  const escapeRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    advanceRef.current = () => {
+      if (encounter) void enc.advance()
+      else crawl.nextRound()
+    }
+    escapeRef.current = () => {
+      if (targeting) setTargeting(null)
+      else if (outcome) setOutcome(null)
+      else focus(null)
+    }
+  })
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return
+      if (e.key === 'Escape') escapeRef.current()
+      else if (e.key === 'n' || e.key === 'N') advanceRef.current()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // ── O controlador que os menus recebem ────────────────────────────────────
 
   const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
+  const [tableView, setTableView] = useState<TableView>('menu')
+
+  const ctl: TableController = {
+    sessionId,
+    gmName,
+    seats,
+    presentIds: presentCharacterIds,
+    clock,
+    busyId,
+    enc,
+    crawl,
+    bestiary,
+    act,
+    onRoll,
+    beginTargeting: t => {
+      setOutcome(null)
+      setTargeting(t)
+      // E o caminho de volta: o alvo se escolhe nos cards, lá em cima.
+      if (isNarrow()) stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    },
+    focus,
+    sendPrompt,
+    openHandouts: () => setDelivering(true),
+    toggleRecap: () => setRecapping(r => !r),
+    narrate,
+    giveTreasure,
+    partyRest,
+    grantXpToAll,
+  }
+
+  const focused = resolveKey(focusKey)
+  const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
   const litCount = seats.filter(seat => brightest(seat.character.inventory, tableNow(clock))).length
+  const foes = enc.order.filter(a => a.source === 'npc')
+  const attacker = targeting?.kind === 'attack' ? enc.actors.find(a => a.id === targeting.attackerId) : undefined
+
+  const cardState = (key: string, active: boolean) => ({
+    active,
+    focused: focusKey === key,
+    targetable: isTargetable(key),
+    picked: targeting?.kind === 'area' && targeting.picked.includes(key),
+  })
+
+  // ── A tela ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col gap-4">
-      <DungeonClockBar
+    <div className="flex flex-col gap-3">
+      <TableHud
         clock={clock}
         litCount={litCount}
+        present={presentCount}
+        total={seats.length}
         busy={busyId !== null}
         onPauseToggle={togglePause}
         onAdvance={advanceClock}
         onSnuffAll={() => void snuffEveryLight()}
       />
 
-      <CrawlBar sessionId={sessionId} chaMod={partyChaMod} onCheck={recordCrawlCheck} />
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-heading text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
-          {loading
-            ? 'Consultando o elenco...'
-            : seats.length === 0
-              ? 'Mesa vazia'
-              : `${presentCount} de ${seats.length} aventureiro${seats.length === 1 ? '' : 's'} presente${presentCount === 1 ? '' : 's'}`}
-        </span>
-
-        {seats.length > 0 && (
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setComposing(c => !c)}
-              className="font-heading h-8 min-h-8 rounded-[1px] border-[var(--primary)] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
-            >
-              ❔ Pedir rolagem
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDelivering(true)}
-              title="Entregar uma carta, um mapa em texto, uma página de diário"
-              className="font-heading h-8 min-h-8 rounded-[1px] border-[var(--primary)] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
-            >
-              📖 Entregar
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setRecapping(r => !r)}
-              title="O que já aconteceu nesta sessão, lido do log"
-              className="font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
-            >
-              📜 Recap
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void grantXpToAll()}
-              disabled={busyId !== null}
-              title="Conceder 1 de experiência a todos os personagens da mesa"
-              className="font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
-            >
-              +1 XP a todos
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <EncounterPanel
-        sessionId={sessionId}
-        gmName={gmName}
-        gmId={gmId}
-        seats={seats}
-        onAct={act}
-        events={events}
-      />
-
-      {undoable && (
-        <div
-          className="animate-ink-spread flex items-center gap-3 px-3 py-2"
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--muted-foreground)',
-            borderLeftWidth: 3,
-          }}
-        >
-          <span className="font-body flex-1 text-[11px] text-[var(--muted-foreground)] italic">
-            {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => void undo()}
-            disabled={busyId !== null}
-            className="font-heading h-8 min-h-8 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
-          >
-            ↩ Desfazer
-          </Button>
-        </div>
+      {encounter ? (
+        <CombatRibbon
+          encounter={encounter}
+          order={enc.order}
+          seatOf={enc.seatOf}
+          focusKey={focusKey}
+          onSelect={key => onCardClick(key)}
+          onAdvance={() => void enc.advance()}
+          busy={enc.busy}
+        />
+      ) : (
+        <ExplorationRibbon
+          round={crawl.round}
+          danger={crawl.danger}
+          roundsToCheck={crawl.roundsToCheck}
+          seats={seats}
+          presentIds={presentCharacterIds}
+          focusKey={focusKey}
+          onSelect={key => onCardClick(key)}
+          onNextRound={crawl.nextRound}
+          onSetDanger={crawl.setDanger}
+          onReset={crawl.reset}
+        />
       )}
 
       {recapping && (
@@ -637,65 +866,160 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         />
       )}
 
-      {composing && (
-        <PromptComposer
-          seats={seats.map(s => ({ id: s.character.id, name: s.character.name }))}
-          onSend={sendPrompt}
-          onClose={() => setComposing(false)}
-        />
-      )}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
+        {/* ── O palco ─────────────────────────────────────────────────── */}
+        <div ref={stageRef} className="flex min-w-0 scroll-mt-20 flex-col gap-3">
+          {targeting && (
+            <TargetingBar
+              targeting={targeting}
+              attackerName={attacker?.name}
+              busy={applying}
+              onMode={mode => targeting.kind === 'attack' && setTargeting({ ...targeting, mode })}
+              onConfirmArea={() => void confirmArea()}
+              onCancel={() => setTargeting(null)}
+            />
+          )}
+          {outcome && (
+            <AttackOutcomeCard
+              outcome={outcome}
+              busy={applying}
+              onApply={() => void applyOutcome()}
+              onAgain={() => ctl.beginTargeting({ kind: 'attack', attackerId: outcome.attackerId, mode: 'normal' })}
+              onDismiss={() => setOutcome(null)}
+            />
+          )}
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-3">
-        {seats.map(seat => (
-          <PlayerCard
-            key={seat.character.id}
-            character={seat.character}
-            playerName={seat.playerName}
-            present={presentCharacterIds.has(seat.character.id)}
-            expanded={expandedId === seat.character.id}
-            busy={busyId === seat.character.id}
-            onToggle={() => setExpandedId(expandedId === seat.character.id ? null : seat.character.id)}
-            onAct={action => void act(seat.character, action)}
-            clock={clock}
-          />
-        ))}
+          <div className={cn('grid gap-4', encounter && 'md:grid-cols-2')}>
+            {encounter && (
+              <section aria-label="Inimigos" className="flex min-w-0 flex-col gap-2">
+                <span className={LABEL}>
+                  Inimigos · {foes.filter(a => !a.defeated).length} de pé
+                </span>
 
-        {!loading && seats.length === 0 && (
-          <p className="col-span-full text-xs text-[var(--muted-foreground)] italic">
-            Nenhum aventureiro entrou ainda. Passe o código da sessão para a mesa —
-            cada jogador entra pela própria ficha.
-          </p>
-        )}
-      </div>
+                {pendingDamage.map(event => {
+                  const p = event.payload as RollPayload
+                  const who = p.characterName ?? event.actorName
+                  return (
+                    <div key={event.id} className="flex flex-wrap items-center gap-1.5 border border-dashed border-[var(--destructive)] px-2.5 py-1.5">
+                      <span className="font-body flex-1 text-[11px] text-[var(--foreground)]">
+                        🗡 {who} rolou <span className="font-mono font-bold">{p.total}</span> de dano
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => ctl.beginTargeting({ kind: 'damage', amount: p.total, label: `${who}: ${p.total} de dano`, eventId: event.id })}
+                        className={cn(PILL, 'h-7 min-h-7 border-[var(--destructive)] text-[var(--destructive)]')}
+                      >
+                        🎯 Em quem?
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => settleDamage(event.id)}
+                        title="Errou, ou já foi aplicado à mão"
+                        aria-label="Dispensar este dano"
+                        className="h-7 min-h-7 px-1 text-[10px] text-[var(--muted-foreground)]"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  )
+                })}
 
-      {expanded && (
-        <Card className="worn-border animate-ink-spread gap-3.5 border-t-2 border-t-[var(--border)] bg-[var(--card)] px-5 py-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.7)]">
-          <CardHeader className="flex-row items-center justify-between px-0">
-            <CardTitle className="font-heading text-lg font-bold tracking-[0.04em] text-[var(--foreground)]">
-              {expanded.character.name}
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setExpandedId(null)}
-              aria-label="Fechar detalhes"
-              className="font-mono text-xs text-[var(--muted-foreground)]"
-            >
-              ✕
-            </Button>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3.5 px-0">
-            <StatBlock stats={expanded.character.stats} />
-            {expanded.character.spells.length > 0 && (
-              <Spells
-                classId={expanded.character.classId}
-                equippedSpells={expanded.character.spells}
-                lostSpells={lostSpells(expanded.character.techniqueStates)}
-              />
+                {foes.length === 0 && (
+                  <p className="font-body m-0 border border-dashed border-[var(--border)] px-3 py-4 text-[11px] text-[var(--muted-foreground)] italic">
+                    Nenhum inimigo na trilha. Use 👹 Reforços no menu da mesa.
+                  </p>
+                )}
+                {foes.map(actor => (
+                  <FoeCard
+                    key={actor.id}
+                    actor={actor}
+                    kind={enc.sheetOf(actor)?.npcType}
+                    state={cardState(npcKey(actor.id), actor.id === turnId)}
+                    onClick={() => onCardClick(npcKey(actor.id))}
+                  />
+                ))}
+              </section>
             )}
-          </CardContent>
-        </Card>
-      )}
+
+            <section aria-label="O grupo" className="flex min-w-0 flex-col gap-2">
+              {!encounter && crawl.last && (
+                <EncounterAlert
+                  last={crawl.last}
+                  onBuild={() => { focus(null); setTableView('start') }}
+                  onDismiss={crawl.dismiss}
+                />
+              )}
+              <span className={LABEL}>
+                {loading ? 'Consultando o elenco…' : `O grupo · ${seats.length}`}
+              </span>
+              {!loading && seats.length === 0 && (
+                <p className="font-body m-0 border border-dashed border-[var(--border)] px-3 py-4 text-[11px] text-[var(--muted-foreground)] italic">
+                  Nenhum aventureiro entrou ainda. Passe o código da sessão para a mesa: cada jogador entra pela própria ficha.
+                </p>
+              )}
+              <div className={cn('grid gap-2', !encounter && 'sm:grid-cols-2 xl:grid-cols-3')}>
+                {seats.map(seat => {
+                  const actor = enc.actors.find(a => a.source === 'pc' && a.refId === seat.character.id)
+                  const key = pcKey(seat.character.id)
+                  return (
+                    <PartyCard
+                      key={seat.character.id}
+                      seat={seat}
+                      actor={actor}
+                      inEncounter={Boolean(encounter)}
+                      present={presentCharacterIds.has(seat.character.id)}
+                      clock={clock}
+                      state={cardState(key, Boolean(actor && actor.id === turnId))}
+                      onClick={() => onCardClick(key)}
+                    />
+                  )
+                })}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        {/* ── Comandos e registro ─────────────────────────────────────── */}
+        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+          <section
+            ref={commandsRef}
+            aria-label="Comandos"
+            className="worn-border flex scroll-mt-20 flex-col gap-3 p-3"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex items-center gap-2">
+              <span className={LABEL}>
+                {focused
+                  ? `Comandos · ${focused.kind === 'pc' ? 'aventureiro' : 'inimigo'}`
+                  : encounter ? 'Comandos da mesa · combate' : 'Comandos da mesa · exploração'}
+              </span>
+              {focused && (
+                <button
+                  type="button"
+                  onClick={() => focus(null)}
+                  className="font-heading ml-auto cursor-pointer text-[9px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase hover:text-[var(--foreground)]"
+                >
+                  ↩ Mesa
+                </button>
+              )}
+            </div>
+
+            {focused?.kind === 'pc' ? (
+              <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
+            ) : focused?.kind === 'npc' ? (
+              <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
+            ) : (
+              <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
+            )}
+          </section>
+
+          <div className="max-h-[70vh] overflow-y-auto lg:max-h-none lg:overflow-visible">
+            <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+          </div>
+        </div>
+      </div>
 
       {delivering && (
         <HandoutDrawer
@@ -706,7 +1030,91 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         />
       )}
 
-      <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+      {undoable && (
+        <div
+          className="animate-ink-spread fixed bottom-4 left-1/2 z-[140] flex -translate-x-1/2 items-center gap-3 px-3 py-2"
+          style={{
+            background: 'var(--card)',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            borderLeftWidth: 3,
+            borderColor: 'var(--muted-foreground)',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.7)',
+          }}
+        >
+          <span className="font-body text-[11px] text-[var(--muted-foreground)] italic">
+            {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void undo()}
+            disabled={busyId !== null}
+            className={cn(PILL, 'shrink-0')}
+          >
+            ↩ Desfazer
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** O que a última checagem de encontro trouxe — e, se trouxe algo, o atalho para a briga. */
+function EncounterAlert({
+  last, onBuild, onDismiss,
+}: {
+  last: NonNullable<ReturnType<typeof useCrawl>['last']>
+  onBuild: () => void
+  onDismiss: () => void
+}) {
+  const { check, round } = last
+  if (!check.encounter) {
+    return (
+      <div className="flex items-center gap-2 border border-[var(--border)] px-3 py-2">
+        <span className="font-body flex-1 text-[11px] text-[var(--muted-foreground)] italic">
+          🎲 d6 {check.die}: nada se aproxima{round ? ` na rodada ${round}` : ''}.
+        </span>
+        <Button type="button" variant="ghost" onClick={onDismiss} aria-label="Dispensar" className="h-7 min-h-7 px-1 text-[10px] text-[var(--muted-foreground)]">
+          ✕
+        </Button>
+      </div>
+    )
+  }
+  return (
+    <div
+      role="status"
+      className="animate-ink-spread flex flex-wrap items-center gap-2 px-3 py-2.5"
+      style={{
+        background: 'color-mix(in oklch, var(--destructive), var(--card) 85%)',
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderLeftWidth: 3,
+        borderColor: 'var(--destructive)',
+      }}
+    >
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="font-heading text-[12px] tracking-[0.06em] text-[var(--destructive)]">
+          Algo se aproxima!{round ? ` · rodada ${round}` : ''}
+        </span>
+        <span className="font-body text-[11px] text-[var(--foreground)] italic">
+          {check.distance?.label} · {check.activity?.label} · {check.reaction?.label}
+          <span className="font-mono not-italic text-[9px] text-[var(--muted-foreground)]">
+            {' '}(reação {check.reaction?.total})
+          </span>
+        </span>
+      </span>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onBuild}
+        className={cn(PILL, 'h-9 border-[var(--destructive)] text-[var(--destructive)]')}
+      >
+        ⚔ Montar o encontro
+      </Button>
+      <Button type="button" variant="ghost" onClick={onDismiss} aria-label="Dispensar" className="h-9 min-h-9 px-1 text-[10px] text-[var(--muted-foreground)]">
+        ✕
+      </Button>
     </div>
   )
 }
