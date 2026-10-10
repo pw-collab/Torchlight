@@ -6,7 +6,8 @@ const PUBLIC_PATHS = ['/', '/login', '/auth', '/_next', '/favicon.ico']
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  // `/` must match exactly: as a prefix it matches every path and the gate never runs.
+  if (PUBLIC_PATHS.some(p => (p === '/' ? pathname === '/' : pathname.startsWith(p)))) {
     return NextResponse.next()
   }
 
@@ -58,5 +59,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Files in public/ (icons, dice art) stay open: the login page shows them.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp3|ogg|wav|woff2?)$).*)'],
 }
