@@ -39,38 +39,35 @@ Nothing here needed rebuilding: tokens, the Tailwind mapping and an accessible p
 | muted-foreground | `#9ca8ab` | labels, secondary text (the most used text colour: 155 uses) |
 | primary / accent | `#9f0712` | the red action fill |
 | primary-foreground | `#fef2f2` | text on red |
-| sidebar-primary | `#fb2c36` | active tab fill |
+| sidebar-primary | `#9f0712` (= primary) | active tab fill |
 | destructive | `#ff6467` | errors, damage |
 | torch | `#fb9e31` | a burning light source (same in both themes) |
 | border | white 10% | panel rules (decorative) |
-| input | white 15% | input and control borders |
-| ring | `#67787c` | focus |
+| input | white 15% | selected-state fills, empty pips (and control fills at 30%) |
+| input-border | white 36% | edges of inputs and outlined controls |
+| primary-text | `#e4574e` | red used as text or a thin outline |
+| ring | `#d0d6d8` | focus |
 
 ## Contrast report (WCAG AA)
 
-24 pairs checked, **7 fail**. Fix in the tokens, not per component.
+**Now 25 pairs, 0 failing.** The first check found 7 failures; all were fixed in the tokens
+on 2026-10-10. Before and after: `contrast-fixes.png` (rendered from the app's compiled CSS).
 
-| pair | ratio | needs | where it shows |
-| --- | --- | --- | --- |
-| `primary` text on card | 2.08 | 4.5 | **Hollow buttons** (12 uses: Inventory "Add", dice roller, GM prompt composer, handouts), link hover |
-| `primary` text on background | 2.36 | 4.5 | same, on the page background |
-| `sidebar-primary-foreground` on `sidebar-primary` | 3.48 | 4.5 | **Active tab label** in the sheet's bottom nav (11px mobile, 15px desktop) |
-| `muted-foreground` 70% on card | 4.17 | 4.5 | helper text in the creator's narrative step (also only 10px) |
-| `muted-foreground` 40% on secondary | 2.22 | 4.5 | placeholder in the floating vitals note field |
-| `input` border on card | 1.58 | 3.0 | every text input, select and outlined control: hard to see where the field is |
-| `input` border on background | 1.49 | 3.0 | same, on the page background |
+| what | where it shows | before | after | fix |
+| --- | --- | --- | --- | --- |
+| red text on card / background | **Hollow buttons** (12 uses: Inventory "Add", dice roller, GM prompt composer, handouts), link hover, AppShell back arrow | 2.08 / 2.36 | 4.78 / 5.42 | new `--primary-text` `oklch(0.64 0.177 26.9)` = `#e4574e`; `--primary` stays the fill |
+| active tab label | sheet bottom nav, desktop tab rail, dock buttons, creator and edit step strips | 3.48 | 7.64 | `--sidebar-primary` now `var(--primary)` (was the brighter `#fb2c36`) |
+| control borders | every input, select, outlined button, tab, picker card (34 class uses) | 1.49 to 1.58 | 3.22 to 3.33 | new `--input-border` white 36%; `--input` stays at 15% because 25+ selected-state fills and empty luck pips use it |
+| focus vs unfocused border | any focused control | 2.38 | 3.55 | `--ring` raised to the `--chart-1` grey; without it, brighter borders would have made focus harder to see |
+| faded helper text | creator narrative step | 4.17 | 7.12 | dropped the `/70` modifier |
+| faded placeholder | floating vitals note field | 2.22 | 6.10 | dropped the `/40` modifier |
 
-Passing, for reference: body text 16.7 to 19:1, muted labels 6.1 to 8.1:1, text on red buttons
-7.6:1, destructive 6.0 to 6.8:1, torch 8.3 to 9.4:1, focus ring 3.8 to 4.3:1.
+Passing throughout: body text 14.2 to 19:1, muted labels 6.1 to 8.1:1, text on red buttons
+7.6:1, destructive 5.3 to 6.8:1, torch 8.3 to 9.4:1.
 
-Values that would pass (computed, not applied):
-
-- **Input borders:** raise `--input` from white 15% to **34%** (3:1 on both surfaces).
-- **Hollow buttons:** a separate red for text, e.g. `oklch(0.64 0.177 26.9)` = `#e4574e` (4.78:1 on card),
-  or reuse `destructive` `#ff6467` (6.0:1).
-- **Active tab:** either the darker brand red `primary` as the fill (7.6:1 with the same text), or keep
-  the bright red and use dark text.
-- **The two faded texts:** drop the opacity modifier; plain `muted-foreground` passes (6.1:1 and up).
+Still open, not part of this fix: about 25 selected states pair a `border-[var(--primary)]`
+edge with an `--input` fill. The dark red edge reads 2.1:1 on card, but the fill change also
+marks the selection, so the state is still visible.
 
 ## Other findings
 
@@ -84,8 +81,8 @@ Values that would pass (computed, not applied):
    have no `aria-live` or `role="status"`, so a roll result is never announced.
 4. **Touch targets.** Default buttons are 32px tall, `sm` 28px, `xs` and `icon-xs` 24px. That meets
    WCAG AA's 24px minimum but sits well under the 44px usually advised for phones.
-5. **Focus ring** is 1px at 50% opacity. It still passes, because the border also switches
-   to the full `ring` colour on focus, but it is faint.
+5. **Focus ring** is 1px at 50% opacity. The border switching to the now-brighter `ring` colour
+   is what makes focus visible; a 2px ring would be stronger still.
 
 ## Components
 
@@ -98,18 +95,18 @@ Button  (src/components/ui/button.tsx + .cn-button in style-lyra.css)
   sizes     xs 24px, sm 28px, default 32px, lg 36px; icon 24 / 28 / 32 / 36 square
   type      Bricolage, uppercase, tracking .08em, text-xs (default and lg set text-sm / text-base)
   states    default, hover, active (1px sink, or .tactile scale .96), focus-visible
-            (border to ring + 1px ring at 50%), disabled (50% opacity, no pointer),
+            (border to ring + 1px ring at 50%; ring is a light grey, 3.5:1 against the unfocused border), disabled (50% opacity, no pointer),
             aria-invalid (destructive ring)
-  a11y      real <button> (Base UI). FAILS: hollow text 2.1:1.
+  a11y      real <button> (Base UI). Hollow text 4.8:1 (was 2.1:1, fixed).
   used on   everywhere
 ```
 
 ```
 Input / Textarea / NumInput / NativeSelect
   size      32px tall, px 10, text-xs
-  tokens    border input, fill input/30 (dark), focus border ring, invalid destructive
+  tokens    border input-border, fill input/30 (dark), focus border ring, invalid destructive
   states    default, focus-visible, disabled (fill input/80), aria-invalid
-  a11y      NumInput has aria-label and arrow-key handling. FAILS: border 1.6:1.
+  a11y      NumInput has aria-label and arrow-key handling. Border 3.3:1 (was 1.6:1, fixed).
   used on   S04, S05b, S08, S11, S13
 ```
 
@@ -119,7 +116,7 @@ Tabs (shadcn, Base UI)  + TabBar (sheet bottom nav) + TabRail (desktop side rail
             trailing slot holds the dice button
   states    inactive muted-foreground, hover foreground, active sidebar-primary fill
   a11y      real tablist and tabs; nav has aria-label; TabRail marks aria-current.
-            FAILS: active label 3.5:1.
+            Active label 7.6:1 (was 3.5:1, fixed).
   used on   S05 (TabBar, TabRail), S11-S13 (GM tabs), S04 (step strip)
 ```
 

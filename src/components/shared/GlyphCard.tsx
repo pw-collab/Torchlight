@@ -170,7 +170,7 @@ export function GlyphCard({
           inert={open}
           className={cn(
             'card-flip__face tactile h-auto w-full flex-col p-1',
-            'bg-input border-input',
+            'bg-input border-input-border',
             // Button's base is a label: nowrap + uppercase. The face holds
             // prose, so it wraps and keeps the casing it was written in.
             'whitespace-normal normal-case',

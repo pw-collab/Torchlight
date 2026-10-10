@@ -145,7 +145,7 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
                 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <span aria-hidden className="text-primary font-bold">
+              <span aria-hidden className="text-primary-text font-bold">
                 ‹
               </span>
               <span className="truncate underline underline-offset-2">Voltar</span>

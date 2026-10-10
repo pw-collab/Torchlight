@@ -83,7 +83,7 @@ export function StepNarrative({
           <p className="text-muted-foreground mt-1 text-[11.5px] leading-relaxed italic">
             {hook}
           </p>
-          <p className="text-muted-foreground/70 mt-1.5 text-[10px]">
+          <p className="text-muted-foreground mt-1.5 text-[10px]">
             Use-o como ponto de partida do passado abaixo — ou contradiga-o de propósito.
           </p>
         </div>

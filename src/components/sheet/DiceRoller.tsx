@@ -195,7 +195,7 @@ export function DiceRoller({
             className={cn(
               docked
                 ? DOCK_BUTTON_CLASS
-                : 'bg-input border-input data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
+                : 'bg-input border-input-border data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
               !docked && (floating
                 ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
                 : 'h-12 min-h-12 w-14'),
@@ -268,7 +268,7 @@ export function DiceRoller({
                   aria-label={`Adicionar d${d} ao punhado`}
                   variant="hollow"
                   className={cn(
-                    'bg-input border-input relative h-[50px] min-w-0 px-0',
+                    'bg-input border-input-border relative h-[50px] min-w-0 px-0',
                     'hover:border-primary hover:bg-accent',
                     'disabled:opacity-40',
                     count > 0 && 'border-primary',
@@ -302,7 +302,7 @@ export function DiceRoller({
                   title={`Remover um d${sides}`}
                   aria-label={`Remover um d${sides} do punhado`}
                   className={cn(
-                    'border-input bg-secondary font-mono text-secondary-foreground border px-2 py-1 text-[11px]',
+                    'border-input-border bg-secondary font-mono text-secondary-foreground border px-2 py-1 text-[11px]',
                     'hover:border-primary hover:text-foreground',
                   )}
                 >
@@ -333,7 +333,7 @@ export function DiceRoller({
               render={<motion.button {...DICE_TAP} />}
               variant="outline"
               className={cn(
-                'font-heading bg-input border-input h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
+                'font-heading bg-input border-input-border h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
                 'hover:border-primary disabled:opacity-35',
               )}
             >
@@ -396,7 +396,7 @@ export function DiceRoller({
                 variant="outline"
                 style={{ color }}
                 className={cn(
-                  'font-heading bg-input border-input h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
+                  'font-heading bg-input border-input-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
                   'text-[11px] font-bold tracking-[0.04em] normal-case',
                   'hover:border-primary hover:bg-accent',
                   mode === 'disadvantage' && disadvantageFrom.length > 0 &&

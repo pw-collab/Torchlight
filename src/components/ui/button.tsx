@@ -13,10 +13,10 @@ const buttonVariants = cva(
       variant: {
         default: "cn-button-variant-default",
         outline: "cn-button-variant-outline",
-        secondary: "cn-button-variant-secondary border-input",
+        secondary: "cn-button-variant-secondary border-input-border",
         ghost: "cn-button-variant-ghost",
         destructive: "cn-button-variant-destructive",
-        hollow: "text-primary border-primary hover:bg-primary/10",
+        hollow: "text-primary-text border-primary-text hover:bg-primary/10",
         link: "cn-button-variant-link",
       },
       size: {

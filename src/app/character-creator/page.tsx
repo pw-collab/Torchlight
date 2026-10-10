@@ -344,7 +344,7 @@ export default function CharacterCreatorPage() {
                     'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                     isActive
                       ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
-                      : 'bg-input border-input text-muted-foreground',
+                      : 'bg-input border-input-border text-muted-foreground',
                     locked
                       ? 'cursor-not-allowed opacity-40'
                       : 'cursor-pointer hover:border-sidebar-ring hover:text-foreground',
