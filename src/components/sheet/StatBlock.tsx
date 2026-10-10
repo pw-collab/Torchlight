@@ -35,7 +35,7 @@ export function StatBlock({ stats, onRoll }: Props) {
           <div
             className={cn(
               'relative w-full border px-0.5 pt-2 pb-2.5 text-center select-none',
-              'bg-input border-input transition-all duration-300',
+              'bg-input border-input-border transition-all duration-300',
               'group-data-popup-open/stat:bg-accent group-data-popup-open/stat:border-accent',
               isInteractive ? 'cursor-pointer' : 'cursor-default',
             )}

@@ -27,7 +27,7 @@ interface Props extends AttackContext {
 }
 
 const ROLL_BUTTON_CLASS =
-  'font-heading bg-input border-input hover:border-primary h-9 min-h-9 shrink-0 px-2.5 text-[10px] font-bold tracking-[0.12em] uppercase'
+  'font-heading bg-input border-input-border hover:border-primary h-9 min-h-9 shrink-0 px-2.5 text-[10px] font-bold tracking-[0.12em] uppercase'
 
 /**
  * The quick attack menu on the dock: whatever is in hand, ready to roll.
@@ -93,7 +93,7 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
             {onOpenInventory && (
               <Button
                 variant="outline"
-                className="font-heading bg-input border-input hover:border-primary h-10 text-[11px] font-bold tracking-[0.12em] uppercase"
+                className="font-heading bg-input border-input-border hover:border-primary h-10 text-[11px] font-bold tracking-[0.12em] uppercase"
                 onClick={() => { setOpen(false); onOpenInventory() }}
               >
                 Abrir inventário

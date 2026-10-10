@@ -15,6 +15,8 @@ import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
+import { serverNow } from '@/lib/serverClock'
+import { changeCharacter, type CharacterChange } from '@/lib/characterWrite'
 import { DungeonClockBar } from './DungeonClockBar'
 import { CrawlBar } from './CrawlBar'
 import { modifier } from '@/lib/dice'
@@ -67,6 +69,26 @@ interface Undoable {
 }
 
 const UNDO_WINDOW_MS = 30_000
+
+/** One line for the session log. */
+interface LogLine {
+  kind: SessionEventKind
+  payload: Record<string, unknown>
+}
+
+/** What a GM action leaves to log, and the column an undo would reverse. */
+interface Logged {
+  event: LogLine
+  /** O que mais a mesma ação conta ao log, depois da linha principal. */
+  extra: LogLine[]
+  undoField: UndoField | null
+}
+
+function undoValue(character: Character, field: UndoField): number {
+  if (field === 'hp_current') return character.hpCurrent
+  if (field === 'luck_tokens') return character.luckTokens
+  return character.xp
+}
 
 const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
   hp: 'vida',
@@ -189,125 +211,139 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
    * A escrita devolve a linha e o card é atualizado com ela, em vez de esperar
    * o Realtime dar a volta — senão o Mestre clica duas vezes achando que não
    * pegou.
+   *
+   * Each action is worked out from the character as it stands when the save
+   * lands, not from this card's copy: if the player saved in between, the
+   * change is computed again from their row (see `changeCharacter`), so
+   * neither side's edit is lost.
    */
   const act = useCallback(async (character: Character, action: GmAction) => {
     const supabase = createClient()
     const common = { sessionId, actorName: gmName, characterId: character.id }
     const named = { characterName: character.name, by: 'gm' as const }
+    const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
 
-    let patch: Record<string, unknown> | null = null
-    let event: { kind: SessionEventKind; payload: Record<string, unknown> } | null = null
-    /** O que mais a mesma ação conta ao log, depois da linha principal. */
-    const extra: { kind: SessionEventKind; payload: Record<string, unknown> }[] = []
-    /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
-    let undoField: UndoField | null = null
+    // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
+    // regra que o botão da ficha usa. Rolled once, here: if the save has to be
+    // worked out again, it is the same roll, not a second chance.
+    const startRounds = action.type === 'death-roll' ? dyingRounds(character.conditions) : null
+    const deathRoll = startRounds !== null ? rollAgainstDeath(startRounds) : null
 
-    if (action.type === 'hp') {
-      const from = character.hpCurrent
-      const to = Math.max(0, Math.min(character.hpMax, from + action.delta))
-      if (to !== from) {
-        patch = { hp_current: to }
-        event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'hp_current'
+    const compute = (c: Character): CharacterChange<Logged> => {
+      if (action.type === 'hp') {
+        const from = c.hpCurrent
+        const to = Math.max(0, Math.min(c.hpMax, from + action.delta))
+        if (to === from) return null
+        const patch: Partial<CharacterRow> = { hp_current: to }
+        const extra: LogLine[] = []
         // O goblin que derruba alguém abre o relógio da morte daqui mesmo —
         // a regra é a mesma da ficha (lib/dying), então os dois lados concordam.
-        const shift = hpShift(character.conditions, character.stats.con, from, to, gmName)
+        const shift = hpShift(c.conditions, c.stats.con, from, to, gmName)
         if (shift) {
           patch.conditions = shift.conditions
           extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
         }
+        return {
+          patch,
+          result: { event: { kind: 'hp', payload: { from, to, delta: to - from, ...named } }, extra, undoField: 'hp_current' },
+        }
       }
-    } else if (action.type === 'stabilize') {
-      // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
-      // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
-      if (dyingRounds(character.conditions) !== null) {
-        const stable = stabilize(character.conditions, gmName)
-        patch = { conditions: stable.conditions }
-        event = { kind: 'condition', payload: { ...stable.event, ...named } }
+      if (action.type === 'stabilize') {
+        // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
+        // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
+        if (dyingRounds(c.conditions) === null) return null
+        const stable = stabilize(c.conditions, gmName)
+        return {
+          patch: { conditions: stable.conditions },
+          result: { event: { kind: 'condition', payload: { ...stable.event, ...named } }, extra: [], undoField: null },
+        }
       }
-    } else if (action.type === 'death-roll') {
-      // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
-      // regra que o botão da ficha usa.
-      const rounds = dyingRounds(character.conditions)
-      if (rounds !== null) {
-        const roll = rollAgainstDeath(rounds)
-        const out = afterDeathRoll(character.conditions, roll, gmName)
-        patch = { conditions: out.conditions }
-        if (out.outcome === 'rise') patch.hp_current = 1
-        event = { kind: 'roll', payload: { ...rollPayload(roll, character.name) } }
+      if (action.type === 'death-roll') {
+        if (!deathRoll || dyingRounds(c.conditions) === null) return null
+        const out = afterDeathRoll(c.conditions, deathRoll, gmName)
+        const patch: Partial<CharacterRow> = { conditions: out.conditions }
+        const extra: LogLine[] = []
         if (out.outcome === 'rise') {
-          extra.push({
-            kind: 'hp',
-            payload: { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, ...named },
-          })
+          patch.hp_current = 1
+          extra.push({ kind: 'hp', payload: { from: c.hpCurrent, to: 1, delta: 1 - c.hpCurrent, ...named } })
         }
         if (out.event) extra.push({ kind: 'condition', payload: { ...out.event, ...named } })
+        return {
+          patch,
+          result: { event: { kind: 'roll', payload: { ...rollPayload(deathRoll, c.name) } }, extra, undoField: null },
+        }
       }
-    } else if (action.type === 'luck') {
-      const from = character.luckTokens
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { luck_tokens: to }
-        event = { kind: 'luck', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'luck_tokens'
+      if (action.type === 'luck') {
+        const from = c.luckTokens
+        const to = Math.max(0, from + action.delta)
+        if (to === from) return null
+        return {
+          patch: { luck_tokens: to },
+          result: { event: { kind: 'luck', payload: { from, to, delta: to - from, ...named } }, extra: [], undoField: 'luck_tokens' },
+        }
       }
-    } else if (action.type === 'xp') {
-      const from = character.xp
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { xp: to }
-        event = { kind: 'xp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'xp'
+      if (action.type === 'xp') {
+        const from = c.xp
+        const to = Math.max(0, from + action.delta)
+        if (to === from) return null
+        return {
+          patch: { xp: to },
+          result: { event: { kind: 'xp', payload: { from, to, delta: to - from, ...named } }, extra: [], undoField: 'xp' },
+        }
       }
-    } else if (action.type === 'snuff') {
-      const burning = brightest(character.inventory)
-      if (burning) {
-        const doused: InventoryItem[] = character.inventory.map(item => snuff(item))
-        patch = { equipment: doused }
-        event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
+      if (action.type === 'snuff') {
+        // The table's clock, as the player's sheet reads it: a torch put out
+        // here banks exactly the minutes the table was showing.
+        const now = tableNow(clock, serverNow())
+        const burning = brightest(c.inventory, now)
+        if (!burning) return null
+        const doused: InventoryItem[] = c.inventory.map(item => snuff(item, now))
+        return {
+          patch: { equipment: doused } as Partial<CharacterRow>,
+          result: { event: { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }, extra: [], undoField: null },
+        }
       }
-    } else if (action.type === 'condition') {
       // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
       // é tirar.
-      const already = character.conditions.some(c => c.id === action.condition.id)
+      const already = c.conditions.some(cond => cond.id === action.condition.id)
       const next = already
-        ? character.conditions.filter(c => c.id !== action.condition.id)
-        : [...character.conditions, {
+        ? c.conditions.filter(cond => cond.id !== action.condition.id)
+        : [...c.conditions, {
             ...action.condition,
             appliedBy: gmName,
-            appliedAt: new Date().toISOString(),
+            appliedAt: new Date(serverNow()).toISOString(),
           }]
-      patch = { conditions: next }
-      event = {
-        kind: 'condition',
-        payload: {
-          action: already ? 'removed' : 'applied',
-          label: action.condition.label,
-          ...(action.condition.note && { note: action.condition.note }),
-          ...named,
+      return {
+        patch: { conditions: next },
+        result: {
+          event: {
+            kind: 'condition',
+            payload: {
+              action: already ? 'removed' : 'applied',
+              label: action.condition.label,
+              ...(action.condition.note && { note: action.condition.note }),
+              ...named,
+            },
+          },
+          extra: [],
+          undoField: null,
         },
       }
     }
 
-    if (!patch || !event) return
-
     setBusyId(character.id)
-    const { data, error } = await supabase
-      .from('characters')
-      .update(patch)
-      .eq('id', character.id)
-      .select()
-      .single()
+    const outcome = await changeCharacter(supabase, character, compute)
     setBusyId(null)
 
-    if (error) {
-      console.error('[SessionPanel] a ficha não aceitou a mudança', error)
+    if (!outcome.ok) {
+      if (outcome.reason !== 'unchanged') {
+        console.error('[SessionPanel] a ficha não aceitou a mudança', outcome.reason, outcome.error)
+      }
       return
     }
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+    const updated = outcome.character
+    setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
+    const { event, extra, undoField } = outcome.result
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
     for (const line of extra) void recordEvent({ ...common, kind: line.kind, payload: line.payload })
 
@@ -326,38 +362,44 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         applied: p.to,
       })
     }
-  }, [sessionId, gmName, setSeats, offerUndo])
+  }, [sessionId, gmName, setSeats, offerUndo, session.pausedAt, session.shiftSeconds])
 
-  /** Escreve o valor anterior de volta e registra a correção. */
+  /**
+   * Takes back what the last action changed. It reverses the change rather
+   * than writing the old number back, so anything the player did since
+   * (healing, spending luck) survives the undo.
+   */
   const undo = useCallback(async () => {
     if (!undoable) return
     const supabase = createClient()
+    const seat = seats.find(s => s.character.id === undoable.characterId)
+    if (!seat) return
     setBusyId(undoable.characterId)
 
-    // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
-    // a ficha volta a ter PV e continua "morrendo".
-    const patch: Record<string, unknown> = { [undoable.field]: undoable.previous }
-    const seat = seats.find(s => s.character.id === undoable.characterId)
-    const shift = undoable.field === 'hp_current' && seat
-      ? hpShift(seat.character.conditions, seat.character.stats.con, undoable.applied, undoable.previous, gmName)
-      : null
-    if (shift) patch.conditions = shift.conditions
-
-    const { data } = await supabase
-      .from('characters')
-      .update(patch)
-      .eq('id', undoable.characterId)
-      .select()
-      .single()
+    const reversal = undoable.previous - undoable.applied
+    const outcome = await changeCharacter(supabase, seat.character, c => {
+      const from = undoValue(c, undoable.field)
+      const to = undoable.field === 'hp_current'
+        ? Math.max(0, Math.min(c.hpMax, from + reversal))
+        : Math.max(0, from + reversal)
+      if (to === from) return null
+      const patch: Partial<CharacterRow> = { [undoable.field]: to }
+      // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
+      // a ficha volta a ter PV e continua "morrendo".
+      const shift = undoable.field === 'hp_current'
+        ? hpShift(c.conditions, c.stats.con, from, to, gmName)
+        : null
+      if (shift) patch.conditions = shift.conditions
+      return { patch, result: { from, to, shift } }
+    })
 
     setBusyId(null)
     setUndoable(null)
     if (undoTimer.current) clearTimeout(undoTimer.current)
+    if (!outcome.ok) return
 
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+    const updated = outcome.character
+    setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
 
     void recordEvent({
       sessionId,
@@ -365,21 +407,21 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
       characterId: undoable.characterId,
       kind: undoable.kind,
       payload: {
-        from: undoable.applied,
-        to: undoable.previous,
-        delta: undoable.previous - undoable.applied,
+        from: outcome.result.from,
+        to: outcome.result.to,
+        delta: outcome.result.to - outcome.result.from,
         characterName: undoable.characterName,
         by: 'gm',
         undo: true,
       },
     })
-    if (shift) {
+    if (outcome.result.shift) {
       void recordEvent({
         sessionId,
         actorName: gmName,
         characterId: undoable.characterId,
         kind: 'condition',
-        payload: { ...shift.event, characterName: undoable.characterName, by: 'gm' },
+        payload: { ...outcome.result.shift.event, characterName: undoable.characterName, by: 'gm' },
       })
     }
   }, [undoable, seats, sessionId, gmName, setSeats])
@@ -431,7 +473,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         'O tempo da mesa voltou a correr.',
       )
     } else {
-      void updateClock({ paused_at: new Date().toISOString() }, 'O tempo da mesa parou.')
+      void updateClock({ paused_at: new Date(serverNow()).toISOString() }, 'O tempo da mesa parou.')
     }
   }, [session.pausedAt, session.shiftSeconds, updateClock])
 

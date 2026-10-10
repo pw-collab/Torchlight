@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import { CharacterSheetClient } from '../CharacterSheetClient'
+import { discordIdOf } from '@/lib/discordId'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -24,7 +25,7 @@ export default async function SheetByIdPage({ params }: Props) {
   if (!character) notFound()
 
   const viewerName = user.user_metadata?.full_name ?? 'Player'
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const discordId = discordIdOf(user)
   const isOwner = character.user_id === discordId
 
   // Characters forged before the wizard started writing `player_name` carry a

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Character, CharacterRow } from '@/types/character.types'
 import { normalizeRelations, rowToCharacter } from '@/types/character.types'
+import { createCharacterSaver } from '@/lib/characterSaver'
 
 function patchCharacter(character: Character, updates: Partial<CharacterRow>): Character {
   return {
@@ -40,7 +41,31 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
 export function useCharacter(characterId: string) {
   const [character, setCharacter] = useState<Character | null>(null)
   const [loading, setLoading] = useState(true)
+  /** Counts saves and misses; 0 means none yet. They key the sheet's save stamps. */
   const [savedAt, setSavedAt] = useState(0)
+  const [conflictAt, setConflictAt] = useState(0)
+
+  // Saves go through the saver so they can't overwrite a change someone else
+  // just made (see lib/characterSaver).
+  const saver = useMemo(() => {
+    const supabase = createClient()
+    return createCharacterSaver({
+      write: async (updates, expected) => {
+        let query = supabase.from('characters').update(updates).eq('id', characterId)
+        if (expected !== undefined) query = query.eq('version', expected)
+        const { data, error } = await query.select().maybeSingle()
+        return { row: (data as CharacterRow | null) ?? null, error }
+      },
+      read: async () => {
+        const { data } = await supabase.from('characters').select('*').eq('id', characterId).single()
+        return (data as CharacterRow | null) ?? null
+      },
+      onRow: row => setCharacter(rowToCharacter(row)),
+      onSaved: () => setSavedAt(n => n + 1),
+      onConflict: () => setConflictAt(n => n + 1),
+      onError: (updates, error) => console.error('[useCharacter] falha ao salvar', Object.keys(updates), error),
+    })
+  }, [characterId])
 
   useEffect(() => {
     const supabase = createClient()
@@ -51,7 +76,10 @@ export function useCharacter(characterId: string) {
       .eq('id', characterId)
       .single()
       .then(({ data }) => {
-        if (data) setCharacter(rowToCharacter(data as CharacterRow))
+        if (data) {
+          saver.loaded(data as CharacterRow)
+          setCharacter(rowToCharacter(data as CharacterRow))
+        }
         setLoading(false)
       })
 
@@ -61,6 +89,7 @@ export function useCharacter(characterId: string) {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'characters', filter: `id=eq.${characterId}` },
         payload => {
+          saver.observed(payload.new as CharacterRow)
           setCharacter(rowToCharacter(payload.new as CharacterRow))
         }
       )
@@ -69,36 +98,17 @@ export function useCharacter(characterId: string) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [characterId])
+  }, [characterId, saver])
 
-  const supabase = createClient()
-
-  /** Returns false when the write did not land — the optimistic state is rolled back to the server row. */
-  async function updateCharacter(updates: Partial<CharacterRow>): Promise<boolean> {
+  /**
+   * Returns false when the write did not land: the sheet is reset to the
+   * server row. A save that lost to someone else's also sets `conflictAt`, so
+   * the sheet can say so instead of failing silently.
+   */
+  function updateCharacter(updates: Partial<CharacterRow>): Promise<boolean> {
     setCharacter(prev => (prev ? patchCharacter(prev, updates) : prev))
-
-    const { data, error } = await supabase
-      .from('characters')
-      .update(updates)
-      .eq('id', characterId)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('[useCharacter] falha ao salvar', Object.keys(updates), error)
-      const { data: refetched } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('id', characterId)
-        .single()
-      if (refetched) setCharacter(rowToCharacter(refetched as CharacterRow))
-      return false
-    }
-
-    if (data) setCharacter(rowToCharacter(data as CharacterRow))
-    setSavedAt(Date.now())
-    return true
+    return saver.save(updates)
   }
 
-  return { character, loading, updateCharacter, savedAt }
+  return { character, loading, updateCharacter, savedAt, conflictAt }
 }

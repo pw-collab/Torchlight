@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { CampaignRosterClient } from './CampaignRosterClient'
 import type { RosterCharacter } from './roster.types'
+import { discordIdOf } from '@/lib/discordId'
 
 interface RosterRow {
   id: string
@@ -18,7 +19,7 @@ export default async function HomePage() {
 
   if (!user) redirect('/login')
 
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const discordId = discordIdOf(user)
 
   // Check GM role
   const { data: roleRow } = await supabase

@@ -10,8 +10,8 @@ import {
   Settings03Icon,
 } from '@hugeicons/core-free-icons'
 import { createClient } from '@/lib/supabase'
+import { useTableNow } from '@/hooks/useTableNow'
 import { useCharacter } from '@/hooks/useCharacter'
-import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTableSession } from '@/hooks/useTableSession'
@@ -37,11 +37,12 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
-import { tableNow } from '@/lib/dungeonClock'
 import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
+import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { describeRoll } from '@/lib/rollSpeech'
 import { PromptCard } from '@/components/sheet/PromptCard'
 import { TurnBanner } from '@/components/sheet/TurnBanner'
 import { TableMode } from '@/components/sheet/TableMode'
@@ -94,7 +95,7 @@ interface Props {
 }
 
 export function CharacterSheetClient({ characterId, playerName, isOwner }: Props) {
-  const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
+  const { character, loading, updateCharacter, savedAt, conflictAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   /** Os ataques cujo dano já foi rolado do próprio cartão. */
@@ -232,7 +233,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   // A mesa pode ter o tempo parado ou adiantado pelo Mestre (§6.9), e a luz
   // segue o relógio dela — inclusive a hora de anunciar que apagou.
-  const now = tableNow(openSession, useNow())
+  const now = useTableNow(openSession)
   const inventory = character?.inventory
   const announcedRef = useRef<Set<string>>(new Set())
 
@@ -307,7 +308,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     const shift = hpShift(character!.conditions, character!.stats.con, from, newHp, playerName)
     const patch: Partial<CharacterRow> = { hp_current: newHp }
     if (shift) patch.conditions = shift.conditions
-    await updateCharacter(patch)
+    // Only what was saved goes in the log: a save that lost to the GM's didn't happen.
+    if (!(await updateCharacter(patch))) return
     record('hp', { from, to: newHp, delta: newHp - from, by: 'player' })
     if (shift) {
       // O d4 do relógio cai na tela de quem caiu; para a mesa ele vai na nota
@@ -333,7 +335,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     const out = afterDeathRoll(character.conditions, roll, playerName)
     const patch: Partial<CharacterRow> = { conditions: out.conditions }
     if (out.outcome === 'rise') patch.hp_current = 1
-    await updateCharacter(patch)
+    if (!(await updateCharacter(patch))) return
 
     if (out.outcome === 'rise') {
       record('hp', { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, by: 'player' })
@@ -344,7 +346,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   async function handleLuckChange(newValue: number) {
     const from = character!.luckTokens
     if (newValue === from) return
-    await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>))) return
     record('luck', { from, to: newValue, delta: newValue - from, by: 'player' })
   }
 
@@ -393,7 +395,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    */
   async function handleConditionRemove(condition: ActiveCondition) {
     const next = character!.conditions.filter(c => c.id !== condition.id)
-    await updateCharacter({ conditions: next } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ conditions: next } as Partial<CharacterRow>))) return
     record('condition', { action: 'removed', label: condition.label, by: 'player' })
   }
 
@@ -424,7 +426,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     if (shift) patch.conditions = shift.conditions
     if (ration) (patch as any).equipment = consumeRation(character.inventory, ration.id)
     if (ration) patch.technique_states = restoredStates(character.techniqueStates)
-    if (Object.keys(patch).length > 0) await updateCharacter(patch)
+    // Only what was saved goes in the log: a save that lost to the GM's didn't happen.
+    if (Object.keys(patch).length > 0 && !(await updateCharacter(patch))) return
 
     record('hp', {
       from: character.hpCurrent,
@@ -789,6 +792,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           damageRolled={damageRolled}
         />
       )}
+      {/* Both layouts: the newest roll, read out for screen readers. */}
+      <LiveAnnouncer
+        message={rollHistory[0] ? describeRoll(rollHistory[0]) : null}
+        id={rollHistory[0]?.id}
+      />
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       {tableMode && (
@@ -804,18 +812,36 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         />
       )}
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
+      {/* A save that lost to the GM's: the sheet already shows what's there now. */}
+      <SaveSeal
+        savedAt={conflictAt}
+        isMobile={isMobile}
+        label="Ficha mudou ao mesmo tempo · confira"
+        border="var(--destructive)"
+        durationMs={4000}
+      />
+      <LiveAnnouncer
+        message={conflictAt ? 'A ficha foi mudada por outra pessoa ao mesmo tempo. Confira e refaça.' : null}
+        id={String(conflictAt)}
+      />
     </AppShell>
   )
 }
 
-function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean }) {
+function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--primary)', durationMs = 1800 }: {
+  savedAt: number
+  isMobile: boolean
+  label?: string
+  border?: string
+  durationMs?: number
+}) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     if (!savedAt) return
     setVisible(true)
-    const t = setTimeout(() => setVisible(false), 1800)
+    const t = setTimeout(() => setVisible(false), durationMs)
     return () => clearTimeout(t)
-  }, [savedAt])
+  }, [savedAt, durationMs])
 
   if (!visible) return null
   return (
@@ -835,14 +861,14 @@ function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean })
         textTransform: 'uppercase',
         color: 'var(--card-foreground)',
         background: 'var(--card)',
-        border: '1px solid var(--primary)',
+        border: `1px solid ${border}`,
         borderRadius: 2,
         padding: '6px 12px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
         pointerEvents: 'none',
       }}
     >
-      ✦ Selado
+      {label}
     </div>
   )
 }

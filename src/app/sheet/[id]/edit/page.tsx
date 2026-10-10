@@ -3,6 +3,7 @@ import { redirect, notFound } from 'next/navigation'
 import { rowToCharacter } from '@/types/character.types'
 import type { CharacterRow } from '@/types/character.types'
 import { CharacterEditWizard } from './CharacterEditWizard'
+import { discordIdOf } from '@/lib/discordId'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -15,7 +16,7 @@ export default async function CharacterEditPage({ params }: Props) {
 
   if (!user) redirect('/login')
 
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const discordId = discordIdOf(user)
 
   const { data: row } = await supabase
     .from('characters')

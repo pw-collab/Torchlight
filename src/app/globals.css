@@ -58,6 +58,12 @@
   /* The one warm colour outside the reds: a light source that is burning
      (the design's #fb9e32). Same in both themes — a flame doesn't change. */
   --torch: oklch(0.777 0.159 64.5);
+  /* Red as text, and the edge of a control. --primary is a fill: as text on
+     the dark surfaces it reads at 2:1, and --input doubles as the selected-
+     state fill, so neither can be brightened in place. Both are retuned in
+     .dark to clear WCAG AA (see replica/design/components.md). */
+  --primary-text: var(--primary);
+  --input-border: var(--input);
 
   /* Two families cover every role. Bricolage Grotesque takes the display
      work; Libre Franklin takes running text and the small technical labels.
@@ -1010,7 +1016,10 @@ html, body {
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.56 0.021 213.5);
+  /* Focus must stand out from --input-border, which already sits at 3:1:
+     at the old oklch(0.56 ...) a focused field barely changed. This is the
+     --chart-1 grey: 3.5:1 against the unfocused border. */
+  --ring: oklch(0.872 0.007 219.6);
   --chart-1: oklch(0.872 0.007 219.6);
   --chart-2: oklch(0.56 0.021 213.5);
   --chart-3: oklch(0.45 0.017 213.2);
@@ -1018,13 +1027,19 @@ html, body {
   --chart-5: oklch(0.275 0.011 216.9);
   --sidebar: oklch(0.218 0.008 223.9);
   --sidebar-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-primary: oklch(0.637 0.237 25.331);
+  /* The active tab: the brand red, so its label reads at 7.6:1. The brighter
+     oklch(0.637 0.237 25.331) left it at 3.5:1. */
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: oklch(0.971 0.013 17.38);
   --sidebar-accent: oklch(0.275 0.011 216.9);
   --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.56 0.021 213.5);
   --torch: oklch(0.777 0.159 64.5);
+  /* 4.8:1 on card, 5.4:1 on background. */
+  --primary-text: oklch(0.64 0.177 26.899);
+  /* 3:1 or better on background, card, muted and secondary. */
+  --input-border: oklch(1 0 0 / 36%);
 }
 
 @theme inline {
@@ -1047,6 +1062,8 @@ html, body {
   --color-chart-1:        var(--chart-1);
   --color-ring:        var(--ring);
   --color-input:        var(--input);
+  --color-input-border:        var(--input-border);
+  --color-primary-text:        var(--primary-text);
   --color-border:        var(--border);
   --color-destructive:        var(--destructive);
   --color-accent-foreground:        var(--accent-foreground);
