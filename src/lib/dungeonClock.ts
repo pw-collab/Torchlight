@@ -1,3 +1,5 @@
+import { serverNow } from '@/lib/serverClock'
+
 /**
  * O relógio da masmorra.
  *
@@ -24,7 +26,7 @@ export interface TableClock {
 }
 
 /** Que horas são para esta mesa. Sem mesa, são as horas de sempre. */
-export function tableNow(clock: TableClock | null | undefined, now: number = Date.now()): number {
+export function tableNow(clock: TableClock | null | undefined, now: number = serverNow()): number {
   if (!clock) return now
   const base = clock.pausedAt ? new Date(clock.pausedAt).getTime() : now
   if (!Number.isFinite(base)) return now
@@ -35,7 +37,7 @@ export function tableNow(clock: TableClock | null | undefined, now: number = Dat
  * O deslocamento que faz retomar não dar salto: o tempo em que a mesa esteve
  * parada é descontado, então a tocha volta com os mesmos minutos com que parou.
  */
-export function resumeShift(clock: TableClock, now: number = Date.now()): number {
+export function resumeShift(clock: TableClock, now: number = serverNow()): number {
   if (!clock.pausedAt) return clock.shiftSeconds
   const pausedForMs = Math.max(0, now - new Date(clock.pausedAt).getTime())
   return clock.shiftSeconds - Math.round(pausedForMs / 1000)

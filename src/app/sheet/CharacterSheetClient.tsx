@@ -10,8 +10,8 @@ import {
   Settings03Icon,
 } from '@hugeicons/core-free-icons'
 import { createClient } from '@/lib/supabase'
+import { useTableNow } from '@/hooks/useTableNow'
 import { useCharacter } from '@/hooks/useCharacter'
-import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTableSession } from '@/hooks/useTableSession'
@@ -37,7 +37,6 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
-import { tableNow } from '@/lib/dungeonClock'
 import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
@@ -229,7 +228,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   // A mesa pode ter o tempo parado ou adiantado pelo Mestre (§6.9), e a luz
   // segue o relógio dela — inclusive a hora de anunciar que apagou.
-  const now = tableNow(openSession, useNow())
+  const now = useTableNow(openSession)
   const inventory = character?.inventory
   const announcedRef = useRef<Set<string>>(new Set())
 

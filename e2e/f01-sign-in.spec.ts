@@ -26,6 +26,15 @@ test.describe('F01 player signs in', () => {
     expect(res.headers()['content-type']).toContain('image')
   })
 
+  test('F01-H5 the server clock answers live, logged out, uncached', async ({ request }) => {
+    const before = Date.now()
+    const res = await request.get('/api/time', { maxRedirects: 0 })
+    expect(res.status()).toBe(200)
+    expect(res.headers()['cache-control']).toContain('no-store')
+    const { now } = await res.json()
+    expect(Math.abs(now - before)).toBeLessThan(10_000)
+  })
+
   test('F01-N2 Discord relay refuses anonymous posts', async ({ request }) => {
     const res = await request.post('/api/discord', { data: { kind: 'roll' }, maxRedirects: 0 })
     expect([401, 307, 302]).toContain(res.status())

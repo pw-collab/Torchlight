@@ -15,6 +15,7 @@ import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
+import { serverNow } from '@/lib/serverClock'
 import { DungeonClockBar } from './DungeonClockBar'
 import { EncounterPanel } from './EncounterPanel'
 import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
@@ -221,9 +222,12 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         undoField = 'xp'
       }
     } else if (action.type === 'snuff') {
-      const burning = brightest(character.inventory)
+      // The table's clock, as the player's sheet reads it: a torch put out
+      // here banks exactly the minutes the table was showing.
+      const now = tableNow({ pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }, serverNow())
+      const burning = brightest(character.inventory, now)
       if (burning) {
-        const doused: InventoryItem[] = character.inventory.map(item => snuff(item))
+        const doused: InventoryItem[] = character.inventory.map(item => snuff(item, now))
         patch = { equipment: doused }
         event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
       }
@@ -286,7 +290,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         applied: p.to,
       })
     }
-  }, [sessionId, gmName, setSeats, offerUndo])
+  }, [sessionId, gmName, setSeats, offerUndo, session.pausedAt, session.shiftSeconds])
 
   /** Escreve o valor anterior de volta e registra a correção. */
   const undo = useCallback(async () => {
@@ -373,7 +377,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         'O tempo da mesa voltou a correr.',
       )
     } else {
-      void updateClock({ paused_at: new Date().toISOString() }, 'O tempo da mesa parou.')
+      void updateClock({ paused_at: new Date(serverNow()).toISOString() }, 'O tempo da mesa parou.')
     }
   }, [session.pausedAt, session.shiftSeconds, updateClock])
 

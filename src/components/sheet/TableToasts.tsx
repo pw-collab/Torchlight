@@ -7,6 +7,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { eventAccent, eventDetail, eventGlyph, eventHeadline } from '@/lib/sessionEvents'
 import type { SessionEvent } from '@/types/session.types'
 import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { serverNow } from '@/lib/serverClock'
 
 interface Props {
   events: SessionEvent[]
@@ -27,11 +28,11 @@ const LIFETIME_MS = 9000
  * faz não aparece: ele acabou de fazer.
  */
 export function TableToasts({ events, characterId, since }: Props) {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    const id = setInterval(() => setNow(serverNow()), 1000)
     return () => clearInterval(id)
   }, [])
 

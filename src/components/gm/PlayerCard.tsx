@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { ActiveCondition, Character } from '@/types/character.types'
+import { useTableNow } from '@/hooks/useTableNow'
 import { brightest, minutesLeft } from '@/lib/light'
-import { useNow } from '@/hooks/useNow'
-import { tableNow, type TableClock } from '@/lib/dungeonClock'
+import type { TableClock } from '@/lib/dungeonClock'
 import { ConditionChips } from '@/components/sheet/ConditionChips'
 import { ConditionPicker } from './ConditionPicker'
 import { Badge } from '@/components/ui/badge'
@@ -61,7 +61,7 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
   // que a ficha do jogador usa — o card mostrava 🌑 para a mesa inteira
   // enquanto lia o campo legado `torch_end_at`, que ninguém escreve desde a
   // luz por item.
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
   const light = brightest(character.inventory, now)
   const torchMins = light ? minutesLeft(light, now) : null
   const torchLow = torchMins !== null && torchMins <= 10

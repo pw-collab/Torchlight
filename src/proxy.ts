@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { discordIdOf } from '@/lib/discordId'
 
-const PUBLIC_PATHS = ['/', '/login', '/auth', '/_next', '/favicon.ico']
+// /api/time is public: the server's clock is no secret, and skipping the gate
+// keeps its round trip short, which is what makes the measurement accurate.
+const PUBLIC_PATHS = ['/', '/login', '/auth', '/api/time', '/_next', '/favicon.ico']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
