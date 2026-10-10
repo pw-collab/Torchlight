@@ -18,8 +18,8 @@ nothing behind login could be driven. Those cases are written below and marked
 | F01-N1 | sign in | negative: logged out | open `/home`, `/gm`, `/character-creator`, `/sheet/x`, `/sheet/x/edit` | redirect to `/login` | e2e | pass after fix (was fail on `/character-creator`, BUG-001) |
 | F01-N2 | sign in | negative: logged out | POST `/api/discord` | refused (401 or redirect) | e2e | pass |
 | F01-A1 | sign in | a11y | axe scan on `/` | no critical or serious issues | e2e | pass |
-| F01-N3 | sign in | negative: Discord user not on allowlist | log in with an unlisted Discord account | sent to `/login?error=not_allowed` | manual | blocked (needs Supabase); was impossible before BUG-001 fix |
-| F01-N4 | sign in | negative: player opens `/gm` | log in as player, open `/gm` | redirect to `/home` | manual | blocked; same gate as BUG-001 |
+| F01-N3 | sign in | negative: Discord user not on allowlist | log in with an unlisted account, read any table | zero rows, `is_gm()` false | db | pass (DB-layer, see below) |
+| F01-N4 | sign in | negative: player opens `/gm` | app-level gate in `src/proxy.ts` | redirect to `/home` | manual | still needs a real player login; DB layer confirms a player gets no GM powers |
 | F04-H1 | rolling | happy | `d20`, `1d6+2`, `2d6 + 1`, `3d6-1`, `D20` | a number | e2e | pass |
 | F04-E1 | rolling | edge: every catalogue weapon | roll damage for each weapon in `src/data/inventory/items.ts` | a number | e2e | pass after fix (was NaN, BUG-002) |
 | F04-E2 | rolling | edge: versatile weapon | roll `1d8/1d10` 50 times | 1 to 8 | e2e | pass after fix (BUG-002) |
@@ -49,6 +49,28 @@ nothing behind login could be driven. Those cases are written below and marked
 | F07-H1 | GM prep | happy: create NPC, scene, start | scene opens in session tab |
 | F08-H1 | level up | happy: XP to threshold | rewards selectable, level increases |
 | ALL-E1 | every screen | edge: 375px mobile width, keyboard only | usable, no horizontal scroll |
+
+## Database security layer (verified 2026-10-10 against the live project)
+
+Checked by evaluating row-level security the way Postgres does: as the `authenticated`
+role with the request JWT claims set to a given identity. No app server involved.
+
+| check | setup | expected | result |
+| --- | --- | --- | --- |
+| DB-1 | signed-in user NOT on the allowlist reads `characters`, `npcs`, `sessions` | 0 rows each | pass: 0, 0, 0 |
+| DB-2 | same user puts `"role":"gm"` in their own user_metadata, calls `is_gm()` | false (role comes from the allowlist table, not metadata) | pass: false |
+| DB-3 | user who IS on the allowlist as `gm` calls `is_gm()` and reads `characters` | true, sees all | pass: true, 5 characters |
+
+So even if the app-level login gate (BUG-001) ever regresses again, the database still
+refuses an unlisted account and a self-declared role. BUG-001 is defence in depth, not the
+only lock. The NPC fix (migration 014) is confirmed applied: `npcs` has policy
+`npcs_manage_own_gm`, so one GM cannot read another GM's monsters.
+
+Open advisories worth a look (from Supabase's own linter, none a user can exploit today):
+- 15 `SECURITY DEFINER` RPCs are callable by signed-in (and some by anonymous) users. They
+  are gated inside, but worth confirming each checks the caller.
+- `auth_discord_id()` has a mutable `search_path`.
+- Leaked-password protection is off (minor; the app uses Discord OAuth, not passwords).
 
 ## Other checks run
 
