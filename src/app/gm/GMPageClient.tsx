@@ -13,6 +13,8 @@ import { ScenesPanel } from '@/components/gm/ScenesPanel'
 import { SessionRecap } from '@/components/gm/SessionRecap'
 import { allTags, duplicateOf, filterBestiary } from '@/lib/bestiary'
 import { RollToasts } from '@/components/sheet/RollToasts'
+import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { describeRoll } from '@/lib/rollSpeech'
 import { AppShell } from '@/components/layout/AppShell'
 import type { NPC, NPCRow } from '@/types/npc.types'
 import { rowToNPC, npcToRow } from '@/types/npc.types'
@@ -674,6 +676,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       )}
       <DiceRoller onRoll={handleGmRoll} floating />
       <RollToasts rolls={gmRolls} />
+      <LiveAnnouncer message={gmRolls[0] ? describeRoll(gmRolls[0]) : null} id={gmRolls[0]?.id} />
     </AppShell>
   )
 }

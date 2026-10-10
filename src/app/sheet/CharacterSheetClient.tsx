@@ -42,6 +42,8 @@ import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
+import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { describeRoll } from '@/lib/rollSpeech'
 import { PromptCard } from '@/components/sheet/PromptCard'
 import { TurnBanner } from '@/components/sheet/TurnBanner'
 import { TableMode } from '@/components/sheet/TableMode'
@@ -717,6 +719,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           onSpendFortune={handleFortuneReroll}
         />
       )}
+      {/* Both layouts: the newest roll, read out for screen readers. */}
+      <LiveAnnouncer
+        message={rollHistory[0] ? describeRoll(rollHistory[0]) : null}
+        id={rollHistory[0]?.id}
+      />
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       {tableMode && (
