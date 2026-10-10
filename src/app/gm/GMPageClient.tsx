@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -46,8 +47,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [sessionName, setSessionName] = useState('')
   const [creating, setCreating] = useState(false)
   const [ending, setEnding] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [tab, setTab] = useState<Tab>('session')
+  const isMobile = useIsMobile()
   const [npcs, setNpcs] = useState<NPC[]>([])
   const [loadingNpcs, setLoadingNpcs] = useState(false)
   const [showCreator, setShowCreator] = useState(false)
@@ -169,17 +170,6 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     })
   }
 
-  async function copyCode() {
-    if (!session) return
-    try {
-      await navigator.clipboard.writeText(session.code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1600)
-    } catch {
-      // Sem permissão de área de transferência o código continua na tela.
-    }
-  }
-
   async function handleSaveNpc(npc: Omit<NPC, 'id' | 'createdAt'>) {
     if (editingNpc) {
       await updateNPC(editingNpc.id, npc)
@@ -298,145 +288,107 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const shownNpcs = filterBestiary(npcs, { query, tags: activeTags, onlyFavorites })
   const tags = allTags(npcs)
   const selectedNpc = npcs.find(n => n.id === selectedNpcId) ?? null
+  // A sessão aberta é uma tela só, como a ficha: o título e as abas ficam com
+  // a sua linha e a mesa com o resto (ver .gm-page--screen).
+  const atTable = tab === 'session' && session !== null
+
+  // O recap fica de pé depois de a mesa se despedir: é o que o Mestre lê para
+  // abrir a próxima sessão (§5.11). Com a mesa nova aberta, ele vai para o
+  // alto do diário.
+  const lastRecap = recap && (
+    <SessionRecap
+      sessionId={recap.id}
+      sessionName={recap.name}
+      events={recap.events}
+      onClose={() => setRecap(null)}
+    />
+  )
+
+  // As abas vão na faixa do meio da barra do topo, como a luz vai na ficha:
+  // a mesa fica com a altura toda. No celular a faixa não existe, e elas
+  // voltam para o alto da página.
+  const tabs = (
+    <Tabs value={tab} onValueChange={value => setTab(value as Tab)}>
+      <TabsList variant="line" className="h-auto justify-start gap-0 bg-transparent p-0">
+        {([
+          { value: 'session', label: 'Sessão' },
+          { value: 'scenes', label: 'Preparo' },
+          { value: 'npcs', label: 'NPCs & Monstros' },
+        ] as const).map(t => (
+          <TabsTrigger
+            key={t.value}
+            value={t.value}
+            className={cn(
+              'tactile font-heading text-muted-foreground min-h-11 flex-none gap-2 border-b-2 border-transparent',
+              'px-4 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
+              'data-active:border-b-[var(--primary)] data-active:bg-[var(--input)]',
+              'data-active:text-[var(--foreground)]',
+            )}
+          >
+            {/* A mesa de pé: o mesmo ponto do selo da mesa na ficha. */}
+            {t.value === 'session' && session && (
+              <span
+                aria-hidden
+                title="Sessão aberta"
+                className="size-1.5 shrink-0 rounded-full bg-[var(--chart-2)] shadow-[0_0_6px_var(--chart-2)]"
+              />
+            )}
+            {t.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  )
 
   return (
     <AppShell
       backHref="/home"
       playerName={gmName}
       playerRole="MESTRE · CAMPANHA ATIVA"
-    >
-      <div className="grid-12 grid-12-page" style={{ paddingTop: 0, marginTop: 0 }}>
-
-        {/* Page header */}
-        <div
-          className="col-span-12"
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 12,
-            padding: '24px 0 18px',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <div>
-            <h1
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 22,
-                fontWeight: 700,
-                color: 'var(--foreground)',
-                letterSpacing: '0.05em',
-                marginBottom: 4,
-                lineHeight: 1.1,
-              }}
-            >
-              Painel do Mestre
-            </h1>
-            <p
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontStyle: 'italic',
-                fontSize: 12,
-                color: 'var(--muted-foreground)',
-              }}
-            >
-              Visão geral dos aventureiros e do estado da campanha
-            </p>
-          </div>
-
-          {session && (
-            <span
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 7.5,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--chart-2)',
-                background: 'var(--chart-2)',
-                border: '1px solid var(--chart-2)',
-                padding: '4px 12px',
-                borderRadius: 1,
-                alignSelf: 'flex-start',
-                marginTop: 4,
-              }}
-            >
-              ✦ Sessão Ativa
-            </span>
-          )}
+      headerCenter={isMobile ? undefined : (
+        <div className="flex items-center gap-6">
+          <span aria-hidden className="font-heading hidden text-[18px] leading-none text-[var(--foreground)] xl:inline">
+            Painel do Mestre
+          </span>
+          {tabs}
         </div>
-
-        {/* Tabs */}
-        <Tabs
-          value={tab}
-          onValueChange={value => setTab(value as Tab)}
-          className="col-span-12 border-b border-[var(--border)]"
-        >
-          <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
-            {([
-              { value: 'session', label: 'Sessão' },
-              { value: 'scenes', label: 'Preparo' },
-              { value: 'npcs', label: 'NPCs & Monstros' },
-            ] as const).map(t => (
-              <TabsTrigger
-                key={t.value}
-                value={t.value}
-                className={cn(
-                  'tactile font-heading text-muted-foreground min-h-11 flex-none border-b-2 border-transparent',
-                  'px-4.5 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
-                  'data-active:border-b-[var(--primary)] data-active:bg-[var(--input)]',
-                  'data-active:text-[var(--foreground)]',
-                )}
-              >
-                {t.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      )}
+    >
+      <div className={cn('gm-page', atTable && 'gm-page--screen')}>
+        {isMobile ? (
+          <div className="mb-4 flex shrink-0 flex-col gap-1 border-b border-[var(--border)] pt-2">
+            <h1 className="font-heading text-[24px] leading-none text-[var(--foreground)]">Painel do Mestre</h1>
+            <div className="-mx-4 overflow-x-auto px-4">{tabs}</div>
+          </div>
+        ) : (
+          <h1 className="sr-only">Painel do Mestre</h1>
+        )}
 
         {/* Tab: Session */}
         {tab === 'session' && (
-          <div className="col-span-12 flex flex-col gap-4">
-            {/* O recap fica de pé depois de a mesa se despedir: é o que o
-                Mestre lê para abrir a próxima sessão (§5.11). */}
-            {recap && (
-              <SessionRecap
-                sessionId={recap.id}
-                sessionName={recap.name}
-                events={recap.events}
-                onClose={() => setRecap(null)}
-              />
-            )}
-            {!session ? (
-              <div
-                className="worn-border card-surface animate-mist-rise"
-                style={{ padding: '24px 28px', maxWidth: 480 }}
-              >
-                <h2
-                  style={{
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: 'var(--foreground)',
-                    letterSpacing: '0.05em',
-                    marginBottom: 6,
-                  }}
-                >
-                  Iniciar Nova Sessão
-                </h2>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontStyle: 'italic',
-                    fontSize: 12,
-                    color: 'var(--muted-foreground)',
-                    marginBottom: 18,
-                    lineHeight: 1.65,
-                  }}
-                >
-                  Registrai o título desta sessão nos anais do arquivo antes de invocar os aventureiros.
-                </p>
+          session ? (
+            <SessionPanel
+              session={session}
+              gmName={gmName}
+              gmId={gmId}
+              onSessionChange={setSession}
+              onRoll={handleGmRoll}
+              onEnd={() => void endSession()}
+              ending={ending}
+              aside={lastRecap}
+            />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {lastRecap}
+              <div className="animate-mist-rise flex max-w-[480px] flex-col gap-4 border border-[var(--border)] bg-[var(--card)] p-6">
+                <div className="flex flex-col gap-1.5">
+                  <h2 className="font-heading text-[18px] leading-tight text-[var(--foreground)]">
+                    Iniciar nova sessão
+                  </h2>
+                  <p className="font-body text-[13px] leading-relaxed text-[var(--muted-foreground)] italic">
+                    Registrai o título desta sessão nos anais do arquivo antes de invocar os aventureiros.
+                  </p>
+                </div>
 
                 <Input
                   type="text"
@@ -445,111 +397,24 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   onKeyDown={e => e.key === 'Enter' && createSession()}
                   placeholder="Nome da sessão..."
                   aria-label="Nome da sessão"
-                  className="mb-3.5 h-auto rounded-[1px] border-[var(--border)] bg-[var(--background)] px-3 py-2.5 text-[13px] text-[var(--foreground)] italic shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] transition-[border-color] duration-[var(--duration-base)] ease-[var(--ease-ritual)]"
-                />
-
-                <div
-                  style={{
-                    borderTop: '1px solid var(--border)',
-                    marginBottom: 14,
-                  }}
+                  className="h-11 text-[14px]"
                 />
 
                 <Button
                   onClick={createSession}
                   disabled={creating || !sessionName.trim()}
-                  variant="outline"
-                  className={cn(
-                    'h-auto rounded-[1px] px-5.5 py-2.5 text-[10px] font-semibold tracking-[0.14em]',
-                    'text-[var(--foreground)] transition-all duration-[var(--duration-base)] ease-[var(--ease-ritual)]',
-                    creating
-                      ? 'border-[var(--border)] bg-[var(--card)]'
-                      : 'border-[var(--destructive)] bg-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.5)]',
-                  )}
+                  className="h-11 self-start px-5 text-[11px] tracking-[0.12em]"
                 >
-                  {creating ? <><Spinner /> Registrando…</> : '⚔ Iniciar Sessão'}
+                  {creating ? <><Spinner /> Registrando…</> : 'Iniciar sessão'}
                 </Button>
               </div>
-            ) : (
-              <div className="dd animate-ink-spread">
-                <div
-                  className="worn-border"
-                  style={{
-                    background: 'var(--card)',
-                    border: '1px solid var(--border)',
-                    padding: '12px 18px',
-                    marginBottom: 16,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      background: 'var(--chart-2)',
-                      boxShadow: '0 0 6px var(--chart-2)',
-                      flexShrink: 0,
-                    }}
-                  />
-                  <h2
-                    style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: 16,
-                      fontWeight: 700,
-                      color: 'var(--foreground)',
-                      letterSpacing: '0.04em',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {session.name}
-                  </h2>
-
-                  {/* O código é a porta da mesa: é ele que o Mestre lê em voz
-                      alta, e cada jogador digita na própria ficha. */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={copyCode}
-                    title="Copiar o código da sessão"
-                    className="font-mono ml-auto h-9 min-h-9 shrink-0 gap-2 rounded-[1px] border-[var(--primary)] px-3"
-                  >
-                    <span className="font-heading text-[7.5px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
-                      {copied ? 'Copiado' : 'Código'}
-                    </span>
-                    <span className="text-[15px] tracking-[0.3em] text-[var(--foreground)]">
-                      {session.code}
-                    </span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={endSession}
-                    disabled={ending}
-                    className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] border-[var(--destructive)] px-3 text-[8.5px] tracking-[0.14em] text-[var(--destructive)] uppercase"
-                  >
-                    {ending ? 'Encerrando…' : 'Encerrar'}
-                  </Button>
-                </div>
-
-                <SessionPanel
-                  session={session}
-                  gmName={gmName}
-                  gmId={gmId}
-                  onSessionChange={setSession}
-                  onRoll={handleGmRoll}
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          )
         )}
 
         {/* Tab: Preparo (§6.11) */}
         {tab === 'scenes' && (
-          <div className="animate-ink-spread col-span-12">
+          <div className="animate-ink-spread">
             <ScenesPanel
               gmId={gmId}
               gmName={gmName}
@@ -561,7 +426,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
 
         {/* Tab: NPCs */}
         {tab === 'npcs' && (
-          <div className="animate-ink-spread col-span-12">
+          <div className="animate-ink-spread">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
@@ -675,7 +540,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       {importing && (
         <BestiaryImportModal onImport={importNPCs} onClose={() => setImporting(false)} />
       )}
-      <DiceRoller onRoll={handleGmRoll} floating />
+      {/* À mesa, o d20 mora no chão do bloco de ações; nas outras abas, flutua. */}
+      {!atTable && <DiceRoller onRoll={handleGmRoll} floating />}
       <RollToasts rolls={gmRolls} />
       <LiveAnnouncer message={gmRolls[0] ? describeRoll(gmRolls[0]) : null} id={gmRolls[0]?.id} />
     </AppShell>

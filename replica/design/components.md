@@ -183,6 +183,21 @@ Headings  (OrnateTitle, SectionHeading)
 ```
 
 ```
+GM table  (SessionPanel + src/components/gm/table/*, the .gm-* rules in globals.css)
+  layout    one screen, like the sheet: the table bar and the initiative board on top,
+            then stage | actions | log (≥1360px), stage over log | actions (1024-1359px).
+            Under 1024px the page scrolls, with the board sticky under the top bar and the
+            actions sticky at the foot, so both stay in view. Tabs ride AppShell's middle lane.
+  look      no theme of its own: card fill with the border rule, square corners, Bricolage
+            and Libre Franklin. Command tiles are the TabRail squares with a label (input
+            fill, input-border edge, the sidebar-primary red for the turn action). Figures
+            reuse the vitals' AC badge and HP bar; the light meter is TorchStatus; the
+            actions floor holds the docked d20, like the sheet's dock.
+  icons     Hugeicons
+  used on   S11
+```
+
+```
 shadcn primitives not listed above (~40 in src/components/ui)
   accordion, alert, avatar, breadcrumb, checkbox, collapsible, combobox, field, hover-card,
   item, kbd, menubar, pagination, progress, radio-group, scroll-area, select, separator,

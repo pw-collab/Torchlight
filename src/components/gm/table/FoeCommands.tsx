@@ -10,11 +10,15 @@ import { npcKey } from '@/lib/turns'
 import { RollableText } from '@/components/shared/RollableText'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
+import {
+  DiceIcon, Flag01Icon, HeartPulseIcon, MagicWand01Icon, NextIcon, PencilEdit01Icon, PlayIcon,
+  RunningShoesIcon, StopIcon, Sword01Icon, UserRemove01Icon,
+} from '@hugeicons/core-free-icons'
 import { Input } from '@/components/ui/input'
 import { AmountPad } from './AmountPad'
 import { ConditionGrid } from './ConditionGrid'
 import type { TableController } from './controller'
-import { CommandGrid, CommandTile, FIELD, LABEL, SubView, parseAmount } from './ui'
+import { CommandGrid, CommandTile, FIELD, LABEL, SUBMIT, SubView, parseAmount } from './ui'
 import { cn } from '@/lib/utils'
 
 type View = 'menu' | 'abilities' | 'check' | 'hp' | 'conditions' | 'edit'
@@ -68,8 +72,8 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
       <SubView title={`Vida · ${hp}/${max}`} onBack={back}>
         <AmountPad
           actions={[
-            { label: '🗡 Dano', tone: 'danger', onApply: n => void ctl.enc.damageActor(actor, n) },
-            { label: '✚ Cura', tone: 'heal', onApply: n => void ctl.enc.healActor(actor, n) },
+            { label: 'Dano', tone: 'danger', onApply: n => void ctl.enc.damageActor(actor, n) },
+            { label: 'Cura', tone: 'heal', onApply: n => void ctl.enc.healActor(actor, n) },
           ]}
         />
       </SubView>
@@ -104,33 +108,33 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
   const idle = actor.defeated
     ? `${actor.name} caiu. Cura o põe de pé de novo; Tirar da trilha o remove do combate.`
     : myTurn
-      ? `${actor.name} está agindo: ataque, habilidade ou teste. Depois, ■ Encerrar a vez (atalho N).`
+      ? `${actor.name} está agindo: ataque, habilidade ou teste. Depois, Encerrar a vez (atalho N).`
       : `Comandos para ${actor.name}. Passe o mouse para ver o que cada um faz.`
 
   return (
     <CommandGrid idle={idle}>
       {status === 'acting' && (
         <CommandTile
-          icon="■"
+          icon={StopIcon}
           label="Encerrar a vez"
           hint={`${actor.name} terminou`}
-          tone="gold"
+          tone="primary"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.finish(key)}
         />
       )}
       {status === 'ready' && (
         <CommandTile
-          icon="▶"
+          icon={PlayIcon}
           label="Agir agora"
           hint="Assume a vez dos inimigos"
-          tone="gold"
+          tone="primary"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.claim(key)}
         />
       )}
       <CommandTile
-        icon="⚔"
+        icon={Sword01Icon}
         label="Atacar"
         hint={`${signed(bonus)} · ${actor.damageDie ?? '1d6'}: clique no alvo`}
         tone="danger"
@@ -139,40 +143,39 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
         onClick={() => ctl.beginTargeting({ kind: 'attack', attackerId: actor.id, mode: 'normal' })}
       />
       <CommandTile
-        icon="✨"
+        icon={MagicWand01Icon}
         label="Habilidades"
         hint={sheet ? `${sheet.features.length} no statblock, com dados clicáveis` : 'Sem ficha no bestiário'}
         onClick={() => setView('abilities')}
         disabled={!sheet}
       />
-      <CommandTile icon="🎲" label="Teste" hint="Atributo do monstro contra um DC" onClick={() => setView('check')} />
-      <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${hp}/${max}`} tone="danger" onClick={() => setView('hp')} />
+      <CommandTile icon={DiceIcon} label="Teste" hint="Atributo do monstro contra um DC" onClick={() => setView('check')} />
+      <CommandTile icon={HeartPulseIcon} label="Dano / Cura" hint={`PV ${hp}/${max}`} tone="danger" onClick={() => setView('hp')} />
       <CommandTile
-        icon="⚑"
+        icon={Flag01Icon}
         label="Condições"
         hint={actor.conditions.length > 0 ? actor.conditions.map(c => c.label).join(', ') : 'Nenhuma em vigor'}
         onClick={() => setView('conditions')}
       />
       <CommandTile
-        icon="🏳"
+        icon={RunningShoesIcon}
         label={isFleeing(actor) ? 'Voltar à luta' : 'Fugir'}
         hint={isFleeing(actor) ? 'Recobra a coragem' : 'Sai da briga'}
-        tone="gold"
         disabled={actor.defeated}
         onClick={() => void ctl.enc.toggleActorCondition(actor, { id: FLEEING.id, label: FLEEING.label })}
       />
       {(status === 'ready' || status === 'waiting') && !rolling && (
         <CommandTile
-          icon="⏭"
+          icon={NextIcon}
           label="Pular a vez"
           hint="Não age nesta rodada"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.finish(key)}
         />
       )}
-      <CommandTile icon="✎" label="Editar" hint={`PV, CA (${actor.ac ?? 10}), ataque, dano`} onClick={() => setView('edit')} />
+      <CommandTile icon={PencilEdit01Icon} label="Editar" hint={`PV, CA (${actor.ac ?? 10}), ataque, dano`} onClick={() => setView('edit')} />
       <CommandTile
-        icon="✕"
+        icon={UserRemove01Icon}
         label="Tirar da trilha"
         hint="Some do combate"
         onClick={() => {
@@ -271,10 +274,10 @@ function StatCheck({ actor, sheet, onRoll }: { actor: EncounterActor; sheet?: NP
                 variant="outline"
                 render={<span />}
                 nativeButton={false}
-                className="flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-[1px]"
+                className="flex h-14 w-full flex-col items-center justify-center gap-0.5"
               >
                 <span className="font-[var(--font-numeral)] text-lg text-[var(--foreground)]">{signed(mod)}</span>
-                <span className="font-heading text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
+                <span className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
               </Button>
             </RollModeMenu>
           )
@@ -337,12 +340,7 @@ function ActorEdit({ actor, onSave }: { actor: EncounterActor; onSave: (patch: R
         {field('ATK', atk, setAtk, 'w-16', /[^0-9+-]/g)}
         {field('Dano', dmg, setDmg, 'w-20', /[^0-9dD+-]/g)}
       </div>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={save}
-        className="font-heading h-10 min-h-10 rounded-[1px] border-[var(--primary)] text-[10px] font-bold tracking-[0.14em] uppercase"
-      >
+      <Button type="button" onClick={save} className={SUBMIT}>
         Salvar
       </Button>
     </div>

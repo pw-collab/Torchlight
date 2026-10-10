@@ -13,6 +13,10 @@ import { PromptComposer } from '@/components/gm/PromptComposer'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { Spells } from '@/components/sheet/Spells'
 import { Button } from '@/components/ui/button'
+import {
+  Award01Icon, CloverIcon, FirstAidKitIcon, Flag01Icon, HeartPulseIcon, HelpCircleIcon, MoneyBag02Icon,
+  Moon02Icon, NextIcon, Note01Icon, PlayIcon, SkullIcon, StopIcon, UserAdd01Icon,
+} from '@hugeicons/core-free-icons'
 import { AmountPad } from './AmountPad'
 import { ConditionGrid } from './ConditionGrid'
 import { TreasureForm } from './TreasureForm'
@@ -54,8 +58,8 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
       <SubView title={`Vida · ${c.hpCurrent}/${c.hpMax}`} onBack={back}>
         <AmountPad
           actions={[
-            { label: '🗡 Dano', tone: 'danger', onApply: n => act({ type: 'hp', delta: -n }) },
-            { label: '✚ Cura', tone: 'heal', onApply: n => act({ type: 'hp', delta: n }) },
+            { label: 'Dano', tone: 'danger', onApply: n => act({ type: 'hp', delta: -n }) },
+            { label: 'Cura', tone: 'heal', onApply: n => act({ type: 'hp', delta: n }) },
           ]}
         />
       </SubView>
@@ -71,7 +75,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
             variant="outline"
             disabled={busy || c.luckTokens <= 0}
             onClick={() => act({ type: 'luck', delta: -1 })}
-            className="font-heading h-12 w-16 rounded-[1px] text-xl text-[var(--chart-1)] disabled:opacity-30"
+            className="h-12 w-16 text-xl text-[var(--chart-1)] disabled:opacity-30"
             aria-label="Gastar um token de Fortuna"
           >
             −
@@ -84,7 +88,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
             variant="outline"
             disabled={busy}
             onClick={() => act({ type: 'luck', delta: 1 })}
-            className="font-heading h-12 w-16 rounded-[1px] text-xl text-[var(--chart-1)]"
+            className="h-12 w-16 text-xl text-[var(--chart-1)]"
             aria-label="Conceder um token de Fortuna"
           >
             +
@@ -102,7 +106,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
       <SubView title={`Experiência · ${c.xp} XP`} onBack={back}>
         <AmountPad
           presets={[1, 2, 3, 5, 10]}
-          actions={[{ label: '△ Dar XP', tone: 'primary', onApply: n => act({ type: 'xp', delta: n }) }]}
+          actions={[{ label: 'Dar XP', tone: 'primary', onApply: n => act({ type: 'xp', delta: n }) }]}
         />
       </SubView>
     )
@@ -150,13 +154,13 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
         <div className="flex items-center gap-3">
           <Link
             href={`/sheet/${c.id}`}
-            className="font-heading text-[9px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
+            className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
           >
             Abrir ficha
           </Link>
           <Link
             href={`/sheet/${c.id}/edit`}
-            className="font-heading text-[9px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
+            className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
           >
             Editar
           </Link>
@@ -170,7 +174,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
   const idle = mortal === 'dying' && rounds !== null
     ? `${c.name} está à beira da morte: ${roundsLabel(rounds)}. Na vez dele, um d20; só o 20 natural levanta.`
     : myTurn
-      ? `${c.name} está agindo. O dano que ele rolar aparece no palco esperando o alvo; ■ Encerrar a vez quando ele terminar.`
+      ? `${c.name} está agindo. O dano que ele rolar aparece no palco esperando o alvo; Encerrar a vez quando ele terminar.`
       : !ration
         ? `${c.name} está sem rações: não recupera nada ao acampar.`
         : `Comandos para ${c.name}. Passe o mouse para ver o que cada um faz.`
@@ -180,7 +184,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
       {mortal === 'dying' && rounds !== null && (
         <>
           <CommandTile
-            icon="🎲"
+            icon={SkullIcon}
             label="Contra a morte"
             hint="d20: só o 20 natural levanta. Para quem está fora do app."
             tone="danger"
@@ -189,10 +193,9 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
             onClick={() => act({ type: 'death-roll' })}
           />
           <CommandTile
-            icon="✚"
+            icon={FirstAidKitIcon}
             label="Estabilizar"
             hint={`Um aliado passou no INT DC ${STABILIZE_DC}: o relógio da morte para`}
-            tone="heal"
             disabled={busy}
             onClick={() => act({ type: 'stabilize' })}
           />
@@ -200,51 +203,50 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
       )}
       {status === 'acting' && (
         <CommandTile
-          icon="■"
+          icon={StopIcon}
           label="Encerrar a vez"
           hint={`${c.name} terminou o que ia fazer`}
-          tone="gold"
-          highlight
+          tone="primary"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.finish(key)}
         />
       )}
       {status === 'ready' && (
         <CommandTile
-          icon="▶"
+          icon={PlayIcon}
           label="Assumir a vez"
           hint="Por quem está sem a ficha aberta"
-          tone="gold"
+          tone="primary"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.claim(key)}
         />
       )}
       {(status === 'ready' || status === 'waiting') && !rolling && (
         <CommandTile
-          icon="⏭"
+          icon={NextIcon}
           label="Pular a vez"
           hint="Não age nesta rodada"
           disabled={ctl.enc.busy}
           onClick={() => void ctl.enc.finish(key)}
         />
       )}
-      <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${c.hpCurrent}/${c.hpMax}`} tone="danger" onClick={() => setView('hp')} disabled={busy} />
-      <CommandTile icon="⚑" label="Condições" hint={c.conditions.length > 0 ? `${c.conditions.length} em vigor` : 'Nenhuma em vigor'} onClick={() => setView('conditions')} disabled={busy} />
-      <CommandTile icon="❔" label="Pedir teste" hint="Atributo e DC, para este personagem" onClick={() => setView('prompt')} />
+      <CommandTile icon={HeartPulseIcon} label="Dano / Cura" hint={`PV ${c.hpCurrent}/${c.hpMax}`} tone="danger" onClick={() => setView('hp')} disabled={busy} />
+      <CommandTile icon={Flag01Icon} label="Condições" hint={c.conditions.length > 0 ? `${c.conditions.length} em vigor` : 'Nenhuma em vigor'} onClick={() => setView('conditions')} disabled={busy} />
+      <CommandTile icon={HelpCircleIcon} label="Pedir teste" hint="Atributo e DC, para este personagem" onClick={() => setView('prompt')} />
       {encounter && !actor && (
-        <CommandTile icon="🧍" label="Pôr na trilha" hint="Entrou depois do combate" tone="gold" onClick={() => void ctl.enc.seatPc(seat)} />
+        <CommandTile icon={UserAdd01Icon} label="Pôr na trilha" hint="Entrou depois do combate" onClick={() => void ctl.enc.seatPc(seat)} />
       )}
-      <CommandTile icon="✦" label="Fortuna" hint={`${c.luckTokens} token${c.luckTokens === 1 ? '' : 's'}: dar ou gastar`} tone="gold" onClick={() => setView('luck')} disabled={busy} />
-      <CommandTile icon="△" label="XP" hint={`${c.xp} XP: dar qualquer valor`} onClick={() => setView('xp')} disabled={busy} />
-      <CommandTile icon="💰" label="Tesouro" hint="Moedas, item e o XP do achado" tone="gold" onClick={() => setView('treasure')} disabled={busy} />
+      <CommandTile icon={CloverIcon} label="Fortuna" hint={`${c.luckTokens} token${c.luckTokens === 1 ? '' : 's'}: dar ou gastar`} onClick={() => setView('luck')} disabled={busy} />
+      <CommandTile icon={Award01Icon} label="XP" hint={`${c.xp} XP: dar qualquer valor`} onClick={() => setView('xp')} disabled={busy} />
+      <CommandTile icon={MoneyBag02Icon} label="Tesouro" hint="Moedas, item e o XP do achado" onClick={() => setView('treasure')} disabled={busy} />
       <CommandTile
-        icon="🌑"
+        icon={Moon02Icon}
         label="Apagar luz"
         hint={light ? `Uma rajada apaga: ${light.name}` : 'Sem luz acesa'}
         onClick={() => act({ type: 'snuff' })}
         disabled={busy || !light}
       />
-      <CommandTile icon="📋" label="Ficha" hint={lost.length > 0 ? `Atributos e magias: ${lost.length} perdida(s)` : 'Atributos e magias'} onClick={() => setView('sheet')} />
+      <CommandTile icon={Note01Icon} label="Ficha" hint={lost.length > 0 ? `Atributos e magias: ${lost.length} perdida(s)` : 'Atributos e magias'} onClick={() => setView('sheet')} />
     </CommandGrid>
   )
 }
