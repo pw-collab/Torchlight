@@ -210,7 +210,8 @@ function SpellCard({
   onRoll?: (r: RollResult) => void
   onForget?: () => void
   onFail: () => void
-  onRecover: () => void
+  /** Ausente numa leitura de fora (o painel do Mestre): só o dono recupera. */
+  onRecover?: () => void
 }) {
   const color = isFailed ? SPELL_STYLE.failed : SPELL_STYLE.normal
 
@@ -236,7 +237,7 @@ function SpellCard({
   const castable = spell && onRoll && stats && !isFailed
   // A read-only grimoire (no roller, nothing to forget with) has no actions at
   // all — and an empty popover under the card would be worse than none.
-  const hasActions = Boolean(castable || isFailed || onForget)
+  const hasActions = Boolean(castable || (isFailed && onRecover) || onForget)
 
   return (
     <GlyphCard
@@ -263,7 +264,7 @@ function SpellCard({
               </Button>
             </RollModeMenu>
           )}
-          {isFailed && (
+          {isFailed && onRecover && (
             <Button
               onClick={onRecover}
               variant="hollow"
@@ -323,16 +324,32 @@ interface Props {
   onUpdate?: (patch: { spellcastingBonus?: number; castingAttr?: string }) => void
   onRoll?: (result: RollResult) => void
   onSpellsChange?: (spells: string[]) => void
+  /**
+   * As magias perdidas, guardadas na ficha (ver `lib/rest`). Uma conjuração
+   * que falha perde a magia até o próximo descanso — e isso tem de sobreviver
+   * ao refresh. Sem esta prop o grimório lembra só enquanto estiver aberto.
+   */
+  lostSpells?: string[]
+  onLostSpellsChange?: (ids: string[]) => void
 }
 
 export function Spells({
   classId, equippedSpells,
   spellcastingBonus = 0, castingAttr = 'int',
   stats, onUpdate, onRoll, onSpellsChange,
+  lostSpells, onLostSpellsChange,
 }: Props) {
   const available  = getSpellsForClass(classId)
   const [showPicker,   setShowPicker]   = useState(false)
-  const [failedSpells, setFailedSpells] = useState<string[]>([])
+  const [localFailed,  setLocalFailed]  = useState<string[]>([])
+  const failedSpells = lostSpells ?? localFailed
+  // Lida de fora sem quem a escreva, a lista é só leitura.
+  const canEditFailed = Boolean(onLostSpellsChange) || lostSpells === undefined
+
+  function setFailed(next: string[]) {
+    if (onLostSpellsChange) onLostSpellsChange(next)
+    else if (lostSpells === undefined) setLocalFailed(next)
+  }
 
   function learnSpell(id: string) {
     if (!onSpellsChange || equippedSpells.includes(id)) return
@@ -421,8 +438,8 @@ export function Spells({
               stats={stats}
               onRoll={onRoll}
               onForget={onSpellsChange ? () => forgetSpell(id) : undefined}
-              onFail={() => setFailedSpells(fs => [...fs, id])}
-              onRecover={() => setFailedSpells(fs => fs.filter(s => s !== id))}
+              onFail={() => { if (!failedSpells.includes(id)) setFailed([...failedSpells, id]) }}
+              onRecover={canEditFailed ? () => setFailed(failedSpells.filter(s => s !== id)) : undefined}
             />
           )
         })

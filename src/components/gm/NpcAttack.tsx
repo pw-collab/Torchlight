@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Character } from '@/types/character.types'
-import { rollFormula, rollWithMode, withDc } from '@/lib/dice'
+import { doubledDice, rollFormula, rollWithMode, withDc } from '@/lib/dice'
 import type { RollMode } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
@@ -64,7 +64,9 @@ export function NpcAttack({ attacker, bonus, damage, targets, onResolved, onAppl
     const settled = withDc(rolled, against.ac)
     const hit = settled.success === true
 
-    const rolledDamage = hit && dmg.trim() ? rollFormula(dmg.trim(), 'Dano', attacker).total : null
+    // Crítico dobra os dados de dano, para o monstro como para o jogador.
+    const formula = settled.isCritical ? doubledDice(dmg.trim()) : dmg.trim()
+    const rolledDamage = hit && formula ? rollFormula(formula, 'Dano', attacker).total : null
 
     setResult({
       targetId: against.id,

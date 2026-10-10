@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ActiveCondition } from '@/types/character.types'
-import { CONDITIONS } from '@/data/conditions'
+import { PICKABLE_CONDITIONS } from '@/data/conditions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -63,7 +63,7 @@ export function ConditionPicker({ active, onToggle, disabled }: Props) {
 
         <div className="flex flex-col gap-2.5 p-3.5 pt-0">
           <div className="flex flex-wrap gap-1">
-            {CONDITIONS.map(condition => {
+            {PICKABLE_CONDITIONS.map(condition => {
               const on = activeIds.has(condition.id)
               return (
                 <Button

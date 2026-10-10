@@ -1,4 +1,5 @@
 import type { NPC } from '@/types/npc.types'
+import type { EncounterActor } from '@/types/encounter.types'
 import { attackBonusFrom, damageFrom } from '@/lib/npcAttack'
 
 /**
@@ -38,4 +39,30 @@ export function npcActorFields(npc: NPC): NpcActorFields {
     atk_bonus: attackBonusFrom(npc.atkDesc),
     damage_die: damageFrom(npc.atkDesc) ?? damageFrom(npc.weaponDesc),
   }
+}
+
+// ─── Moral ────────────────────────────────────────────────────────────────────
+
+/** O teste de moral de Shadowdark: SAB contra DC 15, e quem falha foge. */
+export const MORALE_DC = 15
+export const FLEEING_ID = 'fugindo'
+
+export function isFleeing(actor: EncounterActor): boolean {
+  return actor.conditions.some(c => c.id === FLEEING_ID)
+}
+
+/**
+ * Quando a regra pede o teste: o grupo perdeu metade dos seus, ou o monstro
+ * solitário perdeu metade da vida. O app só acende o botão — quem decide se
+ * mortos-vivos sem medo testam é o Mestre.
+ */
+export function moraleDue(actors: EncounterActor[]): boolean {
+  const npcs = actors.filter(a => a.source === 'npc')
+  if (npcs.length === 0) return false
+  if (npcs.length === 1) {
+    const solo = npcs[0]
+    return !solo.defeated && !isFleeing(solo) && (solo.hpMax ?? 0) > 0 && (solo.hpCurrent ?? 0) * 2 <= (solo.hpMax ?? 0)
+  }
+  const down = npcs.filter(a => a.defeated).length
+  return down > 0 && down * 2 >= npcs.length && npcs.some(a => !a.defeated && !isFleeing(a))
 }

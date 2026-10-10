@@ -378,6 +378,25 @@ html, body {
 .animate-flame      { animation: flameDance 1.6s ease-in-out infinite; display: inline-block; }
 .animate-torch-halo { animation: torchHalo 2.2s ease-in-out infinite; }
 
+/* Morrendo — the edges of the screen close in, slow as a failing pulse.
+   Painted over everything and clicked through, so the sheet stays usable. */
+@keyframes deathPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.95; }
+}
+.death-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, color-mix(in oklch, var(--destructive), transparent 55%) 100%);
+  animation: deathPulse 1.8s ease-in-out infinite;
+}
+.death-vignette[data-state="dead"] {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+  animation: none;
+}
+
 /* Staggered list/grid entry — inkSpread with per-item delay (set inline).
    Uses `backwards` (not `both`) so the final transform is released,
    leaving :hover transforms (e.g. .card-lift) free to apply afterwards. */

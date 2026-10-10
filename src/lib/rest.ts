@@ -1,4 +1,5 @@
 import type { InventoryItem } from '@/types/inventory.types'
+import type { TechniqueState } from '@/types/technique.types'
 
 /** Sem acentos e em minúsculas: o jogador escreve "Rações", "racao", "Ração seca". */
 function fold(text: string): string {
@@ -32,4 +33,34 @@ export function consumeRation(inventory: InventoryItem[], rationId: string): Inv
     const left = item.quantity - 1
     return left > 0 ? [{ ...item, quantity: left }] : []
   })
+}
+
+// ─── O que o descanso devolve além da vida ────────────────────────────────────
+
+/**
+ * Onde a ficha guarda as magias perdidas: uma entrada a mais em
+ * `technique_states`, com o mesmo `expendedAbilities` que as técnicas de
+ * classe já usam para "tentou, falhou, só volta depois de descansar". Sem
+ * coluna nova — e o grimório deixa de esquecer a falha a cada refresh.
+ */
+export const GRIMOIRE_STATE_ID = 'grimoire'
+
+export function lostSpells(states: TechniqueState[]): string[] {
+  return states.find(s => s.id === GRIMOIRE_STATE_ID)?.expendedAbilities ?? []
+}
+
+export function withLostSpells(states: TechniqueState[], ids: string[]): TechniqueState[] {
+  const entry: TechniqueState = { id: GRIMOIRE_STATE_ID, expendedAbilities: ids }
+  return states.some(s => s.id === GRIMOIRE_STATE_ID)
+    ? states.map(s => (s.id === GRIMOIRE_STATE_ID ? { ...s, ...entry } : s))
+    : [...states, entry]
+}
+
+/**
+ * Oito horas de sono e uma ração: as magias perdidas voltam, as técnicas
+ * recarregam os usos e as habilidades gastas voltam a funcionar. O que o
+ * jogador escolheu (a arma do Mestre de Armas, o atributo) fica como estava.
+ */
+export function restoredStates(states: TechniqueState[]): TechniqueState[] {
+  return states.map(s => ({ ...s, usesRemaining: undefined, expendedAbilities: undefined }))
 }

@@ -2,7 +2,7 @@
 
 import type { RollResult } from '@/lib/dice'
 import { useNow } from '@/hooks/useNow'
-import { RollCard, ROLL_FRESH_MS, rollTone } from '@/components/sheet/RollCard'
+import { RollCard, ROLL_FRESH_MS, offersDamage, rollTone } from '@/components/sheet/RollCard'
 
 interface Props {
   /** Newest first, as the sheet keeps them. */
@@ -11,6 +11,10 @@ interface Props {
   fortuneLeft?: number
   /** Gasta um token e rola de novo (§5.2). */
   onSpendFortune?: (roll: RollResult) => void
+  /** Rola o dano que o ataque carrega. */
+  onRollDamage?: (attack: RollResult) => void
+  /** Os ataques cujo dano já foi rolado — a oferta some deles. */
+  damageRolled?: ReadonlySet<string>
 }
 
 /**
@@ -24,7 +28,7 @@ interface Props {
  * The newest roll carries the Fortuna offer for as long as it is fresh, the
  * same window the toast gives it.
  */
-export function RollHistory({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
+export function RollHistory({ rolls, fortuneLeft = 0, onSpendFortune, onRollDamage, damageRolled }: Props) {
   const now = useNow(1000)
 
   if (rolls.length === 0) {
@@ -44,6 +48,9 @@ export function RollHistory({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
         const canReroll =
           index === 0 && fortuneLeft > 0 && Boolean(onSpendFortune) && now - roll.timestamp < ROLL_FRESH_MS
         const tone = rollTone(roll)
+        // The dock keeps its history, so the damage stays on offer until it is
+        // rolled — the Mestre may take a while to say whether it hit.
+        const canDamage = Boolean(onRollDamage) && offersDamage(roll) && !damageRolled?.has(roll.id)
 
         return (
           <li
@@ -56,6 +63,7 @@ export function RollHistory({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
               compact
               fortuneLeft={fortuneLeft}
               onSpendFortune={canReroll ? () => onSpendFortune?.(roll) : undefined}
+              onRollDamage={canDamage ? () => onRollDamage?.(roll) : undefined}
             />
           </li>
         )

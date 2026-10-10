@@ -49,7 +49,10 @@ import { HandoutShelf } from '@/components/sheet/HandoutShelf'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
-import { consumeRation, findRation } from '@/lib/rest'
+import { DeathBanner } from '@/components/sheet/DeathBanner'
+import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, withoutMortal } from '@/lib/dying'
+import { consumeRation, findRation, lostSpells, restoredStates, withLostSpells } from '@/lib/rest'
+import { damageFollowUp } from '@/lib/attacks'
 import { coinSlots, maxSlots, usedSlots } from '@/lib/slots'
 import { STAT_LABELS, isStat } from '@/data/stats'
 import type {
@@ -94,6 +97,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
+  /** Os ataques cujo dano já foi rolado do próprio cartão. */
+  const [damageRolled, setDamageRolled] = useState<ReadonlySet<string>>(() => new Set())
   // A vista de longe (§5.12): a mesma ficha, só que legível do outro lado da mesa.
   const [tableMode, setTableMode] = useState(false)
   const isMobile = useIsMobile()
@@ -298,8 +303,42 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   async function handleHpChange(newHp: number) {
     const from = character!.hpCurrent
     if (newHp === from) return
-    await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
+    // Cair a 0 abre o relógio da morte; voltar a ter PV o fecha (ver lib/dying).
+    const shift = hpShift(character!.conditions, character!.stats.con, from, newHp, playerName)
+    const patch: Partial<CharacterRow> = { hp_current: newHp }
+    if (shift) patch.conditions = shift.conditions
+    await updateCharacter(patch)
     record('hp', { from, to: newHp, delta: newHp - from, by: 'player' })
+    if (shift) {
+      // O d4 do relógio cai na tela de quem caiu; para a mesa ele vai na nota
+      // da condição, numa linha só.
+      if (shift.timer) startRoll(shift.timer)
+      record('condition', { ...shift.event, by: 'player' })
+    }
+  }
+
+  /**
+   * A vez de quem está morrendo: um d20, e só o 20 natural salva. O resultado
+   * é escrito na hora, não quando o dado assenta — uma rolagem nova no meio da
+   * animação cancelaria o pouso, e o relógio da morte não pode se perder.
+   */
+  async function handleDeathRoll() {
+    if (!character) return
+    const rounds = dyingRounds(character.conditions)
+    if (rounds === null) return
+
+    const roll = rollAgainstDeath(rounds)
+    handleRoll(roll)
+
+    const out = afterDeathRoll(character.conditions, roll, playerName)
+    const patch: Partial<CharacterRow> = { conditions: out.conditions }
+    if (out.outcome === 'rise') patch.hp_current = 1
+    await updateCharacter(patch)
+
+    if (out.outcome === 'rise') {
+      record('hp', { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, by: 'player' })
+    }
+    if (out.event) record('condition', { ...out.event, by: 'player' })
   }
 
   async function handleLuckChange(newValue: number) {
@@ -316,7 +355,17 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   function handleFortuneReroll(original: RollResult) {
     if (!character || character.luckTokens <= 0) return
     void handleLuckChange(character.luckTokens - 1)
+    // O ataque que ficou para trás não oferece mais dano: quem vale é o novo.
+    if (original.damage) setDamageRolled(prev => new Set(prev).add(original.id))
     handleRoll(reroll(original))
+  }
+
+  /** O dano que o ataque carrega, rolado do cartão — dobrado num crítico. */
+  function handleRollDamage(attack: RollResult) {
+    const damage = damageFollowUp(attack)
+    if (!damage) return
+    setDamageRolled(prev => new Set(prev).add(attack.id))
+    handleRoll(damage)
   }
 
   /**
@@ -364,9 +413,19 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     const gain = ration ? Math.min(rolled.result, character.hpMax - character.hpCurrent) : 0
     const to = character.hpCurrent + gain
 
+    const shift = gain > 0
+      ? hpShift(character.conditions, character.stats.con, character.hpCurrent, to, playerName)
+      : null
+
+    // Com a ração, o sono devolve também o que a falha tirou: as magias
+    // perdidas e os usos das técnicas. Sem ela, nada volta — nem isso.
+    const spellsBack = ration ? lostSpells(character.techniqueStates).length : 0
+
     const patch: Partial<CharacterRow> = {}
     if (gain > 0) patch.hp_current = to
+    if (shift) patch.conditions = shift.conditions
     if (ration) (patch as any).equipment = consumeRation(character.inventory, ration.id)
+    if (ration) patch.technique_states = restoredStates(character.techniqueStates)
     if (Object.keys(patch).length > 0) await updateCharacter(patch)
 
     record('hp', {
@@ -377,8 +436,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       die,
       roll: rolled.result,
       ration: Boolean(ration),
+      ...(spellsBack > 0 && { spells: spellsBack }),
       by: 'player',
     })
+    if (shift) record('condition', { ...shift.event, by: 'player' })
   }
 
   /**
@@ -535,6 +596,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onRoll={handleRoll}
         onUpdate={handleSpellcastingUpdate}
         onSpellsChange={handleSpellsChange}
+        lostSpells={lostSpells(character.techniqueStates)}
+        onLostSpellsChange={ids => void handleTechniqueStatesChange(withLostSpells(character.techniqueStates, ids))}
       />
     ),
     backstory: <BackstoryView character={character} onUpdate={updateCharacter} />,
@@ -559,8 +622,17 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    * no desktop ela abre o card de baixo, acima das rolagens; no celular, o
    * topo da ficha.
    */
+  const visibleConditions = withoutMortal(character.conditions)
+  const myTurn = encounter != null && myActor != null && encounter.activeActorId === myActor.id
+
   const stateStrip = (
     <>
+      <DeathBanner
+        conditions={character.conditions}
+        myTurn={myTurn}
+        onDeathRoll={isOwner ? () => void handleDeathRoll() : undefined}
+        busy={rollPhase !== 'idle'}
+      />
       {encounter && (
         <TurnBanner
           encounter={encounter}
@@ -571,9 +643,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />
       <HandoutShelf handouts={handouts} onOpen={setReopened} />
-      {(character.conditions.length > 0 || isOwner) && (
+      {(visibleConditions.length > 0 || isOwner) && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <ConditionChips conditions={character.conditions} onRemove={handleConditionRemove} />
+          <ConditionChips conditions={visibleConditions} onRemove={handleConditionRemove} />
           {isOwner && (
             <Button
               type="button"
@@ -642,6 +714,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
               rolls={rollHistory}
               fortuneLeft={character.luckTokens}
               onSpendFortune={handleFortuneReroll}
+              onRollDamage={handleRollDamage}
+              damageRolled={damageRolled}
             />
             <div className="sheet-dock__actions">
               <AttacksMenu
@@ -715,6 +789,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           rolls={rollHistory}
           fortuneLeft={character.luckTokens}
           onSpendFortune={handleFortuneReroll}
+          onRollDamage={handleRollDamage}
+          damageRolled={damageRolled}
         />
       )}
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
