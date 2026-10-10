@@ -92,7 +92,7 @@ interface Props {
 }
 
 export function CharacterSheetClient({ characterId, playerName, isOwner }: Props) {
-  const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
+  const { character, loading, updateCharacter, savedAt, conflictAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   // A vista de longe (§5.12): a mesma ficha, só que legível do outro lado da mesa.
@@ -299,14 +299,14 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   async function handleHpChange(newHp: number) {
     const from = character!.hpCurrent
     if (newHp === from) return
-    await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>))) return
     record('hp', { from, to: newHp, delta: newHp - from, by: 'player' })
   }
 
   async function handleLuckChange(newValue: number) {
     const from = character!.luckTokens
     if (newValue === from) return
-    await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>))) return
     record('luck', { from, to: newValue, delta: newValue - from, by: 'player' })
   }
 
@@ -345,7 +345,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    */
   async function handleConditionRemove(condition: ActiveCondition) {
     const next = character!.conditions.filter(c => c.id !== condition.id)
-    await updateCharacter({ conditions: next } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ conditions: next } as Partial<CharacterRow>))) return
     record('condition', { action: 'removed', label: condition.label, by: 'player' })
   }
 
@@ -368,7 +368,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     const patch: Partial<CharacterRow> = {}
     if (gain > 0) patch.hp_current = to
     if (ration) (patch as any).equipment = consumeRation(character.inventory, ration.id)
-    if (Object.keys(patch).length > 0) await updateCharacter(patch)
+    // Only what was saved goes in the log: a save that lost to the GM's didn't happen.
+    if (Object.keys(patch).length > 0 && !(await updateCharacter(patch))) return
 
     record('hp', {
       from: character.hpCurrent,
@@ -738,18 +739,36 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         />
       )}
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
+      {/* A save that lost to the GM's: the sheet already shows what's there now. */}
+      <SaveSeal
+        savedAt={conflictAt}
+        isMobile={isMobile}
+        label="Ficha mudou ao mesmo tempo · confira"
+        border="var(--destructive)"
+        durationMs={4000}
+      />
+      <LiveAnnouncer
+        message={conflictAt ? 'A ficha foi mudada por outra pessoa ao mesmo tempo. Confira e refaça.' : null}
+        id={String(conflictAt)}
+      />
     </AppShell>
   )
 }
 
-function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean }) {
+function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--primary)', durationMs = 1800 }: {
+  savedAt: number
+  isMobile: boolean
+  label?: string
+  border?: string
+  durationMs?: number
+}) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     if (!savedAt) return
     setVisible(true)
-    const t = setTimeout(() => setVisible(false), 1800)
+    const t = setTimeout(() => setVisible(false), durationMs)
     return () => clearTimeout(t)
-  }, [savedAt])
+  }, [savedAt, durationMs])
 
   if (!visible) return null
   return (
@@ -769,14 +788,14 @@ function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean })
         textTransform: 'uppercase',
         color: 'var(--card-foreground)',
         background: 'var(--card)',
-        border: '1px solid var(--primary)',
+        border: `1px solid ${border}`,
         borderRadius: 2,
         padding: '6px 12px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
         pointerEvents: 'none',
       }}
     >
-      ✦ Selado
+      {label}
     </div>
   )
 }

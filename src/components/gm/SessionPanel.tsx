@@ -16,6 +16,7 @@ import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
 import { serverNow } from '@/lib/serverClock'
+import { changeCharacter, type CharacterChange } from '@/lib/characterWrite'
 import { DungeonClockBar } from './DungeonClockBar'
 import { EncounterPanel } from './EncounterPanel'
 import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
@@ -64,6 +65,18 @@ interface Undoable {
 }
 
 const UNDO_WINDOW_MS = 30_000
+
+/** What a GM action leaves to log, and the column an undo would reverse. */
+interface Logged {
+  event: { kind: SessionEventKind; payload: Record<string, unknown> }
+  undoField: UndoField | null
+}
+
+function undoValue(character: Character, field: UndoField): number {
+  if (field === 'hp_current') return character.hpCurrent
+  if (field === 'luck_tokens') return character.luckTokens
+  return character.xp
+}
 
 const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
   hp: 'vida',
@@ -186,93 +199,98 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
    * A escrita devolve a linha e o card é atualizado com ela, em vez de esperar
    * o Realtime dar a volta — senão o Mestre clica duas vezes achando que não
    * pegou.
+   *
+   * Each action is worked out from the character as it stands when the save
+   * lands, not from this card's copy: if the player saved in between, the
+   * change is computed again from their row (see `changeCharacter`), so
+   * neither side's edit is lost.
    */
   const act = useCallback(async (character: Character, action: GmAction) => {
     const supabase = createClient()
     const common = { sessionId, actorName: gmName, characterId: character.id }
     const named = { characterName: character.name, by: 'gm' as const }
+    const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
 
-    let patch: Record<string, unknown> | null = null
-    let event: { kind: SessionEventKind; payload: Record<string, unknown> } | null = null
-    /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
-    let undoField: UndoField | null = null
-
-    if (action.type === 'hp') {
-      const from = character.hpCurrent
-      const to = Math.max(0, Math.min(character.hpMax, from + action.delta))
-      if (to !== from) {
-        patch = { hp_current: to }
-        event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'hp_current'
+    const compute = (c: Character): CharacterChange<Logged> => {
+      if (action.type === 'hp') {
+        const from = c.hpCurrent
+        const to = Math.max(0, Math.min(c.hpMax, from + action.delta))
+        if (to === from) return null
+        return {
+          patch: { hp_current: to },
+          result: { event: { kind: 'hp', payload: { from, to, delta: to - from, ...named } }, undoField: 'hp_current' },
+        }
       }
-    } else if (action.type === 'luck') {
-      const from = character.luckTokens
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { luck_tokens: to }
-        event = { kind: 'luck', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'luck_tokens'
+      if (action.type === 'luck') {
+        const from = c.luckTokens
+        const to = Math.max(0, from + action.delta)
+        if (to === from) return null
+        return {
+          patch: { luck_tokens: to },
+          result: { event: { kind: 'luck', payload: { from, to, delta: to - from, ...named } }, undoField: 'luck_tokens' },
+        }
       }
-    } else if (action.type === 'xp') {
-      const from = character.xp
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { xp: to }
-        event = { kind: 'xp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'xp'
+      if (action.type === 'xp') {
+        const from = c.xp
+        const to = Math.max(0, from + action.delta)
+        if (to === from) return null
+        return {
+          patch: { xp: to },
+          result: { event: { kind: 'xp', payload: { from, to, delta: to - from, ...named } }, undoField: 'xp' },
+        }
       }
-    } else if (action.type === 'snuff') {
-      // The table's clock, as the player's sheet reads it: a torch put out
-      // here banks exactly the minutes the table was showing.
-      const now = tableNow({ pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }, serverNow())
-      const burning = brightest(character.inventory, now)
-      if (burning) {
-        const doused: InventoryItem[] = character.inventory.map(item => snuff(item, now))
-        patch = { equipment: doused }
-        event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
+      if (action.type === 'snuff') {
+        // The table's clock, as the player's sheet reads it: a torch put out
+        // here banks exactly the minutes the table was showing.
+        const now = tableNow(clock, serverNow())
+        const burning = brightest(c.inventory, now)
+        if (!burning) return null
+        const doused: InventoryItem[] = c.inventory.map(item => snuff(item, now))
+        return {
+          patch: { equipment: doused } as Partial<CharacterRow>,
+          result: { event: { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }, undoField: null },
+        }
       }
-    } else if (action.type === 'condition') {
       // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
       // é tirar.
-      const already = character.conditions.some(c => c.id === action.condition.id)
+      const already = c.conditions.some(cond => cond.id === action.condition.id)
       const next = already
-        ? character.conditions.filter(c => c.id !== action.condition.id)
-        : [...character.conditions, {
+        ? c.conditions.filter(cond => cond.id !== action.condition.id)
+        : [...c.conditions, {
             ...action.condition,
             appliedBy: gmName,
-            appliedAt: new Date().toISOString(),
+            appliedAt: new Date(serverNow()).toISOString(),
           }]
-      patch = { conditions: next }
-      event = {
-        kind: 'condition',
-        payload: {
-          action: already ? 'removed' : 'applied',
-          label: action.condition.label,
-          ...(action.condition.note && { note: action.condition.note }),
-          ...named,
+      return {
+        patch: { conditions: next },
+        result: {
+          event: {
+            kind: 'condition',
+            payload: {
+              action: already ? 'removed' : 'applied',
+              label: action.condition.label,
+              ...(action.condition.note && { note: action.condition.note }),
+              ...named,
+            },
+          },
+          undoField: null,
         },
       }
     }
 
-    if (!patch || !event) return
-
     setBusyId(character.id)
-    const { data, error } = await supabase
-      .from('characters')
-      .update(patch)
-      .eq('id', character.id)
-      .select()
-      .single()
+    const outcome = await changeCharacter(supabase, character, compute)
     setBusyId(null)
 
-    if (error) {
-      console.error('[SessionPanel] a ficha não aceitou a mudança', error)
+    if (!outcome.ok) {
+      if (outcome.reason !== 'unchanged') {
+        console.error('[SessionPanel] a ficha não aceitou a mudança', outcome.reason, outcome.error)
+      }
       return
     }
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+    const updated = outcome.character
+    setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
+    const { event, undoField } = outcome.result
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
 
     // O erro mais comum de qualquer VTT é aplicar dano no alvo errado ou
@@ -292,27 +310,35 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
   }, [sessionId, gmName, setSeats, offerUndo, session.pausedAt, session.shiftSeconds])
 
-  /** Escreve o valor anterior de volta e registra a correção. */
+  /**
+   * Takes back what the last action changed. It reverses the change rather
+   * than writing the old number back, so anything the player did since
+   * (healing, spending luck) survives the undo.
+   */
   const undo = useCallback(async () => {
     if (!undoable) return
     const supabase = createClient()
+    const seat = seats.find(s => s.character.id === undoable.characterId)
+    if (!seat) return
     setBusyId(undoable.characterId)
 
-    const { data } = await supabase
-      .from('characters')
-      .update({ [undoable.field]: undoable.previous })
-      .eq('id', undoable.characterId)
-      .select()
-      .single()
+    const reversal = undoable.previous - undoable.applied
+    const outcome = await changeCharacter(supabase, seat.character, c => {
+      const from = undoValue(c, undoable.field)
+      const to = undoable.field === 'hp_current'
+        ? Math.max(0, Math.min(c.hpMax, from + reversal))
+        : Math.max(0, from + reversal)
+      if (to === from) return null
+      return { patch: { [undoable.field]: to }, result: { from, to } }
+    })
 
     setBusyId(null)
     setUndoable(null)
     if (undoTimer.current) clearTimeout(undoTimer.current)
+    if (!outcome.ok) return
 
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+    const updated = outcome.character
+    setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
 
     void recordEvent({
       sessionId,
@@ -320,15 +346,15 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
       characterId: undoable.characterId,
       kind: undoable.kind,
       payload: {
-        from: undoable.applied,
-        to: undoable.previous,
-        delta: undoable.previous - undoable.applied,
+        from: outcome.result.from,
+        to: outcome.result.to,
+        delta: outcome.result.to - outcome.result.from,
         characterName: undoable.characterName,
         by: 'gm',
         undo: true,
       },
     })
-  }, [undoable, sessionId, gmName, setSeats])
+  }, [undoable, seats, sessionId, gmName, setSeats])
 
   /**
    * Revela à mesa uma rolagem que estava escondida (§6.7). O log é

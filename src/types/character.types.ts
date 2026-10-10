@@ -25,6 +25,8 @@ export interface ActiveCondition {
 
 export interface Character {
   id: string
+  /** Bumped by the database on every save (migration 021). Undefined before it. */
+  version?: number
   name: string
   classId: string
   /** Archetype id from the archetype catalog. Empty when none was chosen. */
@@ -164,6 +166,7 @@ function convertLegacyItem(leg: LegacyEquipItem): InventoryItem {
 
 export interface CharacterRow {
   id: string
+  version?: number
   user_id: string
   session_id: string
   name: string
@@ -219,6 +222,7 @@ export function rowToCharacter(row: CharacterRow): Character {
 
   return {
     id: row.id,
+    version: row.version,
     name: row.name,
     classId: row.class_id,
     archetypeId: row.archetype_id ?? '',
