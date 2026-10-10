@@ -65,7 +65,7 @@ function AttributeTile({ stat, score, onRoll }: {
         nativeButton={false}
         className={cn(
           'h-full min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
-          'border-input hover:border-ring bg-transparent',
+          'border-input-border hover:border-ring bg-transparent',
           onRoll ? 'cursor-pointer' : 'cursor-default',
         )}
       >
@@ -245,7 +245,7 @@ export function FloatingVitals({
               placeholder="−11"
               title="Quanto aplicar — Enter tira, +5 cura"
               aria-label="Quanto aplicar. Um número tira vida, com mais na frente cura, Enter aplica."
-              className="bg-secondary border-border text-secondary-foreground placeholder:text-muted-foreground/40 h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
+              className="bg-secondary border-border text-secondary-foreground placeholder:text-muted-foreground h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
             />
             <Button
               onClick={() => applyFromButton(1)}
@@ -415,7 +415,7 @@ export function FloatingVitals({
                 nativeButton={false}
                 className={cn(
                   'h-full w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
-                  'border-input hover:border-ring bg-transparent',
+                  'border-input-border hover:border-ring bg-transparent',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >

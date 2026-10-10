@@ -4,8 +4,8 @@ import { useState, type ReactNode } from 'react'
 import type { EncounterActor } from '@/types/encounter.types'
 import type { Seat } from '@/lib/gmActions'
 import { brightest, minutesLeft } from '@/lib/light'
-import { tableNow, type TableClock } from '@/lib/dungeonClock'
-import { useNow } from '@/hooks/useNow'
+import type { TableClock } from '@/lib/dungeonClock'
+import { useTableNow } from '@/hooks/useTableNow'
 import { dyingRounds, mortalState, withoutMortal } from '@/lib/dying'
 import { isFleeing } from '@/lib/encounterSetup'
 import { cn } from '@/lib/utils'
@@ -155,7 +155,7 @@ export function PartyFigure({
   onClick: () => void
 }) {
   const c = seat.character
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
   const light = brightest(c.inventory, now)
   const torch = light ? minutesLeft(light, now) : null
   const mortal = mortalState(c.conditions)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { discordIdOf } from '@/lib/discordId'
 
 /**
  * Quem abre sem estar na lista.
@@ -66,7 +67,9 @@ export async function proxy(request: NextRequest) {
 
   if (!user) return redirectTo('/login')
 
-  const discordId = user.user_metadata?.provider_id || user.user_metadata?.sub
+  // From the Discord identity the auth server recorded, not user_metadata,
+  // which the user can rewrite (BUG-004; see src/lib/discordId.ts).
+  const discordId = discordIdOf(user)
   if (!discordId) return redirectTo('/login?error=no_discord_id')
 
   const { data: allowed } = await supabase

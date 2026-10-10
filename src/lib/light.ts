@@ -22,7 +22,7 @@ export function fullMinutes(item: InventoryItem): number {
  * are read: a snapshot with no clock attached says nothing about elapsed time,
  * and the next light or snuff normalises the item.
  */
-export function minutesLeft(item: InventoryItem, now: number = Date.now()): number {
+export function minutesLeft(item: InventoryItem, now: number): number {
   const banked = Math.max(0, item.lightMinutesLeft ?? fullMinutes(item))
   if (!item.isLit || !item.litAt) return banked
 
@@ -36,7 +36,7 @@ export function minutesLeft(item: InventoryItem, now: number = Date.now()): numb
  * at the very moment `minutesLeft` does, so the display and the burn-out never
  * disagree about when the dark comes.
  */
-export function secondsLeft(item: InventoryItem, now: number = Date.now()): number {
+export function secondsLeft(item: InventoryItem, now: number): number {
   const banked = Math.max(0, item.lightMinutesLeft ?? fullMinutes(item)) * 60
   if (!item.isLit || !item.litAt) return banked
 
@@ -46,24 +46,24 @@ export function secondsLeft(item: InventoryItem, now: number = Date.now()): numb
 }
 
 /** Burning means equipped, lit, and with time still on it. */
-export function isBurning(item: InventoryItem, now: number = Date.now()): boolean {
+export function isBurning(item: InventoryItem, now: number): boolean {
   return Boolean(item.equipped && item.isLight && item.isLit) && minutesLeft(item, now) > 0
 }
 
 /** The burning source with the most time left — that's the party's light. */
-export function brightest(inventory: InventoryItem[], now: number = Date.now()): InventoryItem | null {
+export function brightest(inventory: InventoryItem[], now: number): InventoryItem | null {
   const lit = inventory.filter(i => isBurning(i, now))
   if (lit.length === 0) return null
   return lit.reduce((a, b) => (minutesLeft(b, now) > minutesLeft(a, now) ? b : a))
 }
 
 /** A carried source that still has time and could be lit right now. */
-export function spareSource(inventory: InventoryItem[], now: number = Date.now()): InventoryItem | undefined {
+export function spareSource(inventory: InventoryItem[], now: number): InventoryItem | undefined {
   return inventory.find(i => i.isLight && !isBurning(i, now) && minutesLeft(i, now) > 0)
 }
 
 /** Lights a source. One write, and the clock does the rest. */
-export function lightSource(item: InventoryItem, now: number = Date.now()): InventoryItem {
+export function lightSource(item: InventoryItem, now: number): InventoryItem {
   return {
     ...item,
     isLit: true,
@@ -73,7 +73,7 @@ export function lightSource(item: InventoryItem, now: number = Date.now()): Inve
 }
 
 /** Puts a source out, banking the minutes it still had. */
-export function extinguishSource(item: InventoryItem, now: number = Date.now()): InventoryItem {
+export function extinguishSource(item: InventoryItem, now: number): InventoryItem {
   return {
     ...item,
     isLit: false,
@@ -87,7 +87,7 @@ export function extinguishSource(item: InventoryItem, now: number = Date.now()):
  * through untouched. Stowing a torch has to stop its clock, and a sword must
  * not come back from this carrying light fields it never had.
  */
-export function snuff(item: InventoryItem, now: number = Date.now()): InventoryItem {
+export function snuff(item: InventoryItem, now: number): InventoryItem {
   if (!item.isLight || !item.isLit) return item
   return extinguishSource(item, now)
 }
@@ -99,7 +99,7 @@ export function snuff(item: InventoryItem, now: number = Date.now()): InventoryI
  */
 export function snuffBurnedOut(
   inventory: InventoryItem[],
-  now: number = Date.now(),
+  now: number,
 ): InventoryItem[] | null {
   const burnedOut = new Set(
     inventory.filter(i => i.isLight && i.isLit && minutesLeft(i, now) <= 0).map(i => i.id),

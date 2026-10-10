@@ -57,7 +57,7 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
                 'rounded-[1px] border px-1.5 py-0.5 text-[7px] leading-[10.5px] tracking-[0.7px] uppercase',
                 char.isOwn
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-input bg-secondary text-secondary-foreground',
+                  : 'border-input-border bg-secondary text-secondary-foreground',
               )}
             >
               {char.isOwn ? '● você' : (char.ownerName ?? 'Jogador')}

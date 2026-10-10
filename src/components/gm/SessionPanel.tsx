@@ -11,7 +11,9 @@ import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
-import { advancedShift, resumeShift, type TableClock } from '@/lib/dungeonClock'
+import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
+import { serverNow } from '@/lib/serverClock'
+import { changeCharacter } from '@/lib/characterWrite'
 import { doubledDice, modifier, rollFormula, rollWithMode, withDc, type RollResult } from '@/lib/dice'
 import { consumeRation, findRation, lostSpells, restoredStates } from '@/lib/rest'
 import { describeGrant, treasureItem } from '@/lib/treasure'
@@ -84,6 +86,19 @@ type Resolved =
   | { kind: 'npc'; actor: import('@/types/encounter.types').EncounterActor; name: string }
 
 type LogLine = { kind: SessionEventKind; payload: Record<string, unknown> }
+
+/** What a GM action leaves to log, and the column an undo would reverse. */
+interface Logged {
+  event: LogLine
+  extra: LogLine[]
+  undoField: UndoField | null
+}
+
+function undoValue(character: Character, field: UndoField): number {
+  if (field === 'hp_current') return character.hpCurrent
+  if (field === 'luck_tokens') return character.luckTokens
+  return character.xp
+}
 
 /**
  * A mesa do Mestre, jogada como um RPG de turno — sem tabuleiro.
@@ -207,162 +222,184 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
     const common = { sessionId, actorName: gmName, characterId: character.id }
     const named = { characterName: character.name, by: 'gm' as const }
 
-    let patch: Record<string, unknown> = {}
-    let event: LogLine | null = null
-    /** O que mais a mesma ação conta ao log, depois da linha principal. */
-    const extra: LogLine[] = []
-    /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
-    let undoField: UndoField | null = null
+    const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
+    // Para quem está fora do app: o Mestre rola a vez do caído. Rolled once,
+    // here: if the save has to be worked out again, it is the same roll.
+    const startRounds = action.type === 'death-roll' ? dyingRounds(character.conditions) : null
+    const deathRoll = startRounds !== null ? rollAgainstDeath(startRounds) : null
 
-    if (action.type === 'hp') {
-      const from = character.hpCurrent
-      const to = Math.max(0, Math.min(character.hpMax, from + action.delta))
-      if (to !== from) {
-        patch = { hp_current: to }
-        event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'hp_current'
-        // O goblin que derruba alguém abre o relógio da morte daqui mesmo —
-        // a regra é a mesma da ficha (lib/dying), então os dois lados concordam.
-        const shift = hpShift(character.conditions, character.stats.con, from, to, gmName)
+    /*
+     * Worked out from the character as it stands when the save lands, not
+     * from this card's copy: if the player saved in between, the change is
+     * computed again from their row (see `changeCharacter`).
+     */
+    const compute = (c: Character): { patch: Record<string, unknown>; result: Logged } | null => {
+      let patch: Record<string, unknown> = {}
+      let event: LogLine | null = null
+      /** O que mais a mesma ação conta ao log, depois da linha principal. */
+      const extra: LogLine[] = []
+      /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
+      let undoField: UndoField | null = null
+
+      if (action.type === 'hp') {
+        const from = c.hpCurrent
+        const to = Math.max(0, Math.min(c.hpMax, from + action.delta))
+        if (to !== from) {
+          patch = { hp_current: to }
+          event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
+          undoField = 'hp_current'
+          // O goblin que derruba alguém abre o relógio da morte daqui mesmo —
+          // a regra é a mesma da ficha (lib/dying), então os dois lados concordam.
+          const shift = hpShift(c.conditions, c.stats.con, from, to, gmName)
+          if (shift) {
+            patch.conditions = shift.conditions
+            extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
+          }
+        }
+      } else if (action.type === 'stabilize') {
+        // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
+        // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
+        if (dyingRounds(c.conditions) !== null) {
+          const stable = stabilize(c.conditions, gmName)
+          patch = { conditions: stable.conditions }
+          event = { kind: 'condition', payload: { ...stable.event, ...named } }
+        }
+      } else if (action.type === 'death-roll') {
+        // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
+        // regra que o botão da ficha usa.
+        if (deathRoll && dyingRounds(c.conditions) !== null) {
+          const roll = deathRoll
+          const out = afterDeathRoll(c.conditions, roll, gmName)
+          patch = { conditions: out.conditions }
+          if (out.outcome === 'rise') patch.hp_current = 1
+          event = { kind: 'roll', payload: { ...rollPayload(roll, c.name) } }
+          if (out.outcome === 'rise') {
+            extra.push({
+              kind: 'hp',
+              payload: { from: c.hpCurrent, to: 1, delta: 1 - c.hpCurrent, ...named },
+            })
+          }
+          if (out.event) extra.push({ kind: 'condition', payload: { ...out.event, ...named } })
+        }
+      } else if (action.type === 'luck') {
+        const from = c.luckTokens
+        const to = Math.max(0, from + action.delta)
+        if (to !== from) {
+          patch = { luck_tokens: to }
+          event = { kind: 'luck', payload: { from, to, delta: to - from, ...named } }
+          undoField = 'luck_tokens'
+        }
+      } else if (action.type === 'xp') {
+        const from = c.xp
+        const to = Math.max(0, from + action.delta)
+        if (to !== from) {
+          patch = { xp: to }
+          event = { kind: 'xp', payload: { from, to, delta: to - from, ...named } }
+          undoField = 'xp'
+        }
+      } else if (action.type === 'snuff') {
+        // The table's clock, as the player's sheet reads it: a torch put out
+        // here banks exactly the minutes the table was showing.
+        const now = tableNow(clock, serverNow())
+        const burning = brightest(c.inventory, now)
+        if (burning) {
+          const doused: InventoryItem[] = c.inventory.map(item => snuff(item, now))
+          patch = { equipment: doused }
+          event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
+        }
+      } else if (action.type === 'condition') {
+        // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
+        // é tirar.
+        const already = c.conditions.some(c => c.id === action.condition.id)
+        const next = already
+          ? c.conditions.filter(c => c.id !== action.condition.id)
+          : [...c.conditions, {
+              ...action.condition,
+              appliedBy: gmName,
+              appliedAt: new Date(serverNow()).toISOString(),
+            }]
+        patch = { conditions: next }
+        event = {
+          kind: 'condition',
+          payload: {
+            action: already ? 'removed' : 'applied',
+            label: action.condition.label,
+            ...(action.condition.note && { note: action.condition.note }),
+            ...named,
+          },
+        }
+      } else if (action.type === 'treasure') {
+        // Moedas e XP somam; o item entra na mochila como qualquer outro. O log
+        // diz o que chegou, e o XP vai numa linha própria para o recap contar.
+        const grant = action.grant
+        if (grant.gold > 0) patch.gold = c.gold + grant.gold
+        if (grant.silver > 0) patch.silver = c.silver + grant.silver
+        if (grant.copper > 0) patch.copper = c.copper + grant.copper
+        if (grant.item?.name.trim()) patch.equipment = [...c.inventory, treasureItem(grant.item)]
+        if (grant.xp > 0) patch.xp = c.xp + grant.xp
+
+        const xpLine: LogLine | null = grant.xp > 0
+          ? { kind: 'xp', payload: { from: c.xp, to: c.xp + grant.xp, delta: grant.xp, ...named } }
+          : null
+        const text = describeGrant(grant)
+        event = text ? { kind: 'note', payload: { text: `recebeu ${text}`, ...named } } : xpLine
+        if (text && xpLine) extra.push(xpLine)
+      } else if (action.type === 'rest') {
+        // O grupo acampa: a mesma regra do botão da ficha, por personagem.
+        const ration = findRation(c.inventory)
+        const from = c.hpCurrent
+        const to = ration ? Math.max(from, c.hpMax) : from
+        const spellsBack = ration ? lostSpells(c.techniqueStates).length : 0
+        if (ration) {
+          patch.equipment = consumeRation(c.inventory, ration.id)
+          patch.technique_states = restoredStates(c.techniqueStates)
+        }
+        if (to !== from) patch.hp_current = to
+        const shift = to !== from ? hpShift(c.conditions, c.stats.con, from, to, gmName) : null
         if (shift) {
           patch.conditions = shift.conditions
           extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
         }
-      }
-    } else if (action.type === 'stabilize') {
-      // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
-      // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
-      if (dyingRounds(character.conditions) !== null) {
-        const stable = stabilize(character.conditions, gmName)
-        patch = { conditions: stable.conditions }
-        event = { kind: 'condition', payload: { ...stable.event, ...named } }
-      }
-    } else if (action.type === 'death-roll') {
-      // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
-      // regra que o botão da ficha usa.
-      const rounds = dyingRounds(character.conditions)
-      if (rounds !== null) {
-        const roll = rollAgainstDeath(rounds)
-        const out = afterDeathRoll(character.conditions, roll, gmName)
-        patch = { conditions: out.conditions }
-        if (out.outcome === 'rise') patch.hp_current = 1
-        event = { kind: 'roll', payload: { ...rollPayload(roll, character.name) } }
-        if (out.outcome === 'rise') {
-          extra.push({
-            kind: 'hp',
-            payload: { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, ...named },
-          })
+        event = {
+          kind: 'hp',
+          payload: {
+            from, to, delta: to - from, reason: 'rest', ration: Boolean(ration),
+            ...(spellsBack > 0 && { spells: spellsBack }),
+            ...named,
+          },
         }
-        if (out.event) extra.push({ kind: 'condition', payload: { ...out.event, ...named } })
       }
-    } else if (action.type === 'luck') {
-      const from = character.luckTokens
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { luck_tokens: to }
-        event = { kind: 'luck', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'luck_tokens'
-      }
-    } else if (action.type === 'xp') {
-      const from = character.xp
-      const to = Math.max(0, from + action.delta)
-      if (to !== from) {
-        patch = { xp: to }
-        event = { kind: 'xp', payload: { from, to, delta: to - from, ...named } }
-        undoField = 'xp'
-      }
-    } else if (action.type === 'snuff') {
-      const burning = brightest(character.inventory)
-      if (burning) {
-        const doused: InventoryItem[] = character.inventory.map(item => snuff(item))
-        patch = { equipment: doused }
-        event = { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }
-      }
-    } else if (action.type === 'condition') {
-      // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
-      // é tirar.
-      const already = character.conditions.some(c => c.id === action.condition.id)
-      const next = already
-        ? character.conditions.filter(c => c.id !== action.condition.id)
-        : [...character.conditions, {
-            ...action.condition,
-            appliedBy: gmName,
-            appliedAt: new Date().toISOString(),
-          }]
-      patch = { conditions: next }
-      event = {
-        kind: 'condition',
-        payload: {
-          action: already ? 'removed' : 'applied',
-          label: action.condition.label,
-          ...(action.condition.note && { note: action.condition.note }),
-          ...named,
-        },
-      }
-    } else if (action.type === 'treasure') {
-      // Moedas e XP somam; o item entra na mochila como qualquer outro. O log
-      // diz o que chegou, e o XP vai numa linha própria para o recap contar.
-      const grant = action.grant
-      if (grant.gold > 0) patch.gold = character.gold + grant.gold
-      if (grant.silver > 0) patch.silver = character.silver + grant.silver
-      if (grant.copper > 0) patch.copper = character.copper + grant.copper
-      if (grant.item?.name.trim()) patch.equipment = [...character.inventory, treasureItem(grant.item)]
-      if (grant.xp > 0) patch.xp = character.xp + grant.xp
 
-      const xpLine: LogLine | null = grant.xp > 0
-        ? { kind: 'xp', payload: { from: character.xp, to: character.xp + grant.xp, delta: grant.xp, ...named } }
-        : null
-      const text = describeGrant(grant)
-      event = text ? { kind: 'note', payload: { text: `recebeu ${text}`, ...named } } : xpLine
-      if (text && xpLine) extra.push(xpLine)
-    } else if (action.type === 'rest') {
-      // O grupo acampa: a mesma regra do botão da ficha, por personagem.
-      const ration = findRation(character.inventory)
-      const from = character.hpCurrent
-      const to = ration ? Math.max(from, character.hpMax) : from
-      const spellsBack = ration ? lostSpells(character.techniqueStates).length : 0
-      if (ration) {
-        patch.equipment = consumeRation(character.inventory, ration.id)
-        patch.technique_states = restoredStates(character.techniqueStates)
-      }
-      if (to !== from) patch.hp_current = to
-      const shift = to !== from ? hpShift(character.conditions, character.stats.con, from, to, gmName) : null
-      if (shift) {
-        patch.conditions = shift.conditions
-        extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
-      }
-      event = {
-        kind: 'hp',
-        payload: {
-          from, to, delta: to - from, reason: 'rest', ration: Boolean(ration),
-          ...(spellsBack > 0 && { spells: spellsBack }),
-          ...named,
-        },
-      }
+      if (!event) return null
+      return { patch, result: { event, extra, undoField } }
     }
 
-    if (!event) return
+    const first = compute(character)
+    if (!first) return
 
+    let logged: Logged = first.result
     // Um descanso sem ração não escreve nada — mas ainda conta à mesa.
-    if (Object.keys(patch).length > 0) {
+    if (Object.keys(first.patch).length > 0) {
       setBusyId(character.id)
-      const { data, error } = await supabase
-        .from('characters')
-        .update(patch)
-        .eq('id', character.id)
-        .select()
-        .single()
+      const outcome = await changeCharacter(supabase, character, c => {
+        const next = compute(c)
+        return next && Object.keys(next.patch).length > 0
+          ? { patch: next.patch as Partial<CharacterRow>, result: next.result }
+          : null
+      })
       setBusyId(null)
 
-      if (error) {
-        console.error('[SessionPanel] a ficha não aceitou a mudança', error)
+      if (!outcome.ok) {
+        if (outcome.reason !== 'unchanged') {
+          console.error('[SessionPanel] a ficha não aceitou a mudança', outcome.reason, outcome.error)
+        }
         return
       }
-      if (data) {
-        const updated = rowToCharacter(data as CharacterRow)
-        setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-      }
+      const updated = outcome.character
+      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
+      logged = outcome.result
     }
+    const { event, extra, undoField } = logged
 
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
     for (const line of extra) void recordEvent({ ...common, kind: line.kind, payload: line.payload })
@@ -382,38 +419,40 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
         applied: p.to,
       })
     }
-  }, [sessionId, gmName, setSeats, offerUndo])
+  }, [sessionId, gmName, setSeats, offerUndo, session.pausedAt, session.shiftSeconds])
 
   /** Escreve o valor anterior de volta e registra a correção. */
   const undo = useCallback(async () => {
     if (!undoable) return
     const supabase = createClient()
+    const seat = seats.find(s => s.character.id === undoable.characterId)
+    if (!seat) return
     setBusyId(undoable.characterId)
 
-    // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
-    // a ficha volta a ter PV e continua "morrendo".
-    const patch: Record<string, unknown> = { [undoable.field]: undoable.previous }
-    const seat = seats.find(s => s.character.id === undoable.characterId)
-    const shift = undoable.field === 'hp_current' && seat
-      ? hpShift(seat.character.conditions, seat.character.stats.con, undoable.applied, undoable.previous, gmName)
-      : null
-    if (shift) patch.conditions = shift.conditions
-
-    const { data } = await supabase
-      .from('characters')
-      .update(patch)
-      .eq('id', undoable.characterId)
-      .select()
-      .single()
+    const reversal = undoable.previous - undoable.applied
+    const outcome = await changeCharacter(supabase, seat.character, c => {
+      const from = undoValue(c, undoable.field)
+      const to = undoable.field === 'hp_current'
+        ? Math.max(0, Math.min(c.hpMax, from + reversal))
+        : Math.max(0, from + reversal)
+      if (to === from) return null
+      const patch: Partial<CharacterRow> = { [undoable.field]: to }
+      // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
+      // a ficha volta a ter PV e continua "morrendo".
+      const shift = undoable.field === 'hp_current'
+        ? hpShift(c.conditions, c.stats.con, from, to, gmName)
+        : null
+      if (shift) patch.conditions = shift.conditions
+      return { patch, result: { from, to, shift } }
+    })
 
     setBusyId(null)
     setUndoable(null)
     if (undoTimer.current) clearTimeout(undoTimer.current)
+    if (!outcome.ok) return
 
-    if (data) {
-      const updated = rowToCharacter(data as CharacterRow)
-      setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    }
+    const updated = outcome.character
+    setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
 
     void recordEvent({
       sessionId,
@@ -421,21 +460,21 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
       characterId: undoable.characterId,
       kind: undoable.kind,
       payload: {
-        from: undoable.applied,
-        to: undoable.previous,
-        delta: undoable.previous - undoable.applied,
+        from: outcome.result.from,
+        to: outcome.result.to,
+        delta: outcome.result.to - outcome.result.from,
         characterName: undoable.characterName,
         by: 'gm',
         undo: true,
       },
     })
-    if (shift) {
+    if (outcome.result.shift) {
       void recordEvent({
         sessionId,
         actorName: gmName,
         characterId: undoable.characterId,
         kind: 'condition',
-        payload: { ...shift.event, characterName: undoable.characterName, by: 'gm' },
+        payload: { ...outcome.result.shift.event, characterName: undoable.characterName, by: 'gm' },
       })
     }
   }, [undoable, seats, sessionId, gmName, setSeats])

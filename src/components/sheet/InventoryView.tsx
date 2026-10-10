@@ -27,7 +27,8 @@ import { sendToDiscord } from '@/lib/discord'
 import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
 import { COINS_PER_SLOT, coinSlots, maxSlots, usedSlots } from '@/lib/slots'
 import { isTwoHanded } from '@/lib/inventory'
-import { useNow } from '@/hooks/useNow'
+import { useTableNow } from '@/hooks/useTableNow'
+import { serverNow } from '@/lib/serverClock'
 import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
@@ -202,7 +203,7 @@ function ItemGlyph({ item, size = 40, now }: {
   item: InventoryItem
   size?: number
   /** The table's clock, so a burning source is judged against the same time as everything else. */
-  now?: number
+  now: number
 }) {
   // Burning, not merely flagged lit: a source read after its minutes ran out
   // is dark, whether or not the record has caught up yet.
@@ -573,7 +574,7 @@ function StatCell({ label, value }: { label: string; value: string }) {
 }
 
 /** Only the figures an item actually has — a rope has no damage die. */
-function itemStats(item: InventoryItem, now?: number): { label: string; value: string }[] {
+function itemStats(item: InventoryItem, now: number): { label: string; value: string }[] {
   const stats: { label: string; value: string }[] = [
     { label: 'Slots', value: String(item.slots) },
   ]
@@ -612,7 +613,7 @@ function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: Re
  */
 function ItemDetailPopover({ item, now, onEdit, onRemove, onEquipToggle, onConsume, onOpen, onRollAttack, onRollDamage, onRollParry }: {
   item: InventoryItem
-  now?: number
+  now: number
   onEdit: () => void
   onRemove: () => void
   onEquipToggle?: () => void
@@ -1062,7 +1063,9 @@ export function InventoryView({
   const capacity = maxSlots(str)
 
   // O relógio da mesa manda na queima; isto só provoca o render.
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
+  // Writes read the clock at the moment of the click, not the last tick.
+  const clickNow = () => tableNow(clock, serverNow())
   const equipped  = (slot: EquipSlot) => inventory.find(i => i.equipped && i.slot === slot)
 
   /**
@@ -1131,7 +1134,7 @@ export function InventoryView({
         i.slot === slot ||
         (takesBothHands && hands.includes(i.slot)) ||
         (slot !== 'armor' && hands.includes(i.slot) && isTwoHanded(i))
-      return displaced ? snuff({ ...i, equipped: false, slot: undefined }) : i
+      return displaced ? snuff({ ...i, equipped: false, slot: undefined }, clickNow()) : i
     })
 
     onUpdate(next)
@@ -1142,7 +1145,7 @@ export function InventoryView({
 
   function unequipItem(id: string) {
     const next = inventory.map(i =>
-      i.id === id ? snuff({ ...i, equipped: false, slot: undefined }) : i
+      i.id === id ? snuff({ ...i, equipped: false, slot: undefined }, clickNow()) : i
     )
     onUpdate(next)
     onAcChange(calculateAC(next, dex))
@@ -1292,7 +1295,8 @@ export function InventoryView({
 
             {item.isLight && (() => {
               // One write to light, one to snuff — the minutes in between come
-              // off the wall clock, so they keep running with the tab closed.
+              // off the table clock (server time, pauses and turns applied),
+              // so they keep running with the tab closed.
               const remaining = minutesLeft(item, now)
               const burning = Boolean(item.isLit) && remaining > 0
 
@@ -1300,7 +1304,7 @@ export function InventoryView({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Button
                     onClick={() => {
-                      const next = burning ? extinguishSource(item) : lightSource(item)
+                      const next = burning ? extinguishSource(item, clickNow()) : lightSource(item, clickNow())
                       updateItem(item.id, {
                         isLit: next.isLit,
                         litAt: next.litAt,

@@ -6,6 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { DiscordEvent, DiscordEventInput } from '@/types/discord.types'
 import type { SessionEventRow } from '@/types/session.types'
 import { rowToEvent } from '@/types/session.types'
+import { discordIdOf } from '@/lib/discordId'
 
 /** Rolls carry at most an advantage pair; anything longer is not a roll. */
 const MAX_REPORTED_ROLLS = 12
@@ -177,7 +178,7 @@ export async function POST(request: Request) {
   }
 
   // Only the campaign's own allowlist speaks in the channel.
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const discordId = discordIdOf(user)
   const { data: allowed } = await supabase
     .from('allowed_discord_ids')
     .select('discord_id')

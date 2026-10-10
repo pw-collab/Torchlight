@@ -3,9 +3,9 @@
 import { HugeiconsIcon } from '@hugeicons/react'
 import { OlympicTorchIcon } from '@hugeicons/core-free-icons'
 import type { InventoryItem } from '@/types/inventory.types'
+import { useTableNow } from '@/hooks/useTableNow'
 import { brightest, fullMinutes, secondsLeft, spareSource } from '@/lib/light'
-import { tableNow, type TableClock } from '@/lib/dungeonClock'
-import { useNow } from '@/hooks/useNow'
+import type { TableClock } from '@/lib/dungeonClock'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -49,7 +49,7 @@ function countdown(seconds: number): string {
 export function TorchStatus({ inventory, onClick, clock }: Props) {
   // Os segundos saem do relógio da mesa (ver `lib/light` e `lib/dungeonClock`);
   // o valor que tiquetaqueia só existe para o render acontecer de novo.
-  const now = tableNow(clock, useNow(1000))
+  const now = useTableNow(clock, 1000)
 
   const source = brightest(inventory, now)
   const seconds = source ? secondsLeft(source, now) : 0

@@ -1,10 +1,9 @@
 'use client'
 
 import type { Seat } from '@/lib/gmActions'
-import type { TableClock } from '@/lib/dungeonClock'
-import { EXPLORATION_TURN_MINUTES, tableNow } from '@/lib/dungeonClock'
+import { EXPLORATION_TURN_MINUTES, type TableClock } from '@/lib/dungeonClock'
 import { brightest, fullMinutes, minutesLeft } from '@/lib/light'
-import { useNow } from '@/hooks/useNow'
+import { useTableNow } from '@/hooks/useTableNow'
 import { cn } from '@/lib/utils'
 
 /**
@@ -27,7 +26,7 @@ export function TableHud({
   onAdvance: (minutes: number) => void
   onSnuffAll: () => void
 }) {
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
   const lights = seats
     .map(seat => ({ seat, light: brightest(seat.character.inventory, now) }))
     .filter(entry => entry.light !== null)

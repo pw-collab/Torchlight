@@ -134,7 +134,7 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
               title={talent.name}
               className={cn(
                 'flex w-full cursor-pointer items-start gap-2.5 border border-transparent p-1.5 outline-none',
-                'hover:border-input data-popup-open:border-input transition-colors',
+                'hover:border-input-border data-popup-open:border-input-border transition-colors',
                 'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
               )}
             >
@@ -179,11 +179,11 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
           aria-expanded={formOpen}
           className={cn(
             'flex w-full cursor-pointer items-center gap-2.5 border border-transparent p-1.5 outline-none',
-            'hover:border-input transition-colors',
+            'hover:border-input-border transition-colors',
             'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           )}
         >
-          <span className={cn(BADGE_CLASS, 'border-input border')} aria-hidden>
+          <span className={cn(BADGE_CLASS, 'border-input-border border')} aria-hidden>
             {formOpen ? '✕' : '+'}
           </span>
           <span className={ROW_TEXT_CLASS}>{formOpen ? 'Fechar' : 'Adicionar'}</span>
