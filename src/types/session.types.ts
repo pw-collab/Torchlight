@@ -147,7 +147,11 @@ export interface VitalsPayload {
   undo?: boolean
   /** De onde veio a mudança, quando não foi um ajuste solto. */
   reason?: 'rest'
-  /** O dado da recuperação, quando `reason` é descanso (§5.7). */
+  /**
+   * O dado da recuperação, nos descansos de antes da regra do livro (§5.7).
+   * Hoje o descanso devolve todo o PV e não rola nada; o campo fica para o
+   * log antigo continuar legível.
+   */
   die?: string
   roll?: number
   /** O descanso consumiu uma ração. */

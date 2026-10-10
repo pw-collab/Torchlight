@@ -63,7 +63,7 @@ import type {
   SessionEventKind,
   SessionPayload,
 } from '@/types/session.types'
-import { modifier, reroll, rollDie, rollWithMode, withDc } from '@/lib/dice'
+import { modifier, reroll, rollWithMode, withDc } from '@/lib/dice'
 import type { RollMode, RollResult } from '@/lib/dice'
 import type { ActiveCondition, CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
@@ -398,20 +398,18 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   }
 
   /**
-   * Descanso (§5.7). Recupera pelo dado de vida da classe — o mesmo dado, e a
-   * mesma leitura, que a trilha de progressão usa ao subir de nível (a CON já
-   * foi contada uma vez, no HP inicial). Come uma ração; de estômago vazio o
-   * descanso não recupera nada, e o feed diz isso.
+   * Descanso (§5.7), pela regra do livro: oito horas de sono e uma ração
+   * devolvem todo o PV. Antes ele rolava o dado de vida da classe; a mesa
+   * escolheu o livro. De estômago vazio o descanso não recupera nada, e o
+   * feed diz isso.
    */
   async function handleRest() {
     if (!character) return
-    const cls = getClass(character.classId)
-    const die = `d${cls?.hitDie ?? 6}`
     const ration = findRation(character.inventory)
 
-    const rolled = rollDie(die, 'Descanso', 'Recuperação')
-    const gain = ration ? Math.min(rolled.result, character.hpMax - character.hpCurrent) : 0
-    const to = character.hpCurrent + gain
+    // Nunca abaixo do que já está: PV acima do máximo não é o descanso que tira.
+    const to = ration ? Math.max(character.hpCurrent, character.hpMax) : character.hpCurrent
+    const gain = to - character.hpCurrent
 
     const shift = gain > 0
       ? hpShift(character.conditions, character.stats.con, character.hpCurrent, to, playerName)
@@ -433,8 +431,6 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       to,
       delta: gain,
       reason: 'rest',
-      die,
-      roll: rolled.result,
       ration: Boolean(ration),
       ...(spellsBack > 0 && { spells: spellsBack }),
       by: 'player',
