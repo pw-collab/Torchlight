@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { discordIdOf } from '@/lib/discordId'
 
 const PUBLIC_PATHS = ['/', '/login', '/auth', '/_next', '/favicon.ico']
 
@@ -36,7 +37,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const discordId = user.user_metadata?.provider_id || user.user_metadata?.sub
+  const discordId = discordIdOf(user)
   if (!discordId) {
     return NextResponse.redirect(new URL('/login?error=no_discord_id', request.url))
   }

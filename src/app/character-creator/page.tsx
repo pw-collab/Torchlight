@@ -25,6 +25,7 @@ import type { LevelEntry } from '@/types/progression.types'
 import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { discordIdOf } from '@/lib/discordId'
 
 /** The creation chapters, in the order the rulebook lays them out. */
 type StepId =
@@ -243,7 +244,7 @@ export default function CharacterCreatorPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
-    const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+    const discordId = discordIdOf(user)
     // The row was written without this, so `campaign_roster()` handed every
     // card an `owner_name` of null and nobody knew whose character was whose.
     // `session_id` stays out on purpose: a character outlives any one session,

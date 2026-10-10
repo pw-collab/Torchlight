@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { GMPageClient } from './GMPageClient'
+import { discordIdOf } from '@/lib/discordId'
 
 export default async function GMPage() {
   const supabase = await createServerSupabaseClient()
@@ -8,7 +9,8 @@ export default async function GMPage() {
 
   if (!user) redirect('/login')
 
-  const discordId = user.user_metadata?.provider_id ?? user.user_metadata?.sub
+  const discordId = discordIdOf(user)
+  if (!discordId) redirect('/login?error=no_discord_id')
 
   const { data: session } = await supabase
     .from('sessions')
