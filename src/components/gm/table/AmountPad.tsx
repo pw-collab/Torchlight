@@ -12,10 +12,11 @@ export interface PadAction {
   onApply: (amount: number) => void
 }
 
-const TONE: Record<PadAction['tone'], string> = {
-  danger: 'border-[var(--destructive)] text-[var(--destructive)]',
-  heal: 'border-[var(--chart-2)] text-[var(--chart-2)]',
-  primary: 'border-[var(--primary)] text-[var(--foreground)]',
+/** Dano no tom do erro, cura no contorno neutro, o resto no vermelho cheio da ação. */
+const VARIANT: Record<PadAction['tone'], 'destructive' | 'outline' | 'default'> = {
+  danger: 'destructive',
+  heal: 'outline',
+  primary: 'default',
 }
 
 /**
@@ -50,7 +51,7 @@ export function AmountPad({
         onKeyDown={e => { if (e.key === 'Enter' && actions[0]) apply(actions[0]) }}
         placeholder="0"
         aria-label="Quantidade"
-        className="font-[var(--font-numeral)] border-border bg-secondary h-12 text-center text-2xl"
+        className="border-input-border bg-secondary text-secondary-foreground h-12 text-center font-[var(--font-numeral)] text-2xl"
       />
       <div className="flex flex-wrap gap-1">
         {presets.map(n => (
@@ -70,13 +71,10 @@ export function AmountPad({
           <Button
             key={action.label}
             type="button"
-            variant="outline"
+            variant={VARIANT[action.tone]}
             onClick={() => apply(action)}
             disabled={amount <= 0}
-            className={cn(
-              'font-heading h-11 min-h-11 flex-1 rounded-[1px] text-[10px] font-bold tracking-[0.14em] uppercase disabled:opacity-30',
-              TONE[action.tone],
-            )}
+            className="h-11 flex-1 text-[11px] tracking-[0.12em] disabled:opacity-40"
           >
             {action.label}{amount > 0 ? ` ${amount}` : ''}
           </Button>

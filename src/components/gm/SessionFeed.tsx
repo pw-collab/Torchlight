@@ -51,14 +51,10 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
   )
 
   return (
-    <div
-      className="worn-border flex flex-col"
-      style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-    >
-      <div
-        className="flex flex-wrap items-center gap-1 border-b border-[var(--border)] px-3 py-2"
-      >
-        <span className="font-heading mr-auto text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+    // Ocupa a altura do bloco em que a mesa o põe e rola por dentro.
+    <div className="flex h-full flex-col border border-[var(--border)] bg-[var(--card)]">
+      <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-1 border-b border-[var(--border)] py-1.5 pr-2 pl-4">
+        <span className="font-heading mr-auto text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           Diário da mesa
         </span>
         {FEED_FILTERS.map(f => (
@@ -68,10 +64,10 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
             variant="outline"
             onClick={() => setFilter(f.id)}
             className={cn(
-              'font-heading h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase',
+              'h-7 px-2 text-[10px] tracking-[0.08em]',
               filter === f.id
-                ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
-                : 'border-[var(--border)] bg-transparent text-[var(--muted-foreground)]',
+                ? 'border-[var(--primary-text)] bg-[var(--input)] text-[var(--foreground)]'
+                : 'bg-transparent text-[var(--muted-foreground)]',
             )}
           >
             {f.label}
@@ -80,17 +76,16 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
       </div>
 
       <div
-        className="flex flex-col overflow-y-auto"
-        style={{ maxHeight: 420 }}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
         aria-live="polite"
         aria-label="Acontecimentos da sessão"
       >
         {loading ? (
-          <p className="font-body px-3 py-6 text-center text-[11px] text-[var(--muted-foreground)] italic">
+          <p className="font-body px-3 py-6 text-center text-[12px] text-[var(--muted-foreground)] italic">
             Consultando o diário...
           </p>
         ) : shown.length === 0 ? (
-          <p className="font-body px-3 py-6 text-center text-[11px] text-[var(--muted-foreground)] italic">
+          <p className="font-body px-3 py-6 text-center text-[12px] text-[var(--muted-foreground)] italic">
             {events.length === 0
               ? 'Nada aconteceu ainda. Assim que alguém rolar um dado, aparece aqui.'
               : 'Nada deste tipo por enquanto.'}
@@ -104,7 +99,7 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
             return (
               <div
                 key={event.id}
-                className="flex items-start gap-2.5 border-b border-[var(--border)] px-3 py-2 last:border-b-0"
+                className="flex items-start gap-2.5 border-b border-[var(--border)] px-3 py-2.5 last:border-b-0"
                 style={{
                   borderLeft: `2px solid ${accent ?? 'transparent'}`,
                   background: secret ? 'color-mix(in oklch, var(--muted), transparent 65%)' : undefined,
@@ -116,18 +111,18 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
 
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span
-                    className="font-heading text-[10.5px] leading-snug"
+                    className="font-heading text-[12px] leading-snug"
                     style={{ color: accent ?? 'var(--foreground)' }}
                   >
                     {eventHeadline(event)}
                     {secret && (
-                      <span className="font-body ml-1.5 text-[9px] text-[var(--muted-foreground)] italic">
+                      <span className="font-body ml-1.5 text-[11px] text-[var(--muted-foreground)] italic">
                         · {revealed.has(event.id) ? 'revelado à mesa' : 'só você vê'}
                       </span>
                     )}
                   </span>
                   {detail && (
-                    <span className="font-mono text-[8.5px] text-[var(--muted-foreground)]">
+                    <span className="font-mono text-[11px] text-[var(--muted-foreground)]">
                       {detail}
                     </span>
                   )}
@@ -140,13 +135,13 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
                     variant="outline"
                     onClick={() => onReveal(event)}
                     title="Mostrar esta rolagem para a mesa inteira"
-                    className="font-heading h-7 min-h-7 shrink-0 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase"
+                    className="h-7 shrink-0 px-2 text-[10px] tracking-[0.08em]"
                   >
                     Revelar
                   </Button>
                 )}
 
-                <span className="font-mono shrink-0 text-[8px] text-[var(--muted-foreground)]">
+                <span className="font-mono shrink-0 text-[10px] text-[var(--muted-foreground)]">
                   {clockOf(event.at)}
                 </span>
               </div>

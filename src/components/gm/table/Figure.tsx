@@ -8,6 +8,7 @@ import type { TableClock } from '@/lib/dungeonClock'
 import { useTableNow } from '@/hooks/useTableNow'
 import { dyingRounds, mortalState, withoutMortal } from '@/lib/dying'
 import { isFleeing } from '@/lib/encounterSetup'
+import { HpBar } from './ui'
 import { cn } from '@/lib/utils'
 
 /** Como o combatente está em relação ao que o Mestre está fazendo. */
@@ -16,7 +17,7 @@ export interface FigureState {
   active?: boolean
   /** Já agiu nesta rodada. */
   done?: boolean
-  /** É quem o painel de baixo está mostrando. */
+  /** É quem o bloco de ações está mostrando. */
   focused?: boolean
   /** O Mestre está escolhendo um alvo, e este serve. */
   targetable?: boolean
@@ -31,7 +32,7 @@ export interface Callout {
   tone: 'miss' | 'hit' | 'crit'
 }
 
-/** "Kael Ferro" → "KF", "Goblin 2" → "G2": o que cabe numa ficha redonda. */
+/** "Kael Ferro" → "KF", "Goblin 2" → "G2": o que cabe numa ficha do quadro. */
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean)
   if (words.length === 0) return '?'
@@ -59,25 +60,29 @@ function useHpPop(hp: number) {
 }
 
 /**
- * A moldura comum: o retrato em arco, a mira, a seta da vez e o que sobe por
- * cima. É um botão inteiro, porque clicar na figura é o gesto da tela —
- * escolhe quem o painel mostra, ou é o alvo do golpe que está no ar.
+ * A moldura comum: o retrato com a CA e a vida por cima, como os vitais da
+ * ficha, a mira e o que sobe por cima. É um botão inteiro, porque clicar na
+ * figura é o gesto da tela — escolhe quem o bloco de ações mostra, ou é o
+ * alvo do golpe que está no ar.
  */
 function FigureFrame({
-  kind, name, hp, state, down, dying, label, onClick, portrait, badges, callout, below,
+  kind, name, hp, max, ac, state, down, dying, label, onClick, portrait, present, callout, tags,
 }: {
   kind: 'party' | 'foe'
   name: string
   hp: number
+  max: number
+  ac: number
   state: FigureState
   down?: boolean
   dying?: boolean
   label: string
   onClick: () => void
   portrait?: string | null
-  badges?: ReactNode
+  /** Com a ficha aberta agora. */
+  present?: boolean
   callout?: Callout | null
-  below: ReactNode
+  tags: ReactNode
 }) {
   const { pop, clear } = useHpPop(hp)
 
@@ -88,8 +93,8 @@ function FigureFrame({
       aria-label={label}
       aria-pressed={state.focused || state.picked || undefined}
       className={cn(
-        'dd-fig',
-        kind === 'foe' && 'dd-fig--foe',
+        'gm-fig',
+        kind === 'foe' && 'gm-fig--foe',
         state.active && 'is-active',
         state.done && 'is-done',
         state.focused && 'is-focused',
@@ -99,55 +104,53 @@ function FigureFrame({
         dying && 'is-dying',
       )}
     >
-      <span className="dd-fig__body">
-        {state.active && <span aria-hidden className="dd-fig__turn">▼</span>}
-        <span className="dd-fig__frame">
+      <span className="gm-fig__body">
+        <span className="gm-fig__portrait">
           {portrait ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={portrait} alt="" />
           ) : (
-            <span aria-hidden className="dd-fig__mono">{initials(name)}</span>
+            <span aria-hidden className="gm-fig__mono">{initials(name)}</span>
           )}
+          {state.active ? (
+            <span aria-hidden className="gm-fig__flag gm-fig__flag--turn">Age</span>
+          ) : state.done ? (
+            <span aria-hidden title="Já agiu nesta rodada" className="gm-fig__flag">✓ Agiu</span>
+          ) : null}
+          <span aria-hidden className="gm-fig__ac"><small>CA</small><b>{ac}</b></span>
+          <HpBar current={hp} max={max} label={false} />
         </span>
-        {badges}
-        {state.done && <span aria-hidden title="Já agiu nesta rodada" className="dd-fig__done">✓</span>}
-        {(state.targetable || state.picked) && <span aria-hidden className="dd-fig__reticle" />}
+        {(state.targetable || state.picked) && <span aria-hidden className="gm-fig__reticle" />}
         {pop && pop.delta !== 0 && (
           <span
             key={pop.n}
             aria-hidden
             onAnimationEnd={clear}
-            className={cn('dd-pop', pop.delta < 0 ? 'dd-pop--dmg' : 'dd-pop--heal')}
+            className={cn('gm-pop', pop.delta < 0 ? 'gm-pop--dmg' : 'gm-pop--heal')}
           >
             {pop.delta < 0 ? `−${Math.abs(pop.delta)}` : `+${pop.delta}`}
           </span>
         )}
         {callout && (
-          <span key={callout.id} aria-hidden className={cn('dd-pop', `dd-pop--${callout.tone}`)}>
+          <span key={callout.id} aria-hidden className={cn('gm-pop', `gm-pop--${callout.tone}`)}>
             {callout.text}
           </span>
         )}
       </span>
-      <span aria-hidden className="dd-fig__shadow" />
-      {below}
+      <span className="gm-fig__name">
+        {present && <span aria-hidden title="Com a ficha aberta" className="gm-fig__presence" />}
+        <span>{name}</span>
+      </span>
+      <span className="gm-fig__tags">{tags}</span>
     </button>
   )
 }
 
-/** A vez dita para o leitor de tela, que não vê o ouro nem o apagado. */
+/** A vez dita para o leitor de tela, que não vê o vermelho nem o apagado. */
 function turnLabel(state: FigureState): string {
   if (state.active) return ', agindo'
   if (state.done) return ', já agiu'
   return ''
-}
-
-function Hp({ current, max }: { current: number; max: number }) {
-  const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0
-  return (
-    <span aria-hidden className="dd-hp">
-      <span style={{ width: `${pct}%` }} />
-    </span>
-  )
 }
 
 // ─── O grupo ──────────────────────────────────────────────────────────────────
@@ -175,30 +178,27 @@ export function PartyFigure({
       kind="party"
       name={c.name}
       hp={c.hpCurrent}
+      max={c.hpMax}
+      ac={c.ac}
       state={state}
       down={mortal === 'dead' || mortal === 'stable'}
       dying={mortal === 'dying'}
-      label={`${c.name}: ${c.hpCurrent} de ${c.hpMax} PV${turnLabel(state)}`}
+      label={`${c.name}: ${c.hpCurrent} de ${c.hpMax} PV, CA ${c.ac}${turnLabel(state)}`}
       onClick={onClick}
       portrait={c.portraitUrl}
+      present={present}
       callout={callout}
-      badges={present && <span aria-hidden title="Com a ficha aberta" className="dd-fig__presence" />}
-      below={
+      tags={
         <>
-          <span className="dd-fig__name">{c.name}</span>
-          <Hp current={c.hpCurrent} max={c.hpMax} />
-          <span className="dd-fig__meta">{c.hpCurrent}/{c.hpMax} · CA {c.ac}</span>
-          <span className="dd-fig__tags">
-            {mortal === 'dying' && <span className="dd-tag">☠ morrendo {rounds}</span>}
-            {mortal === 'stable' && <span className="dd-tag dd-tag--heal">✚ estável</span>}
-            {mortal === 'dead' && <span className="dd-tag">☠ morto</span>}
-            {torch !== null && (
-              <span className={cn('dd-tag', torch > 10 && 'dd-tag--gold')} title={light?.name}>🕯 {torch}m</span>
-            )}
-            {others.map(condition => (
-              <span key={condition.id} className="dd-tag" title={condition.note}>{condition.label}</span>
-            ))}
-          </span>
+          {mortal === 'dying' && <span className="gm-tag">Morrendo · {rounds}</span>}
+          {mortal === 'stable' && <span className="gm-tag gm-tag--quiet">Estável</span>}
+          {mortal === 'dead' && <span className="gm-tag">Morto</span>}
+          {torch !== null && (
+            <span className={cn('gm-tag', torch > 10 ? 'gm-tag--light' : '')} title={light?.name}>Luz {torch}m</span>
+          )}
+          {others.map(condition => (
+            <span key={condition.id} className="gm-tag" title={condition.note}>{condition.label}</span>
+          ))}
         </>
       }
     />
@@ -225,23 +225,20 @@ export function FoeFigure({
       kind="foe"
       name={actor.name}
       hp={hp}
+      max={max}
+      ac={actor.ac ?? 10}
       state={state}
       down={actor.defeated}
-      label={`${actor.name}: ${hp} de ${max} PV${turnLabel(state)}`}
+      label={`${actor.name}: ${hp} de ${max} PV, CA ${actor.ac ?? 10}${turnLabel(state)}`}
       onClick={onClick}
       callout={callout}
-      below={
+      tags={
         <>
-          <span className="dd-fig__name">{actor.name}</span>
-          <Hp current={hp} max={max} />
-          <span className="dd-fig__meta">{hp}/{max} · CA {actor.ac ?? 10}</span>
-          <span className="dd-fig__tags">
-            {actor.defeated && <span className="dd-tag">☠ caído</span>}
-            {fleeing && !actor.defeated && <span className="dd-tag dd-tag--gold">🏳 foge</span>}
-            {others.map(condition => (
-              <span key={condition.id} className="dd-tag">{condition.label}</span>
-            ))}
-          </span>
+          {actor.defeated && <span className="gm-tag gm-tag--quiet">Caído</span>}
+          {fleeing && !actor.defeated && <span className="gm-tag gm-tag--quiet">Fugindo</span>}
+          {others.map(condition => (
+            <span key={condition.id} className="gm-tag">{condition.label}</span>
+          ))}
         </>
       }
     />

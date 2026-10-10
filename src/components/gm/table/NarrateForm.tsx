@@ -33,15 +33,14 @@ export function NarrateForm({ onSend }: { onSend: (text: string) => void }) {
         className="font-body border-border bg-secondary min-h-[96px] text-[13px] leading-relaxed italic"
       />
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[9px] text-[var(--muted-foreground)]">{text.length}/280 · Ctrl+Enter envia</span>
+        <span className="font-mono text-[10px] text-[var(--muted-foreground)]">{text.length}/280 · Ctrl+Enter envia</span>
         <Button
           type="button"
-          variant="outline"
           onClick={send}
           disabled={!ready}
-          className="font-heading ml-auto h-10 min-h-10 rounded-[1px] border-[var(--primary)] px-4 text-[10px] font-bold tracking-[0.14em] uppercase disabled:opacity-30"
+          className="ml-auto h-10 px-4 text-[11px] tracking-[0.12em] disabled:opacity-40"
         >
-          💬 Contar à mesa
+          Contar à mesa
         </Button>
       </div>
     </div>
