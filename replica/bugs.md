@@ -74,6 +74,51 @@ Fix: both now read the Discord identity row the auth server writes at sign-in.
 
 Status: fixed. Verified in production; see the test plan, DB-4 to DB-8.
 
+### BUG-005: Torches lit on one clock and burned on another
+
+- Severity: S2
+- Flow / case: F05 / F05-E1 to F05-E4
+- Found during replica-build (torch clock sync)
+
+Lighting and putting out a torch used the device's bare clock; everything that reads a torch used
+the table clock (the GM's pauses and exploration turns applied). Reproduced with the app's own
+functions:
+1. After a 30-minute pause, a new torch did not burn for 30 real minutes.
+2. After two exploration turns, a new torch started with 40 of its 60 minutes.
+3. Putting a torch out gave back the 10 minutes the GM had just advanced.
+
+Separately, each device used its own clock, so a phone running slow showed more light than the GM.
+
+Fix: every light function takes the time explicitly; every write passes the table clock at the
+moment of the click; the table clock runs on server time (`src/lib/serverClock.ts`, `GET /api/time`,
+`src/hooks/useTableNow.ts`).
+Status: fixed on branch (app only).
+
+### BUG-006: GM and player saves could erase each other
+
+- Severity: S2
+- Flow / case: F06 / F06-E1 to F06-N3
+- Found during the architecture audit
+
+Both sides saved absolute values worked out from their own copy of the character (HP, luck, XP,
+the whole inventory, the whole condition list). When both acted at the same moment, the later
+save silently undid the earlier one. Also, the sheet logged HP, luck, condition and rest changes
+to the feed even when the save failed.
+
+Fix: migration 021 (applied 2026-10-10) adds `characters.version`, bumped by a trigger. GM
+actions recompute from the fresh row and retry; the sheet's saves are rejected visibly ("Ficha
+mudou ao mesmo tempo"), with queued saves dropped; only saved changes are logged.
+Status: fixed. Database live; app ships with PR #95.
+
+### BUG-007: Roll results were silent to screen readers, and criticals were colour-only
+
+- Severity: S3 (accessibility)
+- Flow / case: F04 / F04-A1 to F04-A4
+
+No live region announced a roll or a GM action, and a critical or fumble was shown only as gold or
+red. Fix: an always-mounted polite live region, with criticals and fumbles in words.
+Status: fixed on branch.
+
 ## To check (not reproduced)
 
 - Versatile weapons: should the sheet offer the two-handed die (1d10) when wielded with both hands? Game design call.

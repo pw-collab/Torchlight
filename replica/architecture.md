@@ -120,46 +120,41 @@ Every object in `002` to `018` was compared against the live database:
   `src/proxy.ts` and the server pages read the Discord ID from `user_metadata`, which Supabase
   documents as user-editable. Both now read the Discord identity row in `auth.identities`:
   migration 019 (applied and verified in production) and `src/lib/discordId.ts` (PR #95).
-- **Lost updates (races).** The GM panel saves a player's whole `equipment` list (to douse a
-  torch) and whole `conditions` list, built from the GM's last-seen copy. HP, luck and XP are
-  saved as absolute values the same way. If a player changes the same thing in the same moment,
-  one change silently disappears. Saves only send the changed column, so different fields never
-  clash; the window is the realtime delay, so this is rare. Fix: small RPCs that change one thing
-  inside the row (`adjust_hp(delta)`, `toggle_condition`, `douse_light`), or a version column and
-  `update ... where version = seen`.
-- **Clocks.** Torch time is derived from `litAt` plus the table clock (pause and shift). No cron,
-  and it survives closed tabs. Good design. But each device uses its own `Date.now()`, so a phone
-  whose clock is 2 minutes off shows a different torch than the GM. Fix: read the server time
-  once on load (the response `Date` header is enough) and apply the offset in `tableNow()`.
+- **Lost updates (races). Fixed 2026-10-10 (BUG-006).** GM and player both wrote absolute
+  values from their own copy, so the later save erased the earlier one. Migration 021 adds a
+  `version` bumped on every save; GM actions recompute from the fresh row and retry
+  (`src/lib/characterWrite.ts`), and the sheet's saves are rejected visibly instead of
+  overwriting (`src/lib/characterSaver.ts`). Remaining window: a sheet click in the same frame a
+  realtime update arrives (about 16 ms).
+- **Clocks. Fixed 2026-10-10 (BUG-005).** Torches were lit on the bare device clock but read on
+  the table clock, so pauses froze new torches, advanced turns pre-burned them, and putting one
+  out gave minutes back. Every light function now takes the time explicitly, and all of them use
+  the table clock on server time (`src/lib/serverClock.ts`, `GET /api/time`, `useTableNow`).
+  Still open: joining a table whose clock is shifted moves a torch lit outside it by that shift.
 - **Idempotency.** Rolls are an append-only log, so a double click really is two rolls. Correct.
   The Discord relay doesn't retry a `429` or `5xx`, so a busy table can lose Discord messages
   (Discord allows about 30 a minute per webhook). Low impact: the in-app log is the source of truth.
 - **Realtime reconnects.** To check: after a dropped connection, the sheet and GM panel may not
   refetch, and could show stale data until reload.
 - **Growth.** `session_events` grows forever. Fine for years at this size.
-- **Files.** The avatars bucket allows any file type server-side; only the browser checks for
-  images. Set `allowed_mime_types` to image types.
+- **Files. Fixed (migration 020).** The avatars bucket now accepts images only.
 - **Removing a player.** Blocked by the `no action` foreign keys while they own rows. Decide what
   "revoke access" should do.
-- **Migrations by hand.** Drift already happened (013, now fixed). Apply through the Supabase CLI or
-  `apply_migration`, so the history is recorded.
-- **Supabase advisors.** 9 `SECURITY DEFINER` functions can be called by signed-in users (5 of them also
-  anonymously). Since 019, `auth_discord_id()` is one of them; it only returns the caller's own
-  ID. Its mutable `search_path` warning is fixed.
-- Not relevant here: payments, email deliverability, search, offline, multi-tenancy, GDPR.
+- **Migrations by hand.** Drift already happened (013, now fixed). 013, 019, 020 and 021 went in
+  through `apply_migration` and are in Supabase's history; keep doing that or use the CLI.
+- **Supabase advisors.** After migration 020 no `SECURITY DEFINER` function is callable by
+  `anon`. 11 remain callable by signed-in users, by design: the RLS helpers and the app's RPCs.
+  The mutable `search_path` warning is fixed (019).
 
 ## What to do next
 
 The skill's build order (vertical slice, then must-haves, should-haves, could-haves) is already
 done: every row in `replica/features.csv` exists in the app. So this is a priority list instead.
 
-Done on 2026-10-10: migration 013 applied; Discord ID read from `auth.identities`
-(migration 019 + PR #95).
+Done on 2026-10-10: migration 013 applied; Discord ID read from `auth.identities` (019);
+lost-update fix (021); database hygiene (020); torch clock on server and table time; rolls
+announced to screen readers. See `replica/build-log.md`.
 
-1. **Close the lost-update race** with three small RPCs (`adjust_hp`, `toggle_condition`, `douse_light`).
-2. **Database hygiene, one migration:** image-only avatars, revoke anonymous execute on the
-   helpers, the two missing FK indexes, and level / stat checks on `characters`.
-3. **Retire `schema_snapshot.sql`** (or regenerate it from 001 to 019) and keep recording
-   migrations through `apply_migration` or the CLI (013 and 019 already are).
-4. **Server time offset** for the torch clock.
-5. **Type scale** and the sub-10px text (`replica/design/components.md`).
+1. **Retire `schema_snapshot.sql`** (or regenerate it from 001 to 021).
+2. **Realtime reconnects:** refetch the sheet and the GM panel when a channel reconnects.
+3. **Type scale** and the sub-10px text (`replica/design/components.md`).

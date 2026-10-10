@@ -2,7 +2,7 @@
 
 Build: f2de196 + fixes on this branch  Date: 2026-10-10  Env: local production build, no Supabase keys
 
-Run the automated cases with `npm run test:e2e` (Playwright, specs in `e2e/`).
+Run the automated cases with `npm run test:e2e` (Playwright, specs in `e2e/`). 40 cases.
 
 **Limit of this run:** this environment has no Supabase project or Discord login, so
 nothing behind login could be driven. Those cases are written below and marked
@@ -16,6 +16,11 @@ nothing behind login could be driven. Those cases are written below and marked
 | F01-H2 | sign in | happy | open `/login` | 200 | e2e | pass |
 | F01-H3 | sign in | happy | load `/skull-icon.png` logged out | image, 200 | e2e | pass (guards the BUG-001 fix) |
 | F01-H4, N5, N6 | sign in | identity | `discordIdOf()` with a Discord identity, with a different ID in metadata, with no Discord identity | identity ID; metadata ignored; undefined | e2e | pass (guards BUG-004) |
+| F01-H5 | sign in | clock | `GET /api/time` logged out | 200, live time, `no-store` | e2e | pass |
+| F04-A1 to A4 | rolling | a11y | spoken text for a roll: label, total, both advantage dice, DC verdict, critical, fumble, Fortuna reroll | said in words | e2e | pass (BUG-007) |
+| F05-E1 to E4 | torch | edge | light after a pause; light after advanced turns; a turn after lighting; put out after a turn | 40, 60, 50 min; banks what the table showed | e2e | pass after fix (BUG-005) |
+| F06-E1 to E3, N1 | lost edits | GM | damage after the player healed; condition after the player removed one; no version; repeated losses | heal survives; removal survives; writes as before; gives up without writing | e2e | pass (BUG-006) |
+| F06-H1, H2, E4, N2, N3 | lost edits | sheet | three quick clicks; save after a miss; early echo; GM save in between; saves queued behind a miss | no false conflicts; GM's change stands and is shown; queued saves dropped | e2e | pass (BUG-006) |
 | F01-N1 | sign in | negative: logged out | open `/home`, `/gm`, `/character-creator`, `/sheet/x`, `/sheet/x/edit` | redirect to `/login` | e2e | pass after fix (was fail on `/character-creator`, BUG-001) |
 | F01-N2 | sign in | negative: logged out | POST `/api/discord` | refused (401 or redirect) | e2e | pass |
 | F01-A1 | sign in | a11y | axe scan on `/` | no critical or serious issues | e2e | pass |
@@ -66,6 +71,9 @@ role with the request JWT claims set to a given identity. No app server involved
 | DB-6 | after 019: a player's token whose user_metadata names the GM's Discord ID | still the player, not GM, nothing extra readable | pass (metadata ignored) |
 | DB-7 | after 019: signed in with a non-Discord (email) account | no ID, 0 rows, empty roster | pass |
 | DB-8 | after 019: not signed in (`anon`) | no ID, 0 rows | pass |
+| DB-9 | after 020: player, GM and `anon` again (helpers now revoked from anon) | unchanged: own 1 + roster 5; GM all; anon 0, no errors | pass |
+| DB-10 | after 020: checks, indexes, avatar types, grants | 4 checks, 2 indexes, images only, helpers signed-in only | pass |
+| DB-11 | after 021: version trigger on a temp table, two updates, one forging `version = 999` | version 2 | pass |
 
 So even if the app-level login gate (BUG-001) ever regresses again, the database still
 refuses an unlisted account and a self-declared role. BUG-001 is defence in depth, not the

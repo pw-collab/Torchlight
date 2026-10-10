@@ -77,8 +77,10 @@ marks the selection, so the state is still visible.
    the minimum. Proposed 7-step scale in `tokens.json` → `type_proposed`.
 2. **Twelve breakpoints.** CSS uses 400, 420, 480, 640, 767, 900, 1000, 1024, 1100, 1440 and 1536px,
    plus Tailwind's sm, md and lg. Three or four would cover it: 640, 1024, 1440.
-3. **Roll toasts are silent to screen readers.** `RollToasts`, `TableToasts` and `RollCard`
-   have no `aria-live` or `role="status"`, so a roll result is never announced.
+3. **Roll toasts were silent to screen readers. Fixed 2026-10-10.** A live region
+   (`src/components/shared/LiveAnnouncer.tsx`) reads out the newest roll on the sheet and the GM
+   page, and the newest GM action on a player's sheet. Criticals and fumbles, shown only by
+   colour on the card, are said in words (`src/lib/rollSpeech.ts`).
 4. **Touch targets.** Default buttons are 32px tall, `sm` 28px, `xs` and `icon-xs` 24px. That meets
    WCAG AA's 24px minimum but sits well under the 44px usually advised for phones.
 5. **Focus ring** is 1px at 50% opacity. The border switching to the now-brighter `ring` colour
@@ -138,7 +140,7 @@ Popover / DropdownMenu / ContextMenu / RollModeMenu
 Roll toasts  (RollToasts, TableToasts, RollCard)
   look      card stack, slide in from the right (320ms), crit flash, fumble pulse
   states    own roll, table roll, critical, fumble, rerolled
-  a11y      MISSING: no live region, results not announced
+  a11y      newest roll read out by a polite live region (fixed 2026-10-10)
   used on   S05, S06, S07, S11
 ```
 
