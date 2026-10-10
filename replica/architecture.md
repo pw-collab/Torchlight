@@ -116,17 +116,10 @@ Every object in `002` to `018` was compared against the live database:
 
 ## The parts that bite
 
-- **Identity comes from user-editable data (high priority).** `auth_discord_id()`, which every
-  RLS policy and helper uses, reads the Discord ID from `user_metadata` in the JWT. So do
-  `src/proxy.ts` and the server pages (`user.user_metadata.provider_id`). Supabase documents that
-  `user_metadata` can be changed by the signed-in user through `auth.updateUser()`, and warns
-  against using it for authorization. The role is safe (it comes from the allowlist table), but
-  *which Discord ID you are* is read from a field the user controls. Not tested here.
-  Fix: read the ID from `auth.identities` (server-controlled), in SQL
-  (`where user_id = auth.uid() and provider = 'discord'`) and in the app
-  (`user.identities`). For all 6 current Discord users the two values already match, so
-  the switch locks nobody out. The same rewrite clears the advisor's mutable `search_path` warning.
-
+- **Identity came from user-editable data. Fixed 2026-10-10 (BUG-004).** `auth_discord_id()`,
+  `src/proxy.ts` and the server pages read the Discord ID from `user_metadata`, which Supabase
+  documents as user-editable. Both now read the Discord identity row in `auth.identities`:
+  migration 019 (applied and verified in production) and `src/lib/discordId.ts` (PR #95).
 - **Lost updates (races).** The GM panel saves a player's whole `equipment` list (to douse a
   torch) and whole `conditions` list, built from the GM's last-seen copy. HP, luck and XP are
   saved as absolute values the same way. If a player changes the same thing in the same moment,
@@ -151,7 +144,8 @@ Every object in `002` to `018` was compared against the live database:
 - **Migrations by hand.** Drift already happened (013, now fixed). Apply through the Supabase CLI or
   `apply_migration`, so the history is recorded.
 - **Supabase advisors.** 9 `SECURITY DEFINER` functions can be called by signed-in users (5 of them also
-  anonymously), and `auth_discord_id()` has a mutable `search_path`.
+  anonymously). Since 019, `auth_discord_id()` is one of them; it only returns the caller's own
+  ID. Its mutable `search_path` warning is fixed.
 - Not relevant here: payments, email deliverability, search, offline, multi-tenancy, GDPR.
 
 ## What to do next
@@ -159,13 +153,13 @@ Every object in `002` to `018` was compared against the live database:
 The skill's build order (vertical slice, then must-haves, should-haves, could-haves) is already
 done: every row in `replica/features.csv` exists in the app. So this is a priority list instead.
 
-1. ~~Apply migration 013~~ Done 2026-10-10.
-1. **Read the Discord ID from `auth.identities`**, not `user_metadata`, in `auth_discord_id()`,
-   `src/proxy.ts` and the server pages. One migration and a small code change; see above.
-2. **Close the lost-update race** with three small RPCs (`adjust_hp`, `toggle_condition`, `douse_light`).
-3. **Database hygiene, one migration:** image-only avatars, fixed `search_path` on
-   `auth_discord_id`, revoke anonymous execute on the helpers, the two missing FK indexes, and
-   level / stat checks on `characters`.
-4. **Retire `schema_snapshot.sql`** (or regenerate it from 001 to 018) and start recording migrations.
-5. **Server time offset** for the torch clock.
-6. **Type scale** and the sub-10px text (`replica/design/components.md`).
+Done on 2026-10-10: migration 013 applied; Discord ID read from `auth.identities`
+(migration 019 + PR #95).
+
+1. **Close the lost-update race** with three small RPCs (`adjust_hp`, `toggle_condition`, `douse_light`).
+2. **Database hygiene, one migration:** image-only avatars, revoke anonymous execute on the
+   helpers, the two missing FK indexes, and level / stat checks on `characters`.
+3. **Retire `schema_snapshot.sql`** (or regenerate it from 001 to 019) and keep recording
+   migrations through `apply_migration` or the CLI (013 and 019 already are).
+4. **Server time offset** for the torch clock.
+5. **Type scale** and the sub-10px text (`replica/design/components.md`).

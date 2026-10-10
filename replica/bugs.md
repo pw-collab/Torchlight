@@ -54,13 +54,28 @@ Steps: roll damage for a Blowgun (`damageDie: '1'`).
 Expected: 1. Actual: a d20 roll, because a formula with no `d` fell back to d20.
 Status: fixed on branch.
 
+### BUG-004: Who you are was read from data you can edit
+
+- Severity: S1 if exploitable. Fixed as a precaution: based on Supabase's documented behaviour,
+  not exploited or tested end to end.
+- Flow / case: every flow; F01-H4, F01-N5, F01-N6 and DB-4 to DB-8
+- Found while verifying migration 013 (architecture audit)
+
+`public.auth_discord_id()` (behind 17 RLS policies and every helper), `src/proxy.ts`, the server
+pages, the creator and the Discord relay all took the Discord ID from `user_metadata`. Supabase
+documents that field as writable by the signed-in user (`auth.updateUser()`) and warns against
+authorising on it. Roles were safe, since they come from the allowlist table, but the ID the
+role is looked up by was not.
+
+Fix: both now read the Discord identity row the auth server writes at sign-in.
+- App: `src/lib/discordId.ts` (`user.identities`), used in all 7 places. Ships with PR #95.
+- Database: migration 019, **applied to production 2026-10-10** and recorded in Supabase's history.
+  Before applying, all 6 Discord users had the same ID in both places, so no access changed.
+
+Status: fixed. Verified in production; see the test plan, DB-4 to DB-8.
+
 ## To check (not reproduced)
 
-- **High priority: identity read from `user_metadata`.** `auth_discord_id()` (used by every RLS
-  policy), `src/proxy.ts` and the server pages take the Discord ID from `user_metadata`, which
-  Supabase documents as editable by the signed-in user. Not tested here. Fix and details in
-  `replica/architecture.md` → "The parts that bite". Note: DB-2 in the test plan only shows that
-  writing a *role* into metadata does nothing; it does not cover the ID itself.
 - Versatile weapons: should the sheet offer the two-handed die (1d10) when wielded with both hands? Game design call.
 - `npm run lint` has 17 pre-existing errors (mostly `any` in `src/types/character.types.ts`). If CI ever runs lint, it will fail.
 - ~~Production should have migration 014 applied~~ Confirmed applied (test plan). 013 was missing and was applied 2026-10-10.

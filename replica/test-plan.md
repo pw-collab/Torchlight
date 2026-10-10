@@ -15,6 +15,7 @@ nothing behind login could be driven. Those cases are written below and marked
 | F01-H1 | sign in | happy | open `/` | title and "Login com Discord" link | e2e | pass |
 | F01-H2 | sign in | happy | open `/login` | 200 | e2e | pass |
 | F01-H3 | sign in | happy | load `/skull-icon.png` logged out | image, 200 | e2e | pass (guards the BUG-001 fix) |
+| F01-H4, N5, N6 | sign in | identity | `discordIdOf()` with a Discord identity, with a different ID in metadata, with no Discord identity | identity ID; metadata ignored; undefined | e2e | pass (guards BUG-004) |
 | F01-N1 | sign in | negative: logged out | open `/home`, `/gm`, `/character-creator`, `/sheet/x`, `/sheet/x/edit` | redirect to `/login` | e2e | pass after fix (was fail on `/character-creator`, BUG-001) |
 | F01-N2 | sign in | negative: logged out | POST `/api/discord` | refused (401 or redirect) | e2e | pass |
 | F01-A1 | sign in | a11y | axe scan on `/` | no critical or serious issues | e2e | pass |
@@ -58,8 +59,13 @@ role with the request JWT claims set to a given identity. No app server involved
 | check | setup | expected | result |
 | --- | --- | --- | --- |
 | DB-1 | signed-in user NOT on the allowlist reads `characters`, `npcs`, `sessions` | 0 rows each | pass: 0, 0, 0 |
-| DB-2 | same user puts `"role":"gm"` in their own user_metadata, calls `is_gm()` | false (role comes from the allowlist table, not metadata) | pass: false (covers the role only; see the identity item in bugs.md) |
+| DB-2 | same user puts `"role":"gm"` in their own user_metadata, calls `is_gm()` | false (role comes from the allowlist table, not metadata) | pass: false (covers the role only; the ID itself is BUG-004) |
 | DB-3 | user who IS on the allowlist as `gm` calls `is_gm()` and reads `characters` | true, sees all | pass: true, 5 characters |
+| DB-4 | after migration 019: a real player's token (identity from `sub`) | own ID, not GM, 1 own character, roster 5, no NPCs | pass |
+| DB-5 | after 019: the real GM's token | GM, 5 characters, own NPCs | pass |
+| DB-6 | after 019: a player's token whose user_metadata names the GM's Discord ID | still the player, not GM, nothing extra readable | pass (metadata ignored) |
+| DB-7 | after 019: signed in with a non-Discord (email) account | no ID, 0 rows, empty roster | pass |
+| DB-8 | after 019: not signed in (`anon`) | no ID, 0 rows | pass |
 
 So even if the app-level login gate (BUG-001) ever regresses again, the database still
 refuses an unlisted account and a self-declared role. BUG-001 is defence in depth, not the
@@ -69,7 +75,7 @@ only lock. The NPC fix (migration 014) is confirmed applied: `npcs` has policy
 Open advisories worth a look (from Supabase's own linter, none a user can exploit today):
 - 9 `SECURITY DEFINER` RPCs are callable by signed-in users, 5 of them also anonymously. They
   are gated inside, but worth confirming each checks the caller.
-- `auth_discord_id()` has a mutable `search_path`.
+- ~~`auth_discord_id()` has a mutable `search_path`.~~ Fixed by migration 019.
 - Leaked-password protection is off (minor; the app uses Discord OAuth, not passwords).
 
 ## Other checks run
