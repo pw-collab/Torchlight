@@ -177,7 +177,7 @@ export interface Class {
 
   /**
    * 2d6 talent table. Consulted when the character levels up at an odd level.
-   * Use getTalentForRoll(classId, roll) or rollClassTalent(classId) from the index.
+   * Use rollClassTalent(classId) from the index.
    */
   talentTable: TalentTableEntry[]
 
