@@ -1,0 +1,35 @@
+feature,area,priority,original,clone,notes
+Discord OAuth login,auth,must,yes,no,
+Allowlist of Discord IDs with player or GM role,auth,must,yes,no,managed in Supabase dashboard
+Campaign roster of all characters,home,must,yes,no,campaign_roster RPC
+Character creation wizard (10 steps),creator,must,yes,no,
+Stat block with rollable attributes,sheet,must,yes,no,
+Attacks menu with roll modes (adv/dis),sheet,must,yes,no,
+3D physics dice with sound,dice,must,yes,no,three + cannon-es
+Slot-based inventory,sheet,must,yes,no,
+Torch and light source timer,sheet,must,yes,no,real-time torch_end_at
+HP and AC tracking,sheet,must,yes,no,
+Live session with join code,session,must,yes,no,migration 015
+Shared session event feed,session,must,yes,no,
+GM view of all players in session,gm,must,yes,no,
+Discord webhook for rolls and events,integrations,must,yes,no,
+Spells and grimoire,sheet,should,yes,no,
+Talents and class techniques,sheet,should,yes,no,
+Conditions on characters and actors,sheet,should,yes,no,
+Progression levels 1 to 20 with XP,progression,should,yes,no,
+Luck tokens and reroll,dice,should,yes,no,
+Rest action,sheet,should,yes,no,
+Encounter tracker with initiative and rounds,gm,should,yes,no,
+NPC bestiary with tags and favorites,gm,should,yes,no,
+Dungeon clock with pause and shift,gm,should,yes,no,
+Session recap posted to Discord,gm,should,yes,no,
+Avatar upload,sheet,should,yes,no,Supabase storage bucket
+Edit existing character,sheet,should,yes,no,
+Table mode (big numbers for phone),sheet,could,yes,no,
+Bestiary import,gm,could,yes,no,
+Scenes prep tab,gm,could,yes,no,
+Handouts sent to players,gm,could,yes,no,
+GM prompts to players,gm,could,yes,no,
+Book viewer modal,sheet,could,yes,no,
+Shadowdark rules text and art,content,skip,yes,skip,licensed game content; needs third-party license or original content
+Discord server and channels,integrations,skip,yes,skip,external platform
