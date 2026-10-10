@@ -31,8 +31,8 @@ export function RestButton({ rations, hpFull, busy, onRest }: Props) {
         noFood
           ? 'Sem rações na mochila — descansar de estômago vazio não recupera nada'
           : hpFull
-            ? 'Já está com a vida cheia; descansar consome uma ração mesmo assim'
-            : `Rolar a recuperação da classe e consumir uma ração (${rations} restante${rations === 1 ? '' : 's'})`
+            ? 'Vida cheia: descansar ainda devolve magias e técnicas, e consome uma ração'
+            : `Rolar a recuperação da classe, recuperar magias e técnicas, e consumir uma ração (${rations} restante${rations === 1 ? '' : 's'})`
       }
       className={cn(
         'font-heading h-9 min-h-9 shrink-0 gap-1.5 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase',

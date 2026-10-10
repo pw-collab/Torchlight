@@ -16,9 +16,13 @@ import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, snuff } from '@/lib/light'
 import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dungeonClock'
 import { DungeonClockBar } from './DungeonClockBar'
+import { CrawlBar } from './CrawlBar'
+import { modifier } from '@/lib/dice'
+import { lostSpells } from '@/lib/rest'
 import { EncounterPanel } from './EncounterPanel'
 import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
-import { recordEvent } from '@/lib/sessionEvents'
+import { recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, stabilize } from '@/lib/dying'
 import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
@@ -193,6 +197,8 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
 
     let patch: Record<string, unknown> | null = null
     let event: { kind: SessionEventKind; payload: Record<string, unknown> } | null = null
+    /** O que mais a mesma ação conta ao log, depois da linha principal. */
+    const extra: { kind: SessionEventKind; payload: Record<string, unknown> }[] = []
     /** A coluna que o desfazer teria de escrever de volta; nula quando não há volta. */
     let undoField: UndoField | null = null
 
@@ -203,6 +209,39 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         patch = { hp_current: to }
         event = { kind: 'hp', payload: { from, to, delta: to - from, ...named } }
         undoField = 'hp_current'
+        // O goblin que derruba alguém abre o relógio da morte daqui mesmo —
+        // a regra é a mesma da ficha (lib/dying), então os dois lados concordam.
+        const shift = hpShift(character.conditions, character.stats.con, from, to, gmName)
+        if (shift) {
+          patch.conditions = shift.conditions
+          extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
+        }
+      }
+    } else if (action.type === 'stabilize') {
+      // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
+      // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
+      if (dyingRounds(character.conditions) !== null) {
+        const stable = stabilize(character.conditions, gmName)
+        patch = { conditions: stable.conditions }
+        event = { kind: 'condition', payload: { ...stable.event, ...named } }
+      }
+    } else if (action.type === 'death-roll') {
+      // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
+      // regra que o botão da ficha usa.
+      const rounds = dyingRounds(character.conditions)
+      if (rounds !== null) {
+        const roll = rollAgainstDeath(rounds)
+        const out = afterDeathRoll(character.conditions, roll, gmName)
+        patch = { conditions: out.conditions }
+        if (out.outcome === 'rise') patch.hp_current = 1
+        event = { kind: 'roll', payload: { ...rollPayload(roll, character.name) } }
+        if (out.outcome === 'rise') {
+          extra.push({
+            kind: 'hp',
+            payload: { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, ...named },
+          })
+        }
+        if (out.event) extra.push({ kind: 'condition', payload: { ...out.event, ...named } })
       }
     } else if (action.type === 'luck') {
       const from = character.luckTokens
@@ -270,6 +309,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
       setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
     }
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
+    for (const line of extra) void recordEvent({ ...common, kind: line.kind, payload: line.payload })
 
     // O erro mais comum de qualquer VTT é aplicar dano no alvo errado ou
     // digitar 17 em vez de 7. Com o antes e o depois já no log, oferecer a
@@ -294,9 +334,18 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     const supabase = createClient()
     setBusyId(undoable.characterId)
 
+    // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
+    // a ficha volta a ter PV e continua "morrendo".
+    const patch: Record<string, unknown> = { [undoable.field]: undoable.previous }
+    const seat = seats.find(s => s.character.id === undoable.characterId)
+    const shift = undoable.field === 'hp_current' && seat
+      ? hpShift(seat.character.conditions, seat.character.stats.con, undoable.applied, undoable.previous, gmName)
+      : null
+    if (shift) patch.conditions = shift.conditions
+
     const { data } = await supabase
       .from('characters')
-      .update({ [undoable.field]: undoable.previous })
+      .update(patch)
       .eq('id', undoable.characterId)
       .select()
       .single()
@@ -324,7 +373,16 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         undo: true,
       },
     })
-  }, [undoable, sessionId, gmName, setSeats])
+    if (shift) {
+      void recordEvent({
+        sessionId,
+        actorName: gmName,
+        characterId: undoable.characterId,
+        kind: 'condition',
+        payload: { ...shift.event, characterName: undoable.characterName, by: 'gm' },
+      })
+    }
+  }, [undoable, seats, sessionId, gmName, setSeats])
 
   /**
    * Revela à mesa uma rolagem que estava escondida (§6.7). O log é
@@ -454,6 +512,19 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
   }, [seats, sessionId, gmName])
 
+  /**
+   * A checagem de encontro vai para o log escondida da mesa: o Mestre decide
+   * quando a coisa aparece — a mesa descobre quando ela chega.
+   */
+  const recordCrawlCheck = useCallback((text: string) => {
+    void recordEvent({ sessionId, actorName: gmName, kind: 'note', payload: { text }, visibility: 'gm_only' })
+  }, [sessionId, gmName])
+
+  // Quem fala pelo grupo costuma ser quem tem mais lábia.
+  const partyChaMod = seats.length > 0
+    ? Math.max(...seats.map(s => modifier(s.character.stats.cha)))
+    : 0
+
   const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
 
@@ -470,6 +541,8 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         onAdvance={advanceClock}
         onSnuffAll={() => void snuffEveryLight()}
       />
+
+      <CrawlBar sessionId={sessionId} chaMod={partyChaMod} onCheck={recordCrawlCheck} />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-heading text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
@@ -528,6 +601,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         gmId={gmId}
         seats={seats}
         onAct={act}
+        events={events}
       />
 
       {undoable && (
@@ -613,7 +687,11 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
           <CardContent className="flex flex-col gap-3.5 px-0">
             <StatBlock stats={expanded.character.stats} />
             {expanded.character.spells.length > 0 && (
-              <Spells classId={expanded.character.classId} equippedSpells={expanded.character.spells} />
+              <Spells
+                classId={expanded.character.classId}
+                equippedSpells={expanded.character.spells}
+                lostSpells={lostSpells(expanded.character.techniqueStates)}
+              />
             )}
           </CardContent>
         </Card>

@@ -1,5 +1,6 @@
 'use client'
 
+import { doubledDice } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 
 /**
@@ -8,6 +9,17 @@ import type { RollResult } from '@/lib/dice'
  * bad result is still in front of everyone — not to anything older.
  */
 export const ROLL_FRESH_MS = 15_000
+
+/**
+ * An attack whose damage has not been rolled yet stays up longer: the table
+ * first has to hear from the Mestre whether it hit.
+ */
+export const FOLLOW_UP_MS = 45_000
+
+/** Whether this roll still offers its damage — an attack, not a miss by a natural 1. */
+export function offersDamage(roll: RollResult): boolean {
+  return Boolean(roll.damage) && !roll.isFumble
+}
 
 /** The colours a roll is shown in: gold for a critical, red for a fumble. */
 export function rollTone(roll: RollResult) {
@@ -35,6 +47,11 @@ interface Props {
   fortuneLeft?: number
   /** The dock's history is narrower than a toast: the total a step smaller. */
   compact?: boolean
+  /**
+   * Rolls the damage this attack carries. Passed only while the offer stands:
+   * an attack with a weapon die whose damage has not been rolled yet.
+   */
+  onRollDamage?: () => void
 }
 
 /**
@@ -46,8 +63,10 @@ interface Props {
  * The box around it (border, background, shadow) belongs to the caller, read
  * off `rollTone`.
  */
-export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact }: Props) {
+export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRollDamage }: Props) {
   const tone = rollTone(roll)
+  const crit = roll.isCritical === true
+  const damageFormula = roll.damage ? (crit ? doubledDice(roll.damage.formula) : roll.damage.formula) : null
 
   return (
     <>
@@ -173,6 +192,41 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact }: Pro
             {roll.rerollOf}
           </span>
         </div>
+      )}
+
+      {/* Atacou, acertou: o dano vem daqui mesmo, sem voltar ao menu. No
+          crítico os dados já chegam dobrados — ninguém precisa lembrar. */}
+      {onRollDamage && damageFormula && (
+        <button
+          type="button"
+          onClick={onRollDamage}
+          title={crit ? 'Crítico: os dados de dano da arma dobram' : 'Acertou? Role o dano da arma'}
+          style={{
+            marginTop: 8,
+            width: '100%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 6,
+            background: crit
+              ? 'color-mix(in oklch, var(--chart-1), transparent 80%)'
+              : 'color-mix(in oklch, var(--primary), transparent 85%)',
+            border: `1px solid ${crit ? 'var(--chart-1)' : 'var(--primary)'}`,
+            color: crit ? 'var(--chart-1)' : 'var(--foreground)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 9,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            padding: '7px 8px',
+            minHeight: 32,
+          }}
+        >
+          <span>{crit ? '✦ Dano crítico' : '⚔ Rolar dano'}</span>
+          <span style={{ fontFamily: 'var(--font-mono)', letterSpacing: 0, textTransform: 'none' }}>
+            {damageFormula}
+          </span>
+        </button>
       )}
 
       {/* A Fortuna é regra de rerrolagem, não um contador: o momento de

@@ -1,16 +1,25 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useEncounter } from '@/hooks/useEncounter'
 import type { Character } from '@/types/character.types'
 import type { EncounterActor } from '@/types/encounter.types'
 import { nextTurn, turnOrder } from '@/types/encounter.types'
 import type { NPC, NPCRow } from '@/types/npc.types'
+import type { RollPayload, SessionEvent } from '@/types/session.types'
 import { rowToNPC } from '@/types/npc.types'
-import { recordEvent } from '@/lib/sessionEvents'
-import { rollDie } from '@/lib/dice'
-import { npcActorFields, uniqueActorName } from '@/lib/encounterSetup'
+import { eventActor, recordEvent } from '@/lib/sessionEvents'
+import { rollDie, withDc } from '@/lib/dice'
+import {
+  FLEEING_ID,
+  MORALE_DC,
+  isFleeing,
+  moraleDue,
+  npcActorFields,
+  uniqueActorName,
+} from '@/lib/encounterSetup'
+import { dyingRounds, mortalState } from '@/lib/dying'
 import type { GmAction } from './PlayerCard'
 import { NpcAttack } from './NpcAttack'
 import { Button } from '@/components/ui/button'
@@ -29,7 +38,12 @@ interface Props {
   seats: Seat[]
   /** Dano no PC passa pelo mesmo caminho do card: escreve na ficha e conta à mesa. */
   onAct: (character: Character, action: GmAction) => void | Promise<void>
+  /** O feed da mesa — é dele que sai o dano que os jogadores acabaram de rolar. */
+  events: SessionEvent[]
 }
+
+/** Quantas rolagens de dano esperam alvo ao mesmo tempo, no máximo. */
+const PENDING_DAMAGE = 3
 
 const PILL =
   'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase'
@@ -45,12 +59,27 @@ const PILL =
  *
  * O PC não duplica vida: a linha dele aponta para a ficha e o HP é lido de lá.
  */
-export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props) {
+export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct, events }: Props) {
   const { encounter, actors, reload } = useEncounter(sessionId)
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [picking, setPicking] = useState(false)
   const [bestiary, setBestiary] = useState<NPC[]>([])
+  /** As rolagens de dano que o Mestre já aplicou ou dispensou. */
+  const [settledDamage, setSettledDamage] = useState<ReadonlySet<string>>(() => new Set())
+
+  // O jogador rola o dano na ficha; aqui ele vira um botão por alvo. Só o que
+  // foi rolado depois de o encontro abrir — o dano de ontem não tem alvo.
+  const pendingDamage = useMemo(() => {
+    if (!encounter) return []
+    const since = new Date(encounter.createdAt).getTime()
+    return events
+      .filter(e => e.kind === 'roll' && e.at >= since && !settledDamage.has(e.id))
+      .filter(e => (e.payload as RollPayload).isDamage)
+      .slice(0, PENDING_DAMAGE)
+  }, [encounter, events, settledDamage])
+
+  const settleDamage = (id: string) => setSettledDamage(prev => new Set(prev).add(id))
 
   const seatOf = useCallback(
     (actor: EncounterActor) => seats.find(s => s.character.id === actor.refId),
@@ -97,14 +126,16 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
     setBusy(false)
   }
 
-  async function loadBestiary() {
+  async function loadBestiary(): Promise<NPC[]> {
     const supabase = createClient()
     const { data } = await supabase
       .from('npcs')
       .select('*')
       .eq('gm_id', gmId)
       .order('name', { ascending: true })
-    setBestiary(((data ?? []) as NPCRow[]).map(rowToNPC))
+    const list = ((data ?? []) as NPCRow[]).map(rowToNPC)
+    setBestiary(list)
+    return list
   }
 
   /**
@@ -168,7 +199,13 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
 
   async function advance() {
     if (!encounter) return
-    const { actorId, wrapped } = nextTurn(actors, encounter.activeActorId)
+    // Quem está morrendo ainda tem vez — é nela que rola contra a morte. Quem
+    // morreu, não: sai da trilha como o goblin que caiu.
+    const living = actors.map(actor => {
+      const seat = actor.source === 'pc' ? seatOf(actor) : undefined
+      return seat && mortalState(seat.character.conditions) === 'dead' ? { ...actor, defeated: true } : actor
+    })
+    const { actorId, wrapped } = nextTurn(living, encounter.activeActorId)
     if (!actorId) return
 
     const round = wrapped ? encounter.round + 1 : encounter.round
@@ -194,6 +231,39 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
     const to = Math.max(0, (actor.hpCurrent ?? 0) - amount)
     await patchActor(actor, { hp_current: to, defeated: to <= 0 })
     if (to <= 0) log({ action: 'down', actorName: actor.name })
+  }
+
+  /**
+   * O teste de moral: cada inimigo de pé rola SAB contra DC 15, e quem falha
+   * foge. O modificador vem do statblock de origem; um ator sem ficha no
+   * bestiário rola puro.
+   */
+  async function rollMorale() {
+    if (!encounter) return
+    setBusy(true)
+    const sheets = bestiary.length > 0 ? bestiary : await loadBestiary()
+    const supabase = createClient()
+    const fled: string[] = []
+    const held: string[] = []
+
+    for (const actor of actors) {
+      if (actor.source !== 'npc' || actor.defeated || isFleeing(actor)) continue
+      const wis = sheets.find(n => n.id === actor.refId)?.stats.wis ?? 0
+      const roll = withDc(rollDie('d20', 'Moral', actor.name, wis), MORALE_DC)
+      if (roll.success) {
+        held.push(actor.name)
+        continue
+      }
+      fled.push(actor.name)
+      await supabase
+        .from('encounter_actors')
+        .update({ conditions: [...actor.conditions, { id: FLEEING_ID, label: 'Fugindo' }] })
+        .eq('id', actor.id)
+    }
+
+    if (fled.length + held.length > 0) log({ action: 'morale', fled, held })
+    reload()
+    setBusy(false)
   }
 
   async function endEncounter(xpEach: number) {
@@ -253,6 +323,8 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
   )
   const defeatedNpcs = actors.filter(a => a.source === 'npc' && a.defeated).length
   const livingPcs = seats.filter(s => s.character.hpCurrent > 0)
+  const standingNpcs = actors.filter(a => a.source === 'npc' && !a.defeated && !isFleeing(a)).length
+  const moraleNow = moraleDue(actors)
 
   return (
     <div
@@ -283,6 +355,25 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
           >
             + NPC
           </Button>
+          {standingNpcs > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void rollMorale()}
+              disabled={busy}
+              title={
+                moraleNow
+                  ? `Metade caiu: cada inimigo de pé rola SAB contra DC ${MORALE_DC}, quem falha foge`
+                  : `Teste de moral: SAB contra DC ${MORALE_DC}, quem falha foge`
+              }
+              className={cn(
+                PILL,
+                moraleNow ? 'animate-flicker border-[var(--chart-1)] text-[var(--chart-1)]' : 'text-[var(--muted-foreground)]',
+              )}
+            >
+              🏳 Moral
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -318,6 +409,49 @@ export function EncounterPanel({ sessionId, gmName, gmId, seats, onAct }: Props)
               + {seat.character.name}
             </Button>
           ))}
+        </div>
+      )}
+
+      {pendingDamage.length > 0 && (
+        <div className="flex flex-col gap-1 border-t border-[var(--border)] pt-2">
+          {pendingDamage.map(event => {
+            const p = event.payload as RollPayload
+            const targets = order.filter(a => a.source === 'npc' && !a.defeated)
+            return (
+              <div key={event.id} className="flex flex-wrap items-center gap-1">
+                <span className="font-body text-[11px] text-[var(--foreground)]">
+                  🗡 {eventActor(event)}: <span className="font-mono font-bold">{p.total}</span>
+                  <span className="text-[var(--muted-foreground)] italic"> de dano em…</span>
+                </span>
+                {targets.map(actor => (
+                  <Button
+                    key={actor.id}
+                    type="button"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => {
+                      settleDamage(event.id)
+                      void damageActor(actor, p.total)
+                    }}
+                    title={`Aplicar ${p.total} de dano em ${actor.name}`}
+                    className="font-heading h-7 min-h-7 rounded-[1px] border-[var(--destructive)] px-2 text-[8px] tracking-[0.1em] text-[var(--destructive)] uppercase"
+                  >
+                    {actor.name}
+                  </Button>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => settleDamage(event.id)}
+                  aria-label="Dispensar este dano"
+                  title="Errou, ou já foi aplicado à mão"
+                  className="h-7 min-h-7 px-1 text-[10px] text-[var(--muted-foreground)]"
+                >
+                  ✕
+                </Button>
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -399,6 +533,8 @@ function ActorRow({
   const hpMax = actor.source === 'pc' ? seat?.character.hpMax ?? 0 : actor.hpMax ?? 0
   const ac = actor.source === 'pc' ? seat?.character.ac ?? 10 : actor.ac ?? 10
   const down = actor.source === 'pc' ? hpCurrent <= 0 : actor.defeated
+  const mortal = seat ? mortalState(seat.character.conditions) : 'standing'
+  const rounds = seat ? dyingRounds(seat.character.conditions) : null
 
   const parsed = Math.abs(parseInt(amount, 10))
   const value = Number.isFinite(parsed) && parsed > 0 ? parsed : 0
@@ -448,9 +584,27 @@ function ActorRow({
         >
           {actor.name}
         </span>
+        {actor.source === 'npc' && !down && isFleeing(actor) && (
+          <span
+            className="font-heading shrink-0 text-[7.5px] tracking-[0.14em] text-[var(--chart-1)] uppercase"
+            title={`Falhou no teste de moral (SAB DC ${MORALE_DC})`}
+          >
+            🏳 foge
+          </span>
+        )}
         {down && (
-          <span className="font-heading shrink-0 text-[7.5px] tracking-[0.14em] text-[var(--destructive)] uppercase">
-            ☠
+          <span
+            className={cn(
+              'font-heading shrink-0 text-[7.5px] tracking-[0.14em] uppercase',
+              mortal === 'stable' ? 'text-[var(--chart-2)]' : 'text-[var(--destructive)]',
+            )}
+            title={
+              mortal === 'dying'
+                ? `Morrendo: ${rounds} rodada${rounds === 1 ? '' : 's'}`
+                : mortal === 'stable' ? 'Estável' : mortal === 'dead' ? 'Morto' : 'Caído'
+            }
+          >
+            {mortal === 'dying' ? `☠ ${rounds}` : mortal === 'stable' ? '✚' : '☠'}
           </span>
         )}
       </span>
