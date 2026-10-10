@@ -67,7 +67,7 @@ only lock. The NPC fix (migration 014) is confirmed applied: `npcs` has policy
 `npcs_manage_own_gm`, so one GM cannot read another GM's monsters.
 
 Open advisories worth a look (from Supabase's own linter, none a user can exploit today):
-- 15 `SECURITY DEFINER` RPCs are callable by signed-in (and some by anonymous) users. They
+- 9 `SECURITY DEFINER` RPCs are callable by signed-in users, 5 of them also anonymously. They
   are gated inside, but worth confirming each checks the caller.
 - `auth_discord_id()` has a mutable `search_path`.
 - Leaked-password protection is off (minor; the app uses Discord OAuth, not passwords).
