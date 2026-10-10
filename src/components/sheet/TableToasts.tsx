@@ -37,12 +37,16 @@ export function TableToasts({ events, characterId, since }: Props) {
   }, [])
 
   const visible = events.filter(event => {
-    if (event.characterId !== characterId) return false
     if (event.at <= since) return false
+    if (now - event.at > LIFETIME_MS) return false
+    // A narração do Mestre é para a mesa inteira: chega em todas as fichas.
+    if (event.characterId === null && event.kind === 'note') {
+      return (event.payload as { narration?: boolean }).narration === true
+    }
+    if (event.characterId !== characterId) return false
     // Uma entrega já se anuncia abrindo o leitor na cara de quem recebeu
     // (§6.8) — o aviso por cima seria o mesmo recado duas vezes.
     if (event.kind === 'handout') return false
-    if (now - event.at > LIFETIME_MS) return false
     return (event.payload as { by?: string }).by === 'gm'
   })
 

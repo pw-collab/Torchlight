@@ -471,7 +471,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                 </Button>
               </div>
             ) : (
-              <div className="animate-ink-spread">
+              <div className="dd animate-ink-spread">
                 <div
                   className="worn-border"
                   style={{
@@ -540,6 +540,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
                   gmName={gmName}
                   gmId={gmId}
                   onSessionChange={setSession}
+                  onRoll={handleGmRoll}
                 />
               </div>
             )}
