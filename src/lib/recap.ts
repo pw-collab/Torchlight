@@ -1,4 +1,6 @@
+import { DEAD_ID } from '@/lib/dying'
 import type {
+  ConditionPayload,
   EncounterPayload,
   HandoutPayload,
   LightPayload,
@@ -26,6 +28,8 @@ export interface Recap {
   fumbles: RecapRoll[]
   /** Quem chegou a zero. */
   downs: string[]
+  /** Quem não voltou: o relógio da morte chegou a zero (ver `lib/dying`). */
+  deaths: string[]
   xp: { who: string; gained: number }[]
   /** Minutos de luz queimados, somando o que se apagou. */
   torchMinutes: number
@@ -60,6 +64,7 @@ export function buildRecap(events: SessionEvent[], sessionName: string): Recap {
   const criticals: RecapRoll[] = []
   const fumbles: RecapRoll[] = []
   const downs: string[] = []
+  const deaths: string[] = []
   const xpByWho = new Map<string, number>()
   const encounters: string[] = []
   const handouts: string[] = []
@@ -89,6 +94,11 @@ export function buildRecap(events: SessionEvent[], sessionName: string): Recap {
         const p = event.payload as VitalsPayload
         // Um desfazer que devolve alguém a zero é correção de erro, não queda.
         if (!p.undo && p.to <= 0 && p.from > 0 && !downs.includes(who)) downs.push(who)
+        break
+      }
+      case 'condition': {
+        const p = event.payload as ConditionPayload
+        if (p.conditionId === DEAD_ID && p.action === 'applied' && !deaths.includes(who)) deaths.push(who)
         break
       }
       case 'xp': {
@@ -146,6 +156,7 @@ export function buildRecap(events: SessionEvent[], sessionName: string): Recap {
     criticals,
     fumbles,
     downs,
+    deaths,
     xp: [...xpByWho.entries()]
       .filter(([, gained]) => gained !== 0)
       .map(([who, gained]) => ({ who, gained }))
@@ -180,6 +191,7 @@ export function formatRecap(recap: Recap): string {
   for (const fumble of recap.fumbles) lines.push(`💀 ${fumble.who} — ${fumble.label} (${fumble.total})`)
 
   if (recap.downs.length > 0) lines.push(`🩸 Caíram: ${recap.downs.join(', ')}`)
+  if (recap.deaths.length > 0) lines.push(`⚰ Morreram: ${recap.deaths.join(', ')}`)
   if (recap.xp.length > 0) {
     lines.push(`△ XP: ${recap.xp.map(x => `${x.who} +${x.gained}`).join(', ')}`)
   }

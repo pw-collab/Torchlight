@@ -10,8 +10,8 @@ import {
   Settings03Icon,
 } from '@hugeicons/core-free-icons'
 import { createClient } from '@/lib/supabase'
+import { useTableNow } from '@/hooks/useTableNow'
 import { useCharacter } from '@/hooks/useCharacter'
-import { useNow } from '@/hooks/useNow'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTableSession } from '@/hooks/useTableSession'
@@ -37,11 +37,12 @@ import { Spells } from '@/components/sheet/Spells'
 import { BackstoryView } from '@/components/sheet/BackstoryView'
 import { sendToDiscord } from '@/lib/discord'
 import { minutesLeft, snuffBurnedOut } from '@/lib/light'
-import { tableNow } from '@/lib/dungeonClock'
 import { pendingPrompts, recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
+import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { describeRoll } from '@/lib/rollSpeech'
 import { PromptCard } from '@/components/sheet/PromptCard'
 import { TurnBanner } from '@/components/sheet/TurnBanner'
 import { TableMode } from '@/components/sheet/TableMode'
@@ -49,7 +50,10 @@ import { HandoutShelf } from '@/components/sheet/HandoutShelf'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
-import { consumeRation, findRation } from '@/lib/rest'
+import { DeathBanner } from '@/components/sheet/DeathBanner'
+import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, withoutMortal } from '@/lib/dying'
+import { consumeRation, findRation, lostSpells, restoredStates, withLostSpells } from '@/lib/rest'
+import { damageFollowUp } from '@/lib/attacks'
 import { coinSlots, maxSlots, usedSlots } from '@/lib/slots'
 import { STAT_LABELS, isStat } from '@/data/stats'
 import type {
@@ -60,7 +64,7 @@ import type {
   SessionEventKind,
   SessionPayload,
 } from '@/types/session.types'
-import { modifier, reroll, rollDie, rollWithMode, withDc } from '@/lib/dice'
+import { modifier, reroll, rollWithMode, withDc } from '@/lib/dice'
 import type { RollMode, RollResult } from '@/lib/dice'
 import type { ActiveCondition, CharacterRow } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
@@ -91,9 +95,11 @@ interface Props {
 }
 
 export function CharacterSheetClient({ characterId, playerName, isOwner }: Props) {
-  const { character, loading, updateCharacter, savedAt } = useCharacter(characterId)
+  const { character, loading, updateCharacter, savedAt, conflictAt } = useCharacter(characterId)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
+  /** Os ataques cujo dano já foi rolado do próprio cartão. */
+  const [damageRolled, setDamageRolled] = useState<ReadonlySet<string>>(() => new Set())
   // A vista de longe (§5.12): a mesma ficha, só que legível do outro lado da mesa.
   const [tableMode, setTableMode] = useState(false)
   const isMobile = useIsMobile()
@@ -227,7 +233,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   // A mesa pode ter o tempo parado ou adiantado pelo Mestre (§6.9), e a luz
   // segue o relógio dela — inclusive a hora de anunciar que apagou.
-  const now = tableNow(openSession, useNow())
+  const now = useTableNow(openSession)
   const inventory = character?.inventory
   const announcedRef = useRef<Set<string>>(new Set())
 
@@ -298,14 +304,49 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   async function handleHpChange(newHp: number) {
     const from = character!.hpCurrent
     if (newHp === from) return
-    await updateCharacter({ hp_current: newHp } as Partial<CharacterRow>)
+    // Cair a 0 abre o relógio da morte; voltar a ter PV o fecha (ver lib/dying).
+    const shift = hpShift(character!.conditions, character!.stats.con, from, newHp, playerName)
+    const patch: Partial<CharacterRow> = { hp_current: newHp }
+    if (shift) patch.conditions = shift.conditions
+    // Only what was saved goes in the log: a save that lost to the GM's didn't happen.
+    if (!(await updateCharacter(patch))) return
     record('hp', { from, to: newHp, delta: newHp - from, by: 'player' })
+    if (shift) {
+      // O d4 do relógio cai na tela de quem caiu; para a mesa ele vai na nota
+      // da condição, numa linha só.
+      if (shift.timer) startRoll(shift.timer)
+      record('condition', { ...shift.event, by: 'player' })
+    }
+  }
+
+  /**
+   * A vez de quem está morrendo: um d20, e só o 20 natural salva. O resultado
+   * é escrito na hora, não quando o dado assenta — uma rolagem nova no meio da
+   * animação cancelaria o pouso, e o relógio da morte não pode se perder.
+   */
+  async function handleDeathRoll() {
+    if (!character) return
+    const rounds = dyingRounds(character.conditions)
+    if (rounds === null) return
+
+    const roll = rollAgainstDeath(rounds)
+    handleRoll(roll)
+
+    const out = afterDeathRoll(character.conditions, roll, playerName)
+    const patch: Partial<CharacterRow> = { conditions: out.conditions }
+    if (out.outcome === 'rise') patch.hp_current = 1
+    if (!(await updateCharacter(patch))) return
+
+    if (out.outcome === 'rise') {
+      record('hp', { from: character.hpCurrent, to: 1, delta: 1 - character.hpCurrent, by: 'player' })
+    }
+    if (out.event) record('condition', { ...out.event, by: 'player' })
   }
 
   async function handleLuckChange(newValue: number) {
     const from = character!.luckTokens
     if (newValue === from) return
-    await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ luck_tokens: newValue } as Partial<CharacterRow>))) return
     record('luck', { from, to: newValue, delta: newValue - from, by: 'player' })
   }
 
@@ -316,7 +357,17 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   function handleFortuneReroll(original: RollResult) {
     if (!character || character.luckTokens <= 0) return
     void handleLuckChange(character.luckTokens - 1)
+    // O ataque que ficou para trás não oferece mais dano: quem vale é o novo.
+    if (original.damage) setDamageRolled(prev => new Set(prev).add(original.id))
     handleRoll(reroll(original))
+  }
+
+  /** O dano que o ataque carrega, rolado do cartão — dobrado num crítico. */
+  function handleRollDamage(attack: RollResult) {
+    const damage = damageFollowUp(attack)
+    if (!damage) return
+    setDamageRolled(prev => new Set(prev).add(attack.id))
+    handleRoll(damage)
   }
 
   /**
@@ -344,41 +395,50 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    */
   async function handleConditionRemove(condition: ActiveCondition) {
     const next = character!.conditions.filter(c => c.id !== condition.id)
-    await updateCharacter({ conditions: next } as Partial<CharacterRow>)
+    if (!(await updateCharacter({ conditions: next } as Partial<CharacterRow>))) return
     record('condition', { action: 'removed', label: condition.label, by: 'player' })
   }
 
   /**
-   * Descanso (§5.7). Recupera pelo dado de vida da classe — o mesmo dado, e a
-   * mesma leitura, que a trilha de progressão usa ao subir de nível (a CON já
-   * foi contada uma vez, no HP inicial). Come uma ração; de estômago vazio o
-   * descanso não recupera nada, e o feed diz isso.
+   * Descanso (§5.7), pela regra do livro: oito horas de sono e uma ração
+   * devolvem todo o PV. Antes ele rolava o dado de vida da classe; a mesa
+   * escolheu o livro. De estômago vazio o descanso não recupera nada, e o
+   * feed diz isso.
    */
   async function handleRest() {
     if (!character) return
-    const cls = getClass(character.classId)
-    const die = `d${cls?.hitDie ?? 6}`
     const ration = findRation(character.inventory)
 
-    const rolled = rollDie(die, 'Descanso', 'Recuperação')
-    const gain = ration ? Math.min(rolled.result, character.hpMax - character.hpCurrent) : 0
-    const to = character.hpCurrent + gain
+    // Nunca abaixo do que já está: PV acima do máximo não é o descanso que tira.
+    const to = ration ? Math.max(character.hpCurrent, character.hpMax) : character.hpCurrent
+    const gain = to - character.hpCurrent
+
+    const shift = gain > 0
+      ? hpShift(character.conditions, character.stats.con, character.hpCurrent, to, playerName)
+      : null
+
+    // Com a ração, o sono devolve também o que a falha tirou: as magias
+    // perdidas e os usos das técnicas. Sem ela, nada volta — nem isso.
+    const spellsBack = ration ? lostSpells(character.techniqueStates).length : 0
 
     const patch: Partial<CharacterRow> = {}
     if (gain > 0) patch.hp_current = to
+    if (shift) patch.conditions = shift.conditions
     if (ration) (patch as any).equipment = consumeRation(character.inventory, ration.id)
-    if (Object.keys(patch).length > 0) await updateCharacter(patch)
+    if (ration) patch.technique_states = restoredStates(character.techniqueStates)
+    // Only what was saved goes in the log: a save that lost to the GM's didn't happen.
+    if (Object.keys(patch).length > 0 && !(await updateCharacter(patch))) return
 
     record('hp', {
       from: character.hpCurrent,
       to,
       delta: gain,
       reason: 'rest',
-      die,
-      roll: rolled.result,
       ration: Boolean(ration),
+      ...(spellsBack > 0 && { spells: spellsBack }),
       by: 'player',
     })
+    if (shift) record('condition', { ...shift.event, by: 'player' })
   }
 
   /**
@@ -535,6 +595,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onRoll={handleRoll}
         onUpdate={handleSpellcastingUpdate}
         onSpellsChange={handleSpellsChange}
+        lostSpells={lostSpells(character.techniqueStates)}
+        onLostSpellsChange={ids => void handleTechniqueStatesChange(withLostSpells(character.techniqueStates, ids))}
       />
     ),
     backstory: <BackstoryView character={character} onUpdate={updateCharacter} />,
@@ -559,8 +621,17 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    * no desktop ela abre o card de baixo, acima das rolagens; no celular, o
    * topo da ficha.
    */
+  const visibleConditions = withoutMortal(character.conditions)
+  const myTurn = encounter != null && myActor != null && encounter.activeActorId === myActor.id
+
   const stateStrip = (
     <>
+      <DeathBanner
+        conditions={character.conditions}
+        myTurn={myTurn}
+        onDeathRoll={isOwner ? () => void handleDeathRoll() : undefined}
+        busy={rollPhase !== 'idle'}
+      />
       {encounter && (
         <TurnBanner
           encounter={encounter}
@@ -571,9 +642,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />
       <HandoutShelf handouts={handouts} onOpen={setReopened} />
-      {(character.conditions.length > 0 || isOwner) && (
+      {(visibleConditions.length > 0 || isOwner) && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <ConditionChips conditions={character.conditions} onRemove={handleConditionRemove} />
+          <ConditionChips conditions={visibleConditions} onRemove={handleConditionRemove} />
           {isOwner && (
             <Button
               type="button"
@@ -642,6 +713,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
               rolls={rollHistory}
               fortuneLeft={character.luckTokens}
               onSpendFortune={handleFortuneReroll}
+              onRollDamage={handleRollDamage}
+              damageRolled={damageRolled}
             />
             <div className="sheet-dock__actions">
               <AttacksMenu
@@ -715,8 +788,15 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           rolls={rollHistory}
           fortuneLeft={character.luckTokens}
           onSpendFortune={handleFortuneReroll}
+          onRollDamage={handleRollDamage}
+          damageRolled={damageRolled}
         />
       )}
+      {/* Both layouts: the newest roll, read out for screen readers. */}
+      <LiveAnnouncer
+        message={rollHistory[0] ? describeRoll(rollHistory[0]) : null}
+        id={rollHistory[0]?.id}
+      />
       {/* Nada que o Mestre faça com este personagem acontece em silêncio. */}
       <TableToasts events={tableEvents} characterId={characterId} since={openedAt} />
       {tableMode && (
@@ -732,18 +812,36 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         />
       )}
       <SaveSeal savedAt={savedAt} isMobile={isMobile} />
+      {/* A save that lost to the GM's: the sheet already shows what's there now. */}
+      <SaveSeal
+        savedAt={conflictAt}
+        isMobile={isMobile}
+        label="Ficha mudou ao mesmo tempo · confira"
+        border="var(--destructive)"
+        durationMs={4000}
+      />
+      <LiveAnnouncer
+        message={conflictAt ? 'A ficha foi mudada por outra pessoa ao mesmo tempo. Confira e refaça.' : null}
+        id={String(conflictAt)}
+      />
     </AppShell>
   )
 }
 
-function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean }) {
+function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--primary)', durationMs = 1800 }: {
+  savedAt: number
+  isMobile: boolean
+  label?: string
+  border?: string
+  durationMs?: number
+}) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     if (!savedAt) return
     setVisible(true)
-    const t = setTimeout(() => setVisible(false), 1800)
+    const t = setTimeout(() => setVisible(false), durationMs)
     return () => clearTimeout(t)
-  }, [savedAt])
+  }, [savedAt, durationMs])
 
   if (!visible) return null
   return (
@@ -763,14 +861,14 @@ function SaveSeal({ savedAt, isMobile }: { savedAt: number; isMobile: boolean })
         textTransform: 'uppercase',
         color: 'var(--card-foreground)',
         background: 'var(--card)',
-        border: '1px solid var(--primary)',
+        border: `1px solid ${border}`,
         borderRadius: 2,
         padding: '6px 12px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
         pointerEvents: 'none',
       }}
     >
-      ✦ Selado
+      {label}
     </div>
   )
 }

@@ -2,10 +2,9 @@
 
 import { createPortal } from 'react-dom'
 import type { Character } from '@/types/character.types'
+import { useTableNow } from '@/hooks/useTableNow'
 import type { TableClock } from '@/lib/dungeonClock'
-import { tableNow } from '@/lib/dungeonClock'
 import { brightest, minutesLeft } from '@/lib/light'
-import { useNow } from '@/hooks/useNow'
 import { ConditionChips } from '@/components/sheet/ConditionChips'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -27,7 +26,7 @@ interface Props {
  * É a mesma verdade da ficha, na mesma sessão: só a escala muda.
  */
 export function TableMode({ character, clock, onClose }: Props) {
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
   const light = brightest(character.inventory, now)
   const torchMins = light ? minutesLeft(light, now) : null
   const torchLow = torchMins !== null && torchMins <= 10

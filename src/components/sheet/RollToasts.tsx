@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import type { RollResult } from '@/lib/dice'
 import { DICE_SPRING } from '@/lib/diceMotion'
 import { useNow } from '@/hooks/useNow'
-import { RollCard, ROLL_FRESH_MS, rollTone } from '@/components/sheet/RollCard'
+import { FOLLOW_UP_MS, RollCard, ROLL_FRESH_MS, offersDamage, rollTone } from '@/components/sheet/RollCard'
 
 interface Props {
   rolls: RollResult[]
@@ -12,6 +12,10 @@ interface Props {
   fortuneLeft?: number
   /** Gasta um token e rola de novo (§5.2). */
   onSpendFortune?: (roll: RollResult) => void
+  /** Rola o dano que o ataque carrega. */
+  onRollDamage?: (attack: RollResult) => void
+  /** Os ataques cujo dano já foi rolado — a oferta some deles. */
+  damageRolled?: ReadonlySet<string>
 }
 
 /**
@@ -19,9 +23,13 @@ interface Props {
  * which has no dock to keep a history in. The desktop sheet shows the same
  * cards in the dock instead (see RollHistory).
  */
-export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
+export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune, onRollDamage, damageRolled }: Props) {
   const now = useNow(1000)
-  const visible = rolls.filter(r => now - r.timestamp < ROLL_FRESH_MS)
+  const pendingDamage = (r: RollResult) =>
+    Boolean(onRollDamage) && offersDamage(r) && !damageRolled?.has(r.id)
+  // Um ataque com o dano por rolar fica mais tempo: a mesa ainda está
+  // esperando o Mestre dizer se acertou.
+  const visible = rolls.filter(r => now - r.timestamp < (pendingDamage(r) ? FOLLOW_UP_MS : ROLL_FRESH_MS))
 
   return (
     <div style={{
@@ -38,6 +46,7 @@ export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
           jogada que acabou de assentar, não de qualquer coisa ainda na tela. */}
       {visible.map((roll, index) => {
         const canReroll = index === 0 && fortuneLeft > 0 && Boolean(onSpendFortune)
+        const canDamage = pendingDamage(roll)
         const tone = rollTone(roll)
 
         return (
@@ -55,14 +64,15 @@ export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune }: Props) {
               minWidth: 140,
               maxWidth: 180,
               // A pilha inteira é atravessável pelo ponteiro; só o cartão que
-              // oferece a Fortuna precisa receber o clique.
-              pointerEvents: canReroll ? 'auto' : 'none',
+              // oferece a Fortuna ou o dano precisa receber o clique.
+              pointerEvents: canReroll || canDamage ? 'auto' : 'none',
             }}
           >
             <RollCard
               roll={roll}
               fortuneLeft={fortuneLeft}
               onSpendFortune={canReroll ? () => onSpendFortune?.(roll) : undefined}
+              onRollDamage={canDamage ? () => onRollDamage?.(roll) : undefined}
             />
           </motion.div>
         )

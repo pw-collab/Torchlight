@@ -15,8 +15,8 @@ interface Props {
  * Acampar.
  *
  * O loop de Shadowdark é explorar → gastar → recuperar, e a última parte era
- * feita de cabeça: rolar o dado de vida à parte, lembrar de riscar a ração,
- * lembrar de anotar. Um botão fecha o ciclo e o registra na mesa.
+ * feita de cabeça: encher a vida, devolver as magias, lembrar de riscar a
+ * ração, lembrar de anotar. Um botão fecha o ciclo e o registra na mesa.
  */
 export function RestButton({ rations, hpFull, busy, onRest }: Props) {
   const noFood = rations === 0
@@ -31,8 +31,8 @@ export function RestButton({ rations, hpFull, busy, onRest }: Props) {
         noFood
           ? 'Sem rações na mochila — descansar de estômago vazio não recupera nada'
           : hpFull
-            ? 'Já está com a vida cheia; descansar consome uma ração mesmo assim'
-            : `Rolar a recuperação da classe e consumir uma ração (${rations} restante${rations === 1 ? '' : 's'})`
+            ? 'Vida cheia: descansar ainda devolve magias e técnicas, e consome uma ração'
+            : `Recuperar todo o PV, as magias e as técnicas, e consumir uma ração (${rations} restante${rations === 1 ? '' : 's'})`
       }
       className={cn(
         'font-heading h-9 min-h-9 shrink-0 gap-1.5 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase',

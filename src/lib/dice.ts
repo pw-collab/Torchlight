@@ -39,6 +39,24 @@ export interface RollResult {
   rerollOf?: number
   /** Responde a uma rolagem que o Mestre pediu (§6.4). */
   promptId?: string
+  /**
+   * O dano que este ataque carrega: a ficha oferece rolá-lo logo em seguida,
+   * dobrando os dados num crítico. Só ataques de arma trazem isto.
+   */
+  damage?: { formula: string; label: string }
+  /** Esta rolagem é dano — o Mestre aplica direto num alvo do encontro. */
+  isDamage?: boolean
+}
+
+/**
+ * O crítico de Shadowdark dobra os dados de dano da arma, não o bônus:
+ * `1d8+1` vira `2d8+1`, `d6` vira `2d6`.
+ */
+export function doubledDice(formula: string): string {
+  return formula.replace(/(\d*)d(\d+)/gi, (_, count: string, sides: string) => {
+    const n = count ? parseInt(count, 10) : 1
+    return `${n * 2}d${sides}`
+  })
 }
 
 /**
@@ -70,7 +88,17 @@ export function reroll(original: RollResult): RollResult {
         subLabel,
       )
 
-  return withDc({ ...next, rerollOf: original.total, promptId: original.promptId }, original.dc)
+  return withDc(
+    {
+      ...next,
+      rerollOf: original.total,
+      promptId: original.promptId,
+      // O ataque rerrolado continua sendo o mesmo ataque: o dano segue com ele.
+      damage: original.damage,
+      isDamage: original.isDamage,
+    },
+    original.dc,
+  )
 }
 
 /**
@@ -172,24 +200,38 @@ export function rollDie(
 }
 
 export function rollFormula(formula: string, label: string, subLabel?: string): RollResult {
-  let clean = formula.toLowerCase().replace(/\s+/g, '')
+  // A versatile weapon reads `1d8/1d10`: the one-handed die comes first.
+  let clean = formula.toLowerCase().replace(/\s+/g, '').split('/')[0]
   if (clean.startsWith('d')) clean = '1' + clean
 
-  const match = clean.match(/^(\d+)d(\d+)([+-]\d+)?$/i)
-  if (!match) {
-    return rollDie(formula.includes('d') ? formula : 'd20', label, subLabel)
+  // Sum every `NdM` and flat number in the text, so `2d6+1d4` rolls both dice
+  // and prose like `1d8+STR` still rolls the part it can read.
+  const terms = [...clean.matchAll(/([+-]?)(\d*)d(\d+)|([+-]?)(\d+)(?!\d*d)/g)]
+  if (!terms.some(t => t[3] && parseInt(t[3]) > 0) && !terms.some(t => t[5])) {
+    return rollDie('d20', label, subLabel)
   }
-
-  const count = parseInt(match[1])
-  const sides = parseInt(match[2])
-  const mod = match[3] ? parseInt(match[3]) : 0
 
   const dice: DieThrow[] = []
   let total = 0
-  for (let i = 0; i < count; i++) {
-    const face = rollSides(sides)
-    dice.push({ sides, value: face })
-    total += face
+  let mod = 0
+  let count = 0
+  let sides = 0
+  for (const t of terms) {
+    if (t[3]) {
+      const n = t[2] ? parseInt(t[2]) : 1
+      const s = parseInt(t[3])
+      if (s < 1) continue
+      const sign = t[1] === '-' ? -1 : 1
+      for (let i = 0; i < n; i++) {
+        const face = rollSides(s)
+        dice.push({ sides: s, value: face })
+        total += sign * face
+      }
+      count += n
+      sides = s
+    } else {
+      mod += (t[4] === '-' ? -1 : 1) * parseInt(t[5])
+    }
   }
 
   return {
@@ -204,7 +246,7 @@ export function rollFormula(formula: string, label: string, subLabel?: string): 
     isCritical: count === 1 && sides === 20 && total === 20,
     isFumble: count === 1 && sides === 20 && total === 1,
     dice,
-    sides,
+    sides: new Set(dice.map(d => d.sides)).size === 1 ? sides : undefined,
   }
 }
 

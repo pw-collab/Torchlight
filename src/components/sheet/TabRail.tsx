@@ -55,7 +55,7 @@ export function TabRail<K extends string>({ tabs, active, onChange, link }: Prop
               'cursor-pointer',
               isActive
                 ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
-                : 'bg-input border-input text-foreground hover:border-sidebar-ring',
+                : 'bg-input border-input-border text-foreground hover:border-sidebar-ring',
             )}
           >
             <HugeiconsIcon icon={t.icon} size={28} strokeWidth={1.5} />

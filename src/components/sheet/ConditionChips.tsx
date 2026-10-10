@@ -44,6 +44,9 @@ export function ConditionChips({ conditions, onRemove, compact }: Props) {
             }}
           >
             {condition.label}
+            {condition.rounds != null && (
+              <span className="font-mono tracking-normal">· {condition.rounds}</span>
+            )}
             {known?.disadvantage && (
               <span aria-hidden title="Impõe desvantagem" className="opacity-70">↓</span>
             )}

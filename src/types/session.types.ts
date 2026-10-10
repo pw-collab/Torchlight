@@ -96,6 +96,8 @@ export interface RollPayload {
   rerollOf?: number
   /** Este evento revela uma rolagem que estava escondida (§6.7). */
   revealOf?: string
+  /** É dano: o Mestre aplica com um toque num alvo do encontro. */
+  isDamage?: boolean
 }
 
 /** Uma rolagem que o Mestre pediu e ainda espera resposta. */
@@ -116,6 +118,11 @@ export interface PromptPayload {
 export interface ConditionPayload {
   action: 'applied' | 'removed'
   label: string
+  /**
+   * O id do catálogo, quando a condição é uma das de vida e morte — é o que
+   * deixa o feed dizer "caiu e está morrendo" em vez de "está Morrendo".
+   */
+  conditionId?: string
   note?: string
   characterName?: string
   by?: 'gm' | 'player'
@@ -140,11 +147,17 @@ export interface VitalsPayload {
   undo?: boolean
   /** De onde veio a mudança, quando não foi um ajuste solto. */
   reason?: 'rest'
-  /** O dado da recuperação, quando `reason` é descanso (§5.7). */
+  /**
+   * O dado da recuperação, nos descansos de antes da regra do livro (§5.7).
+   * Hoje o descanso devolve todo o PV e não rola nada; o campo fica para o
+   * log antigo continuar legível.
+   */
   die?: string
   roll?: number
   /** O descanso consumiu uma ração. */
   ration?: boolean
+  /** Quantas magias perdidas o descanso devolveu. */
+  spells?: number
 }
 
 export interface LightPayload {
@@ -163,6 +176,10 @@ export interface SessionPayload {
 
 export interface NotePayload {
   text: string
+  /** Narração do Mestre para a mesa inteira: aparece como aviso em todas as fichas. */
+  narration?: boolean
+  characterName?: string
+  by?: 'gm' | 'player'
 }
 
 /**
@@ -182,7 +199,7 @@ export interface HandoutPayload {
 
 /** O que acontece na trilha de turnos (§6.5). */
 export interface EncounterPayload {
-  action: 'start' | 'end' | 'turn' | 'round' | 'down' | 'attack'
+  action: 'start' | 'end' | 'turn' | 'round' | 'down' | 'attack' | 'morale'
   encounterName?: string
   /** De quem é a vez, ou quem caiu. */
   actorName?: string
@@ -193,6 +210,9 @@ export interface EncounterPayload {
   ac?: number
   total?: number
   characterName?: string
+  /** Moral: quem fugiu e quem ficou. */
+  fled?: string[]
+  held?: string[]
 }
 
 export type EventPayload =

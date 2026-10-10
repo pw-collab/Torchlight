@@ -283,7 +283,7 @@ export function CharacterEditWizard({ character }: Props) {
                     'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                     isActive
                       ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
-                      : 'bg-input border-input text-muted-foreground hover:border-sidebar-ring hover:text-foreground',
+                      : 'bg-input border-input-border text-muted-foreground hover:border-sidebar-ring hover:text-foreground',
                     stepSaving && 'cursor-wait opacity-50',
                   )}
                 >

@@ -2,9 +2,9 @@
 
 import type { InventoryItem } from '@/types/inventory.types'
 import { brightest, fullMinutes, minutesLeft } from '@/lib/light'
-import { tableNow, type TableClock } from '@/lib/dungeonClock'
+import type { TableClock } from '@/lib/dungeonClock'
+import { useTableNow } from '@/hooks/useTableNow'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { useNow } from '@/hooks/useNow'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -33,7 +33,7 @@ const KIND_LABEL: Record<string, string> = {
 export function FloatingTorch({ inventory, onClick, clock }: Props) {
   const isMobile = useIsMobile()
   // Lido contra o relógio da mesa — o tique só provoca o render.
-  const now = tableNow(clock, useNow())
+  const now = useTableNow(clock)
 
   // With multiple sources burning, the longest-lasting one defines the party's light
   const source = brightest(inventory, now)

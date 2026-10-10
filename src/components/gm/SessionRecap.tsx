@@ -111,6 +111,9 @@ export function SessionRecap({ sessionId, sessionName, events, onClose }: Props)
           {recap.downs.length > 0 && (
             <Line glyph="🩸">Caíram: {recap.downs.join(', ')}</Line>
           )}
+          {recap.deaths.length > 0 && (
+            <Line glyph="⚰">Morreram: {recap.deaths.join(', ')}</Line>
+          )}
           {recap.xp.length > 0 && (
             <Line glyph="△">{recap.xp.map(x => `${x.who} +${x.gained}`).join(', ')}</Line>
           )}
