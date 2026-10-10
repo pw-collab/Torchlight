@@ -65,9 +65,12 @@ and `encounter_actors.ref_id`. Deleting a character leaves `encounter_actors.ref
 Migrations are applied by hand (`DEPLOY.md`), and Supabase's own history lists only `001`.
 Every object in `002` to `018` was compared against the live database:
 
-- **`013_campaign_roster.sql` was never applied.** `campaign_roster()` doesn't exist. `/home`
-  falls back quietly, so nothing errors, but **players see only their own characters instead of
-  the whole party.** Applying 013 restores it.
+- **`013_campaign_roster.sql` had never been applied.** `/home` fell back quietly, so nothing
+  errored, but players saw only their own characters instead of the whole party.
+  **Applied on 2026-10-10** through `apply_migration`, so it is now in Supabase's history.
+  Verified as the `authenticated` role: an allowlisted player gets all 5 characters (one flagged
+  as theirs) while still reading only their own full row; an unlisted user gets 0; `anon` can't
+  call it.
 - Everything else is present. (007's original NPC policy is missing on purpose: 014 replaced it.)
 - `supabase/schema_snapshot.sql` stops at migration 004. Bootstrapping a new project from it
   would produce a broken app.
@@ -102,7 +105,7 @@ Every object in `002` to `018` was compared against the live database:
 | npcs, scenes, handouts | full CRUD, own GM only | F07 |
 | `rpc join_session`, `leave_session`, `character_session` | join by code, leave, find a character's table | F03 |
 | `rpc set_initiative` | a player sets their own initiative | F06 |
-| `rpc campaign_roster` | roster with owner names | F01 (**missing in prod**) |
+| `rpc campaign_roster` | roster with owner names | F01 |
 | storage `avatars` | upload, public URL | F02 |
 
 ### Realtime, webhooks, jobs
@@ -112,6 +115,17 @@ Every object in `002` to `018` was compared against the live database:
 - Jobs: none.
 
 ## The parts that bite
+
+- **Identity comes from user-editable data (high priority).** `auth_discord_id()`, which every
+  RLS policy and helper uses, reads the Discord ID from `user_metadata` in the JWT. So do
+  `src/proxy.ts` and the server pages (`user.user_metadata.provider_id`). Supabase documents that
+  `user_metadata` can be changed by the signed-in user through `auth.updateUser()`, and warns
+  against using it for authorization. The role is safe (it comes from the allowlist table), but
+  *which Discord ID you are* is read from a field the user controls. Not tested here.
+  Fix: read the ID from `auth.identities` (server-controlled), in SQL
+  (`where user_id = auth.uid() and provider = 'discord'`) and in the app
+  (`user.identities`). For all 6 current Discord users the two values already match, so
+  the switch locks nobody out. The same rewrite clears the advisor's mutable `search_path` warning.
 
 - **Lost updates (races).** The GM panel saves a player's whole `equipment` list (to douse a
   torch) and whole `conditions` list, built from the GM's last-seen copy. HP, luck and XP are
@@ -134,7 +148,7 @@ Every object in `002` to `018` was compared against the live database:
   images. Set `allowed_mime_types` to image types.
 - **Removing a player.** Blocked by the `no action` foreign keys while they own rows. Decide what
   "revoke access" should do.
-- **Migrations by hand.** Drift already happened (013). Apply through the Supabase CLI or
+- **Migrations by hand.** Drift already happened (013, now fixed). Apply through the Supabase CLI or
   `apply_migration`, so the history is recorded.
 - **Supabase advisors.** 9 `SECURITY DEFINER` functions can be called by signed-in users (5 of them also
   anonymously), and `auth_discord_id()` has a mutable `search_path`.
@@ -145,7 +159,9 @@ Every object in `002` to `018` was compared against the live database:
 The skill's build order (vertical slice, then must-haves, should-haves, could-haves) is already
 done: every row in `replica/features.csv` exists in the app. So this is a priority list instead.
 
-1. **Apply migration 013** in production. One function; restores the party roster for players.
+1. ~~Apply migration 013~~ Done 2026-10-10.
+1. **Read the Discord ID from `auth.identities`**, not `user_metadata`, in `auth_discord_id()`,
+   `src/proxy.ts` and the server pages. One migration and a small code change; see above.
 2. **Close the lost-update race** with three small RPCs (`adjust_hp`, `toggle_condition`, `douse_light`).
 3. **Database hygiene, one migration:** image-only avatars, fixed `search_path` on
    `auth_discord_id`, revoke anonymous execute on the helpers, the two missing FK indexes, and

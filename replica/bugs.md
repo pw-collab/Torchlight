@@ -56,7 +56,12 @@ Status: fixed on branch.
 
 ## To check (not reproduced)
 
+- **High priority: identity read from `user_metadata`.** `auth_discord_id()` (used by every RLS
+  policy), `src/proxy.ts` and the server pages take the Discord ID from `user_metadata`, which
+  Supabase documents as editable by the signed-in user. Not tested here. Fix and details in
+  `replica/architecture.md` → "The parts that bite". Note: DB-2 in the test plan only shows that
+  writing a *role* into metadata does nothing; it does not cover the ID itself.
 - Versatile weapons: should the sheet offer the two-handed die (1d10) when wielded with both hands? Game design call.
 - `npm run lint` has 17 pre-existing errors (mostly `any` in `src/types/character.types.ts`). If CI ever runs lint, it will fail.
-- Production should have `supabase/migrations/014_npcs_rls_fix.sql` applied (see `DEPLOY.md`).
+- ~~Production should have migration 014 applied~~ Confirmed applied (test plan). 013 was missing and was applied 2026-10-10.
 - Everything behind login is untested. Next step: a local Supabase with seed users so F02 to F08 can be automated.

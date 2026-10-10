@@ -58,7 +58,7 @@ role with the request JWT claims set to a given identity. No app server involved
 | check | setup | expected | result |
 | --- | --- | --- | --- |
 | DB-1 | signed-in user NOT on the allowlist reads `characters`, `npcs`, `sessions` | 0 rows each | pass: 0, 0, 0 |
-| DB-2 | same user puts `"role":"gm"` in their own user_metadata, calls `is_gm()` | false (role comes from the allowlist table, not metadata) | pass: false |
+| DB-2 | same user puts `"role":"gm"` in their own user_metadata, calls `is_gm()` | false (role comes from the allowlist table, not metadata) | pass: false (covers the role only; see the identity item in bugs.md) |
 | DB-3 | user who IS on the allowlist as `gm` calls `is_gm()` and reads `characters` | true, sees all | pass: true, 5 characters |
 
 So even if the app-level login gate (BUG-001) ever regresses again, the database still
