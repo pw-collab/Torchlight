@@ -21,6 +21,11 @@ export interface ActiveCondition {
   note?: string
   appliedBy?: string
   appliedAt?: string
+  /**
+   * Quantas rodadas ainda restam, para as condições que correm contra o
+   * relógio — hoje só "Morrendo" (ver `lib/dying`).
+   */
+  rounds?: number
 }
 
 export interface Character {

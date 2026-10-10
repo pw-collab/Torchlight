@@ -105,6 +105,7 @@ function sanitizeRecap(recap: Recap): Recap {
     criticals: cap(recap.criticals).map(r => ({ who: text(r.who), label: text(r.label), total: r.total })),
     fumbles: cap(recap.fumbles).map(r => ({ who: text(r.who), label: text(r.label), total: r.total })),
     downs: cap(recap.downs).map(name => text(name)),
+    deaths: cap(recap.deaths).map(name => text(name)),
     xp: cap(recap.xp).map(x => ({ who: text(x.who), gained: x.gained })),
     torchMinutes: Math.max(0, recap.torchMinutes),
     encounters: cap(recap.encounters).map(name => text(name, 60)),

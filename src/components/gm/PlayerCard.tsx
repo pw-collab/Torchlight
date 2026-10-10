@@ -8,6 +8,7 @@ import { brightest, minutesLeft } from '@/lib/light'
 import type { TableClock } from '@/lib/dungeonClock'
 import { ConditionChips } from '@/components/sheet/ConditionChips'
 import { ConditionPicker } from './ConditionPicker'
+import { STABILIZE_DC, dyingRounds, mortalState, roundsLabel, withoutMortal } from '@/lib/dying'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +24,10 @@ export type GmAction =
   | { type: 'snuff' }
   /** Aplica se não estiver ativa, remove se estiver — o mesmo gesto nos dois sentidos. */
   | { type: 'condition'; condition: ActiveCondition }
+  /** Um aliado passou no INT DC 15: o relógio da morte para (ver `lib/dying`). */
+  | { type: 'stabilize' }
+  /** A vez de quem está morrendo, rolada pelo Mestre para quem está fora do app. */
+  | { type: 'death-roll' }
 
 interface Props {
   character: Character
@@ -56,6 +61,9 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
   const hpPercent = Math.max(0, (character.hpCurrent / character.hpMax) * 100)
   const hpBarColor = hpPercent > 50 ? 'var(--chart-2)' : hpPercent > 25 ? 'var(--primary)' : 'var(--destructive)'
   const isDead = character.hpCurrent <= 0
+  const mortal = mortalState(character.conditions)
+  const rounds = dyingRounds(character.conditions)
+  const conditions = withoutMortal(character.conditions)
 
   // A luz vem do inventário (lib/light), lida contra o mesmo relógio de mesa
   // que a ficha do jogador usa — o card mostrava 🌑 para a mesa inteira
@@ -119,9 +127,19 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
         {isDead && (
           <Badge
             variant="destructive"
-            className="font-heading shrink-0 text-[7.5px] tracking-[0.16em] text-[var(--destructive)] uppercase"
+            className={cn(
+              'font-heading shrink-0 text-[7.5px] tracking-[0.16em] uppercase',
+              mortal === 'stable' ? 'text-[var(--chart-2)]' : 'text-[var(--destructive)]',
+              mortal === 'dying' && 'animate-flicker',
+            )}
           >
-            ☠ Caído
+            {mortal === 'dying'
+              ? `☠ Morrendo · ${rounds}`
+              : mortal === 'stable'
+                ? '✚ Estável'
+                : mortal === 'dead'
+                  ? '☠ Morto'
+                  : '☠ Caído'}
           </Badge>
         )}
       </CardHeader>
@@ -160,12 +178,48 @@ export function PlayerCard({ character, playerName, present, expanded, onToggle,
           </span>
         </div>
 
-        {character.conditions.length > 0 && (
+        {conditions.length > 0 && (
           <ConditionChips
             compact
-            conditions={character.conditions}
+            conditions={conditions}
             onRemove={condition => onAct({ type: 'condition', condition })}
           />
+        )}
+
+        {/* O relógio da morte, na mão do Mestre: marcar quem foi salvo e rolar
+            a vez de quem não está com a ficha aberta. */}
+        {mortal === 'dying' && rounds !== null && (
+          <div
+            className="flex flex-wrap items-center gap-1.5 px-2 py-1.5"
+            style={{
+              background: 'color-mix(in oklch, var(--destructive), transparent 88%)',
+              border: '1px solid var(--destructive)',
+            }}
+          >
+            <span className="font-body flex-1 text-[10px] text-[var(--destructive)] italic">
+              {roundsLabel(rounds)} para a morte
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onAct({ type: 'death-roll' })}
+              disabled={busy}
+              title={present ? 'O jogador pode rolar da ficha dele' : 'Rolar a vez de quem está fora do app: só um 20 natural levanta'}
+              className={cn(PILL, 'border-[var(--destructive)] text-[var(--destructive)]')}
+            >
+              🎲 d20
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onAct({ type: 'stabilize' })}
+              disabled={busy}
+              title={`Um aliado passou no INT DC ${STABILIZE_DC}: o relógio para`}
+              className={cn(PILL, 'border-[var(--chart-2)] text-[var(--chart-2)]')}
+            >
+              ✚ Estabilizar
+            </Button>
+          </div>
         )}
 
         {/* ── O painel de controle ──────────────────────────────────────── */}

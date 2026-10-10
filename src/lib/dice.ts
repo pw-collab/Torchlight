@@ -39,6 +39,24 @@ export interface RollResult {
   rerollOf?: number
   /** Responde a uma rolagem que o Mestre pediu (§6.4). */
   promptId?: string
+  /**
+   * O dano que este ataque carrega: a ficha oferece rolá-lo logo em seguida,
+   * dobrando os dados num crítico. Só ataques de arma trazem isto.
+   */
+  damage?: { formula: string; label: string }
+  /** Esta rolagem é dano — o Mestre aplica direto num alvo do encontro. */
+  isDamage?: boolean
+}
+
+/**
+ * O crítico de Shadowdark dobra os dados de dano da arma, não o bônus:
+ * `1d8+1` vira `2d8+1`, `d6` vira `2d6`.
+ */
+export function doubledDice(formula: string): string {
+  return formula.replace(/(\d*)d(\d+)/gi, (_, count: string, sides: string) => {
+    const n = count ? parseInt(count, 10) : 1
+    return `${n * 2}d${sides}`
+  })
 }
 
 /**
@@ -70,7 +88,17 @@ export function reroll(original: RollResult): RollResult {
         subLabel,
       )
 
-  return withDc({ ...next, rerollOf: original.total, promptId: original.promptId }, original.dc)
+  return withDc(
+    {
+      ...next,
+      rerollOf: original.total,
+      promptId: original.promptId,
+      // O ataque rerrolado continua sendo o mesmo ataque: o dano segue com ele.
+      damage: original.damage,
+      isDamage: original.isDamage,
+    },
+    original.dc,
+  )
 }
 
 /**

@@ -23,6 +23,9 @@ checks for a user by itself.
 Note: the database rules (RLS) still check the allowlist for most data, which is why this is
 S2 and not S1. Someone with a real login should still confirm F01-N3 and F01-N4.
 Status: fixed on branch `claude/serene-heisenberg-6gjk4w` (`/` now matches only itself; image and sound files in `public/` stay open so the login page still shows its icon).
+Update: `main` fixed the same bug independently in PR #96, with a fuller proxy (session refresh,
+cookies carried through redirects, `/api` routes guarding themselves). The merge keeps `main`'s
+proxy and adds BUG-004's fix to it: the Discord ID comes from `discordIdOf(user)`.
 
 ### BUG-002: Versatile weapons roll "NaN" damage
 

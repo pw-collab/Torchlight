@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase'
 import type { RollResult } from '@/lib/dice'
+import { DEAD_ID, DYING_ID, STABLE_ID } from '@/lib/dying'
 import type {
   ConditionPayload,
   EncounterPayload,
@@ -67,6 +68,7 @@ export function rollPayload(roll: RollResult, characterName?: string): RollPaylo
     ...(roll.dc !== undefined && { dc: roll.dc, success: roll.success === true }),
     ...(roll.rerollOf !== undefined && { rerollOf: roll.rerollOf }),
     ...(roll.promptId && { promptId: roll.promptId }),
+    ...(roll.isDamage && { isDamage: true }),
     ...(characterName && { characterName }),
   }
 }
@@ -96,6 +98,12 @@ export function matchesFilter(event: SessionEvent, filter: FeedFilterId): boolea
 }
 
 const SIGNED = (n: number) => (n > 0 ? `+${n}` : `${n}`)
+
+/** "Goblin, Goblin 2 e Orc" — uma lista de nomes dita em voz alta. */
+function listNames(names: string[]): string {
+  if (names.length <= 1) return names.join('')
+  return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`
+}
 
 /** Um pedido é respondido pela rolagem que carrega o mesmo `promptId`. */
 function answerKey(promptId: string, characterId: string | null): string {
@@ -181,11 +189,18 @@ export function eventHeadline(event: SessionEvent): string {
           return p.hit
             ? `${p.actorName ?? 'O inimigo'} acertou ${p.targetName ?? 'o alvo'}`
             : `${p.actorName ?? 'O inimigo'} errou ${p.targetName ?? 'o alvo'}`
+        case 'morale': {
+          const fled = p.fled ?? []
+          if (fled.length === 0) return 'Os inimigos mantêm a posição'
+          return fled.length === 1 ? `${fled[0]} foge` : `${listNames(fled)} fogem`
+        }
       }
       return 'Encontro'
     }
     case 'condition': {
       const p = event.payload as ConditionPayload
+      const mortal = mortalHeadline(who, p)
+      if (mortal) return mortal
       return p.action === 'applied'
         ? `${who} está ${p.label}`
         : `${who} não está mais ${p.label}`
@@ -194,9 +209,9 @@ export function eventHeadline(event: SessionEvent): string {
       const p = event.payload as VitalsPayload
       if (p.undo) return `${who}: ajuste de vida desfeito`
       if (p.reason === 'rest') {
-        return p.delta > 0
-          ? `${who} descansou e recuperou ${p.delta} de vida`
-          : `${who} descansou sem recuperar nada`
+        if (p.delta > 0) return `${who} descansou e recuperou ${p.delta} de vida`
+        // Vida cheia com ração ainda é descanso: as magias e técnicas voltam.
+        return p.ration ? `${who} descansou` : `${who} descansou sem comer e não recuperou nada`
       }
       if (p.to <= 0) return `${who} caiu`
       return p.delta < 0
@@ -238,6 +253,24 @@ export function eventHeadline(event: SessionEvent): string {
   }
 }
 
+/**
+ * As viradas de vida e morte (ver `lib/dying`) contadas como a mesa conta —
+ * "está Morrendo" é o que o catálogo diria, "caiu e está morrendo" é o que
+ * alguém fala em voz alta.
+ */
+function mortalHeadline(who: string, p: ConditionPayload): string | null {
+  if (p.conditionId === DYING_ID) {
+    return p.action === 'applied' ? `${who} caiu e está morrendo` : `${who} se levantou`
+  }
+  if (p.conditionId === STABLE_ID) {
+    return p.action === 'applied' ? `${who} foi estabilizado` : `${who} recobrou a consciência`
+  }
+  if (p.conditionId === DEAD_ID) {
+    return p.action === 'applied' ? `${who} morreu` : `${who} voltou dos mortos`
+  }
+  return null
+}
+
 /** A segunda linha, quando há uma: os dados por trás do número. */
 export function eventDetail(event: SessionEvent): string | null {
   switch (event.kind) {
@@ -262,6 +295,10 @@ export function eventDetail(event: SessionEvent): string | null {
         return `${p.total} vs CA ${p.ac}`
       }
       if (p.action === 'turn' && p.round != null) return `rodada ${p.round}`
+      if (p.action === 'morale') {
+        const held = p.held ?? []
+        return held.length > 0 ? `moral DC 15 · ficaram: ${listNames(held)}` : 'moral DC 15'
+      }
       return null
     }
     case 'condition': {
@@ -274,6 +311,7 @@ export function eventDetail(event: SessionEvent): string | null {
       const parts = [`PV ${p.from} → ${p.to}`]
       if (p.reason === 'rest' && p.die) parts.push(`${p.die}: ${p.roll}`)
       if (p.ration) parts.push('1 ração')
+      if (p.spells) parts.push(p.spells === 1 ? '1 magia de volta' : `${p.spells} magias de volta`)
       if (p.by === 'gm') parts.push('pelo Mestre')
       return parts.join(' · ')
     }
@@ -314,7 +352,13 @@ export function eventAccent(event: SessionEvent): string | null {
   if (event.kind === 'handout') return 'var(--chart-2)'
   if (event.kind === 'prompt') return 'var(--primary)'
   if (event.kind === 'condition') {
-    return (event.payload as ConditionPayload).action === 'applied' ? 'var(--primary)' : null
+    const p = event.payload as ConditionPayload
+    if (p.conditionId === DEAD_ID || (p.conditionId === DYING_ID && p.action === 'applied')) {
+      return 'var(--destructive)'
+    }
+    // Levantar ou ser estabilizado é a notícia boa da mesa.
+    if (p.conditionId === DYING_ID || p.conditionId === STABLE_ID) return 'var(--chart-2)'
+    return p.action === 'applied' ? 'var(--primary)' : null
   }
   return null
 }
@@ -335,5 +379,9 @@ const KIND_GLYPH: Record<string, string> = {
 
 export function eventGlyph(event: SessionEvent): string {
   if (event.kind === 'light' && (event.payload as LightPayload).action === 'out') return '🌑'
+  if (event.kind === 'condition') {
+    const p = event.payload as ConditionPayload
+    if (p.conditionId === DEAD_ID || (p.conditionId === DYING_ID && p.action === 'applied')) return '☠'
+  }
   return KIND_GLYPH[event.kind] ?? '·'
 }

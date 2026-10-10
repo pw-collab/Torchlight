@@ -18,9 +18,13 @@ import { advancedShift, resumeShift, tableNow, type TableClock } from '@/lib/dun
 import { serverNow } from '@/lib/serverClock'
 import { changeCharacter, type CharacterChange } from '@/lib/characterWrite'
 import { DungeonClockBar } from './DungeonClockBar'
+import { CrawlBar } from './CrawlBar'
+import { modifier } from '@/lib/dice'
+import { lostSpells } from '@/lib/rest'
 import { EncounterPanel } from './EncounterPanel'
 import { rowToSession, type SessionRow, type TableSession } from '@/types/session.types'
-import { recordEvent } from '@/lib/sessionEvents'
+import { recordEvent, rollPayload } from '@/lib/sessionEvents'
+import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, stabilize } from '@/lib/dying'
 import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
@@ -66,9 +70,17 @@ interface Undoable {
 
 const UNDO_WINDOW_MS = 30_000
 
+/** One line for the session log. */
+interface LogLine {
+  kind: SessionEventKind
+  payload: Record<string, unknown>
+}
+
 /** What a GM action leaves to log, and the column an undo would reverse. */
 interface Logged {
-  event: { kind: SessionEventKind; payload: Record<string, unknown> }
+  event: LogLine
+  /** O que mais a mesma ação conta ao log, depois da linha principal. */
+  extra: LogLine[]
   undoField: UndoField | null
 }
 
@@ -211,14 +223,54 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     const named = { characterName: character.name, by: 'gm' as const }
     const clock: TableClock = { pausedAt: session.pausedAt, shiftSeconds: session.shiftSeconds }
 
+    // Para quem está fora do app: o Mestre rola a vez do caído, com a mesma
+    // regra que o botão da ficha usa. Rolled once, here: if the save has to be
+    // worked out again, it is the same roll, not a second chance.
+    const startRounds = action.type === 'death-roll' ? dyingRounds(character.conditions) : null
+    const deathRoll = startRounds !== null ? rollAgainstDeath(startRounds) : null
+
     const compute = (c: Character): CharacterChange<Logged> => {
       if (action.type === 'hp') {
         const from = c.hpCurrent
         const to = Math.max(0, Math.min(c.hpMax, from + action.delta))
         if (to === from) return null
+        const patch: Partial<CharacterRow> = { hp_current: to }
+        const extra: LogLine[] = []
+        // O goblin que derruba alguém abre o relógio da morte daqui mesmo —
+        // a regra é a mesma da ficha (lib/dying), então os dois lados concordam.
+        const shift = hpShift(c.conditions, c.stats.con, from, to, gmName)
+        if (shift) {
+          patch.conditions = shift.conditions
+          extra.push({ kind: 'condition', payload: { ...shift.event, ...named } })
+        }
         return {
-          patch: { hp_current: to },
-          result: { event: { kind: 'hp', payload: { from, to, delta: to - from, ...named } }, undoField: 'hp_current' },
+          patch,
+          result: { event: { kind: 'hp', payload: { from, to, delta: to - from, ...named } }, extra, undoField: 'hp_current' },
+        }
+      }
+      if (action.type === 'stabilize') {
+        // Um aliado passou no INT DC 15 — quem rola é ele, na ficha dele; quem
+        // marca o resultado é o Mestre, que é quem pode escrever nesta ficha.
+        if (dyingRounds(c.conditions) === null) return null
+        const stable = stabilize(c.conditions, gmName)
+        return {
+          patch: { conditions: stable.conditions },
+          result: { event: { kind: 'condition', payload: { ...stable.event, ...named } }, extra: [], undoField: null },
+        }
+      }
+      if (action.type === 'death-roll') {
+        if (!deathRoll || dyingRounds(c.conditions) === null) return null
+        const out = afterDeathRoll(c.conditions, deathRoll, gmName)
+        const patch: Partial<CharacterRow> = { conditions: out.conditions }
+        const extra: LogLine[] = []
+        if (out.outcome === 'rise') {
+          patch.hp_current = 1
+          extra.push({ kind: 'hp', payload: { from: c.hpCurrent, to: 1, delta: 1 - c.hpCurrent, ...named } })
+        }
+        if (out.event) extra.push({ kind: 'condition', payload: { ...out.event, ...named } })
+        return {
+          patch,
+          result: { event: { kind: 'roll', payload: { ...rollPayload(deathRoll, c.name) } }, extra, undoField: null },
         }
       }
       if (action.type === 'luck') {
@@ -227,7 +279,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         if (to === from) return null
         return {
           patch: { luck_tokens: to },
-          result: { event: { kind: 'luck', payload: { from, to, delta: to - from, ...named } }, undoField: 'luck_tokens' },
+          result: { event: { kind: 'luck', payload: { from, to, delta: to - from, ...named } }, extra: [], undoField: 'luck_tokens' },
         }
       }
       if (action.type === 'xp') {
@@ -236,7 +288,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         if (to === from) return null
         return {
           patch: { xp: to },
-          result: { event: { kind: 'xp', payload: { from, to, delta: to - from, ...named } }, undoField: 'xp' },
+          result: { event: { kind: 'xp', payload: { from, to, delta: to - from, ...named } }, extra: [], undoField: 'xp' },
         }
       }
       if (action.type === 'snuff') {
@@ -248,7 +300,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         const doused: InventoryItem[] = c.inventory.map(item => snuff(item, now))
         return {
           patch: { equipment: doused } as Partial<CharacterRow>,
-          result: { event: { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }, undoField: null },
+          result: { event: { kind: 'light', payload: { action: 'out', itemName: burning.name, ...named } }, extra: [], undoField: null },
         }
       }
       // O mesmo gesto nos dois sentidos: marcar de novo o que já está em vigor
@@ -273,6 +325,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
               ...named,
             },
           },
+          extra: [],
           undoField: null,
         },
       }
@@ -290,8 +343,9 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
     const updated = outcome.character
     setSeats(prev => prev.map(s => (s.character.id === updated.id ? { ...s, character: updated } : s)))
-    const { event, undoField } = outcome.result
+    const { event, extra, undoField } = outcome.result
     void recordEvent({ ...common, kind: event.kind, payload: event.payload })
+    for (const line of extra) void recordEvent({ ...common, kind: line.kind, payload: line.payload })
 
     // O erro mais comum de qualquer VTT é aplicar dano no alvo errado ou
     // digitar 17 em vez de 7. Com o antes e o depois já no log, oferecer a
@@ -329,7 +383,14 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         ? Math.max(0, Math.min(c.hpMax, from + reversal))
         : Math.max(0, from + reversal)
       if (to === from) return null
-      return { patch: { [undoable.field]: to }, result: { from, to } }
+      const patch: Partial<CharacterRow> = { [undoable.field]: to }
+      // Desfazer o dano que derrubou alguém tem de levantá-lo de novo — senão
+      // a ficha volta a ter PV e continua "morrendo".
+      const shift = undoable.field === 'hp_current'
+        ? hpShift(c.conditions, c.stats.con, from, to, gmName)
+        : null
+      if (shift) patch.conditions = shift.conditions
+      return { patch, result: { from, to, shift } }
     })
 
     setBusyId(null)
@@ -354,6 +415,15 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         undo: true,
       },
     })
+    if (outcome.result.shift) {
+      void recordEvent({
+        sessionId,
+        actorName: gmName,
+        characterId: undoable.characterId,
+        kind: 'condition',
+        payload: { ...outcome.result.shift.event, characterName: undoable.characterName, by: 'gm' },
+      })
+    }
   }, [undoable, seats, sessionId, gmName, setSeats])
 
   /**
@@ -484,6 +554,19 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
     }
   }, [seats, sessionId, gmName])
 
+  /**
+   * A checagem de encontro vai para o log escondida da mesa: o Mestre decide
+   * quando a coisa aparece — a mesa descobre quando ela chega.
+   */
+  const recordCrawlCheck = useCallback((text: string) => {
+    void recordEvent({ sessionId, actorName: gmName, kind: 'note', payload: { text }, visibility: 'gm_only' })
+  }, [sessionId, gmName])
+
+  // Quem fala pelo grupo costuma ser quem tem mais lábia.
+  const partyChaMod = seats.length > 0
+    ? Math.max(...seats.map(s => modifier(s.character.stats.cha)))
+    : 0
+
   const expanded = expandedId ? seats.find(s => s.character.id === expandedId) : null
   const presentCount = seats.filter(s => presentCharacterIds.has(s.character.id)).length
 
@@ -500,6 +583,8 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         onAdvance={advanceClock}
         onSnuffAll={() => void snuffEveryLight()}
       />
+
+      <CrawlBar sessionId={sessionId} chaMod={partyChaMod} onCheck={recordCrawlCheck} />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-heading text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
@@ -558,6 +643,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
         gmId={gmId}
         seats={seats}
         onAct={act}
+        events={events}
       />
 
       {undoable && (
@@ -643,7 +729,11 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange }: Props) 
           <CardContent className="flex flex-col gap-3.5 px-0">
             <StatBlock stats={expanded.character.stats} />
             {expanded.character.spells.length > 0 && (
-              <Spells classId={expanded.character.classId} equippedSpells={expanded.character.spells} />
+              <Spells
+                classId={expanded.character.classId}
+                equippedSpells={expanded.character.spells}
+                lostSpells={lostSpells(expanded.character.techniqueStates)}
+              />
             )}
           </CardContent>
         </Card>

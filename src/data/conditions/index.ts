@@ -13,6 +13,11 @@ export interface ConditionDef {
   description: string
   /** A ficha anuncia desvantagem enquanto a condição estiver ativa. */
   disadvantage?: boolean
+  /**
+   * O app aplica e tira sozinho, pela regra (ver `lib/dying`). Fica fora do
+   * seletor do Mestre: marcar "Morrendo" à mão pularia a rolagem do relógio.
+   */
+  automatic?: boolean
 }
 
 export const CONDITIONS: ConditionDef[] = [
@@ -88,7 +93,29 @@ export const CONDITIONS: ConditionDef[] = [
     label: 'Invisível',
     description: 'Não pode ser visto sem ajuda mágica.',
   },
+  // ── Vida e morte: aplicadas pela regra, não pela mão ──────────────────────
+  {
+    id: 'morrendo',
+    label: 'Morrendo',
+    description: 'Caiu a 0 PV. Na sua vez, rola um d20: um 20 natural levanta com 1 PV. Um aliado estabiliza com INT DC 15.',
+    automatic: true,
+  },
+  {
+    id: 'estavel',
+    label: 'Estável',
+    description: 'Fora de perigo, mas inconsciente até receber cura.',
+    automatic: true,
+  },
+  {
+    id: 'morto',
+    label: 'Morto',
+    description: 'O relógio chegou a zero.',
+    automatic: true,
+  },
 ]
+
+/** O que o Mestre escolhe no seletor: o catálogo menos o que a regra aplica sozinha. */
+export const PICKABLE_CONDITIONS = CONDITIONS.filter(c => !c.automatic)
 
 export function getCondition(id: string): ConditionDef | undefined {
   return CONDITIONS.find(c => c.id === id)
