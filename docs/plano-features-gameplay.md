@@ -255,6 +255,13 @@ consome as rações, avança o relógio da masmorra e registra no feed. Fecha o 
 Um botão "Rolar iniciativa" na ficha (d20 + DES) que envia para a ordem da mesa, e a
 ficha mostrando **"sua vez"** quando chega. Do lado do GM é a trilha de turnos (§6.5).
 
+> Revisto (migração 022): a mesa joga com iniciativa em grupo. Ao entrar num
+> encontro, o grupo rola um d6 só (qualquer jogador, na ficha) e o Mestre rola o d6
+> dos dele; o lado maior age primeiro, empate fica com o grupo. Dentro do lado a
+> ordem é combinada na hora: quem vai toca **Assumir a vez**, e ninguém mais assume
+> até ele tocar **Encerrar a vez**. A vez vale também na exploração, que em
+> Shadowdark também anda em turnos.
+
 ### 5.9 Bloco de notas do personagem — **P**
 Uma coluna `notes text` e um painel na aba História. Hoje o jogador anota no WhatsApp
 o nome do NPC. Sincroniza pelo `useCharacter` que já existe.

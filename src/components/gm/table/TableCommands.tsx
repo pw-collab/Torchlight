@@ -226,16 +226,22 @@ export function TableCommands({
   if (encounter) {
     const missing = seats.some(seat => !enc.actors.some(a => a.source === 'pc' && a.refId === seat.character.id))
     const due = moraleDue(enc.actors)
+    const next = enc.next
+    const idle = enc.turn?.stage === 'turns'
+      ? `Rodada ${enc.turn.round}. Clique numa figura para comandá-la. N faz o que o botão dourado diz, Esc cancela.`
+      : 'Iniciativa: um d6 por lado. Os jogadores rolam o do grupo na ficha.'
     return (
-      <CommandGrid idle={`Rodada ${encounter.round}. Clique numa figura para comandá-la. N passa a vez, Esc cancela.`}>
-        <CommandTile
-          icon="▸"
-          label={encounter.activeActorId ? 'Próximo turno' : 'Começar'}
-          hint={`Rodada ${encounter.round} · atalho N`}
-          tone="gold"
-          onClick={() => void enc.advance()}
-          disabled={enc.busy || enc.order.length === 0}
-        />
+      <CommandGrid idle={idle}>
+        {next && (
+          <CommandTile
+            icon={next.icon}
+            label={next.label}
+            hint={next.idle ? next.hint : `${next.hint} · atalho N`}
+            tone="gold"
+            onClick={() => void next.run()}
+            disabled={enc.busy || next.idle}
+          />
+        )}
         <CommandTile icon="👹" label="Reforços" hint="Mais monstros do bestiário" tone="danger" onClick={() => setView('add')} />
         <CommandTile
           icon="🏳"

@@ -6,6 +6,7 @@ import type { NPC } from '@/types/npc.types'
 import { STAT_FULL, STAT_KEYS, STAT_LABELS } from '@/data/stats'
 import { rollWithMode, withDc, type RollResult } from '@/lib/dice'
 import { FLEEING_ID, isFleeing } from '@/lib/encounterSetup'
+import { npcKey } from '@/lib/turns'
 import { RollableText } from '@/components/shared/RollableText'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { Button } from '@/components/ui/button'
@@ -38,8 +39,10 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
   const [view, setView] = useState<View>('menu')
   const back = () => setView('menu')
   const sheet = ctl.enc.sheetOf(actor)
-  const encounter = ctl.enc.encounter
-  const myTurn = Boolean(encounter && encounter.activeActorId === actor.id)
+  const key = npcKey(actor.id)
+  const status = ctl.enc.statusOf(key)
+  const myTurn = status === 'acting'
+  const rolling = ctl.enc.turn?.stage === 'initiative'
   const bonus = actor.atkBonus ?? 0
   const hp = actor.hpCurrent ?? 0
   const max = actor.hpMax ?? hp
@@ -101,11 +104,31 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
   const idle = actor.defeated
     ? `${actor.name} caiu. Cura o põe de pé de novo; Tirar da trilha o remove do combate.`
     : myTurn
-      ? `Vez de ${actor.name}: ataque, habilidade ou teste. Depois, ▸ Próximo turno.`
+      ? `${actor.name} está agindo: ataque, habilidade ou teste. Depois, ■ Encerrar a vez (atalho N).`
       : `Comandos para ${actor.name}. Passe o mouse para ver o que cada um faz.`
 
   return (
     <CommandGrid idle={idle}>
+      {status === 'acting' && (
+        <CommandTile
+          icon="■"
+          label="Encerrar a vez"
+          hint={`${actor.name} terminou`}
+          tone="gold"
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.finish(key)}
+        />
+      )}
+      {status === 'ready' && (
+        <CommandTile
+          icon="▶"
+          label="Agir agora"
+          hint="Assume a vez dos inimigos"
+          tone="gold"
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.claim(key)}
+        />
+      )}
       <CommandTile
         icon="⚔"
         label="Atacar"
@@ -138,13 +161,16 @@ export function FoeCommands({ ctl, actor }: { ctl: TableController; actor: Encou
         disabled={actor.defeated}
         onClick={() => void ctl.enc.toggleActorCondition(actor, { id: FLEEING.id, label: FLEEING.label })}
       />
-      <CommandTile
-        icon="🎲"
-        label="Iniciativa"
-        hint={actor.initiative == null ? 'Ainda não rolou' : `Agora ${actor.initiative}: rolar de novo`}
-        onClick={() => void ctl.enc.rollInitiativeFor(actor)}
-      />
-      <CommandTile icon="✎" label="Editar" hint={`PV, CA (${actor.ac ?? 10}), ataque, dano, iniciativa`} onClick={() => setView('edit')} />
+      {(status === 'ready' || status === 'waiting') && !rolling && (
+        <CommandTile
+          icon="⏭"
+          label="Pular a vez"
+          hint="Não age nesta rodada"
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.finish(key)}
+        />
+      )}
+      <CommandTile icon="✎" label="Editar" hint={`PV, CA (${actor.ac ?? 10}), ataque, dano`} onClick={() => setView('edit')} />
       <CommandTile
         icon="✕"
         label="Tirar da trilha"
@@ -281,19 +307,16 @@ function ActorEdit({ actor, onSave }: { actor: EncounterActor; onSave: (patch: R
   const [ac, setAc] = useState(String(actor.ac ?? 10))
   const [atk, setAtk] = useState(String(actor.atkBonus ?? 0))
   const [dmg, setDmg] = useState(actor.damageDie ?? '')
-  const [init, setInit] = useState(actor.initiative == null ? '' : String(actor.initiative))
 
   function save() {
     const current = parseAmount(hp)
     const parsedAtk = parseInt(atk, 10)
-    const parsedInit = parseInt(init, 10)
     onSave({
       hp_current: current,
       hp_max: Math.max(current, parseAmount(hpMax)),
       ac: parseAmount(ac) || 10,
       atk_bonus: Number.isFinite(parsedAtk) ? parsedAtk : 0,
       damage_die: dmg.trim() || null,
-      initiative: Number.isFinite(parsedInit) ? parsedInit : null,
       defeated: current <= 0,
     })
   }
@@ -313,7 +336,6 @@ function ActorEdit({ actor, onSave }: { actor: EncounterActor; onSave: (patch: R
         {field('CA', ac, setAc)}
         {field('ATK', atk, setAtk, 'w-16', /[^0-9+-]/g)}
         {field('Dano', dmg, setDmg, 'w-20', /[^0-9dD+-]/g)}
-        {field('Iniciativa', init, setInit)}
       </div>
       <Button
         type="button"

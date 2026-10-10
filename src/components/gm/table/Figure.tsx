@@ -12,8 +12,10 @@ import { cn } from '@/lib/utils'
 
 /** Como o combatente está em relação ao que o Mestre está fazendo. */
 export interface FigureState {
-  /** É a vez dele na trilha. */
+  /** É ele quem está agindo. */
   active?: boolean
+  /** Já agiu nesta rodada. */
+  done?: boolean
   /** É quem o painel de baixo está mostrando. */
   focused?: boolean
   /** O Mestre está escolhendo um alvo, e este serve. */
@@ -89,6 +91,7 @@ function FigureFrame({
         'dd-fig',
         kind === 'foe' && 'dd-fig--foe',
         state.active && 'is-active',
+        state.done && 'is-done',
         state.focused && 'is-focused',
         state.targetable && 'is-targetable',
         state.picked && 'is-picked',
@@ -107,6 +110,7 @@ function FigureFrame({
           )}
         </span>
         {badges}
+        {state.done && <span aria-hidden title="Já agiu nesta rodada" className="dd-fig__done">✓</span>}
         {(state.targetable || state.picked) && <span aria-hidden className="dd-fig__reticle" />}
         {pop && pop.delta !== 0 && (
           <span
@@ -130,6 +134,13 @@ function FigureFrame({
   )
 }
 
+/** A vez dita para o leitor de tela, que não vê o ouro nem o apagado. */
+function turnLabel(state: FigureState): string {
+  if (state.active) return ', agindo'
+  if (state.done) return ', já agiu'
+  return ''
+}
+
 function Hp({ current, max }: { current: number; max: number }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0
   return (
@@ -142,12 +153,9 @@ function Hp({ current, max }: { current: number; max: number }) {
 // ─── O grupo ──────────────────────────────────────────────────────────────────
 
 export function PartyFigure({
-  seat, actor, inEncounter, present, clock, state, callout, onClick,
+  seat, present, clock, state, callout, onClick,
 }: {
   seat: Seat
-  /** A linha dele na trilha, quando há combate e ele está nela. */
-  actor?: EncounterActor
-  inEncounter: boolean
   present: boolean
   clock: TableClock
   state: FigureState
@@ -170,18 +178,11 @@ export function PartyFigure({
       state={state}
       down={mortal === 'dead' || mortal === 'stable'}
       dying={mortal === 'dying'}
-      label={`${c.name}: ${c.hpCurrent} de ${c.hpMax} PV`}
+      label={`${c.name}: ${c.hpCurrent} de ${c.hpMax} PV${turnLabel(state)}`}
       onClick={onClick}
       portrait={c.portraitUrl}
       callout={callout}
-      badges={
-        <>
-          {present && <span aria-hidden title="Com a ficha aberta" className="dd-fig__presence" />}
-          {inEncounter && (
-            <span aria-hidden title="Iniciativa" className="dd-fig__init">{actor?.initiative ?? '—'}</span>
-          )}
-        </>
-      }
+      badges={present && <span aria-hidden title="Com a ficha aberta" className="dd-fig__presence" />}
       below={
         <>
           <span className="dd-fig__name">{c.name}</span>
@@ -226,10 +227,9 @@ export function FoeFigure({
       hp={hp}
       state={state}
       down={actor.defeated}
-      label={`${actor.name}: ${hp} de ${max} PV`}
+      label={`${actor.name}: ${hp} de ${max} PV${turnLabel(state)}`}
       onClick={onClick}
       callout={callout}
-      badges={<span aria-hidden title="Iniciativa" className="dd-fig__init">{actor.initiative ?? '—'}</span>}
       below={
         <>
           <span className="dd-fig__name">{actor.name}</span>

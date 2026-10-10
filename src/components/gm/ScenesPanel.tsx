@@ -8,9 +8,8 @@ import type { Scene, SceneRow } from '@/types/scene.types'
 import { rowToScene, sceneOrder } from '@/types/scene.types'
 import type { TableSession } from '@/types/session.types'
 import { useEncounter } from '@/hooks/useEncounter'
-import { npcActorFields, uniqueActorName } from '@/lib/encounterSetup'
-import { recordEvent } from '@/lib/sessionEvents'
-import { rollDie } from '@/lib/dice'
+import { npcActorFields, rollSideInitiative, uniqueActorName } from '@/lib/encounterSetup'
+import { recordEvent, rollPayload } from '@/lib/sessionEvents'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -52,7 +51,7 @@ const BLANK: Scene = {
  *
  * O Mestre escreve a cena na véspera — o que acontece, quem está lá — e no dia
  * a inicia com um toque: o encontro nasce com o nome da cena, a mesa inteira
- * sentada e os NPCs vinculados já na trilha, com iniciativa rolada.
+ * sentada, os NPCs vinculados já na trilha e o d6 do Mestre rolado.
  *
  * A nota é dele e continua dele: nada do que está escrito aqui vai para o log.
  * O que a mesa vê é o encontro começando.
@@ -183,10 +182,10 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
   /**
    * O gesto que ligava a preparação ao jogo.
    *
-   * Um encontro com o nome da cena, a mesa inteira sentada e cada NPC vinculado
-   * já na trilha com iniciativa rolada. É exatamente o que o Mestre faria à
-   * mão no painel de encontros — a cena só o poupa de fazê-lo com a mesa
-   * esperando.
+   * Um encontro com o nome da cena, a mesa inteira sentada, cada NPC
+   * vinculado já na trilha e o d6 do Mestre rolado. É exatamente o que o
+   * Mestre faria à mão no painel de encontros — a cena só o poupa de fazê-lo
+   * com a mesa esperando. O d6 do grupo fica com os jogadores.
    */
   async function startScene(scene: Scene) {
     if (!session) return
@@ -217,9 +216,10 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
       })
     }
 
+    const foes = rollSideInitiative('npc')
     const { data } = await supabase
       .from('encounters')
-      .insert({ session_id: session.id, name: scene.title })
+      .insert({ session_id: session.id, name: scene.title, npc_initiative: foes.total })
       .select('*')
       .single()
 
@@ -253,7 +253,6 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
         ref_id: npc.id,
         name: label,
         ...npcActorFields(npc),
-        initiative: rollDie('d20', 'Iniciativa', npc.name, npc.stats.dex).total,
         sort_key: seats.length + index,
       })
     })
@@ -266,6 +265,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
       kind: 'encounter',
       payload: { action: 'start', encounterName: scene.title },
     })
+    void recordEvent({ sessionId: session.id, actorName: gmName, kind: 'roll', payload: rollPayload(foes) })
 
     const { data: marked } = await supabase
       .from('scenes')

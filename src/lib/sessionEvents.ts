@@ -176,6 +176,8 @@ export function eventHeadline(event: SessionEvent): string {
       switch (p.action) {
         case 'start': return `Começou: ${p.encounterName ?? 'um encontro'}`
         case 'end':   return `Acabou: ${p.encounterName ?? 'o encontro'}`
+        case 'initiative':
+          return (p.party ?? 0) >= (p.foes ?? 0) ? 'O grupo age primeiro' : 'Os inimigos agem primeiro'
         case 'round': return `Rodada ${p.round ?? '?'}`
         case 'turn':  return `Vez de ${p.actorName ?? 'alguém'}`
         case 'down':  return `${p.actorName ?? 'Alguém'} caiu`
@@ -287,6 +289,9 @@ export function eventDetail(event: SessionEvent): string | null {
       const p = event.payload as EncounterPayload
       if (p.action === 'attack' && p.total != null && p.ac != null) {
         return `${p.total} vs CA ${p.ac}`
+      }
+      if (p.action === 'initiative' && p.party != null && p.foes != null) {
+        return `d6: grupo ${p.party} × ${p.foes} inimigos${p.party === p.foes ? ' · empate fica com o grupo' : ''}`
       }
       if (p.action === 'turn' && p.round != null) return `rodada ${p.round}`
       if (p.action === 'morale') {

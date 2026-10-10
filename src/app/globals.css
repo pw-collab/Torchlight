@@ -1246,8 +1246,31 @@ html, body {
 .dd-token--foe { border-color: oklch(0.42 0.12 27); color: oklch(0.82 0.08 30); background: radial-gradient(circle at 40% 35%, oklch(0.28 0.07 27), var(--dd-ink)); }
 .dd-token.is-active { width: 44px; height: 44px; font-size: 15px; border-color: var(--dd-gold); box-shadow: 0 0 16px oklch(0.78 0.14 75 / 0.55); }
 .dd-token.is-focused { border-color: var(--dd-bone); }
+.dd-token.is-done { opacity: 0.5; }
 .dd-token.is-out { opacity: 0.35; filter: grayscale(1); }
 .dd-token:hover { transform: translateY(-2px); }
+
+/* O d6 de cada lado, à frente das fichas que ele ordena. */
+.dd-side-die {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--dd-bone-dim);
+  border: 1px solid var(--dd-iron-hi);
+  background: var(--dd-ink);
+}
+.dd-side-die b { font-size: 13px; letter-spacing: 0; color: var(--dd-bone); }
+.dd-side-die--foe { border-color: oklch(0.42 0.12 27); }
+.dd-side-die.is-current { border-color: var(--dd-gold); color: var(--dd-gold); box-shadow: 0 0 10px oklch(0.78 0.14 75 / 0.35); }
 
 /* ── O palco ───────────────────────────────────────────────────────────── */
 
@@ -1396,7 +1419,7 @@ html, body {
 .dd-fig--foe .dd-fig__name { color: oklch(0.85 0.06 35); }
 .dd-fig__meta { font-family: 'Cinzel', serif; font-size: 9.5px; letter-spacing: 0.04em; color: var(--dd-bone-dim); white-space: nowrap; }
 .dd-fig__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 0; }
-.dd-fig__init {
+.dd-fig__done {
   position: absolute;
   top: -4px;
   right: -4px;
@@ -1468,6 +1491,7 @@ html, body {
 .dd-fig.is-active .dd-fig__frame { border-color: var(--dd-gold); box-shadow: 0 0 0 2px var(--dd-ink), 0 0 26px oklch(0.78 0.14 75 / 0.55); }
 .dd-fig.is-focused .dd-fig__frame { border-color: var(--dd-bone); }
 .dd-fig.is-focused { transform: translateY(-4px); }
+.dd-fig.is-done .dd-fig__frame { filter: brightness(0.6) saturate(0.7); }
 .dd-fig.is-down { opacity: 0.6; transform: translateY(10px); }
 .dd-fig.is-down .dd-fig__frame { filter: grayscale(1) brightness(0.5); }
 .dd-fig.is-dying .dd-fig__frame { animation: ddDeathsDoor 1.6s ease-in-out infinite; }

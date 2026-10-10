@@ -9,7 +9,6 @@ import {
   ScrollIcon,
   Settings03Icon,
 } from '@hugeicons/core-free-icons'
-import { createClient } from '@/lib/supabase'
 import { useTableNow } from '@/hooks/useTableNow'
 import { useCharacter } from '@/hooks/useCharacter'
 import { useDiceRoll } from '@/hooks/useDiceRoll'
@@ -51,7 +50,10 @@ import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 import { ConditionChips, disadvantageLabels } from '@/components/sheet/ConditionChips'
 import { RestButton } from '@/components/sheet/RestButton'
 import { DeathBanner } from '@/components/sheet/DeathBanner'
-import { afterDeathRoll, dyingRounds, hpShift, rollAgainstDeath, withoutMortal } from '@/lib/dying'
+import { afterDeathRoll, dyingRounds, hpShift, outOfFight, rollAgainstDeath, withoutMortal } from '@/lib/dying'
+import { pcKey, type TurnLedger } from '@/lib/turns'
+import { claimTurn, endTurn, setPartyInitiative, type TurnOutcome } from '@/lib/turnActions'
+import { rollSideInitiative } from '@/lib/encounterSetup'
 import { consumeRation, findRation, lostSpells, restoredStates, withLostSpells } from '@/lib/rest'
 import { damageFollowUp } from '@/lib/attacks'
 import { coinSlots, maxSlots, usedSlots } from '@/lib/slots'
@@ -157,14 +159,20 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     [sessionId, playerName, characterId, characterName],
   )
 
-  // ── O combate (§5.8) ──────────────────────────────────────────────────────
-  // A trilha inteira é do Mestre; aqui só interessa a linha deste personagem:
-  // entrar na ordem e saber quando é a vez dele.
-  const { encounter, actors: encounterActors } = useEncounter(sessionId)
+  // ── A vez (§5.8) ──────────────────────────────────────────────────────────
+  // A mesa sempre anda em turnos, e o combate só acrescenta a iniciativa. A
+  // trilha inteira é do Mestre; aqui só interessa a vez deste personagem:
+  // rolar o d6 do grupo, assumir a vez, encerrá-la, e saber quem age.
+  const { encounter, actors: encounterActors, turns } = useEncounter(sessionId)
   const myActor = useMemo(
     () => encounterActors.find(a => a.source === 'pc' && a.refId === characterId),
     [encounterActors, characterId],
   )
+  const myKey = pcKey(characterId)
+  const [turnBusy, setTurnBusy] = useState(false)
+  // A recusa do banco vale enquanto a vez não mudar: quando muda, o próprio
+  // banner já conta o que aconteceu ("Corvo está agindo").
+  const [turnNotice, setTurnNotice] = useState<{ text: string; ledger: TurnLedger } | null>(null)
 
   /** O que o Mestre pediu e ainda espera desta ficha (§6.4). */
   const prompts = useMemo(
@@ -442,22 +450,50 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   }
 
   /**
-   * A iniciativa nasce na ficha e entra na ordem da mesa (§5.8). A escrita
-   * passa por um RPC: a trilha é do Mestre, e o jogador só pode mexer na
-   * própria linha — a checagem de quem é o personagem e de que ele está
-   * naquela mesa é feita no banco, não aqui.
+   * Uma jogada da vez. Quem tranca a vez é o banco: dois jogadores tocando
+   * "assumir" juntos, o segundo recebe a recusa e espera. No combate, a vez
+   * assumida e a rodada que vira vão para o log da mesa.
    */
-  async function handleRollInitiative(mode: RollMode = 'normal') {
-    if (!character || !encounter) return
-    const result = rollWithMode('d20', 'Iniciativa', STAT_LABELS.dex, modifier(character.stats.dex), mode)
-    handleRoll(result)
+  async function moveTurn(move: () => Promise<TurnOutcome>, claimed: boolean) {
+    setTurnBusy(true)
+    const out = await move()
+    setTurnBusy(false)
+    if (!out.ok) {
+      setTurnNotice({ text: out.reason, ledger: turns })
+      return
+    }
+    setTurnNotice(null)
+    if (!encounter) return
+    if (out.wrapped && out.round != null) record('encounter', { action: 'round', round: out.round })
+    if (claimed) record('encounter', { action: 'turn', actorName: character!.name, round: out.round ?? undefined })
+  }
 
-    const supabase = createClient()
-    await supabase.rpc('set_initiative', {
-      p_encounter_id: encounter.id,
-      p_character_id: characterId,
-      p_value: result.total,
-    })
+  function handleClaimTurn() {
+    if (sessionId) void moveTurn(() => claimTurn(sessionId, myKey), true)
+  }
+
+  function handleEndTurn() {
+    if (sessionId) void moveTurn(() => endTurn(sessionId, myKey), false)
+  }
+
+  /**
+   * O d6 do grupo (§5.8): um dado só, por todos, rolado por quem tocar
+   * primeiro. O banco grava antes de o dado rolar na tela — quem perdeu a
+   * corrida não vê um número que não vale.
+   */
+  async function handleRollPartyInitiative() {
+    if (!encounter) return
+    const roll = rollSideInitiative('pc')
+    setTurnBusy(true)
+    const out = await setPartyInitiative(encounter.id, roll.total)
+    setTurnBusy(false)
+    if (!out.ok) {
+      setTurnNotice({ text: out.reason, ledger: turns })
+      return
+    }
+    setTurnNotice(null)
+    handleRoll(roll)
+    if (out.foes != null) record('encounter', { action: 'initiative', party: roll.total, foes: out.foes })
   }
 
   async function handleTalentsUpdate(talents: Talent[]) {
@@ -622,7 +658,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
    * topo da ficha.
    */
   const visibleConditions = withoutMortal(character.conditions)
-  const myTurn = encounter != null && myActor != null && encounter.activeActorId === myActor.id
+  const myTurn = turns.actingKey === myKey
 
   const stateStrip = (
     <>
@@ -632,12 +668,19 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onDeathRoll={isOwner ? () => void handleDeathRoll() : undefined}
         busy={rollPhase !== 'idle'}
       />
-      {encounter && (
+      {sessionId && (
         <TurnBanner
           encounter={encounter}
           actors={encounterActors}
+          turns={turns}
+          myKey={myKey}
           mine={myActor}
-          onRollInitiative={mode => void handleRollInitiative(mode)}
+          out={outOfFight(character.conditions)}
+          actions={isOwner
+            ? { onRollInitiative: () => void handleRollPartyInitiative(), onClaim: handleClaimTurn, onEnd: handleEndTurn }
+            : null}
+          busy={turnBusy}
+          notice={turnNotice?.ledger === turns ? turnNotice.text : null}
         />
       )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />

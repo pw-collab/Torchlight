@@ -88,6 +88,14 @@ Supabase, em ordem.
   Mestre. Ela também **afrouxa a restrição de tipo de `session_events`** para
   aceitar `'handout'`: sem isso a entrega de um documento é rejeitada pelo
   banco, e a aba **Preparo** do painel não encontra tabela nenhuma.
+- `022_group_initiative.sql` troca a iniciativa individual (d20 + DES) pela
+  iniciativa em grupo: um d6 do grupo e um d6 do Mestre por encontro
+  (`encounters.pc_initiative`, `npc_initiative`), e a vez que se assume
+  (`session_turns`, com os RPCs `claim_turn`, `end_turn`, `reset_turns` e
+  `set_party_initiative`). Ela **apaga** `encounters.active_actor_id`,
+  `encounter_actors.initiative` e o RPC `set_initiative`: aplique junto com
+  o deploy desta versão do app, porque a versão anterior escreve nessas
+  colunas.
 
 ## 4. Verificação
 

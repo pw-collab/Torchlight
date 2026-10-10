@@ -104,7 +104,9 @@ Every object in `002` to `018` was compared against the live database:
 | encounters, encounter_actors | select, insert, update, delete | F06 |
 | npcs, scenes, handouts | full CRUD, own GM only | F07 |
 | `rpc join_session`, `leave_session`, `character_session` | join by code, leave, find a character's table | F03 |
-| `rpc set_initiative` | a player sets their own initiative | F06 |
+| `rpc claim_turn`, `end_turn`, `reset_turns` | take, end or skip a turn; the GM starts a new exploration round | F06 |
+| `rpc set_party_initiative` | the party's group d6, rolled once by whoever taps first | F06 |
+| session_turns | select (writes only through the turn RPCs) | F06 |
 | `rpc campaign_roster` | roster with owner names | F01 |
 | storage `avatars` | upload, public URL | F02 |
 
