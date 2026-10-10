@@ -36,9 +36,6 @@ export function getSpellsForClass(classId?: string): Spell[] {
   return SPELLS
 }
 
-export function getSpellsByTradition(tradition: SpellTradition): Spell[] {
-  return SPELLS.filter((spell) => spell.classes.includes(tradition))
-}
 
 /**
  * A spell's circle in Roman numerals, as every card face writes it. Indexed by
@@ -72,8 +69,4 @@ export function getLearnableSpells(
     if (maxTier != null && spell.tier > maxTier) return false
     return true
   }).sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name))
-}
-
-export function getSpellsByTier(tier: number): Spell[] {
-  return SPELLS.filter((spell) => spell.tier === tier)
 }

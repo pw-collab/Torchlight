@@ -19,7 +19,3 @@ export function getInventoryItem(id: string): CatalogItem | undefined {
   const resolved = LEGACY_ALIASES[id] ?? id
   return byId.get(resolved)
 }
-
-export function getItemsByType(type: CatalogItem['type']): CatalogItem[] {
-  return ALL_ITEMS.filter((item) => item.type === type)
-}

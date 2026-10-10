@@ -49,52 +49,6 @@ export function getClass(id: string): Class | undefined {
   return byId.get(id)
 }
 
-/**
- * Find the talent table entry that matches a given 2d6 roll result.
- * Returns undefined if the class is unknown or the roll is out of range.
- */
-export function getTalentForRoll(classId: string, roll: number): TalentTableEntry | undefined {
-  const cls = byId.get(classId)
-  if (!cls) return undefined
-  return cls.talentTable.find(e => roll >= e.min && roll <= e.max)
-}
-
-/**
- * Compute all active passive modifiers granted by a class's techniques.
- *
- * Returns an array of { applyTo, value } pairs that other components can
- * consume (e.g. adding Hauler's CON mod to gear capacity).
- *
- * @param classId - The character's class id
- * @param stats   - The character's current ability scores
- * @param _states - Technique states (reserved for future gating logic)
- */
-export function getTechniqueModifiers(
-  classId: string,
-  stats: Record<string, number>,
-  _states: TechniqueState[] = [],
-): { techniqueId: string; applyTo: string; value: number }[] {
-  const cls = byId.get(classId)
-  if (!cls) return []
-
-  const results: { techniqueId: string; applyTo: string; value: number }[] = []
-
-  for (const technique of cls.techniques) {
-    if (!technique) continue
-    if ((technique.kind ?? 'passive') !== 'passive') continue
-    if (!technique.modifier) continue
-
-    const { stat, applyTo, onlyIfPositive } = technique.modifier
-    const score = stats[stat] ?? 10
-    const bonus = Math.floor((score - 10) / 2)
-
-    if (onlyIfPositive && bonus <= 0) continue
-
-    results.push({ techniqueId: technique.id, applyTo, value: bonus })
-  }
-
-  return results
-}
 
 /**
  * Simulate a 2d6 roll and return the matching talent table entry for a class.

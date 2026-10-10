@@ -304,14 +304,3 @@ export function rollPool(sidesList: number[], label: string, mod: number = 0, su
 export function roll3d6(): number {
   return rollSides(6) + rollSides(6) + rollSides(6)
 }
-
-export function rollStats(): Record<string, number> {
-  return {
-    str: roll3d6(),
-    dex: roll3d6(),
-    con: roll3d6(),
-    int: roll3d6(),
-    wis: roll3d6(),
-    cha: roll3d6(),
-  }
-}

@@ -113,17 +113,3 @@ export const RELIGIONS: Religion[] = [
       'Nenhuma igreja, nenhum símbolo, nenhuma prece. Nas Terras das Brumas isso é mais comum do que os púlpitos admitem — e custa caro em vilarejos onde a fé é o que mantém as portas fechadas à noite.',
   },
 ]
-
-const byId = new Map(RELIGIONS.map(r => [r.id, r]))
-
-export function getReligion(id: string): Religion | undefined {
-  return byId.get(id)
-}
-
-/**
- * Faiths are stored on the character by name (the column predates this
- * catalog), so an older sheet resolves back to its entry by name.
- */
-export function findReligionByName(name: string): Religion | undefined {
-  return RELIGIONS.find(r => r.name === name)
-}

@@ -388,6 +388,3 @@ const byId = new Map(DOMAINS.map(d => [d.id, d]))
 export function getDomain(id: string): Domain | undefined {
   return byId.get(id)
 }
-
-/** All domain ids, useful for ancestries that accept any domain ('*'). */
-export const ALL_DOMAIN_IDS = DOMAINS.map(d => d.id)

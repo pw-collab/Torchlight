@@ -49,17 +49,3 @@ export function StepSection({ index, title, children, className }: SectionProps)
     </section>
   )
 }
-
-/** Small uppercase label above a control group. */
-export function StepLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <span
-      className={cn(
-        'font-heading text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase',
-        className,
-      )}
-    >
-      {children}
-    </span>
-  )
-}

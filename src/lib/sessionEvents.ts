@@ -138,12 +138,6 @@ export function pendingPrompts(events: SessionEvent[], characterId: string): Ses
     .sort((a, b) => a.at - b.at)
 }
 
-/** Se o pedido daquela linha do feed já foi respondido — o Mestre quer saber quem falta. */
-export function isPromptAnswered(events: SessionEvent[], prompt: SessionEvent): boolean {
-  const promptId = (prompt.payload as PromptPayload).promptId
-  if (!promptId) return true
-  return answeredKeys(events).has(answerKey(promptId, prompt.characterId))
-}
 
 /** O nome que encabeça a linha: o personagem quando há um, senão quem agiu. */
 export function eventActor(event: SessionEvent): string {
