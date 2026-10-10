@@ -2,33 +2,66 @@
 
 import { motion } from 'framer-motion'
 import type { Encounter, EncounterActor } from '@/types/encounter.types'
-import { turnOrder } from '@/types/encounter.types'
-import type { RollMode } from '@/lib/dice'
-import { RollModeMenu } from '@/components/shared/RollModeMenu'
+import {
+  combatStatus,
+  combatTurn,
+  explorationStatus,
+  type CombatTurn,
+  type TurnLedger,
+  type TurnStatus,
+} from '@/lib/turns'
 import { Button } from '@/components/ui/button'
 
 interface Props {
-  encounter: Encounter
+  /** O combate em andamento; nulo na exploração, que também anda em turnos. */
+  encounter: Encounter | null
   actors: EncounterActor[]
-  /** A linha deste personagem na trilha, se ele estiver nela. */
+  turns: TurnLedger
+  /** A chave deste personagem na vez (`pcKey`). */
+  myKey: string
+  /** A linha dele na trilha, quando há combate e ele está nela. */
   mine: EncounterActor | undefined
-  onRollInitiative: (mode: RollMode) => void
+  /** Morto, ou caído e estabilizado: sem vez. */
+  out: boolean
+  /** As jogadas; nulas quando quem olha a ficha não é o dono — aí o banner só informa. */
+  actions: { onRollInitiative: () => void; onClaim: () => void; onEnd: () => void } | null
   busy?: boolean
+  /** A última jogada que o banco recusou ("Alguém assumiu a vez antes."). */
+  notice?: string | null
 }
 
 /**
- * O combate visto da ficha.
+ * A vez, vista da ficha.
  *
- * O jogador precisa de três coisas e nenhuma a mais: entrar na ordem, saber
- * quando é a vez dele, e saber quem está agindo enquanto não é. A trilha
- * completa é do Mestre; aqui fica só o que muda o que a pessoa faz agora.
+ * O jogador precisa de pouco: saber se pode agir agora, um botão para assumir
+ * a vez e outro para encerrá-la, e quem está agindo enquanto não é ele — a
+ * ordem dentro do grupo se combina na mesa, não aqui. No começo de um combate
+ * entra a iniciativa: um d6 pelo grupo inteiro, rolado por quem tocar
+ * primeiro.
  */
-export function TurnBanner({ encounter, actors, mine, onRollInitiative, busy }: Props) {
-  const myTurn = mine != null && encounter.activeActorId === mine.id
-  const active = actors.find(a => a.id === encounter.activeActorId)
-  const needsInitiative = mine != null && mine.initiative == null
+export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions, busy, notice }: Props) {
+  const turn = encounter ? combatTurn(encounter, actors, turns) : null
+  const status: TurnStatus = turn ? combatStatus(turn, mine) : explorationStatus(turns, myKey, out)
+  const rolling = turn?.stage === 'initiative'
+  const myTurn = status === 'acting'
+  const partyToRoll = rolling && encounter?.pcInitiative == null
 
-  const accent = myTurn ? 'var(--chart-1)' : 'var(--border)'
+  const { headline, detail } = describe(encounter, turn, status, turns.actingName, mine)
+  const accent = myTurn ? 'var(--chart-1)' : status === 'ready' || partyToRoll ? 'var(--primary)' : 'var(--border)'
+
+  const button = !actions
+    ? null
+    : partyToRoll
+      ? { label: '🎲 Rolar pelo grupo', run: actions.onRollInitiative }
+      : myTurn
+        ? { label: 'Encerrar a vez', run: actions.onEnd }
+        : status === 'ready'
+          ? { label: 'Assumir a vez', run: actions.onClaim }
+          : null
+
+  const dice = encounter && (encounter.pcInitiative != null || encounter.npcInitiative != null)
+    ? `d6 · grupo ${encounter.pcInitiative ?? '—'} × ${encounter.npcInitiative ?? '—'} inimigos`
+    : null
 
   return (
     <motion.div
@@ -44,53 +77,82 @@ export function TurnBanner({ encounter, actors, mine, onRollInitiative, busy }: 
       }}
     >
       <span aria-hidden className={myTurn ? 'animate-flicker text-[16px] leading-none' : 'text-[16px] leading-none opacity-50'}>
-        ⚔
+        {encounter ? '⚔' : '🕯'}
       </span>
 
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
-          {encounter.name} · rodada {encounter.round}
+        <span className="font-heading truncate text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+          {encounter
+            ? `${encounter.name} · ${turn?.stage === 'turns' ? `rodada ${turn.round}` : 'iniciativa'}`
+            : 'Exploração'}
         </span>
         <span
+          role="status"
           className="font-heading text-[13px] leading-tight"
           style={{ color: myTurn ? 'var(--chart-1)' : 'var(--foreground)' }}
         >
-          {myTurn
-            ? 'Sua vez'
-            : needsInitiative
-              ? 'Role a iniciativa para entrar na ordem'
-              : active
-                ? `Vez de ${active.name}`
-                : 'A ordem ainda não começou'}
+          {headline}
         </span>
-        {mine?.initiative != null && !myTurn && (
-          <span className="font-mono text-[9px] text-[var(--muted-foreground)]">
-            sua iniciativa: {mine.initiative}
-            {' · '}
-            {positionOf(actors, mine)}
+        {(notice ?? detail) && (
+          <span className="font-body text-[11px] leading-snug text-[var(--muted-foreground)] italic">
+            {notice ?? detail}
           </span>
         )}
+        {dice && <span className="font-mono text-[9px] text-[var(--muted-foreground)]">{dice}</span>}
       </span>
 
-      {needsInitiative && (
-        <RollModeMenu label="Rolar iniciativa" align="end" onRoll={onRollInitiative} disabled={busy}>
-          <Button
-            type="button"
-            variant="hollow"
-            render={<span />}
-            className="font-heading bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
-          >
-            Rolar iniciativa
-          </Button>
-        </RollModeMenu>
+      {button && (
+        <Button
+          type="button"
+          variant="hollow"
+          onClick={button.run}
+          disabled={busy}
+          className="font-heading bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
+        >
+          {button.label}
+        </Button>
       )}
     </motion.div>
   )
 }
 
-/** "3º de 5" — onde a pessoa está na fila, dito como se diz na mesa. */
-function positionOf(actors: EncounterActor[], mine: EncounterActor): string {
-  const order = turnOrder(actors)
-  const at = order.findIndex(a => a.id === mine.id)
-  return at === -1 ? '' : `${at + 1}º de ${order.length}`
+/** O que dizer, dito como se diz na mesa. */
+function describe(
+  encounter: Encounter | null,
+  turn: CombatTurn | null,
+  status: TurnStatus,
+  actingName: string | null,
+  mine: EncounterActor | undefined,
+): { headline: string; detail: string } {
+  if (encounter && turn?.stage === 'initiative') {
+    return encounter.pcInitiative == null
+      ? { headline: 'Iniciativa: o grupo rola um d6', detail: 'Um d6 só, por todos: qualquer um rola. Empate, o grupo começa.' }
+      : { headline: 'Esperando o d6 do Mestre', detail: `O grupo tirou ${encounter.pcInitiative}.` }
+  }
+
+  const otherSide = turn?.stage === 'turns' && turn.side === 'npc'
+  switch (status) {
+    case 'acting':
+      return { headline: 'Sua vez', detail: 'Faça sua ação e encerre a vez: só então outro assume.' }
+    case 'ready':
+      return {
+        headline: encounter ? 'Vez do grupo' : 'A vez está livre',
+        detail: 'Combinem quem vai: quem assumir age, e os outros esperam.',
+      }
+    case 'waiting':
+      return actingName
+        ? { headline: `${actingName} está agindo`, detail: 'Espere encerrar a vez para assumir a sua.' }
+        : { headline: otherSide ? 'Vez dos inimigos' : 'Esperando', detail: otherSide ? 'O grupo age depois deles.' : '' }
+    case 'done':
+      return {
+        headline: actingName ? `${actingName} está agindo` : otherSide ? 'Vez dos inimigos' : 'Você já agiu',
+        detail: encounter
+          ? 'Você já agiu nesta rodada.'
+          : 'Você já agiu nesta rodada; ela vira quando o Mestre passar.',
+      }
+    case 'out':
+      return encounter && !mine
+        ? { headline: 'Fora da trilha', detail: 'O Mestre põe você no combate.' }
+        : { headline: 'Fora de ação', detail: 'Morto ou inconsciente: sem vez até alguém mudar isso.' }
+  }
 }

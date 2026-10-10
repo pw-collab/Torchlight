@@ -199,8 +199,11 @@ export interface HandoutPayload {
 
 /** O que acontece na trilha de turnos (§6.5). */
 export interface EncounterPayload {
-  action: 'start' | 'end' | 'turn' | 'round' | 'down' | 'attack' | 'morale'
+  action: 'start' | 'end' | 'initiative' | 'turn' | 'round' | 'down' | 'attack' | 'morale'
   encounterName?: string
+  /** Iniciativa: o d6 do grupo e o do Mestre. Empate, o grupo começa. */
+  party?: number
+  foes?: number
   /** De quem é a vez, ou quem caiu. */
   actorName?: string
   round?: number

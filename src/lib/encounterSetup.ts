@@ -1,6 +1,17 @@
 import type { NPC } from '@/types/npc.types'
 import type { EncounterActor } from '@/types/encounter.types'
 import { attackBonusFrom, damageFrom } from '@/lib/npcAttack'
+import { rollDie, type RollResult } from '@/lib/dice'
+import type { Side } from '@/lib/turns'
+
+/**
+ * O d6 de iniciativa de um lado. Um dado só pelo lado inteiro, sem
+ * modificador: o do Mestre sai quando ele abre o encontro, o do grupo quando
+ * o primeiro jogador toca em rolar.
+ */
+export function rollSideInitiative(side: Side): RollResult {
+  return rollDie('d6', side === 'pc' ? 'Iniciativa do grupo' : 'Iniciativa dos inimigos')
+}
 
 /**
  * Três goblins do mesmo statblock precisam de três nomes.

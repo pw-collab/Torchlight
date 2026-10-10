@@ -8,6 +8,7 @@ import { brightest } from '@/lib/light'
 import { tableNow } from '@/lib/dungeonClock'
 import { STABILIZE_DC, dyingRounds, mortalState, roundsLabel } from '@/lib/dying'
 import { findRation, lostSpells } from '@/lib/rest'
+import { pcKey } from '@/lib/turns'
 import { PromptComposer } from '@/components/gm/PromptComposer'
 import { StatBlock } from '@/components/sheet/StatBlock'
 import { Spells } from '@/components/sheet/Spells'
@@ -25,6 +26,9 @@ type View = 'menu' | 'hp' | 'luck' | 'xp' | 'conditions' | 'prompt' | 'treasure'
  * ferir, curar, dar Fortuna e XP, pôr condições, apagar a luz, pedir um teste,
  * entregar tesouro, rolar a vez de quem está morrendo — sai daqui, sem abrir
  * a ficha. Cada gesto vira linha do log e aviso na tela do jogador.
+ *
+ * A vez também: quem assume e encerra é o jogador, na ficha, mas o Mestre
+ * pode fazê-lo por quem está sem ela, e pular a vez de quem não vai agir.
  */
 export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) {
   const [view, setView] = useState<View>('menu')
@@ -38,7 +42,10 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
   const light = brightest(c.inventory, tableNow(ctl.clock))
   const encounter = ctl.enc.encounter
   const actor = ctl.enc.actors.find(a => a.source === 'pc' && a.refId === c.id)
-  const myTurn = Boolean(encounter && actor && encounter.activeActorId === actor.id)
+  const key = pcKey(c.id)
+  const status = ctl.enc.statusOf(key)
+  const myTurn = status === 'acting'
+  const rolling = ctl.enc.turn?.stage === 'initiative'
   const ration = findRation(c.inventory)
   const lost = lostSpells(c.techniqueStates)
 
@@ -163,7 +170,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
   const idle = mortal === 'dying' && rounds !== null
     ? `${c.name} está à beira da morte: ${roundsLabel(rounds)}. Na vez dele, um d20; só o 20 natural levanta.`
     : myTurn
-      ? `Vez de ${c.name}: o jogador age na ficha. O dano que ele rolar aparece no palco esperando o alvo.`
+      ? `${c.name} está agindo. O dano que ele rolar aparece no palco esperando o alvo; ■ Encerrar a vez quando ele terminar.`
       : !ration
         ? `${c.name} está sem rações: não recupera nada ao acampar.`
         : `Comandos para ${c.name}. Passe o mouse para ver o que cada um faz.`
@@ -191,18 +198,39 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
           />
         </>
       )}
+      {status === 'acting' && (
+        <CommandTile
+          icon="■"
+          label="Encerrar a vez"
+          hint={`${c.name} terminou o que ia fazer`}
+          tone="gold"
+          highlight
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.finish(key)}
+        />
+      )}
+      {status === 'ready' && (
+        <CommandTile
+          icon="▶"
+          label="Assumir a vez"
+          hint="Por quem está sem a ficha aberta"
+          tone="gold"
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.claim(key)}
+        />
+      )}
+      {(status === 'ready' || status === 'waiting') && !rolling && (
+        <CommandTile
+          icon="⏭"
+          label="Pular a vez"
+          hint="Não age nesta rodada"
+          disabled={ctl.enc.busy}
+          onClick={() => void ctl.enc.finish(key)}
+        />
+      )}
       <CommandTile icon="🗡" label="Dano / Cura" hint={`PV ${c.hpCurrent}/${c.hpMax}`} tone="danger" onClick={() => setView('hp')} disabled={busy} />
       <CommandTile icon="⚑" label="Condições" hint={c.conditions.length > 0 ? `${c.conditions.length} em vigor` : 'Nenhuma em vigor'} onClick={() => setView('conditions')} disabled={busy} />
       <CommandTile icon="❔" label="Pedir teste" hint="Atributo e DC, para este personagem" onClick={() => setView('prompt')} />
-      {encounter && actor && actor.initiative == null && (
-        <CommandTile
-          icon="🎲"
-          label="Iniciativa"
-          hint="Rolar por ele: d20 + DES"
-          tone="gold"
-          onClick={() => void ctl.enc.rollInitiativeFor(actor)}
-        />
-      )}
       {encounter && !actor && (
         <CommandTile icon="🧍" label="Pôr na trilha" hint="Entrou depois do combate" tone="gold" onClick={() => void ctl.enc.seatPc(seat)} />
       )}

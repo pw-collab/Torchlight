@@ -48,6 +48,16 @@ export function mortalState(conditions: ActiveCondition[]): MortalState {
   return 'standing'
 }
 
+/**
+ * Quem não tem vez: o morto e o caído estabilizado, que está inconsciente.
+ * Quem está morrendo ainda tem — é nela que rola contra a morte. O banco
+ * aplica a mesma regra à trilha (`pc_out_of_fight`, migração 022).
+ */
+export function outOfFight(conditions: ActiveCondition[]): boolean {
+  const state = mortalState(conditions)
+  return state === 'dead' || state === 'stable'
+}
+
 /** Quantas rodadas restam a quem está morrendo; nulo para quem não está. */
 export function dyingRounds(conditions: ActiveCondition[]): number | null {
   const dying = conditions.find(c => c.id === DYING_ID)

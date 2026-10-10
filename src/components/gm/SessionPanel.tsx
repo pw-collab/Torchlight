@@ -20,7 +20,7 @@ import { describeGrant, treasureItem } from '@/lib/treasure'
 import type { GmAction, Seat, TreasureGrant } from '@/lib/gmActions'
 import { rowToSession, type RollPayload, type SessionRow, type TableSession } from '@/types/session.types'
 import { recordEvent, rollPayload } from '@/lib/sessionEvents'
-import { afterDeathRoll, dyingRounds, hpShift, mortalState, rollAgainstDeath, stabilize } from '@/lib/dying'
+import { afterDeathRoll, dyingRounds, hpShift, mortalState, outOfFight, rollAgainstDeath, stabilize } from '@/lib/dying'
 import type { SessionEvent, SessionEventKind } from '@/types/session.types'
 import { useSessionFeed } from '@/hooks/useSessionFeed'
 import { useSessionPresence } from '@/hooks/useSessionPresence'
@@ -28,7 +28,8 @@ import { useBestiary } from '@/hooks/useBestiary'
 import { useCrawl } from '@/hooks/useCrawl'
 import { useEncounterControls } from '@/hooks/useEncounterControls'
 import { TableHud } from './table/TableHud'
-import { CombatRibbon, ExplorationRibbon, actorKey, npcKey, pcKey } from './table/TurnRibbon'
+import { CombatRibbon, ExplorationRibbon } from './table/TurnRibbon'
+import { npcKey, pcKey } from '@/lib/turns'
 import { FoeFigure, PartyFigure, type Callout } from './table/Figure'
 import { Nameplate } from './table/Nameplate'
 import { TableCommands, type TableView } from './table/TableCommands'
@@ -638,27 +639,32 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
 
   const crawl = useCrawl(sessionId, partyChaMod, recordCrawlCheck)
 
+  const { npcs: bestiary } = useBestiary(gmId)
+  const enc = useEncounterControls({ sessionId, gmName, seats, act, bestiary })
+  const encounter = enc.encounter
+
   const partyRest = useCallback(async () => {
     for (const seat of seats) await act(seat.character, { type: 'rest' })
     // Um descanso é um capítulo novo da exploração.
     crawl.reset()
   }, [seats, act, crawl])
 
-  const { npcs: bestiary } = useBestiary(gmId)
-  const enc = useEncounterControls({ sessionId, gmName, seats, act, bestiary })
-  const encounter = enc.encounter
+  /** A rodada de exploração vira: a masmorra conta, e a vez fica livre para todos de novo. */
+  const nextExplorationRound = useCallback(() => {
+    crawl.nextRound()
+    void enc.newExplorationRound()
+  }, [crawl, enc])
 
   // ── Foco: de quem é o menu de comandos ────────────────────────────────────
   //
-  // Por padrão, de quem é a vez. Clicar num card muda o foco até a vez virar —
-  // quando ela vira, o menu segue o turno de novo, como num RPG de turno.
+  // Por padrão, de quem está agindo. Clicar num card muda o foco até a vez
+  // mudar de mãos — quando muda, o menu segue quem age de novo, como num RPG
+  // de turno.
 
-  const turnId = encounter?.activeActorId ?? null
-  const activeActor = encounter ? enc.actors.find(a => a.id === turnId) : undefined
-  const activeKey = activeActor ? actorKey(activeActor) : null
+  const actingKey = enc.turns.actingKey
   const [pick, setPick] = useState<{ key: string | null; turn: string | null } | null>(null)
-  const focusKey = pick && pick.turn === turnId ? pick.key : activeKey
-  const focus = useCallback((key: string | null) => setPick({ key, turn: turnId }), [turnId])
+  const focusKey = pick && pick.turn === actingKey ? pick.key : actingKey
+  const focus = useCallback((key: string | null) => setPick({ key, turn: actingKey }), [actingKey])
 
   const resolveKey = useCallback((key: string | null): Resolved | null => {
     if (!key) return null
@@ -780,14 +786,14 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
       .slice(0, PENDING_DAMAGE)
   }, [encounter, events, settledDamage])
 
-  // ── Atalhos: N passa a vez, Esc desfaz o que está no ar ───────────────────
+  // ── Atalhos: N faz o que o botão dourado diz, Esc desfaz o que está no ar ──
 
   const advanceRef = useRef<() => void>(() => {})
   const escapeRef = useRef<() => void>(() => {})
   useEffect(() => {
     advanceRef.current = () => {
-      if (encounter) void enc.advance()
-      else crawl.nextRound()
+      if (!encounter) nextExplorationRound()
+      else if (enc.next && !enc.next.idle && !enc.busy) void enc.next.run()
     }
     escapeRef.current = () => {
       if (targeting) setTargeting(null)
@@ -846,8 +852,13 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
   const foes = enc.order.filter(a => a.source === 'npc')
   const attacker = targeting?.kind === 'attack' ? enc.actors.find(a => a.id === targeting.attackerId) : undefined
 
-  const figState = (key: string, active: boolean) => ({
-    active,
+  // Quem já agiu nesta rodada. No combate a rodada é a que a tela mostra, que
+  // pode ser a seguinte à do banco (ver `combatTurn`).
+  const acted: ReadonlySet<string> = enc.turn?.stage === 'turns' ? enc.turn.acted : new Set(enc.turns.acted)
+
+  const figState = (key: string) => ({
+    active: actingKey === key,
+    done: acted.has(key),
     focused: focusKey === key,
     targetable: isTargetable(key),
     picked: targeting?.kind === 'area' && targeting.picked.includes(key),
@@ -864,15 +875,18 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
       : null
 
   const standingFoes = foes.filter(a => !a.defeated).length
+  const combatRound = enc.turn?.stage === 'turns' ? enc.turn.round : encounter?.round ?? 1
+  // Na exploração, quem pode ter vez: o grupo sentado, menos o morto e o inconsciente.
+  const exploring = seats.filter(s => !outOfFight(s.character.conditions))
   const tablePlate = encounter
     ? {
         mode: 'combat' as const,
         title: encounter.name,
-        detail: `Combate · rodada ${encounter.round}`,
+        detail: enc.turn?.stage === 'turns' ? `Combate · rodada ${combatRound}` : 'Combate · iniciativa',
         stats: [
           { label: 'Inimigos', value: standingFoes },
           { label: 'De pé', value: seats.filter(s => s.character.hpCurrent > 0).length },
-          { label: 'Rodada', value: encounter.round },
+          { label: 'Rodada', value: combatRound },
         ],
       }
     : {
@@ -900,14 +914,16 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
         onSnuffAll={() => void snuffEveryLight()}
       />
 
-      {encounter ? (
+      {encounter && enc.turn ? (
         <CombatRibbon
           encounter={encounter}
           order={enc.order}
-          seatOf={enc.seatOf}
+          turn={enc.turn}
+          actingName={enc.turns.actingName}
+          next={enc.next}
+          notice={enc.notice}
           focusKey={focusKey}
           onSelect={key => onCardClick(key)}
-          onAdvance={() => void enc.advance()}
           busy={enc.busy}
         />
       ) : (
@@ -915,7 +931,11 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
           round={crawl.round}
           danger={crawl.danger}
           roundsToCheck={crawl.roundsToCheck}
-          onNextRound={crawl.nextRound}
+          actingName={enc.turns.actingName}
+          acted={exploring.filter(s => acted.has(pcKey(s.character.id))).length}
+          standing={exploring.length}
+          onNextRound={nextExplorationRound}
+          onEndActing={() => { if (actingKey) void enc.finish(actingKey) }}
           onSetDanger={crawl.setDanger}
           onReset={crawl.reset}
         />
@@ -988,17 +1008,14 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
               <p className="dd-void">Ninguém entrou ainda. Passe o código da sessão para a mesa.</p>
             )}
             {seats.map(seat => {
-              const actor = enc.actors.find(a => a.source === 'pc' && a.refId === seat.character.id)
               const key = pcKey(seat.character.id)
               return (
                 <PartyFigure
                   key={seat.character.id}
                   seat={seat}
-                  actor={actor}
-                  inEncounter={Boolean(encounter)}
                   present={presentCharacterIds.has(seat.character.id)}
                   clock={clock}
-                  state={figState(key, Boolean(actor && actor.id === turnId))}
+                  state={figState(key)}
                   callout={calloutFor(key)}
                   onClick={() => onCardClick(key)}
                 />
@@ -1015,7 +1032,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
                   <FoeFigure
                     key={actor.id}
                     actor={actor}
-                    state={figState(npcKey(actor.id), actor.id === turnId)}
+                    state={figState(npcKey(actor.id))}
                     callout={calloutFor(npcKey(actor.id))}
                     onClick={() => onCardClick(npcKey(actor.id))}
                   />

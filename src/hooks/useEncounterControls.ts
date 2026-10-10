@@ -5,18 +5,32 @@ import { createClient } from '@/lib/supabase'
 import { useEncounter } from '@/hooks/useEncounter'
 import type { ActiveCondition, Character } from '@/types/character.types'
 import type { EncounterActor } from '@/types/encounter.types'
-import { nextTurn, turnOrder } from '@/types/encounter.types'
 import type { NPC } from '@/types/npc.types'
 import { recordEvent, rollPayload } from '@/lib/sessionEvents'
-import { modifier, rollDie, withDc, type RollResult } from '@/lib/dice'
+import { rollDie, withDc, type RollResult } from '@/lib/dice'
 import {
   FLEEING_ID,
   MORALE_DC,
   isFleeing,
   npcActorFields,
+  rollSideInitiative,
   uniqueActorName,
 } from '@/lib/encounterSetup'
-import { mortalState } from '@/lib/dying'
+import { outOfFight } from '@/lib/dying'
+import {
+  actorKey,
+  combatStatus,
+  combatTurn,
+  explorationStatus,
+  nextUp,
+  npcKey,
+  pcKey,
+  sideDone,
+  trackOrder,
+  type Side,
+  type TurnStatus,
+} from '@/lib/turns'
+import { claimTurn, endTurn, resetTurns, setPartyInitiative, type TurnOutcome } from '@/lib/turnActions'
 import type { GmAction, Seat } from '@/lib/gmActions'
 
 /** Quantos de cada ficha entram na trilha. */
@@ -25,27 +39,53 @@ export interface NpcPick {
   count: number
 }
 
+/**
+ * O que o "▸" faz agora. O botão da faixa, o do menu e a tecla N dizem e
+ * fazem a mesma coisa, então a escolha mora num lugar só.
+ */
+export interface NextStep {
+  icon: string
+  label: string
+  hint: string
+  /** Nada para o Mestre fazer: a vez está com o grupo, que assume na ficha. */
+  idle: boolean
+  run: () => Promise<void>
+}
+
+/** Uma linha recém-posta na trilha, do jeito que o insert a devolve. */
+interface SeatedRow {
+  id: string
+  source: Side
+  ref_id: string | null
+}
+
 interface Options {
   sessionId: string
   gmName: string
   seats: Seat[]
   /** Dano e XP num PC vão para a ficha pelo caminho de sempre do painel. */
   act: (character: Character, action: GmAction) => Promise<void>
-  /** As fichas do Mestre: iniciativa, moral e habilidades saem daqui. */
+  /** As fichas do Mestre: moral e habilidades saem daqui. */
   bestiary: NPC[]
 }
 
 /**
- * O encontro ao vivo, como ações — sem tela nenhuma.
+ * O encontro ao vivo, e a vez da mesa, como ações — sem tela nenhuma.
  *
  * Morava dentro do painel de encontro, misturado aos botões. A tela de mesa
  * agora espalha as mesmas ações pela fila de turnos, pelos cards e pelo menu
  * de comandos, então a regra precisa estar num lugar só. O PC não duplica
  * vida: a linha dele aponta para a ficha e o HP é lido e escrito lá.
+ *
+ * A vez vale também fora do combate (ver `lib/turns`): assumir, encerrar e
+ * pular servem à exploração do mesmo jeito.
  */
 export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }: Options) {
-  const { encounter, actors, reload } = useEncounter(sessionId)
+  const { encounter, actors, turns, reload } = useEncounter(sessionId)
   const [busy, setBusy] = useState(false)
+  /** A última jogada de vez que o banco recusou, dita à mesa na faixa. */
+  const [notice, setNotice] = useState<string | null>(null)
+  const turn = encounter ? combatTurn(encounter, actors, turns) : null
 
   const seatOf = useCallback(
     (actor: EncounterActor) =>
@@ -65,7 +105,7 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     [sessionId, gmName],
   )
 
-  /** Uma leva de monstros vira linhas de ator: nome único, vida própria, iniciativa rolada. */
+  /** Uma leva de monstros vira linhas de ator: nome único, vida própria. */
   function npcRows(encounterId: string, picks: NpcPick[], taken: string[], firstSort: number) {
     const rows: Record<string, unknown>[] = []
     let sort = firstSort
@@ -79,7 +119,6 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
           ref_id: npc.id,
           name: label,
           ...npcActorFields(npc),
-          initiative: rollDie('d20', 'Iniciativa', npc.name, npc.stats.dex).total,
           sort_key: sort++,
         })
       }
@@ -89,21 +128,30 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
 
   const nextSort = () => actors.reduce((max, a) => Math.max(max, a.sortKey), 0) + 1
 
+  /** O d6 vai ao log da mesa à vista: quem começa não é segredo. */
+  const logRoll = useCallback(
+    (roll: RollResult) =>
+      void recordEvent({ sessionId, actorName: gmName, kind: 'roll', payload: rollPayload(roll) }),
+    [sessionId, gmName],
+  )
+
   // ── Montar ────────────────────────────────────────────────────────────────
 
   /**
-   * Abrir um encontro já senta a mesa inteira e põe na trilha os monstros
-   * escolhidos — é o que o Mestre faria à mão com o grupo esperando.
+   * Abrir um encontro já senta a mesa inteira, põe na trilha os monstros
+   * escolhidos e rola o d6 do Mestre — é o que ele faria à mão com o grupo
+   * esperando. O d6 do grupo fica para os jogadores, na ficha.
    */
   async function start(title: string, picks: NpcPick[] = []) {
     if (encounter) return
     const name = title.trim() || 'Encontro'
     setBusy(true)
     const supabase = createClient()
+    const foes = rollSideInitiative('npc')
 
     const { data } = await supabase
       .from('encounters')
-      .insert({ session_id: sessionId, name })
+      .insert({ session_id: sessionId, name, npc_initiative: foes.total })
       .select('*')
       .single()
 
@@ -121,9 +169,22 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
       const rows = [...pcRows, ...npcRows(encounterId, picks, taken, seats.length)]
       if (rows.length > 0) await supabase.from('encounter_actors').insert(rows)
       log({ action: 'start', encounterName: name })
+      logRoll(foes)
       reload()
     }
     setBusy(false)
+  }
+
+  /**
+   * Quem chega com a vez do lado dele já passada nesta rodada espera a
+   * seguinte: o reforço que entra na vez do grupo não reabre a dos goblins.
+   */
+  async function waitForNextRound(rows: SeatedRow[]) {
+    if (!turn) return
+    for (const row of rows) {
+      if (!sideDone(turn, row.source)) continue
+      await endTurn(sessionId, row.source === 'pc' && row.ref_id ? pcKey(row.ref_id) : npcKey(row.id))
+    }
   }
 
   async function addNpcs(picks: NpcPick[]) {
@@ -131,7 +192,10 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     setBusy(true)
     const rows = npcRows(encounter.id, picks, actors.map(a => a.name), nextSort())
     const supabase = createClient()
-    if (rows.length > 0) await supabase.from('encounter_actors').insert(rows)
+    if (rows.length > 0) {
+      const { data } = await supabase.from('encounter_actors').insert(rows).select('id, source, ref_id')
+      await waitForNextRound((data ?? []) as SeatedRow[])
+    }
     reload()
     setBusy(false)
   }
@@ -141,13 +205,17 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     if (!encounter) return
     setBusy(true)
     const supabase = createClient()
-    await supabase.from('encounter_actors').insert({
-      encounter_id: encounter.id,
-      source: 'pc',
-      ref_id: seat.character.id,
-      name: seat.character.name,
-      sort_key: nextSort(),
-    })
+    const { data } = await supabase
+      .from('encounter_actors')
+      .insert({
+        encounter_id: encounter.id,
+        source: 'pc',
+        ref_id: seat.character.id,
+        name: seat.character.name,
+        sort_key: nextSort(),
+      })
+      .select('id, source, ref_id')
+    await waitForNextRound((data ?? []) as SeatedRow[])
     reload()
     setBusy(false)
   }
@@ -164,51 +232,130 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     reload()
   }
 
-  // ── A trilha anda ─────────────────────────────────────────────────────────
+  // ── A iniciativa ──────────────────────────────────────────────────────────
 
-  async function advance() {
-    if (!encounter) return
-    // Quem está morrendo ainda tem vez — é nela que rola contra a morte. Quem
-    // morreu, não: sai da trilha como o goblin que caiu.
-    const living = actors.map(actor => {
-      const seat = seatOf(actor)
-      return seat && mortalState(seat.character.conditions) === 'dead' ? { ...actor, defeated: true } : actor
-    })
-    const { actorId, wrapped } = nextTurn(living, encounter.activeActorId)
-    if (!actorId) return
+  /** O Mestre rola o d6 pelo grupo: a mesa sem celular, o jogador que demora. */
+  async function rollPartyInitiative() {
+    if (!encounter || encounter.pcInitiative != null) return
+    setBusy(true)
+    const roll = rollSideInitiative('pc')
+    const out = await setPartyInitiative(encounter.id, roll.total)
+    if (out.ok) {
+      setNotice(null)
+      logRoll(roll)
+      if (out.foes != null) log({ action: 'initiative', party: roll.total, foes: out.foes })
+    } else {
+      setNotice(out.reason)
+    }
+    reload()
+    setBusy(false)
+  }
 
-    const round = wrapped ? encounter.round + 1 : encounter.round
+  /** O d6 do Mestre, para o encontro que abriu sem ele (aberto antes da migração 022). */
+  async function rollFoesInitiative() {
+    if (!encounter || encounter.npcInitiative != null) return
+    setBusy(true)
+    const roll = rollSideInitiative('npc')
     const supabase = createClient()
-    await supabase
+    const { data } = await supabase
       .from('encounters')
-      .update({ active_actor_id: actorId, round })
+      .update({ npc_initiative: roll.total })
       .eq('id', encounter.id)
+      .is('npc_initiative', null)
+      .select('pc_initiative')
+    const party = (data as { pc_initiative: number | null }[] | null)?.[0]?.pc_initiative
+    if (data && data.length > 0) {
+      logRoll(roll)
+      if (party != null) log({ action: 'initiative', party, foes: roll.total })
+    }
+    reload()
+    setBusy(false)
+  }
 
-    if (wrapped) log({ action: 'round', round })
-    const who = actors.find(a => a.id === actorId)
-    log({ action: 'turn', actorName: who?.name, round })
+  // ── A vez ─────────────────────────────────────────────────────────────────
+
+  const nameOf = (key: string) =>
+    actors.find(a => actorKey(a) === key)?.name
+    ?? seats.find(s => pcKey(s.character.id) === key)?.character.name
+
+  /** Em que pé alguém está na vez: no combate pela trilha, na exploração pela mesa. */
+  function statusOf(key: string): TurnStatus {
+    if (turn) return combatStatus(turn, actors.find(a => actorKey(a) === key))
+    const seat = seats.find(s => pcKey(s.character.id) === key)
+    return explorationStatus(turns, key, !seat || outOfFight(seat.character.conditions))
+  }
+
+  /** O que a jogada conta ao log. Só o combate narra a vez: na exploração ela é ritmo, não notícia. */
+  function settle(out: TurnOutcome, claimedKey?: string) {
+    if (!out.ok) {
+      setNotice(out.reason)
+      return
+    }
+    setNotice(null)
+    if (!encounter) return
+    if (out.wrapped && out.round != null) log({ action: 'round', round: out.round })
+    if (claimedKey) log({ action: 'turn', actorName: nameOf(claimedKey), round: out.round ?? undefined })
+  }
+
+  /** Assume a vez por alguém: o monstro, ou o jogador que está sem a ficha aberta. */
+  async function claim(key: string) {
+    setBusy(true)
+    settle(await claimTurn(sessionId, key), key)
+    reload()
+    setBusy(false)
+  }
+
+  /** Encerra a vez de quem está agindo — ou, para quem não está, pula a vez dele nesta rodada. */
+  async function finish(key: string) {
+    setBusy(true)
+    settle(await endTurn(sessionId, key))
+    reload()
+    setBusy(false)
+  }
+
+  /** Uma rodada nova de exploração: a vez fica livre e todos voltam a ter a sua. */
+  async function newExplorationRound() {
+    await resetTurns(sessionId)
     reload()
   }
 
-  /**
-   * Rola a iniciativa por alguém — o jogador que está sem o celular, o monstro
-   * que entrou à mão. A do PC vai para o log da mesa como qualquer rolagem dele.
-   */
-  async function rollInitiativeFor(actor: EncounterActor): Promise<RollResult> {
-    const seat = seatOf(actor)
-    const mod = seat ? modifier(seat.character.stats.dex) : sheetOf(actor)?.stats.dex ?? 0
-    const roll = rollDie('d20', 'Iniciativa', actor.name, mod)
-    await patchActor(actor, { initiative: roll.total })
-    if (seat) {
-      void recordEvent({
-        sessionId,
-        actorName: gmName,
-        characterId: seat.character.id,
-        kind: 'roll',
-        payload: rollPayload(roll, seat.character.name),
-      })
+  function nextStep(): NextStep | null {
+    if (!encounter || !turn) return null
+    if (turn.stage === 'initiative') {
+      if (encounter.npcInitiative == null) {
+        return { icon: '🎲', label: 'd6 do Mestre', hint: 'Rolar o d6 dos inimigos', idle: false, run: rollFoesInitiative }
+      }
+      return {
+        icon: '🎲',
+        label: 'Rolar pelo grupo',
+        hint: 'O d6 do grupo. Qualquer jogador também rola, na ficha.',
+        idle: false,
+        run: rollPartyInitiative,
+      }
     }
-    return roll
+    const acting = turns.actingKey
+    if (acting) {
+      return {
+        icon: '■',
+        label: 'Encerrar a vez',
+        hint: `Encerrar a vez de ${turns.actingName ?? nameOf(acting) ?? 'quem age'}`,
+        idle: false,
+        run: () => finish(acting),
+      }
+    }
+    if (turn.side === 'npc') {
+      const foe = nextUp(turn, actors, 'npc')
+      if (foe) {
+        return { icon: '▸', label: 'Próximo inimigo', hint: `${foe.name} age`, idle: false, run: () => claim(actorKey(foe)) }
+      }
+    }
+    return {
+      icon: '⏳',
+      label: turn.side === 'pc' ? 'Vez do grupo' : 'Ninguém de pé',
+      hint: 'Os jogadores assumem a vez na ficha. Para agir por alguém, clique no card dele.',
+      idle: true,
+      run: async () => {},
+    }
   }
 
   // ── Vida ──────────────────────────────────────────────────────────────────
@@ -298,7 +445,10 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
   return {
     encounter,
     actors,
-    order: turnOrder(actors),
+    order: encounter ? trackOrder(encounter, actors) : [],
+    turns,
+    turn,
+    notice,
     busy,
     seatOf,
     sheetOf,
@@ -308,8 +458,12 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     seatPc,
     patchActor,
     removeActor,
-    advance,
-    rollInitiativeFor,
+    rollPartyInitiative,
+    statusOf,
+    claim,
+    finish,
+    newExplorationRound,
+    next: nextStep(),
     damageActor,
     healActor,
     toggleActorCondition,

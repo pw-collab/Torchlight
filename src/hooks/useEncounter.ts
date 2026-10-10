@@ -9,21 +9,29 @@ import type {
   EncounterRow,
 } from '@/types/encounter.types'
 import { rowToActor, rowToEncounter } from '@/types/encounter.types'
+import { NO_TURNS, rowToLedger, type TurnLedger, type TurnLedgerRow } from '@/lib/turns'
 
 interface EncounterState {
   sessionId: string | null
   encounter: Encounter | null
   actors: EncounterActor[]
+  turns: TurnLedger
 }
 
-const EMPTY: EncounterState = { sessionId: null, encounter: null, actors: [] }
+const EMPTY: EncounterState = { sessionId: null, encounter: null, actors: [], turns: NO_TURNS }
 
 /**
- * O encontro em andamento da mesa, se houver um — o mesmo para os dois lados.
+ * O encontro em andamento da mesa, se houver um, e a vez — o mesmo para os
+ * dois lados.
  *
- * O Mestre monta e move a trilha; a ficha do jogador lê a mesma coisa para
- * saber de quem é a vez. A RLS de 017 deixa a mesa ler e só o Mestre escrever,
+ * O Mestre monta a trilha; a ficha do jogador lê a mesma coisa para saber de
+ * quem é a vez. A RLS de 017 e 022 deixa a mesa ler e só o Mestre escrever,
  * então este hook não precisa saber quem está chamando: ele só lê.
+ *
+ * A vez (`session_turns`) vem junto mesmo sem encontro — a exploração também
+ * anda em turnos — e é carregada na mesma leitura que o encontro: fechar uma
+ * rodada mexe nas duas tabelas de uma vez, e lidas separadas elas
+ * desconcordariam por um quadro.
  */
 export function useEncounter(sessionId: string | null) {
   const [state, setState] = useState<EncounterState>(EMPTY)
@@ -37,18 +45,22 @@ export function useEncounter(sessionId: string | null) {
     const supabase = createClient()
 
     async function load(id: string) {
-      const { data: encounterRows } = await supabase
-        .from('encounters')
-        .select('*')
-        .eq('session_id', id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
+      const [{ data: encounterRows }, { data: turnRows }] = await Promise.all([
+        supabase
+          .from('encounters')
+          .select('*')
+          .eq('session_id', id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1),
+        supabase.from('session_turns').select('*').eq('session_id', id).limit(1),
+      ])
 
       if (cancelled) return
+      const turns = rowToLedger((turnRows as TurnLedgerRow[] | null)?.[0])
       const row = (encounterRows as EncounterRow[] | null)?.[0]
       if (!row) {
-        setState({ sessionId: id, encounter: null, actors: [] })
+        setState({ sessionId: id, encounter: null, actors: [], turns })
         return
       }
 
@@ -62,6 +74,7 @@ export function useEncounter(sessionId: string | null) {
         sessionId: id,
         encounter: rowToEncounter(row),
         actors: ((actorRows ?? []) as EncounterActorRow[]).map(rowToActor),
+        turns,
       })
     }
 
@@ -69,8 +82,8 @@ export function useEncounter(sessionId: string | null) {
     return () => { cancelled = true }
   }, [sessionId, reloadToken])
 
-  // A trilha muda o tempo todo e de vários lados: o Mestre avança a vez, um
-  // jogador rola iniciativa, um goblin cai. Recarregar é mais honesto do que
+  // A trilha muda o tempo todo e de vários lados: um jogador assume a vez, o
+  // Mestre a encerra, um goblin cai. Recarregar é mais honesto do que
   // remendar o estado linha a linha — são poucas linhas, e elas precisam
   // concordar entre as duas telas.
   //
@@ -80,18 +93,20 @@ export function useEncounter(sessionId: string | null) {
   useEffect(() => {
     if (!sessionId) return
     const supabase = createClient()
+    const reload = () => setReloadToken(token => token + 1)
 
     const channel = supabase
       .channel(`encounter:${sessionId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'encounters', filter: `session_id=eq.${sessionId}` },
-        () => setReloadToken(token => token + 1),
+        reload,
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'encounter_actors' }, reload)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'encounter_actors' },
-        () => setReloadToken(token => token + 1),
+        { event: '*', schema: 'public', table: 'session_turns', filter: `session_id=eq.${sessionId}` },
+        reload,
       )
       .subscribe()
 
@@ -102,6 +117,7 @@ export function useEncounter(sessionId: string | null) {
   return {
     encounter: settled ? state.encounter : null,
     actors: settled ? state.actors : [],
+    turns: settled ? state.turns : NO_TURNS,
     loading: !settled,
     reload: () => setReloadToken(token => token + 1),
   }
