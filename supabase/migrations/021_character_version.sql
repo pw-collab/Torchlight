@@ -28,7 +28,7 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS characters_bump_version ON characters;
-CREATE TRIGGER characters_bump_version
+-- CREATE OR REPLACE (Postgres 14+) keeps this file re-runnable without a DROP.
+CREATE OR REPLACE TRIGGER characters_bump_version
   BEFORE UPDATE ON characters
   FOR EACH ROW EXECUTE FUNCTION public.bump_character_version();
