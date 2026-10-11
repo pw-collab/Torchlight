@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import type { IconSvgElement } from '@hugeicons/react'
+import { DiceIcon, HourglassIcon, PlayIcon, StopIcon } from '@hugeicons/core-free-icons'
 import { createClient } from '@/lib/supabase'
 import { useEncounter } from '@/hooks/useEncounter'
 import type { ActiveCondition, Character } from '@/types/character.types'
@@ -40,11 +42,11 @@ export interface NpcPick {
 }
 
 /**
- * O que o "▸" faz agora. O botão da faixa, o do menu e a tecla N dizem e
+ * O que o botão de avançar faz agora. O do quadro, o do menu e a tecla N dizem e
  * fazem a mesma coisa, então a escolha mora num lugar só.
  */
 export interface NextStep {
-  icon: string
+  icon: IconSvgElement
   label: string
   hint: string
   /** Nada para o Mestre fazer: a vez está com o grupo, que assume na ficha. */
@@ -323,10 +325,10 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     if (!encounter || !turn) return null
     if (turn.stage === 'initiative') {
       if (encounter.npcInitiative == null) {
-        return { icon: '🎲', label: 'd6 do Mestre', hint: 'Rolar o d6 dos inimigos', idle: false, run: rollFoesInitiative }
+        return { icon: DiceIcon, label: 'd6 do Mestre', hint: 'Rolar o d6 dos inimigos', idle: false, run: rollFoesInitiative }
       }
       return {
-        icon: '🎲',
+        icon: DiceIcon,
         label: 'Rolar pelo grupo',
         hint: 'O d6 do grupo. Qualquer jogador também rola, na ficha.',
         idle: false,
@@ -336,7 +338,7 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     const acting = turns.actingKey
     if (acting) {
       return {
-        icon: '■',
+        icon: StopIcon,
         label: 'Encerrar a vez',
         hint: `Encerrar a vez de ${turns.actingName ?? nameOf(acting) ?? 'quem age'}`,
         idle: false,
@@ -346,11 +348,11 @@ export function useEncounterControls({ sessionId, gmName, seats, act, bestiary }
     if (turn.side === 'npc') {
       const foe = nextUp(turn, actors, 'npc')
       if (foe) {
-        return { icon: '▸', label: 'Próximo inimigo', hint: `${foe.name} age`, idle: false, run: () => claim(actorKey(foe)) }
+        return { icon: PlayIcon, label: 'Próximo inimigo', hint: `${foe.name} age`, idle: false, run: () => claim(actorKey(foe)) }
       }
     }
     return {
-      icon: '⏳',
+      icon: HourglassIcon,
       label: turn.side === 'pc' ? 'Vez do grupo' : 'Ninguém de pé',
       hint: 'Os jogadores assumem a vez na ficha. Para agir por alguém, clique no card dele.',
       idle: true,

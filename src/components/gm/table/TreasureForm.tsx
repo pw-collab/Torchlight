@@ -5,7 +5,7 @@ import type { TreasureGrant } from '@/lib/gmActions'
 import { TREASURE_TIERS, isEmptyGrant, type TreasureTier } from '@/lib/treasure'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { CHIP, FIELD, LABEL, parseAmount } from './ui'
+import { CHIP, FIELD, LABEL, PRESSED, SUBMIT, parseAmount } from './ui'
 import { cn } from '@/lib/utils'
 
 /**
@@ -70,8 +70,8 @@ export function TreasureForm({
               className={cn(
                 CHIP,
                 recipients.includes(seat.id)
-                  ? 'border-[var(--chart-1)] text-[var(--foreground)]'
-                  : 'border-[var(--border)] text-[var(--muted-foreground)]',
+                  ? PRESSED
+                  : 'text-[var(--muted-foreground)]',
               )}
             >
               {recipients.includes(seat.id) ? '✓ ' : ''}{seat.name}
@@ -97,7 +97,7 @@ export function TreasureForm({
             ['PC', copper, setCopper, 'var(--muted-foreground)'],
           ] as const).map(([label, value, set, color]) => (
             <label key={label} className="flex flex-col gap-1">
-              <span className="font-heading text-[8px] tracking-[0.14em] uppercase" style={{ color }}>{label}</span>
+              <span className="font-heading text-[10px] tracking-[0.14em] uppercase" style={{ color }}>{label}</span>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -124,8 +124,8 @@ export function TreasureForm({
               className={cn(
                 CHIP,
                 tier === t.id
-                  ? 'border-[var(--chart-1)] text-[var(--foreground)]'
-                  : 'border-[var(--border)] text-[var(--muted-foreground)]',
+                  ? PRESSED
+                  : 'text-[var(--muted-foreground)]',
               )}
             >
               {t.label} · {t.xp} XP
@@ -154,11 +154,11 @@ export function TreasureForm({
             className="font-body border-border bg-secondary h-9 flex-1 text-[11px] italic"
           />
           <label className="flex items-center gap-1" title="Espaços de carga">
-            <span className="font-heading text-[8px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Esp.</span>
+            <span className="font-heading text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Esp.</span>
             <Input value={slots} onChange={e => setSlots(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} disabled={!single} inputMode="numeric" className={cn(FIELD, 'w-11')} />
           </label>
           <label className="flex items-center gap-1" title="Quantidade">
-            <span className="font-heading text-[8px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Qtd.</span>
+            <span className="font-heading text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Qtd.</span>
             <Input value={qty} onChange={e => setQty(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))} disabled={!single} inputMode="numeric" className={cn(FIELD, 'w-12')} />
           </label>
         </div>
@@ -166,12 +166,11 @@ export function TreasureForm({
 
       <Button
         type="button"
-        variant="outline"
         onClick={() => onGive(recipients, grant)}
         disabled={busy || !ready}
-        className="font-heading h-11 min-h-11 rounded-[1px] border-[var(--chart-1)] text-[10px] font-bold tracking-[0.14em] text-[var(--foreground)] uppercase disabled:opacity-30"
+        className={SUBMIT}
       >
-        💰 Entregar o tesouro
+        Entregar o tesouro
       </Button>
     </div>
   )

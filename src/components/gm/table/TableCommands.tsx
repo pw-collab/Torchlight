@@ -5,6 +5,10 @@ import { moraleDue } from '@/lib/encounterSetup'
 import { findRation } from '@/lib/rest'
 import { PromptComposer } from '@/components/gm/PromptComposer'
 import { Button } from '@/components/ui/button'
+import {
+  Award01Icon, BombIcon, Book02Icon, BubbleChatIcon, DicesIcon, Flag02Icon, Flag03Icon, HelpCircleIcon,
+  MoneyBag02Icon, Scroll01Icon, Sword01Icon, TentIcon, UserAdd01Icon, UserMultipleIcon,
+} from '@hugeicons/core-free-icons'
 import { Input } from '@/components/ui/input'
 import { AmountPad } from './AmountPad'
 import { MonsterPicker } from './MonsterPicker'
@@ -110,7 +114,7 @@ export function TableCommands({
       <SubView title="XP para a mesa inteira" onBack={back}>
         <AmountPad
           presets={[1, 2, 3, 5, 10]}
-          actions={[{ label: '△ Dar a todos', tone: 'primary', onApply: n => { void ctl.grantXpToAll(n); back() } }]}
+          actions={[{ label: 'Dar a todos', tone: 'primary', onApply: n => { void ctl.grantXpToAll(n); back() } }]}
         />
       </SubView>
     )
@@ -124,7 +128,7 @@ export function TableCommands({
         </p>
         <AmountPad
           actions={[{
-            label: '🎯 Escolher alvos',
+            label: 'Escolher alvos',
             tone: 'danger',
             onApply: n => { ctl.beginTargeting({ kind: 'area', amount: n, picked: [] }); back() },
           }]}
@@ -162,16 +166,15 @@ export function TableCommands({
             title="Num lugar perigoso, o sono também atrai visitas"
             className={cn(CHIP, 'h-10')}
           >
-            🎲 Checar encontro antes
+            Checar encontro antes
           </Button>
           <Button
             type="button"
-            variant="outline"
             onClick={() => { void ctl.partyRest(); back() }}
             disabled={seats.length === 0}
-            className="font-heading h-10 min-h-10 flex-1 rounded-[1px] border-[var(--chart-2)] text-[10px] font-bold tracking-[0.14em] text-[var(--chart-2)] uppercase disabled:opacity-30"
+            className="h-10 flex-1 text-[11px] tracking-[0.12em] disabled:opacity-40"
           >
-            ⛺ Acampar ({eating} de {seats.length} comem)
+            Acampar ({eating} de {seats.length} comem)
           </Button>
         </div>
       </SubView>
@@ -216,10 +219,10 @@ export function TableCommands({
 
   const common = (
     <>
-      <CommandTile icon="❔" label="Pedir rolagem" hint="Teste para um, alguns ou todos" onClick={() => setView('prompt')} disabled={seats.length === 0} />
-      <CommandTile icon="💬" label="Narrar" hint="Uma linha para todas as fichas" onClick={() => setView('narrate')} />
-      <CommandTile icon="📖" label="Entregar" hint="Carta, mapa, página de diário" onClick={ctl.openHandouts} disabled={seats.length === 0} />
-      <CommandTile icon="💥" label="Dano em área" hint="Armadilha, explosão: vários alvos" tone="danger" onClick={() => setView('area')} />
+      <CommandTile icon={HelpCircleIcon} label="Pedir rolagem" hint="Teste para um, alguns ou todos" onClick={() => setView('prompt')} disabled={seats.length === 0} />
+      <CommandTile icon={BubbleChatIcon} label="Narrar" hint="Uma linha para todas as fichas" onClick={() => setView('narrate')} />
+      <CommandTile icon={Scroll01Icon} label="Entregar" hint="Carta, mapa, página de diário" onClick={ctl.openHandouts} disabled={seats.length === 0} />
+      <CommandTile icon={BombIcon} label="Dano em área" hint="Armadilha, explosão: vários alvos" tone="danger" onClick={() => setView('area')} />
     </>
   )
 
@@ -237,45 +240,44 @@ export function TableCommands({
             icon={next.icon}
             label={next.label}
             hint={next.idle ? next.hint : `${next.hint} · atalho N`}
-            tone="gold"
+            tone="primary"
             onClick={() => void next.run()}
             disabled={enc.busy || next.idle}
           />
         )}
-        <CommandTile icon="👹" label="Reforços" hint="Mais monstros do bestiário" tone="danger" onClick={() => setView('add')} />
+        <CommandTile icon={UserMultipleIcon} label="Reforços" hint="Mais monstros do bestiário" tone="danger" onClick={() => setView('add')} />
         <CommandTile
-          icon="🏳"
+          icon={Flag02Icon}
           label="Moral"
           hint={due ? 'Metade caiu: a regra pede o teste' : 'SAB DC 15, quem falha foge'}
-          tone={due ? 'gold' : 'default'}
           highlight={due}
           onClick={() => void enc.rollMorale()}
           disabled={enc.busy || !enc.actors.some(a => a.source === 'npc' && !a.defeated)}
         />
         {common}
-        {missing && <CommandTile icon="🧍" label="Pôr na trilha" hint="Quem chegou depois" onClick={() => setView('seat')} />}
-        <CommandTile icon="🏁" label="Encerrar combate" hint="XP e, se quiser, o tesouro" onClick={() => setView('end')} />
+        {missing && <CommandTile icon={UserAdd01Icon} label="Pôr na trilha" hint="Quem chegou depois" onClick={() => setView('seat')} />}
+        <CommandTile icon={Flag03Icon} label="Encerrar combate" hint="XP e, se quiser, o tesouro" onClick={() => setView('end')} />
       </CommandGrid>
     )
   }
 
   const found = crawl.last?.check.encounter === true
   return (
-    <CommandGrid idle={found ? 'Algo se aproxima! Monte o encontro com ⚔ Iniciar combate.' : 'Exploração: N passa uma rodada, e a masmorra responde no ritmo do perigo.'}>
+    <CommandGrid idle={found ? 'Algo se aproxima! Monte o encontro em Iniciar combate.' : 'Exploração: N passa uma rodada, e a masmorra responde no ritmo do perigo. Clique numa figura para comandá-la.'}>
       <CommandTile
-        icon="⚔"
+        icon={Sword01Icon}
         label="Iniciar combate"
         hint={found ? 'Algo se aproximou: monte o encontro' : 'Escolha os monstros'}
         tone="danger"
         highlight={found}
         onClick={() => setView('start')}
       />
-      <CommandTile icon="🎲" label="Checar encontro" hint={`${crawl.dangerLevel.label}: d6, no 1 algo vem`} onClick={() => crawl.check()} />
+      <CommandTile icon={DicesIcon} label="Checar encontro" hint={`${crawl.dangerLevel.label}: d6, no 1 algo vem`} onClick={() => crawl.check()} />
       {common}
-      <CommandTile icon="💰" label="Tesouro" hint="Moedas, item e XP do achado" tone="gold" onClick={() => setView('treasure')} disabled={seats.length === 0} />
-      <CommandTile icon="⛺" label="Acampar" hint="Ração, PV cheio, magias de volta" tone="heal" onClick={() => setView('rest')} disabled={seats.length === 0} />
-      <CommandTile icon="△" label="XP para todos" hint="Uma cena que valeu" onClick={() => setView('xp')} disabled={seats.length === 0} />
-      <CommandTile icon="📜" label="Recap" hint="O que já aconteceu hoje" onClick={ctl.toggleRecap} />
+      <CommandTile icon={MoneyBag02Icon} label="Tesouro" hint="Moedas, item e XP do achado" onClick={() => setView('treasure')} disabled={seats.length === 0} />
+      <CommandTile icon={TentIcon} label="Acampar" hint="Ração, PV cheio, magias de volta" onClick={() => setView('rest')} disabled={seats.length === 0} />
+      <CommandTile icon={Award01Icon} label="XP para todos" hint="Uma cena que valeu" onClick={() => setView('xp')} disabled={seats.length === 0} />
+      <CommandTile icon={Book02Icon} label="Recap" hint="O que já aconteceu hoje" onClick={ctl.toggleRecap} />
     </CommandGrid>
   )
 }
@@ -306,19 +308,18 @@ function EndCombat({
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
-          variant="outline"
           onClick={() => void onEnd(value, true)}
           disabled={busy}
-          className="font-heading h-10 min-h-10 flex-1 rounded-[1px] border-[var(--chart-1)] text-[10px] font-bold tracking-[0.14em] uppercase"
+          className="h-10 flex-1 text-[11px] tracking-[0.12em]"
         >
-          🏁 Encerrar e abrir o baú
+          Encerrar e abrir o baú
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => void onEnd(value, false)}
           disabled={busy}
-          className="font-heading h-10 min-h-10 rounded-[1px] border-[var(--destructive)] px-4 text-[10px] font-bold tracking-[0.14em] text-[var(--destructive)] uppercase"
+          className="h-10 px-4 text-[11px] tracking-[0.12em]"
         >
           Só encerrar
         </Button>

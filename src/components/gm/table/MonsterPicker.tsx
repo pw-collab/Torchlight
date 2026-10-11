@@ -82,7 +82,7 @@ export function MonsterPicker({
                   <span className="font-heading truncate text-[11px] text-[var(--foreground)]">
                     {npc.favorite && <span className="text-[var(--chart-1)]">★ </span>}{npc.name}
                   </span>
-                  <span className="font-mono text-[9px] text-[var(--muted-foreground)]">
+                  <span className="font-mono text-[10px] text-[var(--muted-foreground)]">
                     PV {npc.hp ?? '?'} · CA {npc.ac ?? '?'}{npc.level != null ? ` · NV ${npc.level}` : ''}
                   </span>
                 </span>
@@ -108,12 +108,11 @@ export function MonsterPicker({
         </span>
         <Button
           type="button"
-          variant="outline"
           onClick={() => onConfirm(name, picks)}
           disabled={busy || (mode === 'add' && total === 0)}
-          className="font-heading ml-auto h-11 min-h-11 rounded-[1px] border-[var(--destructive)] px-4 text-[10px] font-bold tracking-[0.14em] text-[var(--foreground)] uppercase disabled:opacity-30"
+          className="ml-auto h-11 px-4 text-[11px] tracking-[0.12em] disabled:opacity-40"
         >
-          {mode === 'start' ? '⚔ Começar o combate' : '👹 Pôr na trilha'}
+          {mode === 'start' ? 'Começar o combate' : 'Pôr na trilha'}
         </Button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase'
 import type { PromptRequest } from './PromptComposer'
 import { HandoutDrawer, type Delivery } from './HandoutDrawer'
@@ -27,7 +28,7 @@ import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { useBestiary } from '@/hooks/useBestiary'
 import { useCrawl } from '@/hooks/useCrawl'
 import { useEncounterControls } from '@/hooks/useEncounterControls'
-import { TableHud } from './table/TableHud'
+import { Presence, TableTools } from './table/TableHud'
 import { CombatRibbon, ExplorationRibbon } from './table/TurnRibbon'
 import { npcKey, pcKey } from '@/lib/turns'
 import { FoeFigure, PartyFigure, type Callout } from './table/Figure'
@@ -35,8 +36,13 @@ import { Nameplate } from './table/Nameplate'
 import { TableCommands, type TableView } from './table/TableCommands'
 import { PcCommands } from './table/PcCommands'
 import { FoeCommands } from './table/FoeCommands'
-import { AttackOutcomeCard, TargetingBar, type AttackOutcome } from './table/Targeting'
+import { AttackOutcomeCard, CALLOUT_BUTTON, DismissButton, TargetingBar, type AttackOutcome } from './table/Targeting'
 import type { TableController, Targeting } from './table/controller'
+import { DiceRoller } from '@/components/sheet/DiceRoller'
+import { Button } from '@/components/ui/button'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowDown01Icon, ArrowLeft01Icon, ArrowUp01Icon, Undo02Icon } from '@hugeicons/core-free-icons'
+import { cn } from '@/lib/utils'
 
 interface Props {
   session: TableSession
@@ -46,6 +52,13 @@ interface Props {
   onSessionChange: (session: TableSession) => void
   /** As rolagens do Mestre: escondidas da mesa, com aviso na tela dele. */
   onRoll: (roll: RollResult) => void
+  /** O que a página põe no alto do diário: o recap da sessão anterior. */
+  aside?: ReactNode
+  /**
+   * Onde, na barra do topo, mostrar quem está na mesa: ao lado do código da
+   * sessão, que a página põe lá. A presença é lida aqui, com o elenco.
+   */
+  presenceSlot?: HTMLElement | null
 }
 
 interface MemberRow {
@@ -72,6 +85,15 @@ interface Undoable {
 }
 
 const UNDO_WINDOW_MS = 30_000
+
+type DeckPanel = 'commands' | 'plate' | 'log'
+
+/** As abas do deck em tela estreita, onde cabe uma coluna por vez. */
+const DECK_PANELS: { id: DeckPanel; label: string }[] = [
+  { id: 'commands', label: 'Comandos' },
+  { id: 'plate', label: 'Placa' },
+  { id: 'log', label: 'Diário' },
+]
 
 const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
   hp: 'vida',
@@ -104,16 +126,16 @@ function undoValue(character: Character, field: UndoField): number {
 /**
  * A mesa do Mestre, jogada como um RPG de turno — sem tabuleiro.
  *
- * Em cima, o relógio da masmorra e a fila de turnos (de combate, ou das
- * rodadas de exploração). No meio, o palco: os inimigos de um lado e o grupo
- * do outro, cada um num card. Ao lado, o menu de comandos de quem está em
- * foco — a vez de quem é, ou o card que o Mestre clicou — e, abaixo dele, o
- * registro da mesa.
+ * Em cima, a arena: a linha de rodada (de combate, ou das rodadas de
+ * exploração) com a luz e o relógio da mesa, e o palco, com o grupo de um
+ * lado e os inimigos do outro, cada um numa figura. Embaixo, o deck de quem
+ * está em foco — a vez de quem é, ou a figura que o Mestre clicou: a placa,
+ * os comandos e o diário. A linha de rodada e o deck nunca saem da tela.
  *
  * Toda ação do Mestre passa por aqui: escreve na ficha ou na trilha e vira
  * linha do log, que o jogador vê chegar na tela dele.
  */
-export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }: Props) {
+export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, aside, presenceSlot }: Props) {
   const sessionId = session.id
   // O elenco vem sempre acompanhado da mesa a que pertence, para o painel não
   // mostrar o elenco da sessão anterior por um quadro enquanto recarrega.
@@ -731,15 +753,24 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
     })
   }
 
-  const commandsRef = useRef<HTMLElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const isNarrow = () => window.matchMedia('(max-width: 1023px)').matches
+  /**
+   * Em tela estreita o deck é uma gaveta no pé da tela: uma coluna por vez
+   * (comandos, placa, diário), e dá para recolhê-la.
+   */
+  const [dockOpen, setDockOpen] = useState(true)
+  const [deckPanel, setDeckPanel] = useState<DeckPanel>('commands')
+  const openDeck = useCallback((panel: DeckPanel) => {
+    setDeckPanel(panel)
+    setDockOpen(true)
+  }, [])
 
   function onCardClick(key: string) {
     if (!targeting) {
       focus(key)
-      // No celular o menu mora abaixo do palco: tocar num card leva até ele.
-      if (isNarrow()) commandsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // O deck está sempre à vista; recolhido, tocar numa figura o abre nos comandos.
+      openDeck('commands')
       return
     }
     if (!isTargetable(key)) return
@@ -901,58 +932,61 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
       }
 
   // ── A tela ────────────────────────────────────────────────────────────────
+  //
+  // Como um RPG de turno (ver .gm-table): no alto, a arena — a linha de
+  // rodada com a luz e o relógio, e o palco com o grupo de um lado e os
+  // inimigos do outro; embaixo, o deck de quem está em foco: a placa, os
+  // comandos e o diário. Quem está na mesa vai para a barra do topo, ao lado
+  // do código da sessão. Em tela estreita a página rola, com a linha de
+  // rodada grudada no topo e o deck preso no pé.
+
+  const tools = (
+    <TableTools
+      seats={seats}
+      clock={clock}
+      busy={busyId !== null}
+      onPauseToggle={togglePause}
+      onAdvance={advanceClock}
+      onSnuffAll={() => void snuffEveryLight()}
+    />
+  )
 
   return (
-    <div className="dd flex flex-col gap-3">
-      <TableHud
-        seats={seats}
-        clock={clock}
-        present={presentCount}
-        busy={busyId !== null}
-        onPauseToggle={togglePause}
-        onAdvance={advanceClock}
-        onSnuffAll={() => void snuffEveryLight()}
-      />
+    <div className="gm-table">
+      {presenceSlot && createPortal(<Presence seats={seats} present={presentCharacterIds} />, presenceSlot)}
 
-      {encounter && enc.turn ? (
-        <CombatRibbon
-          encounter={encounter}
-          order={enc.order}
-          turn={enc.turn}
-          actingName={enc.turns.actingName}
-          next={enc.next}
-          notice={enc.notice}
-          focusKey={focusKey}
-          onSelect={key => onCardClick(key)}
-          busy={enc.busy}
-        />
-      ) : (
-        <ExplorationRibbon
-          round={crawl.round}
-          danger={crawl.danger}
-          roundsToCheck={crawl.roundsToCheck}
-          actingName={enc.turns.actingName}
-          acted={exploring.filter(s => acted.has(pcKey(s.character.id))).length}
-          standing={exploring.length}
-          onNextRound={nextExplorationRound}
-          onEndActing={() => { if (actingKey) void enc.finish(actingKey) }}
-          onSetDanger={crawl.setDanger}
-          onReset={crawl.reset}
-        />
-      )}
+      {/* ── A arena: a linha de rodada e o palco ─────────────────────── */}
+      <section aria-label="Iniciativa e palco" className="gm-arena">
+        {encounter && enc.turn ? (
+          <CombatRibbon
+            encounter={encounter}
+            order={enc.order}
+            turn={enc.turn}
+            actingName={enc.turns.actingName}
+            next={enc.next}
+            notice={enc.notice}
+            focusKey={focusKey}
+            onSelect={key => onCardClick(key)}
+            busy={enc.busy}
+            tools={tools}
+          />
+        ) : (
+          <ExplorationRibbon
+            round={crawl.round}
+            danger={crawl.danger}
+            roundsToCheck={crawl.roundsToCheck}
+            actingName={enc.turns.actingName}
+            acted={exploring.filter(s => acted.has(pcKey(s.character.id))).length}
+            standing={exploring.length}
+            onNextRound={nextExplorationRound}
+            onEndActing={() => { if (actingKey) void enc.finish(actingKey) }}
+            onSetDanger={crawl.setDanger}
+            onReset={crawl.reset}
+            tools={tools}
+          />
+        )}
 
-      {recapping && (
-        <SessionRecap
-          sessionId={sessionId}
-          sessionName={session.name}
-          events={events}
-          onClose={() => setRecapping(false)}
-        />
-      )}
-
-      {/* ── O palco: o grupo à esquerda, os inimigos à direita ────────── */}
-      <div ref={stageRef} className="dd-stage scroll-mt-20">
-        <div className="dd-overlay">
+        <div className="gm-callouts">
           {targeting && (
             <TargetingBar
               targeting={targeting}
@@ -976,117 +1010,200 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
             const p = event.payload as RollPayload
             const who = p.characterName ?? event.actorName
             return (
-              <div key={event.id} className="dd-scroll dd-scroll--blood animate-ink-spread">
-                <span className="dd-scroll__text" style={{ color: 'var(--dd-bone)' }}>
-                  🗡 {who} rolou <b className="font-heading text-[15px] not-italic">{p.total}</b> de dano
+              <div key={event.id} className="gm-callout gm-callout--danger animate-mist-rise">
+                <span className="gm-callout__body">
+                  <span className="gm-callout__title">{who} rolou {p.total} de dano</span>
+                  <span className="gm-callout__text">Escolha o alvo no palco.</span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => ctl.beginTargeting({ kind: 'damage', amount: p.total, label: `${who}: ${p.total} de dano`, eventId: event.id })}
-                  className="dd-btn dd-btn--sm dd-btn--blood"
-                >
-                  🎯 Em quem?
-                </button>
-                <button
-                  type="button"
-                  onClick={() => settleDamage(event.id)}
-                  title="Errou, ou já foi aplicado à mão"
-                  aria-label="Dispensar este dano"
-                  className="dd-btn dd-btn--sm"
-                >
-                  ✕
-                </button>
+                <span className="gm-callout__actions">
+                  <Button
+                    type="button"
+                    onClick={() => ctl.beginTargeting({ kind: 'damage', amount: p.total, label: `${who}: ${p.total} de dano`, eventId: event.id })}
+                    className={CALLOUT_BUTTON}
+                  >
+                    Em quem?
+                  </Button>
+                  <DismissButton onClick={() => settleDamage(event.id)} label="Dispensar este dano (errou, ou já foi aplicado à mão)" />
+                </span>
               </div>
             )
           })}
         </div>
 
-        <div className="dd-arena">
-          <div role="group" aria-label="O grupo" className="dd-side dd-side--party">
-            {loading && <p className="dd-void">Chamando o grupo…</p>}
-            {!loading && seats.length === 0 && (
-              <p className="dd-void">Ninguém entrou ainda. Passe o código da sessão para a mesa.</p>
-            )}
-            {seats.map(seat => {
-              const key = pcKey(seat.character.id)
-              return (
-                <PartyFigure
-                  key={seat.character.id}
-                  seat={seat}
-                  present={presentCharacterIds.has(seat.character.id)}
-                  clock={clock}
-                  state={figState(key)}
-                  callout={calloutFor(key)}
-                  onClick={() => onCardClick(key)}
-                />
-              )
-            })}
-          </div>
+        {/* O palco: o grupo à esquerda, os inimigos à direita, a linha de
+            frente de cada lado junto do centro. */}
+        <div ref={stageRef} className="gm-stage scroll-mt-48">
+          <div className="gm-sides">
+            <div role="group" aria-label="O grupo" className="gm-side gm-side--party">
+              <span className="gm-side__head">Grupo{seats.length > 0 && ` · ${seats.length}`}</span>
+              <div className="gm-side__figs">
+                {loading && <p className="gm-void">Chamando o grupo…</p>}
+                {!loading && seats.length === 0 && (
+                  <p className="gm-void">Ninguém entrou ainda. Passe o código da sessão para a mesa.</p>
+                )}
+                {seats.map(seat => {
+                  const key = pcKey(seat.character.id)
+                  return (
+                    <PartyFigure
+                      key={seat.character.id}
+                      seat={seat}
+                      present={presentCharacterIds.has(seat.character.id)}
+                      clock={clock}
+                      state={figState(key)}
+                      callout={calloutFor(key)}
+                      onClick={() => onCardClick(key)}
+                    />
+                  )
+                })}
+              </div>
+            </div>
 
-          <div role="group" aria-label="Inimigos" className="dd-side dd-side--foes">
-            {encounter ? (
-              foes.length === 0 ? (
-                <p className="dd-void">Nenhum inimigo na trilha. Chame 👹 Reforços.</p>
-              ) : (
-                foes.map(actor => (
-                  <FoeFigure
-                    key={actor.id}
-                    actor={actor}
-                    state={figState(npcKey(actor.id))}
-                    callout={calloutFor(npcKey(actor.id))}
-                    onClick={() => onCardClick(npcKey(actor.id))}
+            <div role="group" aria-label={encounter ? 'Inimigos' : 'Adiante'} className="gm-side gm-side--foes">
+              <span className="gm-side__head">
+                {encounter ? `Inimigos${foes.length > 0 ? ` · ${standingFoes}/${foes.length}` : ''}` : 'Adiante'}
+              </span>
+              <div className="gm-side__figs">
+                {encounter ? (
+                  foes.length === 0 ? (
+                    <p className="gm-void">Nenhum inimigo na trilha. Chame Reforços no bloco de ações.</p>
+                  ) : (
+                    foes.map(actor => (
+                      <FoeFigure
+                        key={actor.id}
+                        actor={actor}
+                        state={figState(npcKey(actor.id))}
+                        callout={calloutFor(npcKey(actor.id))}
+                        onClick={() => onCardClick(npcKey(actor.id))}
+                      />
+                    ))
+                  )
+                ) : crawl.last ? (
+                  <EncounterAlert
+                    last={crawl.last}
+                    onBuild={() => { focus(null); setTableView('start'); openDeck('commands') }}
+                    onDismiss={crawl.dismiss}
                   />
-                ))
-              )
-            ) : crawl.last ? (
-              <EncounterAlert
-                last={crawl.last}
-                onBuild={() => { focus(null); setTableView('start') }}
-                onDismiss={crawl.dismiss}
-              />
-            ) : (
-              <p className="dd-void">A escuridão adiante…</p>
-            )}
+                ) : (
+                  <p className="gm-void">A escuridão adiante…</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── O painel de baixo: a placa, os comandos, o registro ──────── */}
-      <div className="dd-frame dd-deck">
-        <Nameplate
-          pc={focused?.kind === 'pc' ? focused.seat : undefined}
-          foe={focused?.kind === 'npc' ? focused.actor : undefined}
-          sheet={focused?.kind === 'npc' ? enc.sheetOf(focused.actor) : undefined}
-          table={tablePlate}
-        />
+      {/* ── O deck: a placa, os comandos e o diário ──────────────────── */}
+      <section aria-label="Ações" className="gm-deck" data-panel={deckPanel} data-collapsed={!dockOpen}>
+        {/* Só em tela estreita: uma coluna por vez, e recolher devolve o palco. */}
+        <div className="gm-deck__tabs">
+          {DECK_PANELS.map(panel => (
+            <button
+              key={panel.id}
+              type="button"
+              aria-pressed={dockOpen && deckPanel === panel.id}
+              onClick={() => openDeck(panel.id)}
+              className={cn(
+                'font-heading min-h-11 flex-1 border-b-2 text-[10px] tracking-[0.12em] uppercase transition-colors',
+                dockOpen && deckPanel === panel.id
+                  ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
+                  : 'border-transparent text-[var(--muted-foreground)]',
+              )}
+            >
+              {panel.label}
+            </button>
+          ))}
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setDockOpen(open => !open)}
+            aria-expanded={dockOpen}
+            aria-label={dockOpen ? 'Recolher as ações' : 'Abrir as ações'}
+            className="h-11 w-11 shrink-0 px-0"
+          >
+            <HugeiconsIcon icon={dockOpen ? ArrowDown01Icon : ArrowUp01Icon} size={16} strokeWidth={2} />
+          </Button>
+        </div>
 
-        <section ref={commandsRef} aria-label="Comandos" className="flex scroll-mt-20 flex-col gap-3 p-4">
-          <div className="flex items-center gap-2">
-            <span className="dd-title text-[11px]">
+        <div className="gm-deck__plate">
+          <Nameplate
+            pc={focused?.kind === 'pc' ? focused.seat : undefined}
+            foe={focused?.kind === 'npc' ? focused.actor : undefined}
+            sheet={focused?.kind === 'npc' ? enc.sheetOf(focused.actor) : undefined}
+            table={tablePlate}
+          />
+        </div>
+
+        {/* O chão da placa, como o dock da ficha: o d20 do Mestre, que nasce escondido da mesa. */}
+        <div className="gm-deck__dice">
+          <DiceRoller onRoll={onRoll} docked />
+        </div>
+
+        <div className="gm-deck__commands">
+          <div className="gm-deck__head">
+            <span className="font-heading min-w-0 truncate text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
               {focused
-                ? focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'
+                ? `${focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'} · ${focused.name}`
                 : encounter ? 'A mesa · combate' : 'A mesa · exploração'}
             </span>
             {focused && (
-              <button type="button" onClick={() => focus(null)} className="dd-btn dd-btn--sm ml-auto">
-                ↩ Mesa
-              </button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => focus(null)} className="ml-auto h-8 gap-1 px-2 text-[10px] tracking-[0.12em]">
+                <HugeiconsIcon icon={ArrowLeft01Icon} size={14} strokeWidth={2} aria-hidden />
+                Mesa
+              </Button>
             )}
           </div>
+          <div className="gm-deck__body">
+            {/* O erro mais comum de qualquer VTT é o alvo errado ou o 17 no lugar do 7:
+                a volta fica aqui, onde o Mestre acabou de agir. */}
+            {undoable && (
+              <div className="gm-callout animate-mist-rise">
+                <span className="gm-callout__body">
+                  <span className="gm-callout__text">
+                    {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
+                  </span>
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void undo()}
+                  disabled={busyId !== null}
+                  className={cn(CALLOUT_BUTTON, 'gap-1.5')}
+                >
+                  <HugeiconsIcon icon={Undo02Icon} size={14} strokeWidth={2} aria-hidden />
+                  Desfazer
+                </Button>
+              </div>
+            )}
 
-          {focused?.kind === 'pc' ? (
-            <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
-          ) : focused?.kind === 'npc' ? (
-            <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
-          ) : (
-            <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
-          )}
-        </section>
-
-        <div className="dd-deck__log max-h-[480px] overflow-y-auto p-1">
-          <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+            {focused?.kind === 'pc' ? (
+              <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
+            ) : focused?.kind === 'npc' ? (
+              <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
+            ) : (
+              <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
+            )}
+          </div>
         </div>
-      </div>
+
+        <div className="gm-deck__log">
+          {(aside || recapping) && (
+            <div className="flex max-h-[60%] shrink-0 flex-col gap-3 overflow-y-auto border-b border-[var(--border)] p-2">
+              {aside}
+              {recapping && (
+                <SessionRecap
+                  sessionId={sessionId}
+                  sessionName={session.name}
+                  events={events}
+                  onClose={() => setRecapping(false)}
+                />
+              )}
+            </div>
+          )}
+          <div className="min-h-0 flex-1">
+            <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+          </div>
+        </div>
+      </section>
 
       {delivering && (
         <HandoutDrawer
@@ -1095,25 +1212,6 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll }:
           onDeliver={deliverHandout}
           onClose={() => setDelivering(false)}
         />
-      )}
-
-      {undoable && (
-        <div
-          className="dd-scroll animate-ink-spread fixed bottom-4 left-1/2 z-[140] -translate-x-1/2"
-          style={{ width: 'auto', maxWidth: 'calc(100vw - 32px)' }}
-        >
-          <span className="dd-scroll__text">
-            {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
-          </span>
-          <button
-            type="button"
-            onClick={() => void undo()}
-            disabled={busyId !== null}
-            className="dd-btn dd-btn--sm dd-btn--gold"
-          >
-            ↩ Desfazer
-          </button>
-        </div>
       )}
     </div>
   )
@@ -1130,31 +1228,31 @@ function EncounterAlert({
   const { check, round } = last
   if (!check.encounter) {
     return (
-      <p className="dd-void flex items-center gap-2">
-        🎲 d6 {check.die}: nada se aproxima{round ? ` na rodada ${round}` : ''}.
-        <button type="button" onClick={onDismiss} aria-label="Dispensar" className="dd-btn dd-btn--sm">
-          ✕
-        </button>
-      </p>
+      <div className="gm-callout w-full">
+        <span className="gm-callout__body">
+          <span className="gm-callout__text">
+            d6 {check.die}: nada se aproxima{round ? ` na rodada ${round}` : ''}.
+          </span>
+        </span>
+        <DismissButton onClick={onDismiss} label="Dispensar" />
+      </div>
     )
   }
   return (
-    <div role="status" className="dd-scroll dd-scroll--blood animate-ink-spread mx-auto self-center" style={{ maxWidth: 340 }}>
-      <span className="flex flex-col items-center gap-1 text-center">
-        <span className="dd-scroll__title" style={{ color: 'var(--dd-blood-hi)' }}>
+    <div role="status" className="gm-callout gm-callout--danger animate-mist-rise w-full">
+      <span className="gm-callout__body">
+        <span className="gm-callout__title text-[var(--destructive)]">
           Algo se aproxima!{round ? ` · rodada ${round}` : ''}
         </span>
-        <span className="dd-scroll__text">
+        <span className="gm-callout__text">
           {check.distance?.label} · {check.activity?.label} · {check.reaction?.label} (reação {check.reaction?.total})
         </span>
       </span>
-      <span className="flex items-center gap-1.5">
-        <button type="button" onClick={onBuild} className="dd-btn dd-btn--sm dd-btn--blood">
-          ⚔ Montar o encontro
-        </button>
-        <button type="button" onClick={onDismiss} aria-label="Dispensar" className="dd-btn dd-btn--sm">
-          ✕
-        </button>
+      <span className="gm-callout__actions">
+        <Button type="button" onClick={onBuild} className={CALLOUT_BUTTON}>
+          Montar o encontro
+        </Button>
+        <DismissButton onClick={onDismiss} label="Dispensar" />
       </span>
     </div>
   )

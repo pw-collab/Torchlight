@@ -1101,600 +1101,818 @@ html, body {
   }
 }
 /* ============================================================
-   A mesa do Mestre: masmorra à luz de tocha
+   Painel do Mestre — a mesa numa tela só
 
-   Direção de arte do painel de sessão, na gramática dos RPGs de turno
-   sombrios: palco lateral com o grupo à esquerda e os inimigos à
-   direita, a luz no centro, molduras de ferro e ouro gasto, vida em
-   sangue. Nada de arte de jogo nenhum — só CSS e duas fontes livres
-   (Cinzel e IM Fell English).
+   Como a ficha (.sheet-grid), a sessão aberta é uma tela que não
+   rola. A sessão, o código e quem está na mesa moram na barra do
+   topo, junto das abas. Embaixo dela, dois blocos, como num RPG de
+   turno:
 
-   `.dd` re-tinge os tokens da app aqui dentro: todo componente
-   reaproveitado (formulários, feed, chips) entra no clima sem saber.
+     a arena   a linha de rodada (a vez, os d6, as fichas na ordem,
+               a luz e o relógio) e, sob ela, o palco: o grupo de
+               um lado, os inimigos do outro
+     o deck    a placa de quem está em foco | os comandos | o diário,
+               de altura fixa, sempre na tela
+
+   Abaixo de 1024px a página volta a rolar: a linha de rodada gruda
+   no topo e o deck vira uma gaveta presa no pé, com uma aba para
+   cada coluna.
+
+   Tudo nos tokens da app: cantos retos, --card com a regra --border,
+   --input nos controles, vermelho para a vez e o dano, --torch para
+   a luz.
    ============================================================ */
 
-.dd {
-  --dd-ink: oklch(0.13 0.008 50);
-  --dd-soot: oklch(0.175 0.011 52);
-  --dd-iron: oklch(0.25 0.014 55);
-  --dd-iron-hi: oklch(0.37 0.022 62);
-  --dd-bone: oklch(0.9 0.03 85);
-  --dd-bone-dim: oklch(0.72 0.03 80);
-  --dd-gold: oklch(0.76 0.11 80);
-  --dd-gold-dim: oklch(0.52 0.08 75);
-  --dd-blood: oklch(0.42 0.16 27);
-  --dd-blood-hi: oklch(0.6 0.2 28);
-  --dd-ember: oklch(0.8 0.15 62);
-  --dd-heal: oklch(0.74 0.12 135);
-
-  --background: var(--dd-ink);
-  --card: var(--dd-soot);
-  --card-foreground: var(--dd-bone);
-  --popover: var(--dd-soot);
-  --popover-foreground: var(--dd-bone);
-  --foreground: var(--dd-bone);
-  --muted: var(--dd-iron);
-  --muted-foreground: var(--dd-bone-dim);
-  --border: var(--dd-iron-hi);
-  --input: var(--dd-iron);
-  --secondary: var(--dd-iron);
-  --secondary-foreground: var(--dd-bone);
-  --primary: var(--dd-gold-dim);
-  --primary-foreground: var(--dd-bone);
-  --destructive: var(--dd-blood-hi);
-  --ring: var(--dd-gold);
-  --chart-1: var(--dd-gold);
-  --chart-2: var(--dd-heal);
-
-  --font-heading: 'Cinzel', serif;
-  --font-body: 'IM Fell English', serif;
-  --font-mono: 'Cinzel', serif;
-  --font-numeral: 'Cinzel', serif;
-  --font-stat: 'Cinzel', serif;
-
-  color: var(--dd-bone);
+.gm-page {
+  max-width: 1760px;
+  margin-inline: auto;
+  padding: 0 32px 32px;
 }
-
-/* A moldura de ferro: borda de ouro gasto, um filete escuro e outro de ferro. */
-.dd-frame {
-  border: 1px solid var(--dd-gold-dim);
-  box-shadow:
-    inset 0 0 0 3px var(--dd-ink),
-    inset 0 0 0 4px var(--dd-iron-hi),
-    0 10px 40px rgba(0, 0, 0, 0.85);
-  background: linear-gradient(to bottom, oklch(0.19 0.012 55), oklch(0.12 0.008 50));
-}
-
-.dd-title {
+/* A sessão aberta: a mesa fica com toda a altura que o AppShell deixa. */
+.gm-page--screen {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--dd-bone);
+  flex-direction: column;
+  height: calc(100dvh - 80px - var(--safe-top));
+  min-height: 600px;
+  padding-top: 8px;
+  padding-bottom: 24px;
 }
-.dd-title::before,
-.dd-title::after {
-  content: '';
-  height: 1px;
-  width: 34px;
-  background: linear-gradient(90deg, transparent, var(--dd-gold-dim));
+@media (max-width: 640px) {
+  .gm-page { padding: 0 16px 24px; }
 }
-.dd-title::after { background: linear-gradient(90deg, var(--dd-gold-dim), transparent); }
 
-.dd-btn {
+.gm-table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── A arena: a linha de rodada e o palco ──────────────────────────────── */
+
+.gm-arena {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+/* A linha de rodada: o topo da arena. A borda da esquerda acende quando
+   alguém está agindo. */
+.gm-roundline {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px 20px;
+  min-height: 64px;
+  padding: 8px 12px 8px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--input-border);
+}
+.gm-roundline[data-live='true'] { border-left-color: var(--primary-text); }
+
+.gm-side-die {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  height: 44px;
-  padding: 0 18px;
-  font-family: 'Cinzel', serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 10px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--dd-bone);
-  cursor: pointer;
-  border: 1px solid var(--dd-gold-dim);
-  background: linear-gradient(to bottom, var(--dd-iron), var(--dd-ink));
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06), 0 2px 8px rgba(0, 0, 0, 0.6);
-  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border: 1px solid var(--input-border);
 }
-.dd-btn:hover:not(:disabled),
-.dd-btn:focus-visible {
-  border-color: var(--dd-gold);
-  color: oklch(0.98 0.02 85);
-  box-shadow: 0 0 14px oklch(0.78 0.14 75 / 0.35);
-  outline: none;
-}
-.dd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.dd-btn--gold { border-color: var(--dd-gold); color: var(--dd-gold); }
-.dd-btn--blood { border-color: var(--dd-blood-hi); color: var(--dd-blood-hi); }
-.dd-btn--sm { height: 32px; padding: 0 10px; font-size: 9.5px; letter-spacing: 0.12em; }
+.gm-side-die b { font-size: 16px; letter-spacing: 0; color: var(--foreground); }
+.gm-side-die.is-current { color: var(--foreground); border-color: var(--primary-text); }
 
-/* ── O topo: a chama do grupo e o relógio ─────────────────────────────── */
+/* O medidor de luz da ficha mora numa barra de 56px; aqui, numa linha. */
+.gm-roundline .gm-torch > button { min-height: 40px; }
 
-.dd-flame { display: flex; align-items: center; gap: 10px; }
-.dd-flame__glyph { font-size: 22px; line-height: 1; filter: drop-shadow(0 0 8px var(--dd-ember)); animation: ddFlicker 2.6s ease-in-out infinite; }
-.dd-flame.is-out .dd-flame__glyph { filter: grayscale(1) brightness(0.5); animation: none; }
-.dd-flame__bar { position: relative; width: clamp(120px, 18vw, 220px); height: 10px; overflow: hidden; background: var(--dd-ink); border: 1px solid var(--dd-iron-hi); box-shadow: 0 0 0 1px var(--dd-ink); }
-.dd-flame__bar > span { display: block; height: 100%; background: linear-gradient(90deg, oklch(0.5 0.16 38), var(--dd-ember), oklch(0.93 0.09 90)); box-shadow: 0 0 10px var(--dd-ember); transition: width 0.6s; }
-.dd-flame.is-low .dd-flame__bar > span { background: linear-gradient(90deg, var(--dd-blood), var(--dd-blood-hi)); box-shadow: 0 0 10px var(--dd-blood-hi); animation: ddFlicker 1s ease-in-out infinite; }
-
-/* ── A faixa de turnos ─────────────────────────────────────────────────── */
-
-.dd-token {
+/* As fichas na ordem. A de quem age cresce e brilha; as outras sobem um
+   pouco sob o cursor. */
+.gm-token {
   display: grid;
   place-items: center;
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  font-family: 'Cinzel', serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--dd-bone);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+  background: var(--input);
+  border: 1px solid var(--input-border);
   cursor: pointer;
-  border: 2px solid var(--dd-iron-hi);
-  background: radial-gradient(circle at 40% 35%, var(--dd-iron), var(--dd-ink));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-  transition: transform 0.2s, box-shadow 0.2s;
+  outline: none;
+  transition:
+    transform 200ms var(--ease-ritual),
+    width 200ms var(--ease-ritual),
+    height 200ms var(--ease-ritual),
+    border-color 150ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
 }
-.dd-token--foe { border-color: oklch(0.42 0.12 27); color: oklch(0.82 0.08 30); background: radial-gradient(circle at 40% 35%, oklch(0.28 0.07 27), var(--dd-ink)); }
-.dd-token.is-active { width: 44px; height: 44px; font-size: 15px; border-color: var(--dd-gold); box-shadow: 0 0 16px oklch(0.78 0.14 75 / 0.55); }
-.dd-token.is-focused { border-color: var(--dd-bone); }
-.dd-token.is-done { opacity: 0.5; }
-.dd-token.is-out { opacity: 0.35; filter: grayscale(1); }
-.dd-token:hover { transform: translateY(-2px); }
+.gm-token:hover { transform: translateY(-2px); border-color: var(--sidebar-ring); }
+.gm-token:active { transform: scale(0.94); }
+.gm-token:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%); }
+.gm-token--foe {
+  color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive), transparent 88%);
+  border-color: color-mix(in oklch, var(--destructive), transparent 55%);
+}
+.gm-token.is-active {
+  width: 44px;
+  height: 44px;
+  font-size: 13px;
+  color: var(--sidebar-primary-foreground);
+  background: var(--sidebar-primary);
+  border-color: var(--primary-foreground);
+  box-shadow: var(--glow-candle);
+}
+.gm-token.is-focused { outline: 1px solid var(--ring); outline-offset: 2px; }
+.gm-token.is-done { opacity: 0.45; }
+.gm-token.is-out { opacity: 0.3; text-decoration: line-through; }
 
-/* O d6 de cada lado, à frente das fichas que ele ordena. */
-.dd-side-die {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/* O que está no ar (o alvo a escolher, o golpe rolado, o dano esperando):
+   entre a linha de rodada e o palco, sem cobrir as figuras. */
+.gm-callouts {
+  display: flex;
   flex-shrink: 0;
-  height: 26px;
-  padding: 0 8px;
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--dd-bone-dim);
-  border: 1px solid var(--dd-iron-hi);
-  background: var(--dd-ink);
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 0;
 }
-.dd-side-die b { font-size: 13px; letter-spacing: 0; color: var(--dd-bone); }
-.dd-side-die--foe { border-color: oklch(0.42 0.12 27); }
-.dd-side-die.is-current { border-color: var(--dd-gold); color: var(--dd-gold); box-shadow: 0 0 10px oklch(0.78 0.14 75 / 0.35); }
+.gm-callouts:empty { display: none; }
 
-/* ── O palco ───────────────────────────────────────────────────────────── */
+.gm-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 8px 8px 12px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--input-border);
+}
+.gm-callout--danger { border-left-color: var(--destructive); }
+.gm-callout--crit { border-left-color: var(--chart-1); }
+.gm-callout__body { display: flex; flex: 1 1 220px; flex-direction: column; gap: 2px; min-width: 0; }
+.gm-callout__title {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.gm-callout__text {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+.gm-callout__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
-.dd-stage {
+/* O palco: o grupo de um lado, os inimigos do outro, de pé sobre a
+   linha do chão, com a luz da tocha respirando no meio. */
+.gm-stage {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  border: 1px solid var(--dd-gold-dim);
-  box-shadow:
-    inset 0 0 0 3px var(--dd-ink),
-    inset 0 0 0 4px var(--dd-iron-hi),
-    0 10px 40px rgba(0, 0, 0, 0.85);
-  background:
-    radial-gradient(ellipse 75% 65% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.9) 100%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.65) 0%, transparent 13% 87%, rgba(0, 0, 0, 0.65) 100%),
-    linear-gradient(to bottom, transparent 0 72%, oklch(0.1 0.008 50) 72%, oklch(0.06 0.005 50) 100%),
-    repeating-linear-gradient(0deg, oklch(0 0 0 / 0.28) 0 2px, transparent 2px 44px),
-    repeating-linear-gradient(90deg, oklch(0 0 0 / 0.22) 0 2px, transparent 2px 88px),
-    linear-gradient(to bottom, oklch(0.21 0.016 55), oklch(0.14 0.01 50));
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 36px 24px 20px;
 }
-/* A tocha: um bafo de luz quente vindo do chão, no centro, que respira. */
-.dd-stage::before {
+.gm-stage::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 20% 20% 0;
   z-index: -1;
-  background: radial-gradient(ellipse 48% 58% at 50% 82%, oklch(0.75 0.16 55 / 0.24), transparent 70%);
-  animation: ddFlicker 3.4s ease-in-out infinite;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in oklch, var(--torch), transparent 84%), transparent 70%);
+  animation: candleFlicker 4s ease-in-out infinite;
 }
-/* A linha do chão. */
-.dd-stage::after {
+/* A linha do chão, na altura dos pés: abaixo dela ficam os nomes. */
+.gm-stage::after {
   content: '';
   position: absolute;
   left: 4%;
   right: 4%;
-  top: 72%;
-  height: 1px;
+  bottom: 62px;
   z-index: -1;
-  background: linear-gradient(90deg, transparent, oklch(0.55 0.06 60 / 0.45), transparent);
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--input-border), transparent);
 }
 
-.dd-arena {
-  position: relative;
+.gm-sides {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: 32px;
-  min-height: 400px;
-  padding: 96px 28px 22px;
-  --fig-w: clamp(84px, 8.4vw, 124px);
+  justify-content: center;
+  gap: 24px clamp(32px, 6vw, 96px);
 }
-.dd-side { display: flex; align-items: flex-end; flex-wrap: wrap; gap: clamp(10px, 1.5vw, 22px); min-width: 0; flex: 1; }
-/* A linha de frente fica junto do centro: o primeiro do grupo e o primeiro inimigo. */
-.dd-side--party { flex-direction: row-reverse; justify-content: flex-start; }
-.dd-side--foes { justify-content: flex-start; }
-.dd-void {
-  align-self: center;
-  margin: 0 auto;
-  font-family: 'IM Fell English', serif;
+.gm-side {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.gm-side__head {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+/* Os rótulos dos lados nos cantos do alto do palco, longe da seta da vez. */
+.gm-stage .gm-side__head { position: absolute; top: 12px; }
+.gm-side--party .gm-side__head { left: 20px; }
+.gm-side--foes .gm-side__head { right: 20px; }
+.gm-side__figs {
+  --fig-w: clamp(80px, min(9vw, 13dvh), 148px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 16px;
+}
+/* A linha de frente de cada lado fica junto do centro. */
+.gm-side--party .gm-side__figs { flex-direction: row-reverse; }
+.gm-void {
+  margin: 0;
+  max-width: 280px;
+  font-family: var(--font-body);
   font-style: italic;
-  font-size: 15px;
-  color: var(--dd-bone-dim);
-  opacity: 0.45;
-  letter-spacing: 0.04em;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
 }
 
-@media (max-width: 720px) {
-  .dd-arena { flex-direction: column-reverse; align-items: stretch; gap: 18px; padding: 70px 12px 14px; min-height: 0; --fig-w: 74px; }
-  .dd-side--party { flex-direction: row; justify-content: center; }
-  .dd-side--foes { justify-content: center; }
+/* ── O deck: a placa, os comandos, o diário ────────────────────────────── */
+
+.gm-deck {
+  flex-shrink: 0;
+  height: clamp(260px, 34dvh, 330px);
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'plate commands log'
+    'dice  commands log';
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.gm-deck > * { min-width: 0; min-height: 0; }
+.gm-deck__tabs { display: none; }
+.gm-deck__plate {
+  grid-area: plate;
+  overflow-y: auto;
+  padding: 16px;
+  border-right: 1px solid var(--border);
+}
+/* O d20 do Mestre no chão da placa, como no dock da ficha. */
+.gm-deck__dice {
+  grid-area: dice;
+  padding: 8px;
+  border-right: 1px solid var(--border);
+}
+.gm-deck__dice [data-slot='button'] { height: 48px; min-height: 48px; }
+.gm-deck__commands {
+  grid-area: commands;
+  display: flex;
+  flex-direction: column;
+}
+.gm-deck__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.gm-deck__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.gm-deck__log {
+  grid-area: log;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+}
+/* O diário entra na moldura do deck: nada de caixa dentro da caixa. */
+.gm-deck__log > * > .gm-feed { border: 0; }
+
+@media (max-width: 1359px) {
+  .gm-deck { grid-template-columns: 240px minmax(0, 1fr) 280px; }
 }
 
-/* ── Um combatente em pé ──────────────────────────────────────────────── */
+/* Sem largura para a tela só: a página rola, a linha de rodada gruda sob
+   a barra do topo (o recuo do AppShell já desconta a altura dela) e o
+   deck vira uma gaveta presa no pé, com uma aba por coluna. */
+@media (max-width: 1023px) {
+  .gm-page--screen { height: auto; min-height: 0; }
+  .gm-table { gap: 12px; }
+  .gm-arena { flex: none; }
+  .gm-roundline {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  }
+  .gm-stage { overflow: visible; padding: 28px 12px 16px; }
+  .gm-stage::after { display: none; }
+  .gm-sides { flex-direction: column; align-items: stretch; }
+  .gm-stage .gm-side__head { position: static; }
+  .gm-side__figs,
+  .gm-side--party .gm-side__figs { flex-direction: row; justify-content: center; }
+  .gm-side__figs { --fig-w: clamp(68px, 19vw, 112px); gap: 14px 10px; }
 
-.dd-fig {
-  position: relative;
+  .gm-deck {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    height: auto;
+    max-height: 42dvh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--safe-bottom);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .gm-deck__tabs {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .gm-deck__plate,
+  .gm-deck__dice,
+  .gm-deck__log { border: 0; }
+  .gm-deck__plate,
+  .gm-deck__commands,
+  .gm-deck__log { flex: 1; min-height: 0; }
+  .gm-deck__log { height: 360px; }
+  .gm-deck__dice { order: 9; border-top: 1px solid var(--border); }
+  .gm-deck__dice [data-slot='button'] { height: 44px; min-height: 44px; }
+  /* Uma coluna por vez; recolhido, ficam as abas e o d20. */
+  .gm-deck[data-panel='commands'] .gm-deck__plate,
+  .gm-deck[data-panel='commands'] .gm-deck__log,
+  .gm-deck[data-panel='plate'] .gm-deck__commands,
+  .gm-deck[data-panel='plate'] .gm-deck__log,
+  .gm-deck[data-panel='log'] .gm-deck__plate,
+  .gm-deck[data-panel='log'] .gm-deck__commands,
+  .gm-deck[data-collapsed='true'] .gm-deck__plate,
+  .gm-deck[data-collapsed='true'] .gm-deck__commands,
+  .gm-deck[data-collapsed='true'] .gm-deck__log { display: none; }
+}
+@media (max-width: 640px) {
+  .gm-roundline { gap: 8px 12px; padding: 8px 8px 8px 12px; }
+  .gm-deck { max-height: 46dvh; }
+  .gm-deck__body { padding: 12px; }
+}
+
+/* Os comandos: quadrados como os da trilha de abas da ficha, com o nome
+   por baixo do ícone. Sob o cursor sobem e acendem. */
+.gm-commands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+.gm-command {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 8px 6px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--foreground);
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  outline: none;
+  transition:
+    transform 150ms var(--ease-ritual),
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 200ms var(--ease-ritual);
+}
+.gm-command:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--sidebar-ring);
+  box-shadow: var(--glow-candle);
+}
+.gm-command:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
+}
+.gm-command:active:not(:disabled) { transform: scale(0.96); }
+.gm-command:disabled { opacity: 0.4; cursor: not-allowed; }
+.gm-command__label {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gm-command--danger .gm-command__icon { color: var(--destructive); }
+/* A ação da vez: o vermelho cheio da aba ativa e dos botões do dock. */
+.gm-command--primary {
+  color: var(--sidebar-primary-foreground);
+  background: var(--sidebar-primary);
+  border-color: var(--sidebar-ring);
+}
+.gm-command--primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--sidebar-primary), transparent 15%);
+}
+/* O que a regra está pedindo agora (a moral, a vez de quem morre). */
+.gm-command.is-hot {
+  border-color: var(--primary-text);
+  animation: gmHot 1.4s ease-in-out infinite;
+}
+
+/* A linha que conta o que o comando sob o cursor faz. */
+.gm-hint {
+  min-height: 40px;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+.gm-hint b {
+  margin-right: 6px;
+  font-family: var(--font-heading);
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+/* A placa de quem está em foco: os números da coluna de vitais da ficha. */
+.gm-plate__portrait {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: var(--muted-foreground);
+}
+.gm-plate__portrait img { width: 100%; height: 100%; object-fit: cover; }
+.gm-plate__portrait--foe {
+  color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive), transparent 88%);
+  border-color: color-mix(in oklch, var(--destructive), transparent 55%);
+}
+.gm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--input);
+}
+.gm-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border: 1px solid var(--input-border);
+}
+.gm-stat b {
+  font-family: var(--font-numeral);
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--foreground);
+}
+.gm-stat small {
+  font-family: var(--font-stat);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* A vida como na ficha: vermelho sobre o trilho --chart-2, o número por cima. */
+.gm-hp {
+  position: relative;
+  display: block;
+  height: 24px;
+  overflow: hidden;
+  background: var(--chart-2);
+}
+.gm-hp__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--primary);
+  transition: width 400ms var(--ease-ritual);
+}
+.gm-hp__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 0 8px;
+  font-family: var(--font-numeral);
+  font-size: 15px;
+  line-height: 1;
+  color: var(--sidebar-foreground);
+}
+.gm-hp__text small {
+  font-family: var(--font-heading);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+}
+
+/* ── Um combatente ─────────────────────────────────────────────────────── */
+
+/* De pé no palco: sobe sob o cursor, sobe e ganha contorno quando está em
+   foco, se apaga quando já agiu e afunda quando cai. Quem age tem a seta
+   flutuando em cima e a luz da tocha no chão. */
+.gm-fig {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   width: var(--fig-w);
   padding: 0;
   border: 0;
   background: none;
   color: inherit;
+  text-align: center;
   cursor: pointer;
-  transition: transform 0.25s, opacity 0.25s;
+  outline: none;
+  transition: transform 250ms var(--ease-ritual), opacity 250ms var(--ease-ritual);
 }
-.dd-fig:focus-visible { outline: none; }
-.dd-fig:focus-visible .dd-fig__frame { box-shadow: 0 0 0 2px var(--dd-ink), 0 0 0 4px var(--dd-gold); }
-
-.dd-fig__frame {
+.gm-fig__body { position: relative; display: block; width: 100%; }
+.gm-fig__portrait {
   position: relative;
   display: grid;
   place-items: center;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
-  border-radius: 48% 48% 6px 6px / 24% 24% 6px 6px;
-  border: 2px solid var(--dd-iron-hi);
-  background: radial-gradient(circle at 50% 32%, oklch(0.32 0.02 60), oklch(0.12 0.01 50) 75%);
-  box-shadow: 0 0 0 2px var(--dd-ink), 0 10px 18px rgba(0, 0, 0, 0.75);
-  transition: border-color 0.2s, box-shadow 0.2s, filter 0.3s;
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  transition: border-color 150ms ease, box-shadow 250ms var(--ease-ritual), filter 300ms ease;
 }
-.dd-fig__frame img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.3) contrast(1.05) brightness(0.92); }
-.dd-fig__mono {
-  font-family: 'Cinzel', serif;
-  font-weight: 900;
-  font-size: calc(var(--fig-w) * 0.46);
+.gm-fig__portrait img { width: 100%; height: 100%; object-fit: cover; }
+.gm-fig__mono {
+  font-family: var(--font-heading);
+  font-size: calc(var(--fig-w) * 0.32);
   line-height: 1;
-  color: oklch(0.62 0.03 75);
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.8);
+  color: var(--muted-foreground);
 }
-.dd-fig--foe .dd-fig__frame {
-  border-color: oklch(0.4 0.1 27);
-  background: radial-gradient(circle at 50% 32%, oklch(0.32 0.09 27), oklch(0.11 0.02 27) 75%);
+.gm-fig--foe .gm-fig__portrait {
+  background: color-mix(in oklch, var(--destructive), transparent 88%);
+  border-color: color-mix(in oklch, var(--destructive), transparent 55%);
 }
-.dd-fig--foe .dd-fig__mono { color: oklch(0.7 0.09 30); }
+.gm-fig--foe .gm-fig__mono { color: var(--destructive); }
 
-/* O retrato e o que paira sobre ele (mira, seta da vez, número que sobe). */
-.dd-fig__body { position: relative; width: 100%; }
-
-/* A sombra no chão; vira foco de luz quando é a vez dele. */
-.dd-fig__shadow {
-  width: 92%;
-  height: 12px;
-  margin-top: -9px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75), transparent 70%);
-}
-.dd-fig.is-active .dd-fig__shadow { background: radial-gradient(ellipse at center, oklch(0.8 0.13 75 / 0.65), transparent 70%); }
-
-.dd-fig__name {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: 'Cinzel', serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-  color: var(--dd-bone);
-  text-shadow: 0 1px 0 #000;
-}
-.dd-fig--foe .dd-fig__name { color: oklch(0.85 0.06 35); }
-.dd-fig__meta { font-family: 'Cinzel', serif; font-size: 9.5px; letter-spacing: 0.04em; color: var(--dd-bone-dim); white-space: nowrap; }
-.dd-fig__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 0; }
-.dd-fig__done {
+/* Os selos sobre o retrato, como o da CA nos vitais da ficha. */
+.gm-fig__ac {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: 3px;
+  right: 3px;
   z-index: 2;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 4px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--dd-bone);
-  background: var(--dd-ink);
-  border: 1px solid var(--dd-gold-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 28px;
+  padding: 3px 4px;
+  font-family: var(--font-heading);
+  line-height: 1;
+  color: var(--secondary-foreground);
+  background: var(--secondary);
 }
-.dd-fig__presence {
+.gm-fig__ac small { font-size: 8px; letter-spacing: 0.16em; }
+.gm-fig__ac b { font-family: var(--font-numeral); font-size: 14px; }
+.gm-fig__flag {
   position: absolute;
-  top: 6px;
-  left: 6px;
+  top: 3px;
+  left: 3px;
   z-index: 2;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--dd-heal);
-  box-shadow: 0 0 6px var(--dd-heal);
-}
-
-/* A vida: sangue em gomos, como se conta numa luta. */
-.dd-hp { position: relative; width: 100%; height: 8px; background: oklch(0.1 0.01 30); border: 1px solid #000; box-shadow: 0 0 0 1px var(--dd-iron); }
-.dd-hp > span { display: block; height: 100%; background: linear-gradient(to bottom, var(--dd-blood-hi), var(--dd-blood)); transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1); }
-.dd-hp::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), rgba(0, 0, 0, 0.6) calc(12.5% - 1px) 12.5%);
-}
-.dd-hp--thin { height: 4px; }
-
-.dd-tag {
-  padding: 1px 4px;
-  font-family: 'Cinzel', serif;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  padding: 3px 5px;
+  font-family: var(--font-heading);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.3;
-  color: oklch(0.82 0.08 30);
-  border: 1px solid oklch(0.45 0.12 27);
-  background: oklch(0.15 0.03 27 / 0.85);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
 }
-.dd-tag--gold { color: var(--dd-gold); border-color: var(--dd-gold-dim); background: oklch(0.15 0.02 70 / 0.85); }
-.dd-tag--heal { color: var(--dd-heal); border-color: oklch(0.5 0.08 135); background: oklch(0.15 0.02 135 / 0.85); }
-
-/* Estados */
-.dd-fig__turn {
+.gm-fig .gm-hp {
   position: absolute;
-  top: -26px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  z-index: 2;
+  height: 20px;
+}
+.gm-fig .gm-hp__text { padding: 0 5px; font-size: 13px; }
+
+/* A seta da vez, flutuando sobre quem age. */
+.gm-fig__turn {
+  position: absolute;
+  top: -24px;
   left: 50%;
   z-index: 3;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
-  color: var(--dd-gold);
-  text-shadow: 0 0 10px var(--dd-gold);
+  color: var(--primary-text);
+  text-shadow: 0 0 10px var(--primary);
   transform: translateX(-50%);
-  animation: ddBob 1.3s ease-in-out infinite;
+  animation: gmBob 1.3s ease-in-out infinite;
 }
-.dd-fig.is-active .dd-fig__frame { border-color: var(--dd-gold); box-shadow: 0 0 0 2px var(--dd-ink), 0 0 26px oklch(0.78 0.14 75 / 0.55); }
-.dd-fig.is-focused .dd-fig__frame { border-color: var(--dd-bone); }
-.dd-fig.is-focused { transform: translateY(-4px); }
-.dd-fig.is-done .dd-fig__frame { filter: brightness(0.6) saturate(0.7); }
-.dd-fig.is-down { opacity: 0.6; transform: translateY(10px); }
-.dd-fig.is-down .dd-fig__frame { filter: grayscale(1) brightness(0.5); }
-.dd-fig.is-dying .dd-fig__frame { animation: ddDeathsDoor 1.6s ease-in-out infinite; }
 
-/* A mira: quatro cantos em sangue em volta de quem pode ser alvo. */
-.dd-fig__reticle {
-  --c: var(--dd-blood-hi);
+/* A sombra no chão; vira a luz da tocha sob quem age. */
+.gm-fig__shadow {
+  position: relative;
+  z-index: -1;
+  align-self: center;
+  width: 92%;
+  height: 12px;
+  margin-top: -12px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75), transparent 70%);
+  transition: width 250ms var(--ease-ritual);
+}
+.gm-fig.is-active .gm-fig__shadow {
+  width: 124%;
+  height: 16px;
+  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--torch), transparent 35%), transparent 70%);
+}
+
+.gm-fig__name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+.gm-fig__name > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Com a ficha aberta agora: o mesmo ponto do selo da mesa na ficha. */
+.gm-fig__presence {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--chart-2);
+  box-shadow: 0 0 6px var(--chart-2);
+}
+.gm-fig__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 17px; }
+
+/* Estados. O hover vem antes: quem age, está em foco ou caiu fica onde
+   o estado manda. */
+.gm-fig:hover { transform: translateY(-3px); }
+.gm-fig:hover .gm-fig__portrait {
+  border-color: var(--ring);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+}
+.gm-fig:focus-visible .gm-fig__portrait {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
+}
+.gm-fig.is-focused { transform: translateY(-4px); outline: 1px solid var(--ring); outline-offset: 5px; }
+.gm-fig.is-active { transform: translateY(-4px); }
+.gm-fig.is-active .gm-fig__portrait {
+  border-color: var(--primary-text);
+  box-shadow: 0 0 0 1px var(--primary-text), var(--glow-candle);
+}
+.gm-fig.is-done { opacity: 0.55; }
+.gm-fig.is-done .gm-fig__portrait { filter: saturate(0.6) brightness(0.85); }
+.gm-fig.is-down { opacity: 0.6; transform: translateY(12px); }
+.gm-fig.is-down .gm-fig__portrait { filter: grayscale(1) brightness(0.6); }
+.gm-fig.is-dying .gm-fig__portrait { animation: gmDying 1.6s ease-in-out infinite; }
+.gm-fig.is-targetable { cursor: crosshair; opacity: 1; }
+
+.gm-tag {
+  padding: 2px 5px;
+  font-family: var(--font-heading);
+  font-size: 9px;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive), transparent 88%);
+  border: 1px solid color-mix(in oklch, var(--destructive), transparent 60%);
+}
+.gm-tag--light {
+  color: var(--torch);
+  background: color-mix(in oklch, var(--torch), transparent 88%);
+  border-color: color-mix(in oklch, var(--torch), transparent 60%);
+}
+.gm-tag--quiet {
+  color: var(--muted-foreground);
+  background: transparent;
+  border-color: var(--input-border);
+}
+
+/* A mira: quatro cantos em volta de quem pode ser alvo. */
+.gm-fig__reticle {
+  --c: var(--destructive);
   position: absolute;
-  inset: -8px;
+  inset: -6px;
   z-index: 4;
   pointer-events: none;
   background:
-    linear-gradient(var(--c), var(--c)) top left / 16px 2px no-repeat,
-    linear-gradient(var(--c), var(--c)) top left / 2px 16px no-repeat,
-    linear-gradient(var(--c), var(--c)) top right / 16px 2px no-repeat,
-    linear-gradient(var(--c), var(--c)) top right / 2px 16px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom left / 16px 2px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom left / 2px 16px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom right / 16px 2px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom right / 2px 16px no-repeat;
-  filter: drop-shadow(0 0 4px var(--dd-blood-hi));
-  animation: ddReticle 1s ease-in-out infinite;
+    linear-gradient(var(--c), var(--c)) top left / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px 14px no-repeat;
+  animation: gmReticle 1s ease-in-out infinite;
 }
-.dd-fig.is-targetable { cursor: crosshair; }
-.dd-fig.is-picked .dd-fig__reticle { animation: none; --c: var(--dd-gold); filter: drop-shadow(0 0 6px var(--dd-gold)); }
+.gm-fig.is-picked .gm-fig__reticle { --c: var(--foreground); animation: none; }
+.gm-fig.is-picked .gm-fig__portrait {
+  border-color: var(--destructive);
+  box-shadow: inset 0 0 0 999px color-mix(in oklch, var(--destructive), transparent 80%);
+}
 
 /* O número que sobe: dano, cura, errou, crítico. */
-.dd-pop {
+.gm-pop {
   position: absolute;
-  top: 18%;
+  top: 22%;
   left: 50%;
   z-index: 6;
   pointer-events: none;
   white-space: nowrap;
-  font-family: 'Cinzel', serif;
-  font-weight: 900;
-  font-size: 28px;
-  line-height: 1;
-  text-shadow: 0 2px 0 #000, 0 0 14px currentColor;
-  transform: translateX(-50%);
-  animation: ddPop 1.7s ease-out forwards;
-}
-.dd-pop--dmg { color: var(--dd-blood-hi); }
-.dd-pop--heal { color: var(--dd-heal); }
-.dd-pop--miss { color: var(--dd-bone-dim); font-size: 17px; letter-spacing: 0.12em; }
-.dd-pop--hit { color: var(--dd-blood-hi); font-size: 17px; letter-spacing: 0.12em; }
-.dd-pop--crit { color: var(--dd-gold); font-size: 22px; letter-spacing: 0.1em; }
-
-/* O que paira sobre o palco: escolher alvo, o resultado do golpe, o alerta. */
-.dd-overlay {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  z-index: 8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: min(640px, calc(100% - 24px));
-  transform: translateX(-50%);
-}
-/* No celular o pergaminho não cabe por cima das figuras: ele empurra o palco. */
-@media (max-width: 720px) {
-  .dd-overlay { position: relative; top: 0; left: 0; width: auto; margin: 0 10px; padding-top: 10px; transform: none; }
-  .dd-overlay:empty { display: none; }
-}
-.dd-scroll {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px 12px;
-  width: 100%;
-  padding: 8px 14px;
-  border: 1px solid var(--dd-gold-dim);
-  background: linear-gradient(to bottom, oklch(0.16 0.012 55 / 0.96), oklch(0.11 0.008 50 / 0.96));
-  box-shadow: inset 0 0 0 2px var(--dd-ink), 0 8px 24px rgba(0, 0, 0, 0.85);
-}
-.dd-scroll--blood { border-color: var(--dd-blood-hi); }
-.dd-scroll__title { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dd-bone); }
-.dd-scroll__text { font-family: 'IM Fell English', serif; font-style: italic; font-size: 13px; color: var(--dd-bone-dim); }
-
-/* ── O painel de baixo: a placa, as habilidades, o registro ────────────── */
-
-.dd-deck { display: grid; grid-template-columns: minmax(230px, 290px) minmax(0, 1fr) minmax(280px, 360px); }
-.dd-deck > * { min-width: 0; }
-.dd-deck > * + * { border-left: 1px solid var(--dd-iron-hi); }
-/* O diário entra na moldura do painel: nada de caixa dentro da caixa. */
-.dd-deck__log > .worn-border { background: transparent !important; border: 0 !important; box-shadow: none; }
-@media (max-width: 1180px) {
-  .dd-deck { grid-template-columns: minmax(210px, 260px) minmax(0, 1fr); }
-  .dd-deck__log { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--dd-iron-hi); }
-}
-@media (max-width: 720px) {
-  .dd-deck { grid-template-columns: 1fr; }
-  .dd-deck > * + * { border-left: 0; border-top: 1px solid var(--dd-iron-hi); }
-}
-
-.dd-plate__portrait {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 76px;
-  height: 76px;
-  overflow: hidden;
-  border-radius: 50%;
-  border: 2px solid var(--dd-gold-dim);
-  background: radial-gradient(circle at 50% 35%, oklch(0.32 0.02 60), oklch(0.12 0.01 50) 75%);
-  box-shadow: 0 0 0 3px var(--dd-ink), 0 0 0 4px var(--dd-iron-hi), 0 6px 16px rgba(0, 0, 0, 0.7);
-}
-.dd-plate__portrait img { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.3) contrast(1.05); }
-.dd-plate__portrait--foe { border-color: oklch(0.45 0.12 27); background: radial-gradient(circle at 50% 35%, oklch(0.32 0.09 27), oklch(0.11 0.02 27) 75%); }
-.dd-plate__name { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.15; color: var(--dd-bone); }
-.dd-plate__sub { font-family: 'IM Fell English', serif; font-style: italic; font-size: 13px; color: var(--dd-bone-dim); }
-
-.dd-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.dd-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 4px; border: 1px solid var(--dd-iron-hi); background: var(--dd-ink); }
-.dd-stat b { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; line-height: 1.1; color: var(--dd-bone); }
-.dd-stat small { font-family: 'Cinzel', serif; font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dd-bone-dim); }
-
-/* Os comandos como habilidades: o ícone pintado de osso, o nome por baixo. */
-.dd-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.dd-skill {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 88px;
-  padding: 10px 6px 8px;
-  text-align: center;
-  cursor: pointer;
-  border: 1px solid var(--dd-iron-hi);
-  background: radial-gradient(circle at 50% 28%, oklch(0.26 0.016 55), oklch(0.13 0.01 50) 80%);
-  box-shadow: inset 0 0 0 2px var(--dd-ink), 0 3px 8px rgba(0, 0, 0, 0.6);
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-}
-.dd-skill:hover:not(:disabled),
-.dd-skill:focus-visible {
-  outline: none;
-  transform: translateY(-2px);
-  border-color: var(--dd-gold);
-  box-shadow: inset 0 0 0 2px var(--dd-ink), 0 0 16px oklch(0.78 0.14 75 / 0.32);
-}
-.dd-skill:disabled { opacity: 0.32; cursor: not-allowed; }
-.dd-skill__icon {
+  font-family: var(--font-numeral);
   font-size: 26px;
   line-height: 1;
-  filter: grayscale(1) sepia(0.65) brightness(1.08) contrast(1.15) drop-shadow(0 2px 0 #000);
-  transition: filter 0.2s;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.6);
+  transform: translateX(-50%);
+  animation: gmPop 1.7s ease-out forwards;
 }
-.dd-skill:hover:not(:disabled) .dd-skill__icon { filter: grayscale(0.25) sepia(0.35) brightness(1.15) drop-shadow(0 0 6px oklch(0.78 0.14 75 / 0.5)); }
-.dd-skill__label { font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.15; text-transform: uppercase; color: var(--dd-bone); }
-.dd-skill--danger { border-color: oklch(0.4 0.11 27); }
-.dd-skill--danger .dd-skill__label { color: oklch(0.84 0.08 32); }
-.dd-skill--gold { border-color: var(--dd-gold-dim); }
-.dd-skill--gold .dd-skill__label { color: var(--dd-gold); }
-.dd-skill--heal { border-color: oklch(0.45 0.08 135); }
-.dd-skill--heal .dd-skill__label { color: var(--dd-heal); }
-.dd-skill.is-hot { animation: ddHot 1.4s ease-in-out infinite; border-color: var(--dd-gold); }
+.gm-pop--dmg { color: var(--destructive); }
+.gm-pop--heal { color: var(--chart-1); }
+.gm-pop--miss,
+.gm-pop--hit,
+.gm-pop--crit { font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+.gm-pop--miss { color: var(--muted-foreground); }
+.gm-pop--hit { color: var(--destructive); }
+.gm-pop--crit { color: var(--chart-1); }
 
-.dd-hintline {
-  min-height: 34px;
-  padding-top: 10px;
-  border-top: 1px solid var(--dd-iron-hi);
-  font-family: 'IM Fell English', serif;
-  font-style: italic;
-  font-size: 14px;
-  line-height: 1.35;
-  color: var(--dd-bone-dim);
+@keyframes gmHot {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: var(--glow-candle); }
 }
-.dd-hintline b { font-family: 'Cinzel', serif; font-style: normal; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dd-gold); margin-right: 6px; }
-
-/* ── Animação ─────────────────────────────────────────────────────────── */
-
-@keyframes ddFlicker {
-  0%, 100% { opacity: 1; }
-  22% { opacity: 0.86; }
-  41% { opacity: 0.97; }
-  63% { opacity: 0.8; }
-  81% { opacity: 0.94; }
+@keyframes gmDying {
+  0%, 100% { border-color: color-mix(in oklch, var(--destructive), transparent 50%); box-shadow: none; }
+  50%      { border-color: var(--destructive); box-shadow: var(--glow-blood); }
 }
-@keyframes ddBob {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, -5px); }
-}
-@keyframes ddReticle {
+@keyframes gmReticle {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(1.04); }
+  50%      { opacity: 0.5; transform: scale(1.04); }
 }
-@keyframes ddDeathsDoor {
-  0%, 100% { box-shadow: 0 0 0 2px var(--dd-ink), 0 0 8px oklch(0.6 0.2 28 / 0.4); border-color: var(--dd-blood); }
-  50% { box-shadow: 0 0 0 2px var(--dd-ink), 0 0 24px oklch(0.6 0.2 28 / 0.8); border-color: var(--dd-blood-hi); }
+@keyframes gmPop {
+  0%   { opacity: 0; transform: translate(-50%, 12px) scale(0.6); }
+  14%  { opacity: 1; transform: translate(-50%, 0) scale(1.18); }
+  28%  { transform: translate(-50%, 0) scale(1); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
 }
-@keyframes ddHot {
-  0%, 100% { box-shadow: inset 0 0 0 2px var(--dd-ink), 0 0 6px oklch(0.78 0.14 75 / 0.2); }
-  50% { box-shadow: inset 0 0 0 2px var(--dd-ink), 0 0 18px oklch(0.78 0.14 75 / 0.55); }
-}
-@keyframes ddPop {
-  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.6); }
-  14% { opacity: 1; transform: translate(-50%, 0) scale(1.18); }
-  28% { transform: translate(-50%, 0) scale(1); }
-  75% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -40px) scale(1); }
+@keyframes gmBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -5px); }
 }
