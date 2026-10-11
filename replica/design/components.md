@@ -184,15 +184,22 @@ Headings  (OrnateTitle, SectionHeading)
 
 ```
 GM table  (SessionPanel + src/components/gm/table/*, the .gm-* rules in globals.css)
-  layout    one screen, like the sheet: the table bar and the initiative board on top,
-            then stage | actions | log (≥1360px), stage over log | actions (1024-1359px).
-            Under 1024px the page scrolls, with the board sticky under the top bar and the
-            actions sticky at the foot, so both stay in view. Tabs ride AppShell's middle lane.
+  layout    one screen, like the sheet. The top bar carries the tabs and the open session
+            (name, code, who has the sheet open, Encerrar). Below it, as in a turn-based RPG:
+            the arena (round line with the d6 per side, the turn tokens, the light and the
+            clock, then the stage, party left and foes right) and, under it, the deck
+            (plate | commands | log) at a fixed height. Under 1024px the page scrolls, the
+            round line sticks to the top and the deck becomes a drawer at the foot with one
+            tab per column.
   look      no theme of its own: card fill with the border rule, square corners, Bricolage
             and Libre Franklin. Command tiles are the TabRail squares with a label (input
             fill, input-border edge, the sidebar-primary red for the turn action). Figures
-            reuse the vitals' AC badge and HP bar; the light meter is TorchStatus; the
-            actions floor holds the docked d20, like the sheet's dock.
+            reuse the vitals' AC badge and HP bar; the light meter is TorchStatus; the plate
+            floor holds the docked d20, like the sheet's dock.
+  motion    the acting figure gets a bobbing arrow, a torchlit floor and the candle glow;
+            focus and hover lift, done fades, down sinks, dying pulses, targets get a
+            reticle, damage and heal pop up. The acting token grows and glows. All of it is
+            stopped by the global prefers-reduced-motion rule.
   icons     Hugeicons
   used on   S11
 ```

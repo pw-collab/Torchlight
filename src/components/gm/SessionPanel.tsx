@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase'
 import type { PromptRequest } from './PromptComposer'
 import { HandoutDrawer, type Delivery } from './HandoutDrawer'
@@ -27,7 +28,7 @@ import { useSessionPresence } from '@/hooks/useSessionPresence'
 import { useBestiary } from '@/hooks/useBestiary'
 import { useCrawl } from '@/hooks/useCrawl'
 import { useEncounterControls } from '@/hooks/useEncounterControls'
-import { TableHud } from './table/TableHud'
+import { Presence, TableTools } from './table/TableHud'
 import { CombatRibbon, ExplorationRibbon } from './table/TurnRibbon'
 import { npcKey, pcKey } from '@/lib/turns'
 import { FoeFigure, PartyFigure, type Callout } from './table/Figure'
@@ -51,11 +52,13 @@ interface Props {
   onSessionChange: (session: TableSession) => void
   /** As rolagens do Mestre: escondidas da mesa, com aviso na tela dele. */
   onRoll: (roll: RollResult) => void
-  /** Encerrar a sessão: a barra da mesa leva o botão, a página faz o resto. */
-  onEnd: () => void
-  ending?: boolean
   /** O que a página põe no alto do diário: o recap da sessão anterior. */
   aside?: ReactNode
+  /**
+   * Onde, na barra do topo, mostrar quem está na mesa: ao lado do código da
+   * sessão, que a página põe lá. A presença é lida aqui, com o elenco.
+   */
+  presenceSlot?: HTMLElement | null
 }
 
 interface MemberRow {
@@ -82,6 +85,15 @@ interface Undoable {
 }
 
 const UNDO_WINDOW_MS = 30_000
+
+type DeckPanel = 'commands' | 'plate' | 'log'
+
+/** As abas do deck em tela estreita, onde cabe uma coluna por vez. */
+const DECK_PANELS: { id: DeckPanel; label: string }[] = [
+  { id: 'commands', label: 'Comandos' },
+  { id: 'plate', label: 'Placa' },
+  { id: 'log', label: 'Diário' },
+]
 
 const UNDO_LABEL: Record<'hp' | 'luck' | 'xp', string> = {
   hp: 'vida',
@@ -114,16 +126,16 @@ function undoValue(character: Character, field: UndoField): number {
 /**
  * A mesa do Mestre, jogada como um RPG de turno — sem tabuleiro.
  *
- * Em cima, a barra da mesa (luz, relógio, código) e o quadro de iniciativa
- * (de combate, ou das rodadas de exploração). Embaixo, o palco: o grupo de
- * um lado e os inimigos do outro, cada um numa figura. Ao lado, o bloco de
- * ações de quem está em foco — a vez de quem é, ou a figura que o Mestre
- * clicou — e o diário da mesa. O quadro e as ações nunca saem da tela.
+ * Em cima, a arena: a linha de rodada (de combate, ou das rodadas de
+ * exploração) com a luz e o relógio da mesa, e o palco, com o grupo de um
+ * lado e os inimigos do outro, cada um numa figura. Embaixo, o deck de quem
+ * está em foco — a vez de quem é, ou a figura que o Mestre clicou: a placa,
+ * os comandos e o diário. A linha de rodada e o deck nunca saem da tela.
  *
  * Toda ação do Mestre passa por aqui: escreve na ficha ou na trilha e vira
  * linha do log, que o jogador vê chegar na tela dele.
  */
-export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, onEnd, ending, aside }: Props) {
+export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, aside, presenceSlot }: Props) {
   const sessionId = session.id
   // O elenco vem sempre acompanhado da mesa a que pertence, para o painel não
   // mostrar o elenco da sessão anterior por um quadro enquanto recarrega.
@@ -741,16 +753,24 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
     })
   }
 
-  const stageRef = useRef<HTMLElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const isNarrow = () => window.matchMedia('(max-width: 1023px)').matches
-  /** Em tela estreita as ações moram no pé da tela, e dá para recolhê-las. */
+  /**
+   * Em tela estreita o deck é uma gaveta no pé da tela: uma coluna por vez
+   * (comandos, placa, diário), e dá para recolhê-la.
+   */
   const [dockOpen, setDockOpen] = useState(true)
+  const [deckPanel, setDeckPanel] = useState<DeckPanel>('commands')
+  const openDeck = useCallback((panel: DeckPanel) => {
+    setDeckPanel(panel)
+    setDockOpen(true)
+  }, [])
 
   function onCardClick(key: string) {
     if (!targeting) {
       focus(key)
-      // As ações estão sempre à vista; recolhidas, tocar numa figura as abre.
-      setDockOpen(true)
+      // O deck está sempre à vista; recolhido, tocar numa figura o abre nos comandos.
+      openDeck('commands')
       return
     }
     if (!isTargetable(key)) return
@@ -913,30 +933,30 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
 
   // ── A tela ────────────────────────────────────────────────────────────────
   //
-  // Uma tela só, como a ficha (ver .gm-table): a barra e o quadro de
-  // iniciativa no alto, o palco, o bloco de ações e o diário embaixo, cada um
-  // rolando por dentro. Em tela estreita a página volta a rolar, com o quadro
-  // grudado no topo e as ações no pé.
+  // Como um RPG de turno (ver .gm-table): no alto, a arena — a linha de
+  // rodada com a luz e o relógio, e o palco com o grupo de um lado e os
+  // inimigos do outro; embaixo, o deck de quem está em foco: a placa, os
+  // comandos e o diário. Quem está na mesa vai para a barra do topo, ao lado
+  // do código da sessão. Em tela estreita a página rola, com a linha de
+  // rodada grudada no topo e o deck preso no pé.
+
+  const tools = (
+    <TableTools
+      seats={seats}
+      clock={clock}
+      busy={busyId !== null}
+      onPauseToggle={togglePause}
+      onAdvance={advanceClock}
+      onSnuffAll={() => void snuffEveryLight()}
+    />
+  )
 
   return (
     <div className="gm-table">
-      <div className="gm-table__bar">
-        <TableHud
-          name={session.name}
-          code={session.code}
-          seats={seats}
-          clock={clock}
-          present={presentCount}
-          busy={busyId !== null}
-          ending={ending}
-          onPauseToggle={togglePause}
-          onAdvance={advanceClock}
-          onSnuffAll={() => void snuffEveryLight()}
-          onEnd={onEnd}
-        />
-      </div>
+      {presenceSlot && createPortal(<Presence seats={seats} present={presentCharacterIds} />, presenceSlot)}
 
-      <div className="gm-table__turns">
+      {/* ── A arena: a linha de rodada e o palco ─────────────────────── */}
+      <section aria-label="Iniciativa e palco" className="gm-arena">
         {encounter && enc.turn ? (
           <CombatRibbon
             encounter={encounter}
@@ -948,6 +968,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
             focusKey={focusKey}
             onSelect={key => onCardClick(key)}
             busy={enc.busy}
+            tools={tools}
           />
         ) : (
           <ExplorationRibbon
@@ -961,12 +982,10 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
             onEndActing={() => { if (actingKey) void enc.finish(actingKey) }}
             onSetDanger={crawl.setDanger}
             onReset={crawl.reset}
+            tools={tools}
           />
         )}
-      </div>
 
-      {/* ── O palco: o grupo de um lado, os inimigos do outro ─────────── */}
-      <section ref={stageRef} aria-label="O palco" className="gm-table__stage gm-stage scroll-mt-48">
         <div className="gm-callouts">
           {targeting && (
             <TargetingBar
@@ -1011,13 +1030,12 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
           })}
         </div>
 
-        <div className="gm-stage__figures">
+        {/* O palco: o grupo à esquerda, os inimigos à direita, a linha de
+            frente de cada lado junto do centro. */}
+        <div ref={stageRef} className="gm-stage scroll-mt-48">
           <div className="gm-sides">
-            <div role="group" aria-label="O grupo" className="gm-side">
-              <span className="gm-side__head">
-                Grupo
-                {seats.length > 0 && <span className="font-mono tracking-normal">{seats.length}</span>}
-              </span>
+            <div role="group" aria-label="O grupo" className="gm-side gm-side--party">
+              <span className="gm-side__head">Grupo{seats.length > 0 && ` · ${seats.length}`}</span>
               <div className="gm-side__figs">
                 {loading && <p className="gm-void">Chamando o grupo…</p>}
                 {!loading && seats.length === 0 && (
@@ -1040,12 +1058,9 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
               </div>
             </div>
 
-            <div role="group" aria-label={encounter ? 'Inimigos' : 'Adiante'} className="gm-side">
+            <div role="group" aria-label={encounter ? 'Inimigos' : 'Adiante'} className="gm-side gm-side--foes">
               <span className="gm-side__head">
-                {encounter ? 'Inimigos' : 'Adiante'}
-                {encounter && foes.length > 0 && (
-                  <span className="font-mono tracking-normal">{standingFoes}/{foes.length}</span>
-                )}
+                {encounter ? `Inimigos${foes.length > 0 ? ` · ${standingFoes}/${foes.length}` : ''}` : 'Adiante'}
               </span>
               <div className="gm-side__figs">
                 {encounter ? (
@@ -1065,7 +1080,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
                 ) : crawl.last ? (
                   <EncounterAlert
                     last={crawl.last}
-                    onBuild={() => { focus(null); setTableView('start'); setDockOpen(true) }}
+                    onBuild={() => { focus(null); setTableView('start'); openDeck('commands') }}
                     onDismiss={crawl.dismiss}
                   />
                 ) : (
@@ -1077,99 +1092,118 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, o
         </div>
       </section>
 
-      {/* ── As ações de quem está em foco ──────────────────────────────── */}
-      <section aria-label="Ações" className="gm-table__actions gm-actions" data-collapsed={!dockOpen}>
-        <div className="gm-actions__head">
-          <span className="font-heading min-w-0 truncate text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
-            {focused
-              ? `${focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'} · ${focused.name}`
-              : encounter ? 'A mesa · combate' : 'A mesa · exploração'}
-          </span>
-          <span className="ml-auto flex shrink-0 items-center gap-1">
-            {focused && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => focus(null)} className="h-8 gap-1 px-2 text-[10px] tracking-[0.12em]">
-                <HugeiconsIcon icon={ArrowLeft01Icon} size={14} strokeWidth={2} aria-hidden />
-                Mesa
-              </Button>
-            )}
-            {/* Em tela estreita as ações ocupam o pé da tela; recolher devolve o palco. */}
-            <Button
+      {/* ── O deck: a placa, os comandos e o diário ──────────────────── */}
+      <section aria-label="Ações" className="gm-deck" data-panel={deckPanel} data-collapsed={!dockOpen}>
+        {/* Só em tela estreita: uma coluna por vez, e recolher devolve o palco. */}
+        <div className="gm-deck__tabs">
+          {DECK_PANELS.map(panel => (
+            <button
+              key={panel.id}
               type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setDockOpen(open => !open)}
-              aria-expanded={dockOpen}
-              aria-label={dockOpen ? 'Recolher as ações' : 'Abrir as ações'}
-              className="size-8 lg:hidden"
+              aria-pressed={dockOpen && deckPanel === panel.id}
+              onClick={() => openDeck(panel.id)}
+              className={cn(
+                'font-heading min-h-11 flex-1 border-b-2 text-[10px] tracking-[0.12em] uppercase transition-colors',
+                dockOpen && deckPanel === panel.id
+                  ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
+                  : 'border-transparent text-[var(--muted-foreground)]',
+              )}
             >
-              <HugeiconsIcon icon={dockOpen ? ArrowDown01Icon : ArrowUp01Icon} size={16} strokeWidth={2} />
-            </Button>
-          </span>
+              {panel.label}
+            </button>
+          ))}
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setDockOpen(open => !open)}
+            aria-expanded={dockOpen}
+            aria-label={dockOpen ? 'Recolher as ações' : 'Abrir as ações'}
+            className="h-11 w-11 shrink-0 px-0"
+          >
+            <HugeiconsIcon icon={dockOpen ? ArrowDown01Icon : ArrowUp01Icon} size={16} strokeWidth={2} />
+          </Button>
         </div>
 
-        <div className="gm-actions__body">
-          {/* O erro mais comum de qualquer VTT é o alvo errado ou o 17 no lugar do 7:
-              a volta fica aqui, onde o Mestre acabou de agir. */}
-          {undoable && (
-            <div className="gm-callout animate-mist-rise">
-              <span className="gm-callout__body">
-                <span className="gm-callout__text">
-                  {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
-                </span>
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void undo()}
-                disabled={busyId !== null}
-                className={cn(CALLOUT_BUTTON, 'gap-1.5')}
-              >
-                <HugeiconsIcon icon={Undo02Icon} size={14} strokeWidth={2} aria-hidden />
-                Desfazer
-              </Button>
-            </div>
-          )}
-
+        <div className="gm-deck__plate">
           <Nameplate
             pc={focused?.kind === 'pc' ? focused.seat : undefined}
             foe={focused?.kind === 'npc' ? focused.actor : undefined}
             sheet={focused?.kind === 'npc' ? enc.sheetOf(focused.actor) : undefined}
             table={tablePlate}
           />
-
-          {focused?.kind === 'pc' ? (
-            <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
-          ) : focused?.kind === 'npc' ? (
-            <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
-          ) : (
-            <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
-          )}
         </div>
 
-        {/* O chão do card, como o dock da ficha: o d20 do Mestre, que nasce escondido da mesa. */}
-        <div className="gm-actions__floor">
+        {/* O chão da placa, como o dock da ficha: o d20 do Mestre, que nasce escondido da mesa. */}
+        <div className="gm-deck__dice">
           <DiceRoller onRoll={onRoll} docked />
         </div>
-      </section>
 
-      <div className="gm-table__log flex flex-col gap-3">
-        {(aside || recapping) && (
-          <div className="flex max-h-[60%] shrink-0 flex-col gap-3 overflow-y-auto">
-            {aside}
-            {recapping && (
-              <SessionRecap
-                sessionId={sessionId}
-                sessionName={session.name}
-                events={events}
-                onClose={() => setRecapping(false)}
-              />
+        <div className="gm-deck__commands">
+          <div className="gm-deck__head">
+            <span className="font-heading min-w-0 truncate text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+              {focused
+                ? `${focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'} · ${focused.name}`
+                : encounter ? 'A mesa · combate' : 'A mesa · exploração'}
+            </span>
+            {focused && (
+              <Button type="button" variant="ghost" size="sm" onClick={() => focus(null)} className="ml-auto h-8 gap-1 px-2 text-[10px] tracking-[0.12em]">
+                <HugeiconsIcon icon={ArrowLeft01Icon} size={14} strokeWidth={2} aria-hidden />
+                Mesa
+              </Button>
             )}
           </div>
-        )}
-        <div className="min-h-0 flex-1">
-          <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+          <div className="gm-deck__body">
+            {/* O erro mais comum de qualquer VTT é o alvo errado ou o 17 no lugar do 7:
+                a volta fica aqui, onde o Mestre acabou de agir. */}
+            {undoable && (
+              <div className="gm-callout animate-mist-rise">
+                <span className="gm-callout__body">
+                  <span className="gm-callout__text">
+                    {undoable.characterName}: {UNDO_LABEL[undoable.kind]} {undoable.previous} → {undoable.applied}
+                  </span>
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void undo()}
+                  disabled={busyId !== null}
+                  className={cn(CALLOUT_BUTTON, 'gap-1.5')}
+                >
+                  <HugeiconsIcon icon={Undo02Icon} size={14} strokeWidth={2} aria-hidden />
+                  Desfazer
+                </Button>
+              </div>
+            )}
+
+            {focused?.kind === 'pc' ? (
+              <PcCommands key={focusKey} ctl={ctl} seat={focused.seat} />
+            ) : focused?.kind === 'npc' ? (
+              <FoeCommands key={focusKey} ctl={ctl} actor={focused.actor} />
+            ) : (
+              <TableCommands ctl={ctl} view={tableView} setView={setTableView} />
+            )}
+          </div>
         </div>
-      </div>
+
+        <div className="gm-deck__log">
+          {(aside || recapping) && (
+            <div className="flex max-h-[60%] shrink-0 flex-col gap-3 overflow-y-auto border-b border-[var(--border)] p-2">
+              {aside}
+              {recapping && (
+                <SessionRecap
+                  sessionId={sessionId}
+                  sessionName={session.name}
+                  events={events}
+                  onClose={() => setRecapping(false)}
+                />
+              )}
+            </div>
+          )}
+          <div className="min-h-0 flex-1">
+            <SessionFeed events={events} loading={feedLoading} onReveal={reveal} />
+          </div>
+        </div>
+      </section>
 
       {delivering && (
         <HandoutDrawer

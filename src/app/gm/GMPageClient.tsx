@@ -11,6 +11,7 @@ import { BestiaryImportModal } from '@/components/gm/BestiaryImportModal'
 import { NpcTagEditor } from '@/components/gm/NpcTagEditor'
 import { ScenesPanel } from '@/components/gm/ScenesPanel'
 import { SessionRecap } from '@/components/gm/SessionRecap'
+import { SessionBadge } from '@/components/gm/table/TableHud'
 import { allTags, duplicateOf, filterBestiary } from '@/lib/bestiary'
 import { RollToasts } from '@/components/sheet/RollToasts'
 import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
@@ -48,7 +49,11 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [creating, setCreating] = useState(false)
   const [ending, setEnding] = useState(false)
   const [tab, setTab] = useState<Tab>('session')
-  const isMobile = useIsMobile()
+  // Abaixo de 1024px a barra do topo não tem lugar para as abas e a mesa
+  // juntas: as abas descem para o alto da página.
+  const compact = useIsMobile(1023)
+  /** Onde a mesa põe quem está nela, ao lado do código, na barra do topo. */
+  const [presenceSlot, setPresenceSlot] = useState<HTMLDivElement | null>(null)
   const [npcs, setNpcs] = useState<NPC[]>([])
   const [loadingNpcs, setLoadingNpcs] = useState(false)
   const [showCreator, setShowCreator] = useState(false)
@@ -305,8 +310,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   )
 
   // As abas vão na faixa do meio da barra do topo, como a luz vai na ficha:
-  // a mesa fica com a altura toda. No celular a faixa não existe, e elas
-  // voltam para o alto da página.
+  // a mesa fica com a altura toda. Em tela estreita elas voltam para o alto
+  // da página.
   const tabs = (
     <Tabs value={tab} onValueChange={value => setTab(value as Tab)}>
       <TabsList variant="line" className="h-auto justify-start gap-0 bg-transparent p-0">
@@ -345,17 +350,24 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       backHref="/home"
       playerName={gmName}
       playerRole="MESTRE · CAMPANHA ATIVA"
-      headerCenter={isMobile ? undefined : (
+      headerCenter={compact ? undefined : (
         <div className="flex items-center gap-6">
-          <span aria-hidden className="font-heading hidden text-[18px] leading-none text-[var(--foreground)] xl:inline">
+          <span aria-hidden className="font-heading hidden text-[18px] leading-none text-[var(--foreground)] min-[1600px]:inline">
             Painel do Mestre
           </span>
           {tabs}
         </div>
       )}
+      // A mesa aberta: o nome, o código e o Encerrar; quem está nela entra no
+      // meio, pela mão do painel da sessão, que é quem lê a presença.
+      headerRight={session ? (
+        <SessionBadge name={session.name} code={session.code} ending={ending} onEnd={() => void endSession()}>
+          <div ref={setPresenceSlot} className="contents" />
+        </SessionBadge>
+      ) : undefined}
     >
       <div className={cn('gm-page', atTable && 'gm-page--screen')}>
-        {isMobile ? (
+        {compact ? (
           <div className="mb-4 flex shrink-0 flex-col gap-1 border-b border-[var(--border)] pt-2">
             <h1 className="font-heading text-[24px] leading-none text-[var(--foreground)]">Painel do Mestre</h1>
             <div className="-mx-4 overflow-x-auto px-4">{tabs}</div>
@@ -373,9 +385,8 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
               gmId={gmId}
               onSessionChange={setSession}
               onRoll={handleGmRoll}
-              onEnd={() => void endSession()}
-              ending={ending}
               aside={lastRecap}
+              presenceSlot={presenceSlot}
             />
           ) : (
             <div className="flex flex-col gap-4">

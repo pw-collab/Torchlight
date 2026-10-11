@@ -61,7 +61,8 @@ function useHpPop(hp: number) {
 
 /**
  * A moldura comum: o retrato com a CA e a vida por cima, como os vitais da
- * ficha, a mira e o que sobe por cima. É um botão inteiro, porque clicar na
+ * ficha; a seta da vez, a mira e o que sobe por cima; a sombra no chão, que
+ * vira luz de tocha sob quem age. É um botão inteiro, porque clicar na
  * figura é o gesto da tela — escolhe quem o bloco de ações mostra, ou é o
  * alvo do golpe que está no ar.
  */
@@ -105,6 +106,7 @@ function FigureFrame({
       )}
     >
       <span className="gm-fig__body">
+        {state.active && <span aria-hidden className="gm-fig__turn">▼</span>}
         <span className="gm-fig__portrait">
           {portrait ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -112,11 +114,9 @@ function FigureFrame({
           ) : (
             <span aria-hidden className="gm-fig__mono">{initials(name)}</span>
           )}
-          {state.active ? (
-            <span aria-hidden className="gm-fig__flag gm-fig__flag--turn">Age</span>
-          ) : state.done ? (
+          {state.done && !state.active && (
             <span aria-hidden title="Já agiu nesta rodada" className="gm-fig__flag">✓ Agiu</span>
-          ) : null}
+          )}
           <span aria-hidden className="gm-fig__ac"><small>CA</small><b>{ac}</b></span>
           <HpBar current={hp} max={max} label={false} />
         </span>
@@ -137,6 +137,7 @@ function FigureFrame({
           </span>
         )}
       </span>
+      <span aria-hidden className="gm-fig__shadow" />
       <span className="gm-fig__name">
         {present && <span aria-hidden title="Com a ficha aberta" className="gm-fig__presence" />}
         <span>{name}</span>

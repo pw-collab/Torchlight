@@ -12,7 +12,7 @@ import {
   type FeedFilterId,
 } from '@/lib/sessionEvents'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 
 
 interface Props {
@@ -52,27 +52,22 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
 
   return (
     // Ocupa a altura do bloco em que a mesa o põe e rola por dentro.
-    <div className="flex h-full flex-col border border-[var(--border)] bg-[var(--card)]">
-      <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-1 border-b border-[var(--border)] py-1.5 pr-2 pl-4">
+    <div className="gm-feed flex h-full flex-col border border-[var(--border)] bg-[var(--card)]">
+      <div className="flex min-h-11 shrink-0 items-center gap-2 border-b border-[var(--border)] py-1.5 pr-2 pl-4">
         <span className="font-heading mr-auto text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           Diário da mesa
         </span>
-        {FEED_FILTERS.map(f => (
-          <Button
-            key={f.id}
-            type="button"
-            variant="outline"
-            onClick={() => setFilter(f.id)}
-            className={cn(
-              'h-7 px-2 text-[10px] tracking-[0.08em]',
-              filter === f.id
-                ? 'border-[var(--primary-text)] bg-[var(--input)] text-[var(--foreground)]'
-                : 'bg-transparent text-[var(--muted-foreground)]',
-            )}
-          >
-            {f.label}
-          </Button>
-        ))}
+        {/* Um seletor, não seis botões: a coluna do diário é estreita. */}
+        <NativeSelect
+          size="sm"
+          value={filter}
+          onChange={e => setFilter(e.target.value as FeedFilterId)}
+          aria-label="Mostrar no diário"
+        >
+          {FEED_FILTERS.map(f => (
+            <NativeSelectOption key={f.id} value={f.id}>{f.label}</NativeSelectOption>
+          ))}
+        </NativeSelect>
       </div>
 
       <div

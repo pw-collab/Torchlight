@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { PlayIcon, RepeatIcon, StopIcon } from '@hugeicons/core-free-icons'
 import type { Encounter, EncounterActor } from '@/types/encounter.types'
@@ -13,11 +14,11 @@ import { cn } from '@/lib/utils'
 
 const SIDE_LABEL: Record<Side, string> = { pc: 'Grupo', npc: 'Inimigos' }
 
-/** O botão grande do quadro: o vermelho cheio, a ação que o momento pede. */
+/** O botão grande da linha: o vermelho cheio, a ação que o momento pede. */
 const NEXT_BUTTON = 'h-11 shrink-0 gap-2 px-4 text-[11px] tracking-[0.12em] max-sm:ml-auto max-sm:h-9 max-sm:px-3 max-sm:text-[10px]'
 
-/** O título do quadro: a rodada, e o que está acontecendo nela. */
-function Heading({ title, status }: { title: React.ReactNode; status: string }) {
+/** O título da linha: a rodada, e o que está acontecendo nela. */
+function Heading({ title, status }: { title: ReactNode; status: string }) {
   return (
     <div className="flex min-w-0 shrink-0 flex-col gap-0.5">
       <span className="font-heading text-[17px] leading-none tracking-[0.1em] text-[var(--foreground)] uppercase">
@@ -30,19 +31,30 @@ function Heading({ title, status }: { title: React.ReactNode; status: string }) 
   )
 }
 
+/** A luz e o relógio, e o botão da vez: o canto direito da linha. */
+function Trailing({ tools, children }: { tools?: ReactNode; children?: ReactNode }) {
+  return (
+    <div className="flex shrink-0 items-center gap-3 sm:ml-auto max-sm:contents">
+      {tools && <div className="max-sm:order-last max-sm:basis-full">{tools}</div>}
+      {children}
+    </div>
+  )
+}
+
 /**
- * O quadro de iniciativa do combate: a rodada, os dois d6 e, ao lado de cada
- * um, as fichas do lado que ele ordena (cinza para o grupo, sangue para os
- * inimigos, vermelho cheio para quem age, apagadas para quem já agiu).
- * Clicar numa ficha abre os comandos daquele combatente — ou o escolhe como
- * alvo, se um golpe está no ar.
+ * A linha de rodada do combate, no alto da arena: a rodada, os dois d6 e, ao
+ * lado de cada um, as fichas do lado que ele ordena (cinza para o grupo,
+ * sangue para os inimigos, vermelho cheio e maior para quem age, apagadas
+ * para quem já agiu). Clicar numa ficha abre os comandos daquele combatente —
+ * ou o escolhe como alvo, se um golpe está no ar.
  *
  * O botão faz o que o momento pede (ver `NextStep`): rolar o d6 que falta,
  * encerrar a vez de quem age, pôr o próximo inimigo para agir. Na vez do
- * grupo ele descansa: quem assume são os jogadores, na ficha.
+ * grupo ele descansa: quem assume são os jogadores, na ficha. `tools` é a luz
+ * e o relógio da mesa, ao lado dele.
  */
 export function CombatRibbon({
-  encounter, order, turn, actingName, next, notice, focusKey, onSelect, busy,
+  encounter, order, turn, actingName, next, notice, focusKey, onSelect, busy, tools,
 }: {
   encounter: Encounter
   order: EncounterActor[]
@@ -53,6 +65,7 @@ export function CombatRibbon({
   focusKey: string | null
   onSelect: (key: string) => void
   busy?: boolean
+  tools?: ReactNode
 }) {
   const rolling = turn.stage === 'initiative'
   const sides: Side[] = rolling ? ['pc', 'npc'] : turn.order
@@ -65,7 +78,7 @@ export function CombatRibbon({
         : encounter.name
 
   return (
-    <div className="gm-turns" data-live={!rolling && Boolean(actingName)}>
+    <div className="gm-roundline" data-live={!rolling && Boolean(actingName)}>
       <Heading title={rolling ? 'Iniciativa' : `Rodada ${turn.round}`} status={notice ?? status} />
 
       <ol
@@ -120,18 +133,20 @@ export function CombatRibbon({
         })}
       </ol>
 
-      {next && (
-        <Button
-          type="button"
-          onClick={() => void next.run()}
-          disabled={busy || next.idle}
-          title={`${next.hint}${next.idle ? '' : ' (atalho: N)'}`}
-          className={NEXT_BUTTON}
-        >
-          <HugeiconsIcon icon={next.icon} size={16} strokeWidth={2} aria-hidden />
-          {next.label}
-        </Button>
-      )}
+      <Trailing tools={tools}>
+        {next && (
+          <Button
+            type="button"
+            onClick={() => void next.run()}
+            disabled={busy || next.idle}
+            title={`${next.hint}${next.idle ? '' : ' (atalho: N)'}`}
+            className={NEXT_BUTTON}
+          >
+            <HugeiconsIcon icon={next.icon} size={16} strokeWidth={2} aria-hidden />
+            {next.label}
+          </Button>
+        )}
+      </Trailing>
     </div>
   )
 }
@@ -142,7 +157,7 @@ export function CombatRibbon({
  * quando quiser, e o perigo dita de quantas em quantas a masmorra responde.
  */
 export function ExplorationRibbon({
-  round, danger, roundsToCheck, actingName, acted, standing, onNextRound, onEndActing, onSetDanger, onReset,
+  round, danger, roundsToCheck, actingName, acted, standing, onNextRound, onEndActing, onSetDanger, onReset, tools,
 }: {
   round: number
   danger: DangerLevel
@@ -156,13 +171,14 @@ export function ExplorationRibbon({
   onEndActing: () => void
   onSetDanger: (danger: DangerLevel) => void
   onReset: () => void
+  tools?: ReactNode
 }) {
   const level = DANGER_LEVELS.find(d => d.id === danger) ?? DANGER_LEVELS[0]
   const justChecked = round > 0 && roundsToCheck === level.every
   const everyone = standing > 0 && acted >= standing
 
   return (
-    <div className="gm-turns" data-live={Boolean(actingName)}>
+    <div className="gm-roundline" data-live={Boolean(actingName)}>
       <Heading
         title={<><span className="max-sm:hidden">Exploração · </span>Rodada {round}</>}
         status={justChecked ? 'A masmorra acabou de responder.' : `A masmorra responde em ${roundsToCheck} rodada${roundsToCheck === 1 ? '' : 's'}.`}
@@ -216,15 +232,17 @@ export function ExplorationRibbon({
         )}
       </div>
 
-      <Button
-        type="button"
-        onClick={onNextRound}
-        title={`Passar uma rodada de exploração: a vez fica livre para todos de novo. ${level.label}: a checagem rola sozinha a cada ${level.every} (atalho: N)`}
-        className={NEXT_BUTTON}
-      >
-        <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={2} aria-hidden />
-        Próxima rodada
-      </Button>
+      <Trailing tools={tools}>
+        <Button
+          type="button"
+          onClick={onNextRound}
+          title={`Passar uma rodada de exploração: a vez fica livre para todos de novo. ${level.label}: a checagem rola sozinha a cada ${level.every} (atalho: N)`}
+          className={NEXT_BUTTON}
+        >
+          <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={2} aria-hidden />
+          Próxima rodada
+        </Button>
+      </Trailing>
     </div>
   )
 }

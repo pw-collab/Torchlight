@@ -1104,17 +1104,23 @@ html, body {
    Painel do Mestre — a mesa numa tela só
 
    Como a ficha (.sheet-grid), a sessão aberta é uma tela que não
-   rola: cada bloco rola por dentro. No alto, a barra da mesa (luz,
-   relógio, código) e o quadro de iniciativa; embaixo, o palco com
-   as figuras, o bloco de ações de quem está em foco e o diário.
+   rola. A sessão, o código e quem está na mesa moram na barra do
+   topo, junto das abas. Embaixo dela, dois blocos, como num RPG de
+   turno:
 
-     ≥1360px     palco | ações | diário
-     1024–1359   palco sobre o diário | ações
-     <1024       uma coluna que rola: o quadro gruda no topo e as
-                 ações no pé, então os dois seguem à vista
+     a arena   a linha de rodada (a vez, os d6, as fichas na ordem,
+               a luz e o relógio) e, sob ela, o palco: o grupo de
+               um lado, os inimigos do outro
+     o deck    a placa de quem está em foco | os comandos | o diário,
+               de altura fixa, sempre na tela
+
+   Abaixo de 1024px a página volta a rolar: a linha de rodada gruda
+   no topo e o deck vira uma gaveta presa no pé, com uma aba para
+   cada coluna.
 
    Tudo nos tokens da app: cantos retos, --card com a regra --border,
-   --input nos controles, vermelho só para a ação da vez e o dano.
+   --input nos controles, vermelho para a vez e o dano, --torch para
+   a luz.
    ============================================================ */
 
 .gm-page {
@@ -1122,13 +1128,13 @@ html, body {
   margin-inline: auto;
   padding: 0 32px 32px;
 }
-/* A sessão aberta: o título e as abas ficam com a sua linha, a mesa
-   com o resto da altura que o AppShell deixa. */
+/* A sessão aberta: a mesa fica com toda a altura que o AppShell deixa. */
 .gm-page--screen {
   display: flex;
   flex-direction: column;
   height: calc(100dvh - 80px - var(--safe-top));
-  min-height: 640px;
+  min-height: 600px;
+  padding-top: 8px;
   padding-bottom: 24px;
 }
 @media (max-width: 640px) {
@@ -1138,113 +1144,357 @@ html, body {
 .gm-table {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px 320px;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  grid-template-areas:
-    'bar   bar     bar'
-    'turns turns   turns'
-    'stage actions log';
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
-.gm-table > * { min-width: 0; min-height: 0; }
-.gm-table__bar     { grid-area: bar; }
-.gm-table__turns   { grid-area: turns; }
-.gm-table__stage   { grid-area: stage; }
-.gm-table__actions { grid-area: actions; }
-.gm-table__log     { grid-area: log; }
 
-/* Sem largura para o diário ao lado, ele desce para baixo do palco: a
-   coluna da direita fica inteira para as ações. */
-@media (max-width: 1359px) {
-  .gm-table {
-    grid-template-columns: minmax(0, 1fr) 360px;
-    grid-template-rows: auto auto minmax(0, 3fr) minmax(0, 2fr);
-    grid-template-areas:
-      'bar   bar'
-      'turns turns'
-      'stage actions'
-      'log   actions';
-  }
-}
+/* ── A arena: a linha de rodada e o palco ──────────────────────────────── */
 
-/* Sem largura para os blocos lado a lado, a página volta a rolar. O
-   quadro de iniciativa gruda sob a barra do topo (o recuo do AppShell já
-   desconta a altura dela) e as ações no pé da tela; o diário desce para
-   antes delas, para as ações serem sempre a última coisa da coluna. */
-@media (max-width: 1023px) {
-  .gm-page--screen { height: auto; min-height: 0; }
-  .gm-table { display: flex; flex-direction: column; gap: 12px; }
-  .gm-table__turns {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
-  }
-  .gm-table__log { order: 1; height: 420px; }
-  /* Recolhido, fica o cabeçalho e o chão: o palco volta a ter a tela. */
-  .gm-actions[data-collapsed='true'] .gm-actions__body { display: none; }
-  .gm-table__actions {
-    order: 2;
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-    max-height: 44dvh;
-    padding-bottom: var(--safe-bottom);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
-  }
-}
-@media (max-width: 640px) {
-  .gm-table__actions { max-height: 46dvh; }
-  .gm-turns { gap: 8px 12px; padding: 8px 8px 8px 12px; }
-  /* No pé da tela do celular a placa fica só com o nome e a vida: a CA está
-     na figura, e Fortuna e XP nos próprios comandos. */
-  .gm-actions .gm-stats,
-  .gm-actions .gm-plate__portrait { display: none; }
-  .gm-actions__body { gap: 12px; padding: 12px; }
-  .gm-actions__floor [data-slot='button'] { height: 44px; min-height: 44px; }
-}
-
-/* ── O bloco de ações ──────────────────────────────────────────────────── */
-
-.gm-actions {
+.gm-arena {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--border);
 }
-.gm-actions__head {
+
+/* A linha de rodada: o topo da arena. A borda da esquerda acende quando
+   alguém está agindo. */
+.gm-roundline {
   display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px 20px;
+  min-height: 64px;
+  padding: 8px 12px 8px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--input-border);
+}
+.gm-roundline[data-live='true'] { border-left-color: var(--primary-text); }
+
+.gm-side-die {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  min-height: 48px;
-  padding: 6px 8px 6px 16px;
-  border-bottom: 1px solid var(--border);
+  height: 36px;
+  padding: 0 10px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  border: 1px solid var(--input-border);
 }
-.gm-actions__body {
+.gm-side-die b { font-size: 16px; letter-spacing: 0; color: var(--foreground); }
+.gm-side-die.is-current { color: var(--foreground); border-color: var(--primary-text); }
+
+/* O medidor de luz da ficha mora numa barra de 56px; aqui, numa linha. */
+.gm-roundline .gm-torch > button { min-height: 40px; }
+
+/* As fichas na ordem. A de quem age cresce e brilha; as outras sobem um
+   pouco sob o cursor. */
+.gm-token {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+  background: var(--input);
+  border: 1px solid var(--input-border);
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform 200ms var(--ease-ritual),
+    width 200ms var(--ease-ritual),
+    height 200ms var(--ease-ritual),
+    border-color 150ms ease,
+    box-shadow 200ms ease,
+    opacity 200ms ease;
+}
+.gm-token:hover { transform: translateY(-2px); border-color: var(--sidebar-ring); }
+.gm-token:active { transform: scale(0.94); }
+.gm-token:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%); }
+.gm-token--foe {
+  color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive), transparent 88%);
+  border-color: color-mix(in oklch, var(--destructive), transparent 55%);
+}
+.gm-token.is-active {
+  width: 44px;
+  height: 44px;
+  font-size: 13px;
+  color: var(--sidebar-primary-foreground);
+  background: var(--sidebar-primary);
+  border-color: var(--primary-foreground);
+  box-shadow: var(--glow-candle);
+}
+.gm-token.is-focused { outline: 1px solid var(--ring); outline-offset: 2px; }
+.gm-token.is-done { opacity: 0.45; }
+.gm-token.is-out { opacity: 0.3; text-decoration: line-through; }
+
+/* O que está no ar (o alvo a escolher, o golpe rolado, o dano esperando):
+   entre a linha de rodada e o palco, sem cobrir as figuras. */
+.gm-callouts {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 0;
+}
+.gm-callouts:empty { display: none; }
+
+.gm-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 8px 8px 12px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--input-border);
+}
+.gm-callout--danger { border-left-color: var(--destructive); }
+.gm-callout--crit { border-left-color: var(--chart-1); }
+.gm-callout__body { display: flex; flex: 1 1 220px; flex-direction: column; gap: 2px; min-width: 0; }
+.gm-callout__title {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+.gm-callout__text {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+.gm-callout__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+/* O palco: o grupo de um lado, os inimigos do outro, de pé sobre a
+   linha do chão, com a luz da tocha respirando no meio. */
+.gm-stage {
+  position: relative;
+  isolation: isolate;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  justify-content: flex-end;
+  padding: 36px 24px 20px;
 }
-/* O chão do card, como o da ficha: o d20 do Mestre. Um pouco mais baixo
-   que o do dock da ficha — aqui a altura é dos comandos. */
-.gm-actions__floor {
+.gm-stage::before {
+  content: '';
+  position: absolute;
+  inset: 20% 20% 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at 50% 100%, color-mix(in oklch, var(--torch), transparent 84%), transparent 70%);
+  animation: candleFlicker 4s ease-in-out infinite;
+}
+/* A linha do chão, na altura dos pés: abaixo dela ficam os nomes. */
+.gm-stage::after {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 62px;
+  z-index: -1;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--input-border), transparent);
+}
+
+.gm-sides {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 24px clamp(32px, 6vw, 96px);
+}
+.gm-side {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.gm-side__head {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+/* Os rótulos dos lados nos cantos do alto do palco, longe da seta da vez. */
+.gm-stage .gm-side__head { position: absolute; top: 12px; }
+.gm-side--party .gm-side__head { left: 20px; }
+.gm-side--foes .gm-side__head { right: 20px; }
+.gm-side__figs {
+  --fig-w: clamp(80px, min(9vw, 13dvh), 148px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 16px;
+}
+/* A linha de frente de cada lado fica junto do centro. */
+.gm-side--party .gm-side__figs { flex-direction: row-reverse; }
+.gm-void {
+  margin: 0;
+  max-width: 280px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* ── O deck: a placa, os comandos, o diário ────────────────────────────── */
+
+.gm-deck {
   flex-shrink: 0;
-  padding: 8px;
-  border-top: 1px solid var(--border);
+  height: clamp(260px, 34dvh, 330px);
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 340px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'plate commands log'
+    'dice  commands log';
+  background: var(--card);
+  border: 1px solid var(--border);
 }
-.gm-actions__floor [data-slot='button'] { height: 48px; min-height: 48px; }
+.gm-deck > * { min-width: 0; min-height: 0; }
+.gm-deck__tabs { display: none; }
+.gm-deck__plate {
+  grid-area: plate;
+  overflow-y: auto;
+  padding: 16px;
+  border-right: 1px solid var(--border);
+}
+/* O d20 do Mestre no chão da placa, como no dock da ficha. */
+.gm-deck__dice {
+  grid-area: dice;
+  padding: 8px;
+  border-right: 1px solid var(--border);
+}
+.gm-deck__dice [data-slot='button'] { height: 48px; min-height: 48px; }
+.gm-deck__commands {
+  grid-area: commands;
+  display: flex;
+  flex-direction: column;
+}
+.gm-deck__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.gm-deck__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.gm-deck__log {
+  grid-area: log;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+}
+/* O diário entra na moldura do deck: nada de caixa dentro da caixa. */
+.gm-deck__log > * > .gm-feed { border: 0; }
+
+@media (max-width: 1359px) {
+  .gm-deck { grid-template-columns: 240px minmax(0, 1fr) 280px; }
+}
+
+/* Sem largura para a tela só: a página rola, a linha de rodada gruda sob
+   a barra do topo (o recuo do AppShell já desconta a altura dela) e o
+   deck vira uma gaveta presa no pé, com uma aba por coluna. */
+@media (max-width: 1023px) {
+  .gm-page--screen { height: auto; min-height: 0; }
+  .gm-table { gap: 12px; }
+  .gm-arena { flex: none; }
+  .gm-roundline {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  }
+  .gm-stage { overflow: visible; padding: 28px 12px 16px; }
+  .gm-stage::after { display: none; }
+  .gm-sides { flex-direction: column; align-items: stretch; }
+  .gm-stage .gm-side__head { position: static; }
+  .gm-side__figs,
+  .gm-side--party .gm-side__figs { flex-direction: row; justify-content: center; }
+  .gm-side__figs { --fig-w: clamp(68px, 19vw, 112px); gap: 14px 10px; }
+
+  .gm-deck {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    height: auto;
+    max-height: 42dvh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--safe-bottom);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .gm-deck__tabs {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .gm-deck__plate,
+  .gm-deck__dice,
+  .gm-deck__log { border: 0; }
+  .gm-deck__plate,
+  .gm-deck__commands,
+  .gm-deck__log { flex: 1; min-height: 0; }
+  .gm-deck__log { height: 360px; }
+  .gm-deck__dice { order: 9; border-top: 1px solid var(--border); }
+  .gm-deck__dice [data-slot='button'] { height: 44px; min-height: 44px; }
+  /* Uma coluna por vez; recolhido, ficam as abas e o d20. */
+  .gm-deck[data-panel='commands'] .gm-deck__plate,
+  .gm-deck[data-panel='commands'] .gm-deck__log,
+  .gm-deck[data-panel='plate'] .gm-deck__commands,
+  .gm-deck[data-panel='plate'] .gm-deck__log,
+  .gm-deck[data-panel='log'] .gm-deck__plate,
+  .gm-deck[data-panel='log'] .gm-deck__commands,
+  .gm-deck[data-collapsed='true'] .gm-deck__plate,
+  .gm-deck[data-collapsed='true'] .gm-deck__commands,
+  .gm-deck[data-collapsed='true'] .gm-deck__log { display: none; }
+}
+@media (max-width: 640px) {
+  .gm-roundline { gap: 8px 12px; padding: 8px 8px 8px 12px; }
+  .gm-deck { max-height: 46dvh; }
+  .gm-deck__body { padding: 12px; }
+}
 
 /* Os comandos: quadrados como os da trilha de abas da ficha, com o nome
-   por baixo do ícone. */
+   por baixo do ícone. Sob o cursor sobem e acendem. */
 .gm-commands {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 8px;
 }
 .gm-command {
@@ -1262,12 +1512,16 @@ html, body {
   border: 1px solid var(--input-border);
   outline: none;
   transition:
-    transform 90ms ease-out,
+    transform 150ms var(--ease-ritual),
     border-color 150ms ease,
     background 150ms ease,
     box-shadow 200ms var(--ease-ritual);
 }
-.gm-command:hover:not(:disabled) { border-color: var(--sidebar-ring); }
+.gm-command:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--sidebar-ring);
+  box-shadow: var(--glow-candle);
+}
 .gm-command:focus-visible {
   border-color: var(--ring);
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
@@ -1324,8 +1578,8 @@ html, body {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   overflow: hidden;
   background: var(--input);
   border: 1px solid var(--input-border);
@@ -1399,175 +1653,14 @@ html, body {
   letter-spacing: 0.24em;
 }
 
-/* ── O quadro de iniciativa ────────────────────────────────────────────── */
-
-.gm-turns {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 20px;
-  padding: 10px 12px 10px 16px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border);
-}
-.gm-turns[data-live='true'] { border-left-color: var(--primary-text); }
-
-.gm-side-die {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  height: 36px;
-  padding: 0 10px;
-  font-family: var(--font-heading);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--muted-foreground);
-  background: var(--secondary);
-  border: 1px solid var(--input-border);
-}
-.gm-side-die b { font-size: 16px; letter-spacing: 0; color: var(--foreground); }
-.gm-side-die.is-current { color: var(--foreground); border-color: var(--primary-text); }
-
-.gm-token {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  font-family: var(--font-heading);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--foreground);
-  background: var(--input);
-  border: 1px solid var(--input-border);
-  cursor: pointer;
-  outline: none;
-  transition: transform 90ms ease-out, border-color 150ms ease, opacity 200ms ease;
-}
-.gm-token:hover { border-color: var(--sidebar-ring); }
-.gm-token:active { transform: scale(0.94); }
-.gm-token:focus-visible { box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%); }
-.gm-token--foe {
-  color: var(--destructive);
-  background: color-mix(in oklch, var(--destructive), transparent 88%);
-  border-color: color-mix(in oklch, var(--destructive), transparent 55%);
-}
-.gm-token.is-active {
-  color: var(--sidebar-primary-foreground);
-  background: var(--sidebar-primary);
-  border-color: var(--sidebar-ring);
-}
-.gm-token.is-focused { outline: 1px solid var(--ring); outline-offset: 2px; }
-.gm-token.is-done { opacity: 0.45; }
-.gm-token.is-out { opacity: 0.3; text-decoration: line-through; }
-
-/* ── O palco ───────────────────────────────────────────────────────────── */
-
-.gm-stage {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-}
-/* O que está no ar (o alvo a escolher, o golpe rolado, o dano esperando)
-   fica no alto do palco, fora da rolagem das figuras: sempre à vista. */
-.gm-callouts {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 12px 0;
-}
-.gm-callouts:empty { display: none; }
-.gm-stage__figures {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px;
-}
-@media (max-width: 1023px) {
-  .gm-stage { height: auto; }
-  .gm-stage__figures { overflow: visible; }
-}
-
-.gm-sides { display: flex; flex-wrap: wrap; gap: 20px 32px; }
-.gm-side {
-  display: flex;
-  flex: 1 1 300px;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  container-type: inline-size;
-}
-.gm-side__head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-heading);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
-}
-.gm-side__figs {
-  /* Quatro por fileira sempre que o lado tem largura para 80px cada, e
-     nunca tão altas que o palco não caiba na tela. */
-  --fig-w: clamp(80px, min(calc((100cqi - 40px) / 4), 12.5dvh), 128px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 16px 12px;
-}
-.gm-void {
-  margin: 0;
-  font-family: var(--font-body);
-  font-style: italic;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted-foreground);
-}
-
-.gm-callout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  padding: 8px 8px 8px 12px;
-  background: var(--secondary);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--input-border);
-}
-.gm-callout--danger { border-left-color: var(--destructive); }
-.gm-callout--crit { border-left-color: var(--chart-1); }
-.gm-callout__body { display: flex; flex: 1 1 220px; flex-direction: column; gap: 2px; min-width: 0; }
-.gm-callout__title {
-  font-family: var(--font-heading);
-  font-size: 12px;
-  line-height: 1.25;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--foreground);
-}
-.gm-callout__text {
-  font-family: var(--font-body);
-  font-style: italic;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--muted-foreground);
-}
-.gm-callout__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-
 /* ── Um combatente ─────────────────────────────────────────────────────── */
 
+/* De pé no palco: sobe sob o cursor, sobe e ganha contorno quando está em
+   foco, se apaga quando já agiu e afunda quando cai. Quem age tem a seta
+   flutuando em cima e a luz da tocha no chão. */
 .gm-fig {
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1576,10 +1669,10 @@ html, body {
   border: 0;
   background: none;
   color: inherit;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   outline: none;
-  transition: opacity 250ms var(--ease-ritual);
+  transition: transform 250ms var(--ease-ritual), opacity 250ms var(--ease-ritual);
 }
 .gm-fig__body { position: relative; display: block; width: 100%; }
 .gm-fig__portrait {
@@ -1591,7 +1684,7 @@ html, body {
   overflow: hidden;
   background: var(--input);
   border: 1px solid var(--input-border);
-  transition: border-color 150ms ease, box-shadow 200ms ease, filter 300ms ease;
+  transition: border-color 150ms ease, box-shadow 250ms var(--ease-ritual), filter 300ms ease;
 }
 .gm-fig__portrait img { width: 100%; height: 100%; object-fit: cover; }
 .gm-fig__mono {
@@ -1605,11 +1698,6 @@ html, body {
   border-color: color-mix(in oklch, var(--destructive), transparent 55%);
 }
 .gm-fig--foe .gm-fig__mono { color: var(--destructive); }
-.gm-fig:hover .gm-fig__portrait { border-color: var(--ring); }
-.gm-fig:focus-visible .gm-fig__portrait {
-  border-color: var(--ring);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
-}
 
 /* Os selos sobre o retrato, como o da CA nos vitais da ficha. */
 .gm-fig__ac {
@@ -1644,7 +1732,6 @@ html, body {
   color: var(--secondary-foreground);
   background: var(--secondary);
 }
-.gm-fig__flag--turn { color: var(--sidebar-primary-foreground); background: var(--sidebar-primary); }
 .gm-fig .gm-hp {
   position: absolute;
   left: 3px;
@@ -1655,9 +1742,43 @@ html, body {
 }
 .gm-fig .gm-hp__text { padding: 0 5px; font-size: 13px; }
 
+/* A seta da vez, flutuando sobre quem age. */
+.gm-fig__turn {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  z-index: 3;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--primary-text);
+  text-shadow: 0 0 10px var(--primary);
+  transform: translateX(-50%);
+  animation: gmBob 1.3s ease-in-out infinite;
+}
+
+/* A sombra no chão; vira a luz da tocha sob quem age. */
+.gm-fig__shadow {
+  position: relative;
+  z-index: -1;
+  align-self: center;
+  width: 92%;
+  height: 12px;
+  margin-top: -12px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75), transparent 70%);
+  transition: width 250ms var(--ease-ritual);
+}
+.gm-fig.is-active .gm-fig__shadow {
+  width: 124%;
+  height: 16px;
+  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--torch), transparent 35%), transparent 70%);
+}
+
 .gm-fig__name {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   min-width: 0;
   font-family: var(--font-heading);
@@ -1675,7 +1796,31 @@ html, body {
   background: var(--chart-2);
   box-shadow: 0 0 6px var(--chart-2);
 }
-.gm-fig__tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.gm-fig__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 17px; }
+
+/* Estados. O hover vem antes: quem age, está em foco ou caiu fica onde
+   o estado manda. */
+.gm-fig:hover { transform: translateY(-3px); }
+.gm-fig:hover .gm-fig__portrait {
+  border-color: var(--ring);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+}
+.gm-fig:focus-visible .gm-fig__portrait {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
+}
+.gm-fig.is-focused { transform: translateY(-4px); outline: 1px solid var(--ring); outline-offset: 5px; }
+.gm-fig.is-active { transform: translateY(-4px); }
+.gm-fig.is-active .gm-fig__portrait {
+  border-color: var(--primary-text);
+  box-shadow: 0 0 0 1px var(--primary-text), var(--glow-candle);
+}
+.gm-fig.is-done { opacity: 0.55; }
+.gm-fig.is-done .gm-fig__portrait { filter: saturate(0.6) brightness(0.85); }
+.gm-fig.is-down { opacity: 0.6; transform: translateY(12px); }
+.gm-fig.is-down .gm-fig__portrait { filter: grayscale(1) brightness(0.6); }
+.gm-fig.is-dying .gm-fig__portrait { animation: gmDying 1.6s ease-in-out infinite; }
+.gm-fig.is-targetable { cursor: crosshair; opacity: 1; }
 
 .gm-tag {
   padding: 2px 5px;
@@ -1699,18 +1844,6 @@ html, body {
   background: transparent;
   border-color: var(--input-border);
 }
-
-/* Estados */
-.gm-fig.is-active .gm-fig__portrait {
-  border-color: var(--primary-text);
-  box-shadow: 0 0 0 1px var(--primary-text), var(--glow-candle);
-}
-.gm-fig.is-focused { outline: 1px solid var(--ring); outline-offset: 4px; }
-.gm-fig.is-done { opacity: 0.55; }
-.gm-fig.is-down { opacity: 0.6; }
-.gm-fig.is-down .gm-fig__portrait { filter: grayscale(1) brightness(0.6); }
-.gm-fig.is-dying .gm-fig__portrait { animation: gmDying 1.6s ease-in-out infinite; }
-.gm-fig.is-targetable { cursor: crosshair; opacity: 1; }
 
 /* A mira: quatro cantos em volta de quem pode ser alvo. */
 .gm-fig__reticle {
@@ -1778,4 +1911,8 @@ html, body {
   28%  { transform: translate(-50%, 0) scale(1); }
   75%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
+}
+@keyframes gmBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -5px); }
 }
