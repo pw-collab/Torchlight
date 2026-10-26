@@ -170,11 +170,19 @@ export function GlyphCard({
           inert={open}
           className={cn(
             'card-flip__face tactile h-auto w-full flex-col p-1',
-            'bg-input border-input-border',
             // Button's base is a label: nowrap + uppercase. The face holds
             // prose, so it wraps and keeps the casing it was written in.
             'whitespace-normal normal-case',
-            face === 'compact' && 'items-stretch justify-start gap-0 p-[3px] tracking-normal',
+            face === 'compact'
+              ? cn(
+                  // The design's "Button card": a --muted plate for what
+                  // holds, --accent for what is spent, 6px round the frame.
+                  'items-stretch justify-start gap-0 border-0 p-1.5 tracking-normal',
+                  tone === 'activation'
+                    ? 'bg-accent hover:bg-accent aria-expanded:bg-accent'
+                    : 'bg-muted hover:bg-muted aria-expanded:bg-muted',
+                )
+              : 'bg-input border-input-border',
           )}
         >
           {face === 'compact' ? (
@@ -333,10 +341,12 @@ export function GlyphCard({
 }
 
 /**
- * The compact face: a ruled title bar carrying the name and a small symbol,
- * over a ruled body with the type label and the clamped description. The
- * rules, the label and the corner marks are a step brighter on the cards the
- * character spends — same weight-not-hue idea as the masthead face.
+ * The compact face, the design's "Button card": inside a 4px --border frame,
+ * the name in caps over the type (a small symbol, then the label), and the
+ * clamped description under them, with ✦ marks in the corners. The plate
+ * behind it is --muted for what holds and --accent for what the character
+ * spends, and the spent ones light the symbol and the label in the
+ * terracotta.
  */
 function CompactFace({ glyph, title, caption, description, status, tone }: {
   glyph: ReactNode
@@ -346,38 +356,40 @@ function CompactFace({ glyph, title, caption, description, status, tone }: {
   status?: { text: string; color: string } | null
   tone: 'passive' | 'activation'
 }) {
-  const rule = tone === 'activation' ? 'var(--input)' : 'var(--border)'
-  const mark: React.CSSProperties = { fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 6, lineHeight: '6px', color: rule }
+  const spent = tone === 'activation'
+  const ink = spent ? 'var(--accent-foreground)' : 'var(--card-foreground)'
+  const mark: React.CSSProperties = { fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 6, lineHeight: '6px', letterSpacing: '1.12px', color: 'var(--border)' }
 
   return (
-    <>
-      {/* Title bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: 8, border: `1px solid ${rule}`, flexShrink: 0 }}>
-        <p style={{ flex: 1, minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: 'var(--foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
-          {title}
-        </p>
-        <span aria-hidden className="[&>svg]:size-[18px]" style={{ display: 'flex', flexShrink: 0, color: 'var(--foreground)' }}>
-          {glyph}
-        </span>
+    // The frame is an inset shadow, not a border: Figma strokes it inside the
+    // box, over the 12px padding, so the content sits 12px from its outer edge.
+    <div style={{ position: 'relative', flex: 1, minHeight: 0, boxShadow: 'inset 0 0 0 4px var(--border)', display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
+      {/* Corner marks + roll arrow, just inside the frame */}
+      <div aria-hidden style={{ position: 'absolute', inset: 7, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', ...mark }}>
+          <span>✦</span><span>✦</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...mark }}>
+          <span>✦</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
+          <span>✦</span>
+        </div>
       </div>
 
-      {/* Body */}
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `1px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
-        {/* Corner marks + roll arrow */}
-        <div aria-hidden style={{ position: 'absolute', inset: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', ...mark }}>
-            <span>✦</span><span>✦</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...mark }}>
-            <span>✦</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
-            <span>✦</span>
-          </div>
-        </div>
-
-        {/* Type label, with the use counter at the other end when there is one */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, flexShrink: 0 }}>
+      {/* Name, then the type: symbol, label, and the use counter at the far end */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+        {/* The design sets the name in Bricolage's 96pt cut, tighter than
+            the 16pt one optical sizing would pick at this size. */}
+        <p style={{ margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 16, lineHeight: 1.2, fontVariationSettings: "'opsz' 96, 'wdth' 100", textTransform: 'uppercase', color: ink, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+          {title}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span aria-hidden className="[&>svg]:size-[18px]" style={{ display: 'flex', flexShrink: 0, color: spent ? 'var(--primary)' : 'var(--card-foreground)' }}>
+            {glyph}
+          </span>
           <p style={{
+            flex: 1,
+            minWidth: 0,
             fontFamily: 'var(--font-body)',
             fontWeight: 600,
             fontSize: 8,
@@ -385,24 +397,26 @@ function CompactFace({ glyph, title, caption, description, status, tone }: {
             textTransform: 'uppercase',
             lineHeight: '11.429px',
             margin: 0,
-            color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+            textAlign: 'left',
+            whiteSpace: 'nowrap',
+            color: spent ? 'var(--primary)' : 'var(--muted-foreground)',
           }}>
-            {caption}
+            <span aria-hidden>| </span>{caption}
           </p>
           {status && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11.429px', letterSpacing: '0.04em' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11.429px', letterSpacing: '0.04em', flexShrink: 0 }}>
               {status.text}
             </span>
           )}
         </div>
-
-        {/* Description — fills the rest of the body, fading at the cut */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
-            {description}
-          </p>
-        </div>
       </div>
-    </>
+
+      {/* Description: fills the rest of the frame, fading at the cut */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: spent ? 'var(--accent-foreground)' : 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+          {description}
+        </p>
+      </div>
+    </div>
   )
 }

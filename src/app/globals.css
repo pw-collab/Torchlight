@@ -55,8 +55,8 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
-  /* The one warm colour outside the reds: a light source that is burning
-     (the design's #fb9e32). Same in both themes — a flame doesn't change. */
+  /* A light source that is burning. The dark theme, the one the app renders,
+     draws it in the terracotta accent (see .dark). */
   --torch: oklch(0.777 0.159 64.5);
   /* Red as text, and the edge of a control. --primary is a fill: as text on
      the dark surfaces it reads at 2:1, and --input doubles as the selected-
@@ -457,10 +457,12 @@ html, body {
   );
 }
 
-/* The header's middle lane. The sheet's light status rides here, lined up
-   with the first column of the content grid underneath (the same 1440px box
-   and 48px gutter as .sheet-grid) — but never nearer the left edge than
-   184px, which is where the logo menu and the back link end. */
+/* The header's middle lane, on the same 1440px box and 48px gutter as
+   .sheet-grid. By default it lines up with the first column of the content
+   grid underneath, but never nearer the left edge than 184px, which is
+   where the logo menu and the back link end. The sheet centres its light
+   status instead (--centered), as the design draws it; at 250px wide that
+   stays clear of the logo down to the narrowest desktop width. */
 .app-header-center {
   position: absolute;
   inset: 0;
@@ -475,6 +477,11 @@ html, body {
   padding-inline: 48px;
   padding-left: max(48px, calc(184px - max(0px, (100vw - 1440px) / 2)));
 }
+.app-header-center__box--centered {
+  display: flex;
+  justify-content: center;
+  padding-left: 48px;
+}
 .app-header-center__box > * { pointer-events: auto; }
 
 /* ============================================================
@@ -484,7 +491,7 @@ html, body {
    flexible columns and eight flexible rows, 24px gutters, capped at
    1440px, as the Figma auto-layout draws it.
 
-     cols 1–2    vitals (rows 1–4) · dock (rows 5–8)
+     cols 1–2    the side column (rows 1–8): vitals over the dock
      col  3      nav rail (rows 1–8)
      cols 4–10   the tab's panel (rows 1–7)
 
@@ -509,31 +516,48 @@ html, body {
 }
 
 /* grid-area: row-start / column-start / row-end / column-end */
-.sheet-vitals { grid-area: 1 / 1 / 5 / 3;  min-width: 0; min-height: 0; }
-.sheet-dock   { grid-area: 5 / 1 / 9 / 3;  min-width: 0; min-height: 0; }
+.sheet-side   { grid-area: 1 / 1 / 9 / 3;  min-width: 0; min-height: 0; }
 .sheet-panel  { grid-area: 1 / 4 / 8 / 11; min-width: 0; min-height: 0; overflow-y: auto; }
 
-/* The rail owns its column top to bottom: a rule down its left edge and
-   the tab squares pressed against its right one, beside the panel. */
+/* The side column is one block on the sidebar surface: the vitals on top,
+   then the dock taking whatever height is left, split by 2px rules. The
+   4px frame is the surface's own colour, so it reads as padding. */
+.sheet-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--sidebar);
+  border: 4px solid var(--sidebar);
+  overflow: hidden;
+}
+.side-rule {
+  height: 2px;
+  flex-shrink: 0;
+  background: var(--sidebar-border);
+}
+
+/* The rail owns its column top to bottom, the tab squares pressed against
+   its right edge, beside the panel. */
 .sheet-rail {
   grid-area: 1 / 3 / 9 / 4;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border-left: 1px solid var(--sidebar-border);
 }
 
-/* The dock — the vitals' second card. What the table is waiting on sits on
-   top, the rolls fill the middle, and the two roll buttons hold the floor. */
+/* The dock: the side column's floor. What the table is waiting on sits on
+   top, the rolls fill the middle, and the two roll buttons hold the floor.
+   With the column's 4px frame, the 4px here puts the buttons the design's
+   8px in from the column's edge. */
 .sheet-dock {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 8px;
-  padding: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  padding: 4px;
 }
 .sheet-dock__strip {
   display: flex;
@@ -554,9 +578,10 @@ html, body {
 
 @media (max-width: 1100px) {
   .sheet-grid {
-    /* The vitals keep a portrait-sized column; the dock takes the rest of
-       the row beside them, and the panel runs full width underneath. */
-    grid-template-columns: auto minmax(200px, 280px) minmax(0, 1fr);
+    /* The side column turns on its side: the vitals keep a portrait-sized
+       column, the dock takes the rest of the row beside them, and the panel
+       runs full width underneath. */
+    grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: auto auto;
     height: auto;
     min-height: 0;
@@ -566,12 +591,16 @@ html, body {
     grid-area: 1 / 1 / 3 / 2;
     align-items: flex-start;
     padding-right: 16px;
-    border-left: 0;
     border-right: 1px solid var(--sidebar-border);
   }
-  .sheet-vitals { grid-area: 1 / 2 / 2 / 3; }
-  .sheet-dock   { grid-area: 1 / 3 / 2 / 4; }
-  .sheet-panel  { grid-area: 2 / 2 / 3 / 4; overflow: visible; }
+  .sheet-side {
+    grid-area: 1 / 2 / 2 / 3;
+    flex-direction: row;
+  }
+  .sheet-side > .vitals-stack { flex: 0 1 280px; min-width: 200px; }
+  /* Between the two halves the rule stands up rather than lying across. */
+  .sheet-side > .side-rule { width: 2px; height: auto; }
+  .sheet-panel  { grid-area: 2 / 2 / 3 / 3; overflow: visible; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
@@ -583,15 +612,19 @@ html, body {
 
 /* ============================================================
    Atributos panel — the techniques (three of four columns) beside
-   the talent list (the fourth), on one card surface. Each side
-   scrolls on its own, and the deck fades out where it is cut.
+   the talent list (the fourth), on the sidebar surface with the
+   accent rule down its left edge. Each side scrolls on its own,
+   and the deck fades out where it is cut.
+
+   The rules are inset shadows rather than borders: Figma strokes
+   them inside the box, over the padding, so they take no room.
    ============================================================ */
 .attr-panel {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--sidebar);
+  box-shadow: inset 2px 0 0 var(--accent);
   overflow: hidden;
 }
 .attr-panel__deck {
@@ -619,7 +652,7 @@ html, body {
   flex-direction: column;
   gap: 16px;
   padding: 24px;
-  border-left: 1px solid var(--border);
+  box-shadow: inset 2px 0 0 var(--border);
 }
 
 @media (max-width: 1100px) {
@@ -632,8 +665,7 @@ html, body {
   }
   .attr-panel__talents {
     overflow: visible;
-    border-left: 0;
-    border-top: 1px solid var(--border);
+    box-shadow: inset 0 2px 0 var(--border);
   }
 }
 /* The cards bottom out around 143px wide, so the deck drops a column before
@@ -649,17 +681,17 @@ html, body {
 /* ============================================================
    Sheet panel — the grimoire's content container
 
-   A card surface holding a three-column grid: full-width section rows
-   (the tag strip, the headings) first, then one card per column with
-   the rows growing as the deck does.
+   The Atributos panel's surface and accent rule, holding a three-column
+   grid: full-width section rows (the tag strip, the headings) first,
+   then one card per column with the rows growing as the deck does.
    ============================================================ */
 .panel-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   align-content: start;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--sidebar);
+  box-shadow: inset 2px 0 0 var(--accent);
   padding: 24px;
 }
 /* Section rows — tag strips, headings, forms — take the panel's full width. */
@@ -674,36 +706,31 @@ html, body {
   .panel-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Vitals column internals: the portrait takes whatever height the stat grid
-   leaves in the block. Once the sheet stacks there is no height to share, so
-   the portrait falls back to a ratio of its own. */
+/* Vitals internals: the portrait, a rule, then the six attributes. The design
+   draws the portrait 250 × 292 under the column's 4px frame, which leaves
+   242 × 288 of it in view; that ratio holds at any column width, and the dock
+   under the vitals takes whatever height is left in the side column. */
 .vitals-stack {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
 }
 .vitals-portrait {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: none;
+  aspect-ratio: 242 / 288;
   width: 100%;
   background: var(--background);
 }
-/* The six attributes share one --input fill; each tile draws only its own
-   --input rule over it, and those rules are the lines between the tiles. */
+/* Six --muted tiles, 4px apart and flush with the portrait's edges. */
 .vitals-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 4px;
   flex-shrink: 0;
-  background: var(--input);
-}
-
-@media (max-width: 1100px) {
-  .vitals-stack { height: auto; }
-  .vitals-portrait { flex: none; aspect-ratio: 268 / 356; }
 }
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
@@ -997,49 +1024,58 @@ html, body {
   .grid-6-cards > * { grid-column: span 3 / span 3; }
 }
 
+/* The warm palette of the Figma design system (Playground, node 137:556):
+   embers on soot, bone text, a terracotta accent. Hex values are the
+   variables exactly as Figma defines them; the roles Figma leaves out are
+   derived from them and say so. */
 .dark {
   color-scheme: dark;
-  --background: oklch(0.148 0.004 228.8);
-  --foreground: oklch(0.987 0.002 197.1);
-  --card: oklch(0.218 0.008 223.9);
-  --card-foreground: oklch(0.987 0.002 197.1);
-  --popover: oklch(0.218 0.008 223.9);
-  --popover-foreground: oklch(0.987 0.002 197.1);
-  --primary: oklch(0.444 0.177 26.899);
-  --primary-foreground: oklch(0.971 0.013 17.38);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.275 0.011 216.9);
-  --muted-foreground: oklch(0.723 0.014 214.4);
-  --accent: oklch(0.444 0.177 26.899);
-  --accent-foreground: oklch(0.971 0.013 17.38);
+  --background: #0c0908;
+  --foreground: #ecdbb8;
+  /* Not a Figma variable: panels and menus share the sidebar's surface, the
+     one every block on the design sits on. */
+  --card: #1f1714;
+  --card-foreground: #ecd9b7;
+  --popover: #1f1714;
+  --popover-foreground: #ecdbb8;
+  --primary: #df7653;
+  --primary-foreground: #ecd9b7;
+  --secondary: #b0a18f;
+  --secondary-foreground: #1b1513;
+  --muted: #2d221f;
+  --muted-foreground: #b0a18f;
+  --accent: #6e564e;
+  --accent-foreground: #ecd9b7;
+  /* Not a Figma variable: kept a cold red so damage never reads as the
+     terracotta accent. 6.9:1 on background, 6.1:1 on card. */
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  /* Focus must stand out from --input-border, which already sits at 3:1:
-     at the old oklch(0.56 ...) a focused field barely changed. This is the
-     --chart-1 grey: 3.5:1 against the unfocused border. */
-  --ring: oklch(0.872 0.007 219.6);
-  --chart-1: oklch(0.872 0.007 219.6);
-  --chart-2: oklch(0.56 0.021 213.5);
-  --chart-3: oklch(0.45 0.017 213.2);
-  --chart-4: oklch(0.378 0.015 216);
-  --chart-5: oklch(0.275 0.011 216.9);
-  --sidebar: oklch(0.218 0.008 223.9);
-  --sidebar-foreground: oklch(0.987 0.002 197.1);
-  /* The active tab: the brand red, so its label reads at 7.6:1. The brighter
-     oklch(0.637 0.237 25.331) left it at 3.5:1. */
+  --border: #1b1513;
+  --input: #f2a28826;
+  /* Not a Figma variable. Focus must stand out from --input-border: this is
+     the --chart-1 bone, 3.8:1 against the unfocused border. */
+  --ring: #ecd9b7;
+  /* The ramp runs from bone down to the muted fill. Only --chart-2 is a
+     Figma variable; the rest are the palette's own stops. */
+  --chart-1: #ecd9b7;
+  --chart-2: #b0a28f;
+  --chart-3: #6f564e;
+  --chart-4: #4e3c36;
+  --chart-5: #2d221f;
+  --sidebar: #1f1714;
+  --sidebar-foreground: #ecdbb8;
+  /* The dock's dice button: the accent fill with soot ink on it, 5.9:1. */
   --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: oklch(0.971 0.013 17.38);
-  --sidebar-accent: oklch(0.275 0.011 216.9);
-  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
-  --torch: oklch(0.777 0.159 64.5);
-  /* 4.8:1 on card, 5.4:1 on background. */
-  --primary-text: oklch(0.64 0.177 26.899);
-  /* 3:1 or better on background, card, muted and secondary. */
-  --input-border: oklch(1 0 0 / 36%);
+  --sidebar-primary-foreground: #1b1513;
+  --sidebar-accent: #2d221f;
+  --sidebar-accent-foreground: #ecdbb8;
+  --sidebar-border: #6f564e;
+  --sidebar-ring: #b0a28f;
+  /* The design draws a burning light in the accent: the torch, its bar. */
+  --torch: var(--primary);
+  /* The terracotta already reads as text: 6.5:1 on background, 5.8:1 on card. */
+  --primary-text: var(--primary);
+  /* Bone at 45%: 3.4:1 or better on background, card and muted. */
+  --input-border: #ecdbb873;
 }
 
 @theme inline {

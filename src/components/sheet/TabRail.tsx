@@ -23,15 +23,17 @@ interface Props<K extends string> {
 }
 
 const SQUARE =
-  'tactile flex size-16 shrink-0 items-center justify-center border transition-colors duration-150 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+  'tactile flex size-16 shrink-0 items-center justify-center transition-colors duration-150 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]'
 
 /**
  * Desktop sheet navigation: square icon tabs stacked down the grid column
  * between the vitals and the panel. Mobile keeps the labelled bottom bar
  * instead (see TabBar), so this renders only on the desktop layout.
  *
- * Placement and the column's rule belong to `.sheet-rail`, which presses this
- * stack against the panel side of its column.
+ * The squares sit on --muted with bone icons; the open tab steps up to
+ * --accent and lights its icon in the terracotta. Placement belongs to
+ * `.sheet-rail`, which presses this stack against the panel side of its
+ * column.
  *
  * Plain buttons rather than the Tabs primitive — the panels live in the page
  * body, and each square is really a view switch, so there is no tablist
@@ -54,11 +56,11 @@ export function TabRail<K extends string>({ tabs, active, onChange, link }: Prop
               SQUARE,
               'cursor-pointer',
               isActive
-                ? 'bg-sidebar-primary text-sidebar-primary-foreground border-sidebar-ring'
-                : 'bg-input border-input-border text-foreground hover:border-sidebar-ring',
+                ? 'bg-accent text-primary'
+                : 'bg-muted text-foreground hover:bg-accent/60',
             )}
           >
-            <HugeiconsIcon icon={t.icon} size={28} strokeWidth={1.5} />
+            <HugeiconsIcon icon={t.icon} size={32} strokeWidth={1.5} />
           </button>
         )
       })}
@@ -70,7 +72,7 @@ export function TabRail<K extends string>({ tabs, active, onChange, link }: Prop
             href={link.href}
             title={link.label}
             aria-label={link.label}
-            className={cn(SQUARE, 'border-sidebar-accent text-foreground hover:border-sidebar-ring')}
+            className={cn(SQUARE, 'border-sidebar-border text-foreground hover:bg-muted border')}
           >
             <HugeiconsIcon icon={link.icon} size={28} strokeWidth={1.5} />
           </Link>

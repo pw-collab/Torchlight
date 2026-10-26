@@ -4,8 +4,8 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import type { IconSvgElement } from '@hugeicons/react'
 import {
   AdventureIcon,
-  AiLearningIcon,
   MoneyBag01Icon,
+  Quran02Icon,
   ScrollIcon,
   Settings03Icon,
 } from '@hugeicons/core-free-icons'
@@ -81,7 +81,7 @@ type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 const TAB_META: Record<Tab, { label: string; icon: IconSvgElement }> = {
   stats:     { label: 'Atributos',  icon: AdventureIcon },
   inventory: { label: 'Inventário', icon: MoneyBag01Icon },
-  spells:    { label: 'Grimório',   icon: AiLearningIcon },
+  spells:    { label: 'Grimório',   icon: Quran02Icon },
   backstory: { label: 'História',   icon: ScrollIcon },
 }
 const TAB_KEYS = Object.keys(TAB_META) as Tab[]
@@ -717,8 +717,9 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
       headerRight={tableBadge}
-      // The light rides the top bar over the vitals, so it stays in view
+      // The light rides the middle of the top bar, so it stays in view
       // whatever the panel is showing. Phones keep their floating badge.
+      centerHeader
       headerCenter={isMobile ? undefined : (
         <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
       )}
@@ -740,46 +741,47 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         </div>
       ) : (
         // The whole sheet is one screen on a ten-column, eight-row grid, laid
-        // out as the design's auto-layout: the vitals over the dock in columns
-        // 1-2, the nav rail down column 3, and the tab's panel across columns
-        // 4-10 (see .sheet-* in globals.css).
+        // out as the design's auto-layout: one side column holding the vitals
+        // over the dock in columns 1-2, the nav rail down column 3, and the
+        // tab's panel across columns 4-10 (see .sheet-* in globals.css).
         <div className="sheet-grid">
-          <aside className="sheet-vitals">
+          <aside className="sheet-side">
             {vitals}
-          </aside>
+            <span aria-hidden className="side-rule" />
 
-          {/* The dock: what the table is waiting on, the rolls made so far,
-              and the attack and dice buttons on its floor. */}
-          <section className="sheet-dock" aria-label="Mesa e rolagens">
-            <div className="sheet-dock__strip">{stateStrip}</div>
-            <RollHistory
-              rolls={rollHistory}
-              fortuneLeft={character.luckTokens}
-              onSpendFortune={handleFortuneReroll}
-              onRollDamage={handleRollDamage}
-              damageRolled={damageRolled}
-            />
-            <div className="sheet-dock__actions">
-              <AttacksMenu
-                inventory={character.inventory}
-                str={character.stats.str}
-                dex={character.stats.dex}
-                meleeBonus={character.meleeBonus}
-                rangedBonus={character.rangedBonus}
-                onRoll={handleRoll}
-                onOpenInventory={() => setTab('inventory')}
+            {/* The dock: what the table is waiting on, the rolls made so far,
+                and the attack and dice buttons on its floor. */}
+            <section className="sheet-dock" aria-label="Mesa e rolagens">
+              <div className="sheet-dock__strip">{stateStrip}</div>
+              <RollHistory
+                rolls={rollHistory}
+                fortuneLeft={character.luckTokens}
+                onSpendFortune={handleFortuneReroll}
+                onRollDamage={handleRollDamage}
+                damageRolled={damageRolled}
               />
-              <div className="col-span-2 flex min-w-0">
-                <DiceRoller
+              <div className="sheet-dock__actions">
+                <AttacksMenu
+                  inventory={character.inventory}
+                  str={character.stats.str}
+                  dex={character.stats.dex}
+                  meleeBonus={character.meleeBonus}
+                  rangedBonus={character.rangedBonus}
                   onRoll={handleRoll}
-                  docked
-                  disadvantageFrom={disadvantages}
-                  luckTokens={character.luckTokens}
-                  onLuckChange={handleLuckChange}
+                  onOpenInventory={() => setTab('inventory')}
                 />
+                <div className="col-span-2 flex min-w-0">
+                  <DiceRoller
+                    onRoll={handleRoll}
+                    docked
+                    disadvantageFrom={disadvantages}
+                    luckTokens={character.luckTokens}
+                    onLuckChange={handleLuckChange}
+                  />
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </aside>
 
           <div className="sheet-rail">
             <TabRail

@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { rollDie, rollPool, withDc } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
@@ -204,9 +203,22 @@ export function DiceRoller({
         }
       >
         {docked ? (
-          // The design's own d20, line-drawn in white for the dock's red —
-          // the painted die below would sit purple on it.
-          <Image src="/dice/d20-outline.svg" alt="" aria-hidden width={31} height={30} />
+          // The design's own line-drawn d20, inked in the button's text
+          // colour (soot on the terracotta). The asset is used as a mask, so
+          // it takes whatever colour the dock gives it. The painted die below
+          // would clash with the fill.
+          <span
+            aria-hidden
+            className="block shrink-0 bg-current"
+            style={{
+              width: 31,
+              height: 30,
+              maskImage: 'url(/dice/d20-outline.svg)',
+              WebkitMaskImage: 'url(/dice/d20-outline.svg)',
+              maskSize: '100% 100%',
+              WebkitMaskSize: '100% 100%',
+            }}
+          />
         ) : (
           <DieIcon
             className="animate-die-idle"

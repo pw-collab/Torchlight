@@ -2,6 +2,10 @@
 
 Date: 2026-10-10. Build: `41c2b04`. Theme: dark only (`<html class="dark">`, no toggle).
 
+**Palette updated 2026-10-26** from the Figma design system (Playground file, node `137:556`, the
+character sheet): the cold grey and blood red gave way to a warm one, soot, bone and terracotta.
+The colour roles and the contrast report below are for the new palette.
+
 - **Source of truth:** `src/app/globals.css` (the `:root` and `.dark` blocks, and `@theme inline`,
   which maps every token into Tailwind as `bg-card`, `text-muted-foreground` and so on).
   `src/app/style-lyra.css` holds the shadcn "lyra" component styles (`.cn-*`).
@@ -29,26 +33,56 @@ Nothing here needed rebuilding: tokens, the Tailwind mapping and an accessible p
 
 ### Colour roles (dark)
 
+Hex values marked *Figma* are the design system's variables as defined; the rest are derived in
+`globals.css` because Figma does not define them.
+
 | role | hex | job |
 | --- | --- | --- |
-| background | `#090b0c` | page |
-| card / popover / sidebar | `#161b1d` | panels, menus, nav bar |
-| muted | `#22292b` | quiet fills |
-| secondary | `#27272a` | gold-ruled dark buttons, inputs on the sheet |
-| foreground | `#f9fbfb` | text |
-| muted-foreground | `#9ca8ab` | labels, secondary text (the most used text colour: 155 uses) |
-| primary / accent | `#9f0712` | the red action fill |
-| primary-foreground | `#fef2f2` | text on red |
-| sidebar-primary | `#9f0712` (= primary) | active tab fill |
-| destructive | `#ff6467` | errors, damage |
-| torch | `#fb9e31` | a burning light source (same in both themes) |
-| border | white 10% | panel rules (decorative) |
-| input | white 15% | selected-state fills, empty pips (and control fills at 30%) |
-| input-border | white 36% | edges of inputs and outlined controls |
-| primary-text | `#e4574e` | red used as text or a thin outline |
-| ring | `#d0d6d8` | focus |
+| background | `#0c0908` *Figma* | page |
+| card / popover / sidebar | `#1f1714` (*Figma*: sidebar) | panels, the sheet's side column, menus |
+| muted | `#2d221f` *Figma* | tiles, rail squares, passive cards |
+| accent | `#6e564e` *Figma* | active rail tab, activation cards, the panel's left rule, hover fill |
+| secondary | `#b0a18f` *Figma* | header tags (class, archetype, ancestry), secondary buttons |
+| foreground | `#ecdbb8` *Figma* | text |
+| card / accent / primary-foreground | `#ecd9b7` *Figma* | text on panels, accent and primary |
+| muted-foreground | `#b0a18f` *Figma* | labels, secondary text |
+| secondary-foreground | `#1b1513` *Figma* | text on the tags |
+| primary | `#df7653` *Figma* | the terracotta action fill, talent badges, AC shield |
+| sidebar-primary / -foreground | primary / `#1b1513` *Figma* | the dock's dice button: soot ink on terracotta |
+| border | `#1b1513` *Figma* | card frames, talent list rule |
+| sidebar-border | `#6f564e` *Figma* | side column rules, rail separator, edit square, "Voltar" |
+| input | `#f2a288` at 15% *Figma* | selected-state fills, the talent add mark |
+| chart-2 | `#b0a28f` *Figma* | HP bar track |
+| chart-1 / 3 / 4 / 5 | `#ecd9b7` / `#6f564e` / `#4e3c36` / `#2d221f` | warm ramp, bone down to muted |
+| destructive | `#ff6467` | errors, damage (kept a cold red, apart from the terracotta) |
+| torch | = primary | a burning light source (the design draws it terracotta) |
+| primary-text | = primary | terracotta as text: 6.5:1 on background |
+| input-border | `#ecdbb8` at 45% | edges of inputs and outlined controls |
+| ring | `#ecd9b7` | focus |
 
 ## Contrast report (WCAG AA)
+
+### 2026-10-26, the Figma palette
+
+**30 pairs, 5 failing.** All five are colour pairs the design itself sets; the code follows the
+design and they are listed here for a decision.
+
+| pair | ratio | where it shows | a fix that keeps the palette |
+| --- | --- | --- | --- |
+| primary-foreground on primary | 2.21 | **every default button label**, talent level badges, the AC number | soot `#1b1513` as primary-foreground: 5.89:1 (the dock's dice already use it) |
+| primary on accent | 2.21 | active rail tab icon, the "Ativação" label on activation cards | bone `#ecd9b7` on accent: 4.89:1 |
+| sidebar-border on background | 2.95 | the "Voltar" link (12px) | muted-foreground: 7.88:1 |
+| foreground on primary (large) | 2.25 | HP number over the filled part of the bar | soot text, or a darker fill |
+| foreground on chart-2 (large) | 1.83 | HP number over the empty part of the bar | the same |
+
+Passing: body text 11.3 to 14.5:1, muted labels 6.1 to 7.9:1, tags 7.2:1, terracotta as text
+5.0 to 6.5:1, destructive 5.3 to 6.9:1, control edges 3.5 to 3.6:1, focus 3.6:1 over the edge.
+
+One mismatch inside the Figma file: the HP bar's track renders blue-grey (`#67787c`) in the
+frame, while the variable it is bound to, `chart-2`, reads `#b0a28f`. The code follows the
+variable.
+
+### 2026-10-10, the previous palette
 
 **Now 25 pairs, 0 failing.** The first check found 7 failures; all were fixed in the tokens
 on 2026-10-10. Before and after: `contrast-fixes.png` (rendered from the app's compiled CSS).
@@ -116,9 +150,11 @@ Input / Textarea / NumInput / NativeSelect
 Tabs (shadcn, Base UI)  + TabBar (sheet bottom nav) + TabRail (desktop side rail)
   TabBar    fixed bottom, 48px tall, sidebar fill, 2px top rule, safe-area padding;
             trailing slot holds the dice button
-  states    inactive muted-foreground, hover foreground, active sidebar-primary fill
+  states    TabBar: inactive muted-foreground, hover foreground, active sidebar-primary fill.
+            TabRail: muted squares with bone icons, hover accent at 60%, active accent fill
+            with a terracotta icon; the edit link is hollow, sidebar-border edge
   a11y      real tablist and tabs; nav has aria-label; TabRail marks aria-current.
-            Active label 7.6:1 (was 3.5:1, fixed).
+            TabBar active label 5.9:1. TabRail active icon 2.2:1 (see the contrast report).
   used on   S05 (TabBar, TabRail), S11-S13 (GM tabs), S04 (step strip)
 ```
 
@@ -146,7 +182,10 @@ Roll toasts  (RollToasts, TableToasts, RollCard)
 
 ```
 Cards  (GlyphCard, CardPicker, RosterCard, NPCCard, PlayerCard)
-  look      card fill, 1 or 2px border rule, square; .card-lift on hover, .card-flip for details
+  look      card fill, 1 or 2px border rule, square; .card-lift on hover, .card-flip for details.
+            The sheet's technique deck is the design's "Button card": a muted plate (passive)
+            or accent plate (activation), 6px round a 4px border frame, the name in caps over
+            the type (solid Hugeicons oval or zap, then the label) and the description
   states    default, hover lift, selected, locked (creator), collapsed / expanded (NPC, player),
             defeated (encounter)
   used on   S03, S04, S08, S11, S13
@@ -162,7 +201,8 @@ Chips and badges  (DetailChip, ConditionChips, Badge, TableBadge)
 
 ```
 Meters  (XPBar, FortuneBar, Progress, TorchStatus, FloatingTorch, FloatingVitals)
-  look      primary over chart-2 track; torch colour and halo animation while lit
+  look      primary over chart-2 track; torch colour (terracotta) and halo animation while lit.
+            The sheet's AC sits on a filled terracotta shield (Hugeicons shield-01)
   states    full, low, empty / out (torch), level-up ready (XP)
   a11y      FloatingTorch has an aria-label; decorative flame aria-hidden
   used on   S05, S06, S09
@@ -193,7 +233,7 @@ GM table  (SessionPanel + src/components/gm/table/*, the .gm-* rules in globals.
             tab per column.
   look      no theme of its own: card fill with the border rule, square corners, Bricolage
             and Libre Franklin. Command tiles are the TabRail squares with a label (input
-            fill, input-border edge, the sidebar-primary red for the turn action). Figures
+            fill, input-border edge, the sidebar-primary terracotta for the turn action). Figures
             reuse the vitals' AC badge and HP bar; the light meter is TorchStatus; the plate
             floor holds the docked d20, like the sheet's dock.
   motion    the acting figure gets a bobbing arrow, a torchlit floor and the candle glow;

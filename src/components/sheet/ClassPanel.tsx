@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { FourFinger03Icon, RotateRight02Icon } from '@hugeicons/core-free-icons'
+import { OvalIcon, ZapIcon } from '@hugeicons/core-free-icons'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
 import type { Ancestry } from '@/types/ancestry.types'
 import type { Archetype } from '@/types/archetype.types'
@@ -384,16 +384,17 @@ const KIND_STYLE: Record<
 }
 
 /**
- * The symbol on a card's face says how the card is used — an open hand for
- * what simply holds, a turning arrow for what is spent and comes back. Where
- * the card came from moved to the far side, beside the detail heading.
+ * The symbol on a card's face says how the card is used: a solid oval for
+ * what simply holds, a bolt for what is spent and comes back. Where the card
+ * came from moved to the far side, beside the detail heading.
  */
 function KindIcon({ tone }: { tone: 'passive' | 'activation' }) {
   return (
     <HugeiconsIcon
-      icon={tone === 'activation' ? RotateRight02Icon : FourFinger03Icon}
+      icon={tone === 'activation' ? ZapIcon : OvalIcon}
       size={18}
-      strokeWidth={1.5}
+      strokeWidth={0}
+      fill="currentColor"
     />
   )
 }
@@ -590,7 +591,7 @@ export function ClassPanel({
           repeated here: they have their own cards among the techniques. */}
       <div className="attr-panel__heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px 16px' }}>
         {showName && (
-          <h1 style={{ flex: '1 1 auto', minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 22, lineHeight: 1.45, color: 'var(--card-foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h1 style={{ flex: '1 1 auto', minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 28, lineHeight: 1.15, color: 'var(--foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {characterName}
           </h1>
         )}
