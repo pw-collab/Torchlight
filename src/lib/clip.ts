@@ -5,8 +5,8 @@
  * small margin, so a panel never sits flush against the edge.
  *
  * Popups that are positioned inside the page rather than portalled out of it
- * (the tag details, a card's actions) measure against this instead of the
- * window, so a block that scrolls on its own doesn't slice them in half.
+ * (the tag details) measure against this instead of the window, so a block
+ * that scrolls on its own doesn't slice them in half.
  */
 export function clipBounds(el: HTMLElement, margin = 8): { left: number; right: number } {
   for (let node = el.parentElement; node; node = node.parentElement) {

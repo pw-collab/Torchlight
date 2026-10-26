@@ -297,8 +297,10 @@ function SpellLikeSection({
 
   return (
     // Sits inside the card's floating actions popover, so it brings no padding
-    // of its own beyond the room the hover lift needs.
-    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'center', maxWidth: '100%', overflowX: 'auto', padding: '4px 0 2px', boxSizing: 'border-box' }}>
+    // of its own beyond the room the hover lift needs. One row, as wide as the
+    // window lets the popover grow; past that it scrolls, and `safe` keeps the
+    // first card reachable — plain centring pushes it out past the left edge.
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', justifyContent: 'safe center', maxWidth: '100%', overflowX: 'auto', padding: '4px 0 2px', boxSizing: 'border-box' }}>
       {cfg.abilities.map(ability => {
         const isExpended = expended.includes(ability.id)
         const dc = ability.dc ?? cfg.dc

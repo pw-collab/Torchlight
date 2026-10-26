@@ -241,34 +241,46 @@ html, body {
    is no room inside for a row of buttons — they hang off the bottom edge
    as a popover instead, wide enough for their own content.
 
-   It arrives on inkSpread's curve rather than on `.animate-ink-spread`
-   itself: that animation ends on a transform of its own, and `both` would
-   hold it there — wiping out the translate that centres this on the card.
-   `--actions-shift` slides it back inside a deck that clips its edges (set
-   by GlyphCard once the popover is measured). */
+   GlyphCard portals it to the page and Base UI places it — centred under
+   the card, slid sideways to stay inside the window, lifted above the card
+   when there is no room below — so it is never cut by a deck that scrolls.
+   The positioner hands over the card's width and the room it found as
+   `--anchor-width` and `--available-*`: never narrower than the card, never
+   wider or taller than the window allows. A row too long even for that
+   scrolls inside the popover.
+
+   It arrives on inkSpread's curve, rising towards the card from whichever
+   side it hangs on. */
 @keyframes cardActionsIn {
-  0%   { opacity: 0; transform: translateX(calc(-50% + var(--actions-shift, 0px))) scale(0.96) translateY(8px); filter: blur(3px); }
+  0%   { opacity: 0; transform: scale(0.96) translateY(var(--actions-rise, 8px)); filter: blur(3px); }
   60%  { filter: blur(0); }
-  100% { opacity: 1; transform: translateX(calc(-50% + var(--actions-shift, 0px))) scale(1) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+.card-actions__positioner { z-index: 50; }
+/* Out of the deck, it would float on over the heading once its card has
+   scrolled away. It waits, hidden, for the card to come back. */
+.card-actions__positioner[data-anchor-hidden] { visibility: hidden; }
 .card-actions {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(calc(-50% + var(--actions-shift, 0px)));
   animation: cardActionsIn 420ms cubic-bezier(0.4,0,0.2,1) both;
-  z-index: 1;
+  transform-origin: var(--transform-origin);
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: max-content;
-  min-width: 100%;
-  max-width: min(92vw, 420px);
+  min-width: var(--anchor-width);
+  max-width: var(--available-width);
+  max-height: var(--available-height);
+  overflow-y: auto;
+  outline: none;
   padding: 8px;
   background: var(--secondary);
   border: 1px solid var(--border);
   box-shadow: 0 10px 24px rgba(0,0,0,0.55);
 }
+.card-actions[data-side='top'] { --actions-rise: -8px; }
+/* Short of room, the popover scrolls as a whole. Left to shrink, the ability
+   row would squeeze instead and cut its tallest card off at the top. */
+.card-actions > * { flex-shrink: 0; }
 .card-actions__row { display: flex; gap: 8px; }
 .card-actions__row > * { flex: 1; }
 

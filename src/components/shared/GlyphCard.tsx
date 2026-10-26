@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import { Popover } from '@base-ui/react/popover'
 import { Button } from '@/components/ui/button'
-import { clipBounds } from '@/lib/clip'
 import { cn } from '@/lib/utils'
 
 /**
@@ -14,6 +14,17 @@ import { cn } from '@/lib/utils'
 const FACE_CLEARANCE = 10
 const FACE_FADE =
   `linear-gradient(to bottom, #000 calc(100% - 26px), transparent calc(100% - ${FACE_CLEARANCE}px))`
+
+/**
+ * Where the actions popover goes when it would cross the edge of the window:
+ * slid sideways just far enough to fit, so it stays under the card, and lifted
+ * above the card only when there is no room below. Never off to one side — a
+ * row of ability cards beside the card it came from reads as something else.
+ */
+const ACTIONS_COLLISION = { side: 'flip', align: 'shift', fallbackAxisSide: 'none' } as const
+
+/** What Tab can land on inside the actions. */
+const TABBABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]'
 
 /** Prose on the card's detail face. Shared so the decks stay in step. */
 export const DETAIL_BODY: React.CSSProperties = {
@@ -88,26 +99,20 @@ export function GlyphCard({
   const faceRef = useRef<HTMLButtonElement>(null)
   const detailRef = useRef<HTMLDivElement>(null)
   const actionsRef = useRef<HTMLDivElement>(null)
+  const resumeRef = useRef<HTMLSpanElement>(null)
 
   const hasActions = Boolean(footer || controls)
 
-  // The actions hang centred under the card, which runs them past the edge of
-  // the deck for a card in its first or last column — and a deck that scrolls
-  // on its own cuts off whatever crosses its edge. Slide them back inside,
-  // measured off the card's layout box so the entry animation's scale doesn't
-  // skew the reading.
-  useLayoutEffect(() => {
-    const root = rootRef.current
-    const actions = actionsRef.current
-    if (!open || !hasActions || !root || !actions) return
-    const bounds = clipBounds(root)
-    const card = root.getBoundingClientRect()
-    const centre = card.left + card.width / 2
-    const left = centre - actions.offsetWidth / 2
-    const right = centre + actions.offsetWidth / 2
-    const shift = left < bounds.left ? bounds.left - left : right > bounds.right ? bounds.right - right : 0
-    actions.style.setProperty('--actions-shift', `${shift}px`)
-  }, [open, hasActions])
+  // Tab past the last action had nowhere to go: the popover's focus guards
+  // hand it on to a trigger, and these cards have none. It picks up from the
+  // end of the card instead — focus moves there before the browser acts on
+  // the key, so the Tab itself carries on to whatever follows the card.
+  function handleActionsKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== 'Tab' || e.shiftKey) return
+    const tabbable = [...e.currentTarget.querySelectorAll<HTMLElement>(TABBABLE)].filter(el => el.tabIndex >= 0)
+    if (e.target !== tabbable[tabbable.length - 1]) return
+    resumeRef.current?.focus({ preventScroll: true })
+  }
 
   // Held in a ref so the Escape listener below never has to re-bind.
   const onOpenChangeRef = useRef(onOpenChange)
@@ -128,14 +133,15 @@ export function GlyphCard({
   }, [open, setOpen])
 
   // Focus follows the turn, so a card opened from the keyboard can be read and
-  // closed from there too. Only when focus was already on this card: a
-  // controlled card opened from elsewhere must not steal it.
+  // closed from there too. Only when focus was already on this card or in its
+  // actions (portalled, so outside the card's own box): a controlled card
+  // opened from elsewhere must not steal it.
   const wasOpen = useRef(open)
   useEffect(() => {
     if (wasOpen.current === open) return
     wasOpen.current = open
     const active = document.activeElement
-    if (!active || !rootRef.current?.contains(active)) return
+    if (!active || !(rootRef.current?.contains(active) || actionsRef.current?.contains(active))) return
     ;(open ? detailRef.current : faceRef.current)?.focus()
   }, [open])
 
@@ -152,9 +158,9 @@ export function GlyphCard({
         face === 'compact' ? 'aspect-[3/4] min-h-[180px]' : 'aspect-[246/384] min-h-[224px]',
         className,
       )}
-      // Enough to lift the open card and its popover over the rest of the deck,
-      // whatever the DOM order — and no higher, so the app's own chrome (fixed
-      // bars, modals) still sits on top.
+      // Enough to lift the open card over the rest of the deck, whatever the
+      // DOM order — and no higher, so the app's own chrome (fixed bars,
+      // modals) still sits on top. Its popover is portalled out on its own.
       style={open ? { zIndex: 1 } : undefined}
     >
       <div className="card-flip__inner">
@@ -321,13 +327,46 @@ export function GlyphCard({
         </div>
       </div>
 
-      {/* ── Actions — floating clear of the turned card ───────────────────── */}
-      {open && hasActions && (
-        <div ref={actionsRef} className="card-actions">
-          {controls}
-          {footer && <div className="card-actions__row">{footer}</div>}
-        </div>
+      {/* ── Actions — floating clear of the turned card ───────────────────────
+          Portalled out of the deck, which scrolls on its own and fades at its
+          foot: kept inside it, a row wider than the card came out sliced and
+          scrolling. Out here only the window bounds it. The card owns the
+          open state — there is no trigger, and a press elsewhere doesn't turn
+          the card back over — so only Escape is taken from the popover. Focus
+          stays where the card puts it; the popover's guards, inline here,
+          carry Tab into the actions and Shift+Tab back out, and the span
+          after them picks Tab up past the last action. */}
+      {hasActions && (
+        <Popover.Root
+          open={open}
+          onOpenChange={(next, { reason }) => { if (!next && reason === 'escape-key') setOpen(false) }}
+        >
+          <Popover.Portal>
+            <Popover.Positioner
+              anchor={rootRef}
+              side="bottom"
+              align="center"
+              sideOffset={8}
+              collisionAvoidance={ACTIONS_COLLISION}
+              collisionPadding={8}
+              className="card-actions__positioner"
+            >
+              <Popover.Popup
+                ref={actionsRef}
+                initialFocus={false}
+                finalFocus={false}
+                aria-label={title}
+                onKeyDown={handleActionsKeyDown}
+                className="card-actions"
+              >
+                {controls}
+                {footer && <div className="card-actions__row">{footer}</div>}
+              </Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
       )}
+      {hasActions && <span ref={resumeRef} tabIndex={-1} className="outline-none" />}
     </div>
   )
 }
