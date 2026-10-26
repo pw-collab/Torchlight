@@ -25,9 +25,12 @@ const FIELD_LABEL_CLASS =
 const FIELD_INPUT_CLASS =
   'bg-secondary text-secondary-foreground h-auto px-2.5 py-2 text-[13px]'
 
-/** The 19px square every row leads with — the level, or the add mark. */
+/**
+ * The 19px square every row leads with: the level on a terracotta square,
+ * or the add mark in an --input outline.
+ */
 const BADGE_CLASS =
-  'font-heading flex size-[19px] shrink-0 items-center justify-center text-base leading-[1.2] font-bold text-[var(--chart-1)]'
+  'font-heading flex size-[19px] shrink-0 items-center justify-center text-base leading-[1.2] font-bold text-primary-foreground'
 
 /** The row's text: small italic, as the design sets the talent's effect. */
 const ROW_TEXT_CLASS =
@@ -138,7 +141,7 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
                 'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
               )}
             >
-              <span className={cn(BADGE_CLASS, 'bg-input')}>{level ?? '✦'}</span>
+              <span className={cn(BADGE_CLASS, 'bg-primary')}>{level ?? '✦'}</span>
               <span className={ROW_TEXT_CLASS}>{talent.name}</span>
             </PopoverTrigger>
 
@@ -183,7 +186,7 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
             'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           )}
         >
-          <span className={cn(BADGE_CLASS, 'border-input-border border')} aria-hidden>
+          <span className={cn(BADGE_CLASS, 'border-input border')} aria-hidden>
             {formOpen ? '✕' : '+'}
           </span>
           <span className={ROW_TEXT_CLASS}>{formOpen ? 'Fechar' : 'Adicionar'}</span>

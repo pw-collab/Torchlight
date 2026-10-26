@@ -282,18 +282,8 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
           </div>
         )}
 
-        {/* Square portrait frame — the portrait's only outline, so the boxes
-            that wrap it (see FloatingVitals) draw none of their own. */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            inset: 0,
-            border: '1px solid var(--sidebar-ring)',
-            pointerEvents: 'none',
-            zIndex: 4,
-          }}
-        />
+        {/* No frame of its own: the design sets the portrait straight on the
+            side column's surface, edge to edge. */}
 
         {/* Drag highlight ring */}
         {dragging && (

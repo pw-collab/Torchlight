@@ -9,7 +9,7 @@ import type { RollResult } from '@/lib/dice'
 import { attackRoll, damageRoll, heldForCombat, parryRoll, type AttackContext } from '@/lib/attacks'
 import { DICE_SPRING } from '@/lib/diceMotion'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
-import { DOCK_BUTTON_CLASS } from '@/components/sheet/dock'
+import { DOCK_MUTED_BUTTON_CLASS } from '@/components/sheet/dock'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -62,7 +62,7 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
                 transition={DICE_SPRING.tap}
               />
             }
-            className={DOCK_BUTTON_CLASS}
+            className={DOCK_MUTED_BUTTON_CLASS}
           />
         }
       >

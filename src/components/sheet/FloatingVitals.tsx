@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Shield01Icon } from '@hugeicons/core-free-icons'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AvatarUpload } from '@/components/sheet/AvatarUpload'
 import { FortuneBar } from '@/components/sheet/FortuneBar'
@@ -46,9 +48,8 @@ interface Props {
  * gets added to the roll — and the abbreviation with the raw score along the
  * foot. Pressing it opens the normal / advantage / disadvantage menu.
  *
- * The --input fill belongs to the grid holding the six (see .vitals-stats);
- * each tile only draws its --input rule over it, which is what reads as the
- * lines between them.
+ * Each tile is its own --muted square; the 4px between them is the side
+ * column's surface (see .vitals-stats). Hover steps the fill up to --accent.
  */
 function AttributeTile({ stat, score, onRoll }: {
   stat: Stat
@@ -65,19 +66,50 @@ function AttributeTile({ stat, score, onRoll }: {
         nativeButton={false}
         className={cn(
           'h-full min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
-          'border-input-border hover:border-ring bg-transparent',
+          'bg-muted hover:bg-accent aria-expanded:bg-accent border-0',
           onRoll ? 'cursor-pointer' : 'cursor-default',
         )}
       >
-        <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 500, fontSize: 24, letterSpacing: '1.12px', color: 'var(--muted-foreground)', lineHeight: '26px' }}>
+        {/* Bricolage's 96pt cut, as the design sets the modifier. */}
+        <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 800, fontSize: 28, letterSpacing: '1.12px', fontVariationSettings: "'opsz' 96, 'wdth' 100", color: 'var(--primary-foreground)', lineHeight: '26px', flex: 1, display: 'flex', alignItems: 'center' }}>
           {modifierStr(score)}
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, lineHeight: 1.5, textTransform: 'uppercase' }}>
-          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 400, letterSpacing: '1.2px', color: 'var(--input)' }}>{STAT_LABELS[stat]}</span>
-          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 500, letterSpacing: '1.12px', color: 'var(--muted-foreground)' }}>{score}</span>
+          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 400, letterSpacing: '1.2px', color: 'var(--muted-foreground)' }}>{STAT_LABELS[stat]}</span>
+          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 500, letterSpacing: '1.12px', color: 'var(--accent-foreground)' }}>{score}</span>
         </span>
       </Button>
     </RollModeMenu>
+  )
+}
+
+/**
+ * Armour class on the portrait's corner: the number on a terracotta shield.
+ * The shield is Hugeicons' own, filled, cropped to its outline so it spans
+ * the design's 44 × 50 inside the 52px badge.
+ */
+function ArmorBadge({ ac, size, inset }: { ac: number; size: number; inset: number }) {
+  const scale = size / 52
+  return (
+    <div
+      aria-label={`Classe de armadura ${ac}`}
+      role="img"
+      style={{ position: 'absolute', top: inset, right: inset, width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, pointerEvents: 'none' }}
+    >
+      <HugeiconsIcon
+        icon={Shield01Icon}
+        aria-hidden
+        viewBox="3 2 18 20"
+        width={44 * scale}
+        height={50 * scale}
+        fill="currentColor"
+        preserveAspectRatio="none"
+        style={{ position: 'absolute', color: 'var(--primary)' }}
+      />
+      <span style={{ position: 'relative', fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 24 * scale, lineHeight: 1, color: 'var(--primary-foreground)' }}>
+        {ac}
+      </span>
+    </div>
   )
 }
 
@@ -266,10 +298,10 @@ export function FloatingVitals({
   )
 
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — fills the vitals block the page grid lays out above the dock
-  // (see CharacterSheetClient). The portrait takes whatever height the stat
-  // grid leaves; the level reads in the class tag beside the name, so the
-  // portrait carries only the AC badge and the HP bar.
+  // DESKTOP: the top of the side column the page grid lays out above the
+  // dock (see CharacterSheetClient): the portrait, a rule, the attributes.
+  // The level reads in the class tag beside the name, so the portrait
+  // carries only the AC shield and the HP bar.
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
@@ -284,11 +316,8 @@ export function FloatingVitals({
             onUpload={onAvatarUpload}
           />
 
-          {/* AC badge — top-right overlay */}
-          <div style={{ position: 'absolute', top: 4, right: 4, width: 52, height: 50, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 20, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
-          </div>
+          {/* AC shield, top-right overlay */}
+          <ArmorBadge ac={ac} size={52} inset={2} />
 
           {/* HP bar — bottom overlay, and the way into damage / heal / XP */}
           <button
@@ -297,7 +326,7 @@ export function FloatingVitals({
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
             aria-label={`Pontos de vida: ${hpCurrent} de ${hpMax}. Abrir dano, cura e XP.`}
             className="focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]"
-            style={{ position: 'absolute', bottom: 4, left: 4, right: 4, height: 36, overflow: 'hidden', cursor: 'pointer', zIndex: 5, padding: 0, border: 0, background: 'none' }}
+            style={{ position: 'absolute', bottom: 4, left: 0, right: 0, height: 36, overflow: 'hidden', cursor: 'pointer', zIndex: 5, padding: 0, border: 0, background: 'none' }}
           >
             {/* Depleted track */}
             <span style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
@@ -322,7 +351,8 @@ export function FloatingVitals({
           </button>
         </div>
 
-        {/* Stats 3×2 grid, flush under the portrait */}
+        {/* Stats 3×2 grid, under a rule from the portrait */}
+        {stats && <span aria-hidden className="side-rule" />}
         {stats && (
           <div className="vitals-stats">
             {STAT_KEYS.map(key => (
@@ -371,11 +401,8 @@ export function FloatingVitals({
             onUpload={onAvatarUpload}
           />
 
-          {/* AC badge — top-right */}
-          <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
-          </div>
+          {/* AC shield, top-right */}
+          <ArmorBadge ac={ac} size={44} inset={5} />
 
           {/* HP bar — bottom */}
           <div
@@ -397,9 +424,9 @@ export function FloatingVitals({
         </div>
 
         {/* Stats 2×3 grid — fills the space beside the portrait, matching its
-            height. The --input fill is the grid's, the tiles only rule it. */}
+            height. --muted tiles 4px apart, as on the desktop vitals. */}
         {stats && (
-          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', background: 'var(--input)' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(2, 1fr)', gap: 4 }}>
             {STAT_KEYS.map(key => (
               <RollModeMenu
                 key={key}
@@ -415,13 +442,13 @@ export function FloatingVitals({
                 nativeButton={false}
                 className={cn(
                   'h-full w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
-                  'border-input-border hover:border-ring bg-transparent',
+                  'bg-muted hover:bg-accent aria-expanded:bg-accent border-0',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
                 )}
               >
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
-                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
-                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
+                <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--primary-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
+                <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--accent-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
               </Button>
               </RollModeMenu>
             ))}

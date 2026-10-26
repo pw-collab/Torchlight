@@ -28,10 +28,15 @@ interface Props {
   headerRight?: React.ReactNode
   /**
    * The top bar's middle lane, lined up with the first column of the page's
-   * 1440px content box (see `.app-header-center`). The character sheet keeps
-   * its light status here, above the vitals.
+   * 1440px content box (see `.app-header-center`). The GM keeps the panel's
+   * tabs here.
    */
   headerCenter?: React.ReactNode
+  /**
+   * Centres the middle lane on the content box instead. The character sheet
+   * keeps its light status there, as the design draws it.
+   */
+  centerHeader?: boolean
 }
 
 /**
@@ -50,24 +55,23 @@ function LogoMenu({
   isMobile: boolean
 }) {
   const router = useRouter()
-  const logoSize = isMobile ? 26 : 30
+  const logoSize = isMobile ? 32 : 40
 
+  // The design sets the skull bare in a 52px hit area, with no caret or glow:
+  // the skull itself is the menu's handle.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Abrir menu"
-        className="group/logo flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 px-1.5 outline-none"
+        className="focus-visible:ring-ring/50 flex min-h-11 shrink-0 cursor-pointer items-center p-1.5 outline-none focus-visible:ring-[3px]"
       >
         <Image
           src="/skull-icon.png"
           alt="Torchlight"
           width={logoSize}
           height={logoSize}
-          className="object-contain drop-shadow-[0_0_12px_var(--primary)]"
+          className="object-contain"
         />
-        <span className="text-secondary-foreground inline-block text-[10px] leading-none transition-transform group-data-popup-open/logo:-scale-y-100">
-          ▾
-        </span>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent sideOffset={10} className="min-w-[194px]">
@@ -100,7 +104,7 @@ function LogoMenu({
   )
 }
 
-export function AppShell({ children, playerName, playerRole, backHref, headerRight, headerCenter }: Props) {
+export function AppShell({ children, playerName, playerRole, backHref, headerRight, headerCenter, centerHeader }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -119,16 +123,18 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
       <div
         className={cn(
           'app-header-scrim pointer-events-none fixed inset-x-0 top-0 z-60 flex items-center',
-          isMobile ? 'h-16 px-2' : 'h-20 px-6',
+          isMobile ? 'h-16 px-2' : 'h-20 px-2',
         )}
       >
         {headerCenter && (
           <div className="app-header-center">
-            <div className="app-header-center__box">{headerCenter}</div>
+            <div className={cn('app-header-center__box', centerHeader && 'app-header-center__box--centered')}>
+              {headerCenter}
+            </div>
           </div>
         )}
 
-        <div className="pointer-events-auto relative flex min-w-0 items-center gap-1">
+        <div className="pointer-events-auto relative flex min-w-0 items-center gap-[9px]">
           <LogoMenu
             playerName={playerName}
             playerRole={playerRole}
@@ -140,9 +146,9 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
             <Link
               href={backHref}
               className={cn(
-                'font-heading flex min-h-11 min-w-0 items-center gap-1.5 px-1.5',
+                'font-heading flex min-h-11 min-w-0 items-center gap-1.5 pr-1.5',
                 'text-xs tracking-[0.11em] uppercase transition-colors',
-                'text-muted-foreground hover:text-foreground',
+                'text-sidebar-border hover:text-foreground',
               )}
             >
               <span aria-hidden className="text-primary-text font-bold">

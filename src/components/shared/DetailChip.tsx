@@ -119,8 +119,8 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
           minWidth: 0,
           padding: '3px 6px',
           background: 'var(--secondary)',
-          color: 'var(--primary-foreground)',
-          border: '1px solid var(--input)',
+          color: 'var(--secondary-foreground)',
+          border: 0,
           cursor: isMobile ? 'pointer' : 'default',
           textAlign: 'left',
         }}
@@ -133,7 +133,7 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
             <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 20, lineHeight: '20px', color: 'var(--border)', opacity: 0.45, flexShrink: 0 }}>
               |
             </span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, lineHeight: '16px', textTransform: 'uppercase', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 400, fontSize: 16, lineHeight: '16px', textTransform: 'uppercase', flexShrink: 0 }}>
               {trailing}
             </span>
           </>
