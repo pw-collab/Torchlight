@@ -204,9 +204,15 @@ function AddRow({
 interface Props {
   character: Character
   onUpdate: (patch: Partial<CharacterRow>) => void
+  /**
+   * The table's tools that are nobody's tab in particular: the handouts the
+   * Mestre gave, resting and the view from across the table. The desktop sheet
+   * puts them at the head of this tab; phones keep them on top of the sheet.
+   */
+  tableTools?: ReactNode
 }
 
-export function BackstoryView({ character, onUpdate }: Props) {
+export function BackstoryView({ character, onUpdate, tableTools }: Props) {
 
   // ── Caderno (§5.9) ────────────────────────────────────────────────────────
   const [notes, setNotes] = useState(character.notes)
@@ -302,6 +308,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-4">
+
+      {tableTools && (
+        <section className="card-surface" style={card}>
+          <SectionHeading className="mb-4">Mesa</SectionHeading>
+          <div className="flex flex-col gap-3">{tableTools}</div>
+        </section>
+      )}
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="card-surface" style={card}>

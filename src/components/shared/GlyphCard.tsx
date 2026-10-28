@@ -253,7 +253,7 @@ export function GlyphCard({
                   lineHeight: '11.429px',
                   textAlign: 'center',
                   margin: 0,
-                  color: tone === 'activation' ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+                  color: tone === 'activation' ? 'var(--foreground)' : 'var(--muted-foreground)',
                 }}>
                   {caption}
                 </p>

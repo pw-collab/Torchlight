@@ -50,7 +50,7 @@ function LogoMenu({
   isMobile: boolean
 }) {
   const router = useRouter()
-  const logoSize = isMobile ? 26 : 30
+  const logoSize = isMobile ? 32 : 40
 
   return (
     <DropdownMenu>
@@ -58,12 +58,13 @@ function LogoMenu({
         aria-label="Abrir menu"
         className="group/logo flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 px-1.5 outline-none"
       >
+        {/* The bone skull from the Figma header (Profile-icon). */}
         <Image
-          src="/skull-icon.png"
+          src="/skull-bone.svg"
           alt="Torchlight"
           width={logoSize}
           height={logoSize}
-          className="object-contain drop-shadow-[0_0_12px_var(--primary)]"
+          className="object-contain"
         />
         <span className="text-secondary-foreground inline-block text-[10px] leading-none transition-transform group-data-popup-open/logo:-scale-y-100">
           ▾
@@ -119,7 +120,7 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
       <div
         className={cn(
           'app-header-scrim pointer-events-none fixed inset-x-0 top-0 z-60 flex items-center',
-          isMobile ? 'h-16 px-2' : 'h-20 px-6',
+          isMobile ? 'h-16 px-2' : 'h-[72px] px-2',
         )}
       >
         {headerCenter && (
@@ -164,7 +165,7 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
           logo any more, page content would otherwise scroll straight over it. */}
       <div
         className="relative h-dvh overflow-x-hidden overflow-y-auto"
-        style={{ paddingTop: isMobile ? 'calc(64px + var(--safe-top))' : 'calc(80px + var(--safe-top))' }}
+        style={{ paddingTop: isMobile ? 'calc(64px + var(--safe-top))' : 'calc(72px + var(--safe-top))' }}
       >
         {children}
       </div>

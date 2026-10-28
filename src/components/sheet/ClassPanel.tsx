@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { FourFinger03Icon, RotateRight02Icon } from '@hugeicons/core-free-icons'
 import type { Class, ClassTechnique, TechniqueKind, Stat } from '@/types/class.types'
@@ -12,7 +12,6 @@ import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import type { RollMode, RollResult } from '@/lib/dice'
 import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
 import { OriginIcon, type CardOrigin } from '@/components/shared/CardOrigin'
-import { DetailChip, ChipDetail } from '@/components/shared/DetailChip'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -144,7 +143,7 @@ function ChoiceSection({
                 fontFamily: 'var(--font-mono)',
                 fontSize: 14,
                 fontWeight: 700,
-                color: 'var(--primary-foreground)',
+                color: 'var(--foreground)',
                 background: 'color-mix(in oklch, var(--primary), transparent 82%)',
                 border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)',
                 padding: '2px 8px',
@@ -544,22 +543,17 @@ function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface Props {
-  /** The heading's name. */
-  characterName: string
-  /** Rides the class tag, after the divider — `[ Bard | 3 ]`. */
-  level: number
   /**
-   * Phones already carry the name above the portrait, so they leave it out
-   * here and keep only the tags.
+   * The deck's first row. The desktop sheet heads it with the panel title;
+   * the stacked and mobile sheets, which have no character card, put the
+   * identity tags there instead (see CharacterIdentity).
    */
-  showName?: boolean
+  heading?: ReactNode
   classData: Class
-  /** Fills the ancestry tag beside the class one. Omitted, the tag is dropped. */
+  /** Contributes the ancestry's trait cards. */
   ancestry?: Ancestry
-  /** Fills the archetype tag and contributes its talent. Omitted, both are dropped. */
+  /** Contributes the archetype's talent card. */
   archetype?: Archetype
-  /** The sheet's languages, listed inside the ancestry tag. */
-  languages?: string[]
   stats: Record<string, number>
   techniqueStates: TechniqueState[]
   onStateChange: (states: TechniqueState[]) => void
@@ -567,8 +561,8 @@ interface Props {
 }
 
 export function ClassPanel({
-  characterName, level, showName = true,
-  classData, ancestry, archetype, languages = [], stats, techniqueStates, onStateChange, onRoll,
+  heading = <h2 className="type-display-md text-foreground m-0">Técnicas</h2>,
+  classData, ancestry, archetype, stats, techniqueStates, onStateChange, onRoll,
 }: Props) {
   const activeTechniques = classData.techniques.filter(
     (t): t is ClassTechnique => t !== null,
@@ -581,47 +575,9 @@ export function ClassPanel({
 
   return (
     // The Atributos panel's deck: three columns whose first row is the heading
-    // — the name, then the tags — and every row after that a line of technique
-    // cards (see .attr-panel__deck). The page sets it beside the talent list.
+    // and every row after that a line of technique cards (see .attr-panel__deck).
     <section className="attr-panel__deck" aria-label="Técnicas">
-      {/* Row 1 — the name, and class, archetype and ancestry condensed into
-          tags with the level, proficiencies, concept and languages one hover
-          (or tap) away. The ancestry traits and the archetype talent are not
-          repeated here: they have their own cards among the techniques. */}
-      <div className="attr-panel__heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px 16px' }}>
-        {showName && (
-          <h1 style={{ flex: '1 1 auto', minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 22, lineHeight: 1.45, color: 'var(--card-foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {characterName}
-          </h1>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8, marginLeft: showName ? 'auto' : undefined }}>
-          <DetailChip
-            label={classData.name}
-            trailing={String(level)}
-            detailLabel="nível e proficiências da classe"
-          >
-            <ChipDetail label="Nível">{level} · dado de vida d{classData.hitDie}</ChipDetail>
-            <ChipDetail label="Armas">{classData.weaponProficiency}</ChipDetail>
-            <ChipDetail label="Armaduras">{classData.armorProficiency}</ChipDetail>
-          </DetailChip>
-
-          {archetype && (
-            <DetailChip label={archetype.name} detailLabel="conceito e gancho do arquétipo">
-              <ChipDetail label="Conceito">{archetype.summary}</ChipDetail>
-              {archetype.hook && <ChipDetail label="Gancho">{archetype.hook}</ChipDetail>}
-            </DetailChip>
-          )}
-
-          {ancestry && (
-            <DetailChip label={ancestry.name} detailLabel="idiomas da ancestralidade">
-              <ChipDetail label="Idiomas">
-                {languages.length > 0 ? languages.join(', ') : 'Nenhum idioma registrado.'}
-              </ChipDetail>
-            </DetailChip>
-          )}
-        </div>
-      </div>
+      <div className="attr-panel__heading">{heading}</div>
 
       {/* Rows 2 and on — everything the character starts play with: the class's
           own techniques, the ancestry's traits and the archetype's talent. One

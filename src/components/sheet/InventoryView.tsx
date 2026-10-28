@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Fragment, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import {
   BodyArmorIcon,
@@ -592,7 +593,7 @@ function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: Re
   return (
     <span style={{
       fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
-      color: tone === 'equipped' ? color : 'var(--primary-foreground)',
+      color: tone === 'equipped' ? color : 'var(--foreground)',
       background: `color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 80 : 85}%)`,
       border: `1px solid color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 65 : 70}%)`,
       padding: '1px 5px',
@@ -1014,6 +1015,12 @@ interface Props {
   onLightChange?: (change: { action: 'lit' | 'out'; itemName: string; minutesLeft: number }) => void
   /** O relógio da mesa, quando o personagem está numa (ver `lib/dungeonClock`). */
   clock?: TableClock | null
+  /**
+   * Where the equipment slots and the bonuses render, when not beside the
+   * pack. The desktop sheet hands in the character card's second column;
+   * the slots stay this component's (one state, one picker), only drawn there.
+   */
+  equipmentTarget?: HTMLElement | null
 }
 
 /** The purse is not a row in the inventory, so selection needs a name for it. */
@@ -1033,7 +1040,7 @@ export function InventoryView({
   onUpdate, onAcChange, onMeleeRangedUpdate,
   onRoll, meleeBonus, rangedBonus,
   gold, silver, copper, onCurrencyUpdate,
-  onLightChange, clock,
+  onLightChange, clock, equipmentTarget,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
@@ -1399,12 +1406,67 @@ export function InventoryView({
     )
   }
 
+  // Equipamento: armadura and the two hands, three wide cards stacked on a
+  // nested six-column grid, then the combat bonuses under them.
+  const equipment = (
+    <div className={cn('grid-6 grid-6--tight', !equipmentTarget && 'col-span-2 col-sm-full')} style={{ alignContent: 'start' }}>
+      <div className="col-span-6">
+        <SectionSubheading>Equipamento</SectionSubheading>
+      </div>
+      {renderEquipSlot('armor', 'Armadura', armorItem, BodyArmorIcon, 'col-span-6')}
+      {renderHandSlot('mainHand', 'col-span-6')}
+      {renderHandSlot('offHand', 'col-span-6')}
+
+      {/* Bônus — the two attack bonuses side by side, under the slots
+          they apply to. */}
+      <div className="col-span-6" style={{ marginTop: 6 }}>
+        <SectionSubheading>Bônus</SectionSubheading>
+      </div>
+      {([
+        { key: 'meleeBonus' as const, label: 'Corpo-a-corpo', value: meleeBonus },
+        { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
+      ] as const).map(({ key, label, value }) => (
+        <div
+          key={key}
+          className="col-span-3"
+          style={{
+            // The same raised tile as the attributes, now that the bonuses sit
+            // in the character card beside them.
+            background: 'var(--bg-raised)',
+            border: '2px solid var(--border-frame)',
+            padding: 8,
+            boxSizing: 'border-box',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+            {label}
+          </div>
+          <NumInput
+            value={value}
+            aria-label={label}
+            onCommit={n => onMeleeRangedUpdate({ [key]: n })}
+            className={cn(
+              'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
+              value > 0
+                ? 'text-[var(--chart-2)]'
+                : value < 0
+                  ? 'text-destructive'
+                  : 'text-[var(--foreground)]',
+            )}
+          />
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     // No page shell: this renders straight into the sheet's content column,
     // which spans six of the page's twelve columns and already carries the
     // page's margins. Nothing sits on the row below any more — the coin purse
     // moved into the pack, where it is just another item you can click.
     <>
+        {equipmentTarget && createPortal(equipment, equipmentTarget)}
         <div className="card-surface" style={{ padding: 24 }}>
           <div className="grid-6">
 
@@ -1418,65 +1480,17 @@ export function InventoryView({
             </div>
           )}
 
-          {/* Two-column split on the six-column grid — Equipamento takes a
+          {/* Two-column split on the six-column grid: Equipamento takes a
               third (span 2), Mochila the rest (span 4); both fill the row on
-              narrow widths. */}
+              narrow widths. With an equipmentTarget the slots render there
+              instead and the pack takes the whole row. */}
 
-          {/* Equipamento — armadura and the two hands, three wide cards
-              stacked on a nested six-column grid, then the combat bonuses
-              under them. */}
-          <div className="grid-6 grid-6--tight col-span-2 col-sm-full" style={{ alignContent: 'start' }}>
-            <div className="col-span-6">
-              <SectionSubheading>Equipamento</SectionSubheading>
-            </div>
-            {renderEquipSlot('armor', 'Armadura', armorItem, BodyArmorIcon, 'col-span-6')}
-            {renderHandSlot('mainHand', 'col-span-6')}
-            {renderHandSlot('offHand', 'col-span-6')}
-
-            {/* Bônus — the two attack bonuses side by side, under the slots
-                they apply to. */}
-            <div className="col-span-6" style={{ marginTop: 6 }}>
-              <SectionSubheading>Bônus</SectionSubheading>
-            </div>
-            {([
-              { key: 'meleeBonus' as const, label: 'Corpo-a-corpo', value: meleeBonus },
-              { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
-            ] as const).map(({ key, label, value }) => (
-              <div
-                key={key}
-                className="col-span-3"
-                style={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  padding: 8,
-                  boxSizing: 'border-box',
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
-                  {label}
-                </div>
-                <NumInput
-                  value={value}
-                  aria-label={label}
-                  onCommit={n => onMeleeRangedUpdate({ [key]: n })}
-                  className={cn(
-                    'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
-                    value > 0
-                      ? 'text-[var(--chart-2)]'
-                      : value < 0
-                        ? 'text-destructive'
-                        : 'text-[var(--foreground)]',
-                  )}
-                />
-              </div>
-            ))}
-          </div>
+          {!equipmentTarget && equipment}
 
           {/* Mochila — item grid with the detail pane below it. The panel has
               no heading of its own any more, so this one carries the carga,
               the item count and the two ways of adding something. */}
-          <div className="grid-6 grid-6--tight col-span-4 col-sm-full" style={{ alignContent: 'start' }}>
+          <div className={cn('grid-6 grid-6--tight', equipmentTarget ? 'col-span-6' : 'col-span-4 col-sm-full')} style={{ alignContent: 'start' }}>
             <div className="col-span-6">
               <SectionSubheading
                 trailing={

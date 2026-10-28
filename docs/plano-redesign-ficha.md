@@ -338,11 +338,17 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Conferir quebras de linha: Germania One é mais estreita que Bricolage 800, os títulos vão encolher.
 - Regra aplicada no código todo: texto em `--font-heading` abaixo de 16px passou para `--font-mono` (Libre Franklin, peso 600 quando não havia peso), como o Figma faz. Germania One ficou nos títulos de 16px para cima, nos numerais e nos monogramas do Mestre. Botões passaram a Libre Franklin Bold. `font-synthesis-weight: none` evita negrito falso na Germania.
 
-**Fase 3. Layout da ficha (desktop)**
-- Novo grid (§3.3), card da Ficha com trilho + vitais + identidade, painel da direita, dock flutuante.
-- Header de 72px e tocha centralizada.
+**Fase 3. Layout da ficha (desktop)** · **feita em 28/10**
+- Grid de duas linhas: card da Ficha (col 1-5) e painel (col 6-10) com moldura de 4px por fora (`outline`), dock na col 2-9 subindo 40px sobre os dois (`--dock-overlap`).
+- Card da Ficha: trilho com Editar no pé; coluna de vitais (retrato até 292px, escudo de CA, bloco de PV, divisores, atributos, condições); segunda coluna por aba (Atributos, Grimório e História: nome, tags e talentos; Inventário: equipamento e bônus, desenhados pelo `InventoryView` via portal).
+- Painel: Técnicas sozinho na aba Atributos; Mochila na aba Inventário; a aba História abre com a seção "Mesa" (handouts, Modo mesa, Descansar).
+- Dock: rolagens (col 1-2), morte/turno/pedidos (col 3-5), ataques (col 6-7), dados (col 8-10). O botão de turno e o teclado de dados ficam para a Fase 4.
+- Header de 72px, tocha centralizada, caveira cor de osso (`public/skull-bone.svg`, exportada do Figma) no header e no login.
+- Abaixo de 1100px o grid empilha e o dock gruda na base da tela; o celular segue o layout próprio.
+- Achado no caminho: alguns textos usavam `--primary-foreground` como "texto claro"; com a brasa, essa cor virou marrom escuro. Trocados por `--foreground` (tags, legenda de técnica ativa, selo aceso, nome no celular, título da raiz) e, no PV do celular, o texto passou a escuro sobre a brasa.
 
 **Fase 4. Componentes**
+- Falta: teclado de dados (esquerdo rola, direito soma, "x" limpa), botão de turno com 3 estados, histórico com balões no hover, cards de técnica (Button card), Result card, quadrado do nível dos talentos em brasa, botão de ataque Muted, correções de contraste de §4.5, seções da História sem moldura dupla.
 - Na ordem: Button → Divider → Tags → Attribute/HP → Talent item → Button card → Result card → dock (dados, ataques, turno).
 
 **Fase 5. Responsivo e estados**

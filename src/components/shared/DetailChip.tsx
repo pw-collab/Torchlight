@@ -13,6 +13,8 @@ interface Props {
   children: ReactNode
   /** Announced on the trigger, since the label alone doesn't say what opens. */
   detailLabel: string
+  /** Which identity it names, for its colour (the Figma's class, archetype and ancestry tags). */
+  tone?: 'class' | 'archetype' | 'ancestry'
 }
 
 const PANEL_LABEL: React.CSSProperties = {
@@ -42,11 +44,11 @@ export function ChipDetail({ label, children }: { label: string; children: React
 }
 
 /**
- * Solid header tag that condenses a block's identity — `[ Bard | D6 ]` — and
+ * Solid header tag that condenses a block's identity (`Monge Nv III`) and
  * keeps the rest of the detail one hover away (a tap on mobile, where there
- * is no hover to give). Used for the class and ancestry tags on the sheet.
+ * is no hover to give). Used for the class, archetype and ancestry tags.
  */
-export function DetailChip({ label, trailing, children, detailLabel }: Props) {
+export function DetailChip({ label, trailing, children, detailLabel, tone }: Props) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -115,28 +117,23 @@ export function DetailChip({ label, trailing, children, detailLabel }: Props) {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 6,
           minWidth: 0,
           padding: '3px 6px',
-          background: 'var(--secondary)',
-          color: 'var(--primary-foreground)',
-          border: '1px solid var(--input)',
+          background: tone ? `var(--${tone})` : 'var(--secondary)',
+          color: tone ? `var(--${tone}-foreground)` : 'var(--foreground)',
+          border: '1px solid var(--border-frame)',
           cursor: isMobile ? 'pointer' : 'default',
           textAlign: 'left',
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: 16, lineHeight: '24px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 14, lineHeight: '18px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {label}
         </span>
         {trailing && (
-          <>
-            <span aria-hidden style={{ fontFamily: 'var(--font-heading)', fontSize: 20, lineHeight: '20px', color: 'var(--border)', opacity: 0.45, flexShrink: 0 }}>
-              |
-            </span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, lineHeight: '16px', textTransform: 'uppercase', flexShrink: 0 }}>
-              {trailing}
-            </span>
-          </>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 14, lineHeight: '18px', flexShrink: 0 }}>
+            {trailing}
+          </span>
         )}
       </button>
 

@@ -41,9 +41,9 @@ function LoginContent() {
       <div className="mb-6 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/skull-icon.png"
+          src="/skull-bone.svg"
           alt="Torchlight"
-          className="animate-flicker size-18 object-contain drop-shadow-[0_0_16px_color-mix(in_oklch,var(--destructive),transparent_65%)]"
+          className="animate-flicker size-18 object-contain drop-shadow-[0_0_16px_color-mix(in_oklch,var(--ember),transparent_65%)]"
         />
       </div>
 
