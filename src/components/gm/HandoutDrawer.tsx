@@ -24,7 +24,7 @@ interface Props {
 }
 
 const CHIP =
-  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
+  'font-mono font-semibold h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
 
 /** Um rascunho novo é o mesmo objeto vazio, e não uma linha do banco. */
 const BLANK: Handout = { id: '', gmId: '', title: '', content: '', createdAt: '' }
@@ -143,7 +143,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
         }}
       >
         <div className="flex items-center justify-between">
-          <span className="font-heading text-[13px] tracking-[0.12em] text-[var(--foreground)] uppercase">
+          <span className="font-mono font-semibold text-[13px] tracking-[0.12em] text-[var(--foreground)] uppercase">
             📖 Entregar um documento
           </span>
           <Button
@@ -161,7 +161,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
           {/* A gaveta */}
           <div className="flex shrink-0 flex-col gap-1 sm:w-[190px]">
             <div className="flex items-center justify-between">
-              <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+              <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
                 Guardados
               </span>
               <Button
@@ -169,7 +169,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setDraft(BLANK)}
-                className="font-heading h-7 min-h-7 px-1.5 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase"
+                className="font-mono font-semibold h-7 min-h-7 px-1.5 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase"
               >
                 + Novo
               </Button>
@@ -212,7 +212,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
               onChange={e => setDraft(d => ({ ...d, title: e.target.value.slice(0, 80) }))}
               placeholder="A carta de Lorde Vhalen"
               aria-label="Título do documento"
-              className="font-heading border-border bg-secondary h-9 text-[12px] tracking-[0.06em]"
+              className="font-mono font-semibold border-border bg-secondary h-9 text-[12px] tracking-[0.06em]"
             />
             <Textarea
               value={draft.content}
@@ -248,7 +248,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
 
         {/* A entrega */}
         <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-3">
-          <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+          <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
             Entregar a
           </span>
           <div className="flex flex-wrap items-center gap-1">
@@ -295,7 +295,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
                   ? 'Abre na tela de todo mundo'
                   : 'Abre só na tela de quem foi marcado'
             }
-            className="font-heading bg-primary text-primary-foreground h-9 min-h-9 text-[9px] font-bold tracking-[0.12em] uppercase disabled:opacity-35"
+            className="font-mono bg-primary text-primary-foreground h-9 min-h-9 text-[9px] font-bold tracking-[0.12em] uppercase disabled:opacity-35"
           >
             {everyone ? 'Entregar à mesa' : `Entregar a ${targets.length}`}
           </Button>

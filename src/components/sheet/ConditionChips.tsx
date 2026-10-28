@@ -34,7 +34,7 @@ export function ConditionChips({ conditions, onRemove, compact }: Props) {
             key={condition.id}
             title={detail || condition.label}
             className={cn(
-              'font-heading inline-flex items-center gap-1 border tracking-[0.12em] uppercase',
+              'font-mono inline-flex items-center gap-1 border font-semibold tracking-[0.12em] uppercase',
               compact ? 'px-1.5 py-[1px] text-[7px]' : 'px-2 py-[3px] text-[8px]',
             )}
             style={{

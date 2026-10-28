@@ -36,7 +36,7 @@ interface MemberRow {
 }
 
 const CHIP =
-  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
+  'font-mono font-semibold h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
 
 /** Uma mesa vazia é sempre o mesmo array — ver `SessionPanel`. */
 const NO_SEATS: Seat[] = []
@@ -295,7 +295,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
       {/* O roteiro */}
       <div className="flex flex-col gap-2 lg:w-[320px] lg:shrink-0">
         <div className="flex items-center justify-between">
-          <span className="font-heading text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+          <span className="font-mono font-semibold text-[9px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
             {loading
               ? 'Abrindo o caderno…'
               : scenes.length === 0
@@ -338,7 +338,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
                 onClick={() => setDraft(scene)}
                 className="flex cursor-pointer items-baseline justify-between gap-2 text-left"
               >
-                <span className="font-heading truncate text-[11px] tracking-[0.06em] text-[var(--foreground)]">
+                <span className="font-mono font-semibold truncate text-[11px] tracking-[0.06em] text-[var(--foreground)]">
                   {scene.playedAt && <span aria-hidden className="opacity-70">✓ </span>}
                   {scene.title}
                 </span>
@@ -394,7 +394,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
           onChange={e => setDraft(d => ({ ...d, title: e.target.value.slice(0, 80) }))}
           placeholder="A emboscada na ponte"
           aria-label="Título da cena"
-          className="font-heading border-border bg-secondary h-9 text-[12px] tracking-[0.06em]"
+          className="font-mono font-semibold border-border bg-secondary h-9 text-[12px] tracking-[0.06em]"
         />
         <Textarea
           value={draft.gmNote}
@@ -404,7 +404,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
           className="font-body border-border bg-secondary min-h-[180px] text-[12px] leading-relaxed"
         />
 
-        <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           Quem está na cena
         </span>
         {bestiary.length === 0 ? (

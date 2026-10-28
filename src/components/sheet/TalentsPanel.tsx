@@ -21,7 +21,7 @@ import {
 import { cn } from '@/lib/utils'
 
 const FIELD_LABEL_CLASS =
-  'font-heading mb-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
+  'font-mono font-semibold mb-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
 const FIELD_INPUT_CLASS =
   'bg-secondary text-secondary-foreground h-auto px-2.5 py-2 text-[13px]'
 
@@ -149,10 +149,10 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
               className="w-[280px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--chart-1)] bg-[var(--background)] p-0"
             >
               <div className="flex flex-col gap-1 border-b border-[var(--border)] px-3 py-2.5">
-                <span className="font-heading text-[13px] leading-tight text-[var(--foreground)]">
+                <span className="font-mono font-semibold text-[13px] leading-tight text-[var(--foreground)]">
                   {talent.name}
                 </span>
-                <span className="font-heading text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
+                <span className="font-mono font-semibold text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
                   {ORIGIN_LABEL[talent.origin]}{level != null && ` · nível ${level}`}
                 </span>
               </div>

@@ -324,7 +324,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
             key={t.value}
             value={t.value}
             className={cn(
-              'tactile font-heading text-muted-foreground min-h-11 flex-none gap-2 border-b-2 border-transparent',
+              'tactile font-mono font-semibold text-muted-foreground min-h-11 flex-none gap-2 border-b-2 border-transparent',
               'px-4 py-3 text-[11px] tracking-[0.12em] uppercase transition-all duration-[250ms]',
               'data-active:border-b-[var(--primary)] data-active:bg-[var(--input)]',
               'data-active:text-[var(--foreground)]',
@@ -439,7 +439,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
         {tab === 'npcs' && (
           <div className="animate-ink-spread">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 {npcs.length} ficha{npcs.length !== 1 ? 's' : ''} registrada{npcs.length !== 1 ? 's' : ''}
               </span>
               <Button

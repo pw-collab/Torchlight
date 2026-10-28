@@ -145,7 +145,7 @@ function calculateAC(inv: InventoryItem[], dex: number): number {
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontFamily: 'var(--font-heading)',
+      fontFamily: 'var(--font-mono)', fontWeight: 600,
       fontSize: 7,
       letterSpacing: '0.14em',
       textTransform: 'uppercase' as const,
@@ -325,7 +325,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <HugeiconsIcon icon={catalogIconFor(cat)} size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: 'var(--muted-foreground)' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)', flex: 1 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)', flex: 1 }}>
                   {cat.name}
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-1)', flexShrink: 0 }}>
@@ -370,7 +370,7 @@ const TYPE_ACCENT: Record<ItemType, { color: string }> = {
 const TILE_ICON_SIZE = 26
 
 const TILE_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-mono)', fontWeight: 600,
   fontSize: 8,
   // The tile is a Button, and its variant sets `whitespace-nowrap`; without
   // this the two lines the clamp allows are never reached and long names are
@@ -563,7 +563,7 @@ function PopoverCloseButton() {
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
         {label}
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--foreground)', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -591,7 +591,7 @@ function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: Re
   const color = tone === 'equipped' ? 'var(--chart-2)' : 'var(--primary)'
   return (
     <span style={{
-      fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
       color: tone === 'equipped' ? color : 'var(--primary-foreground)',
       background: `color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 80 : 85}%)`,
       border: `1px solid color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 65 : 70}%)`,
@@ -637,17 +637,17 @@ function ItemDetailPopover({ item, now, onEdit, onRemove, onEquipToggle, onConsu
           <ItemGlyph item={item} size={20} now={now} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
             {item.name}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
               {TYPE_LABEL[item.type] ?? item.type}
             </span>
             {item.equipped && <StateBadge tone="equipped">Equipado</StateBadge>}
             {item.isLit && <StateBadge tone="lit">Acesa</StateBadge>}
             {isTwoHanded(item) && (
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 2 mãos
               </span>
             )}
@@ -738,10 +738,10 @@ function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
           <HugeiconsIcon icon={MoneyBag01Icon} size={20} strokeWidth={1.5} style={{ width: 20, height: 20 }} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
             Bolsa de moedas
           </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
             Tesouro
           </div>
         </div>
@@ -760,7 +760,7 @@ function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
             className="worn-border"
             style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
           >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
               {label}
             </div>
             <NumInput
@@ -1246,7 +1246,7 @@ export function InventoryView({
           gap: 6,
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
           {label}
         </span>
 
@@ -1256,11 +1256,11 @@ export function InventoryView({
               <span style={{ color: 'var(--foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
                 <ItemGlyph item={item} size={16} now={now} />
               </span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
                 {item.name}
               </span>
               {isTwoHanded(item) && (
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', flexShrink: 0 }}>
                   2 mãos
                 </span>
               )}
@@ -1374,14 +1374,14 @@ export function InventoryView({
           opacity: 0.6,
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
           {label}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ color: 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
             <HugeiconsIcon icon={iconFor(item)} size={16} strokeWidth={1.5} />
           </span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--muted-foreground)', flex: 1, lineHeight: 1.3 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--muted-foreground)', flex: 1, lineHeight: 1.3 }}>
             {item.name}
           </span>
         </div>
@@ -1453,7 +1453,7 @@ export function InventoryView({
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
                   {label}
                 </div>
                 <NumInput
@@ -1488,7 +1488,7 @@ export function InventoryView({
                       <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                         {carried}/{capacity}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                         {isEncumbered ? 'Sobrecarregado' : 'Carga'}
                       </span>
                     </span>
@@ -1496,7 +1496,7 @@ export function InventoryView({
                       <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1 }}>
                         {inventory.length}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
                         {inventory.length === 1 ? 'Item' : 'Itens'}
                       </span>
                     </span>
@@ -1619,7 +1619,7 @@ export function InventoryView({
                   onClick={() => equipItem(item.id, selectingSlot!)}
                   className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)' }}>
                     <ItemGlyph item={item} size={14} now={now} />
                     <span>{item.name}</span>
                     {isTwoHanded(item) && (
@@ -1681,7 +1681,7 @@ export function InventoryView({
                   onClick={() => equipItem(replaceFor, slot)}
                   className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)' }}>
                     <ItemGlyph item={item} size={14} now={now} />
                     <span>{item.name}</span>
                   </div>

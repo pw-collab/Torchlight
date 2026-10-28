@@ -1,4 +1,4 @@
-/* Bricolage Grotesque and Libre Franklin load from the <link> tags in
+/* Germania One, Bricolage Grotesque and Libre Franklin load from the <link> tags in
    layout.tsx, not from an @import here: a stylesheet @import is only
    discovered after this file itself downloads, so the preconnect there wins
    back a round trip on the Google Fonts handshake. */
@@ -65,16 +65,17 @@
   --primary-text: var(--primary);
   --input-border: var(--input);
 
-  /* Two families cover every role. Bricolage Grotesque takes the display
-     work; Libre Franklin takes running text and the small technical labels.
-     The embed pins Bricolage's wght axis at 800, so markup asking for 500 or
-     900 on a heading still renders ExtraBold — weight is no longer the lever
-     for hierarchy there, size and letter-spacing are. */
-  --font-heading: 'Bricolage Grotesque', sans-serif;
+  /* Three families, as the Figma sets them. Germania One takes titles from
+     16px up and the inked numerals; it has a single weight, so size is the
+     lever for hierarchy there (font-synthesis below keeps the browser from
+     faking a bold). Libre Franklin takes running text and every label under
+     16px: tags, chips, buttons. Bricolage Grotesque is left for the
+     technical readouts: the torch clock, the back link. */
+  --font-heading: 'Germania One', Georgia, serif;
   --font-body:    'Libre Franklin', sans-serif;
-  --font-mono:    'Libre Franklin', sans-serif;       /* small caps labels & metadata */
-  --font-stat:    'Bricolage Grotesque', sans-serif;  /* stat-grid labels & raw scores */
-  --font-numeral: 'Bricolage Grotesque', sans-serif;  /* inked numerals: modifiers, HP, AC */
+  --font-mono:    'Libre Franklin', sans-serif;       /* labels & metadata, under 16px */
+  --font-stat:    'Bricolage Grotesque', sans-serif;  /* clock and nav readouts */
+  --font-numeral: 'Germania One', Georgia, serif;     /* inked numerals: modifiers, HP, AC */
 
   --shadow-sm:    0 2px 6px rgba(0,0,0,0.35);
   --shadow-md:    0 4px 14px rgba(0,0,0,0.45);
@@ -132,6 +133,9 @@ html, body {
      `wdth` leaves `wght` under the control of `font-weight`. */
   font-optical-sizing: auto;
   font-variation-settings: 'wdth' 100;
+  /* Germania One ships one weight. Markup that still asks a title for bold
+     would get a smeared synthetic one; the variable families never need it. */
+  font-synthesis-weight: none;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -1073,6 +1077,23 @@ html, body {
   --input-border: var(--border-control);
 }
 
+/* ============================================================
+   Type scale: the Figma's text roles, one utility each. `type-*`
+   rather than `text-*`, which Tailwind already reads as size or colour.
+   ============================================================ */
+@utility type-display-xl { font-family: var(--font-heading); font-size: 48px; line-height: 1.2; }
+@utility type-display-lg { font-family: var(--font-numeral); font-size: 28px; line-height: 1; }
+@utility type-display-md { font-family: var(--font-heading); font-size: 24px; line-height: 1.2; }
+@utility type-display-sm { font-family: var(--font-heading); font-size: 18px; line-height: 1.2; }
+@utility type-title { font-family: var(--font-heading); font-size: 16px; line-height: 1.2; text-transform: uppercase; }
+@utility type-button { font-family: var(--font-mono); font-weight: 700; font-size: 16px; line-height: 1.2; text-transform: uppercase; }
+@utility type-tag { font-family: var(--font-mono); font-weight: 600; font-size: 14px; line-height: 1.3; }
+@utility type-body { font-family: var(--font-body); font-size: 12px; line-height: 1.5; }
+@utility type-caption { font-family: var(--font-mono); font-size: 10px; line-height: 1.2; }
+@utility type-label { font-family: var(--font-mono); font-size: 10px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; }
+@utility type-clock { font-family: var(--font-stat); font-weight: 700; font-size: 14px; letter-spacing: 0.08em; }
+@utility type-nav { font-family: var(--font-stat); font-weight: 500; font-size: 12px; letter-spacing: 0.11em; text-transform: uppercase; }
+
 @theme inline {
   --font-sans:        var(--font-body);
   --font-heading:        var(--font-heading);
@@ -1231,7 +1252,8 @@ html, body {
   flex-shrink: 0;
   height: 36px;
   padding: 0 10px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1240,7 +1262,7 @@ html, body {
   background: var(--secondary);
   border: 1px solid var(--input-border);
 }
-.gm-side-die b { font-size: 16px; letter-spacing: 0; color: var(--foreground); }
+.gm-side-die b { font-family: var(--font-numeral); font-size: 16px; letter-spacing: 0; color: var(--foreground); }
 .gm-side-die.is-current { color: var(--foreground); border-color: var(--primary-text); }
 
 /* O medidor de luz da ficha mora numa barra de 56px; aqui, numa linha. */
@@ -1316,7 +1338,8 @@ html, body {
 .gm-callout--crit { border-left-color: var(--chart-1); }
 .gm-callout__body { display: flex; flex: 1 1 220px; flex-direction: column; gap: 2px; min-width: 0; }
 .gm-callout__title {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 12px;
   line-height: 1.25;
   letter-spacing: 0.08em;
@@ -1381,7 +1404,8 @@ html, body {
   min-width: 0;
 }
 .gm-side__head {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1577,7 +1601,8 @@ html, body {
 .gm-command:active:not(:disabled) { transform: scale(0.96); }
 .gm-command:disabled { opacity: 0.4; cursor: not-allowed; }
 .gm-command__label {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   line-height: 1.15;
   letter-spacing: 0.08em;
@@ -1613,7 +1638,8 @@ html, body {
 }
 .gm-hint b {
   margin-right: 6px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-style: normal;
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -1696,7 +1722,8 @@ html, body {
   color: var(--sidebar-foreground);
 }
 .gm-hp__text small {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   letter-spacing: 0.24em;
 }
@@ -1764,7 +1791,7 @@ html, body {
   color: var(--secondary-foreground);
   background: var(--secondary);
 }
-.gm-fig__ac small { font-size: 8px; letter-spacing: 0.16em; }
+.gm-fig__ac small { font-family: var(--font-mono); font-weight: 600; font-size: 8px; letter-spacing: 0.16em; }
 .gm-fig__ac b { font-family: var(--font-numeral); font-size: 14px; }
 .gm-fig__flag {
   position: absolute;
@@ -1772,7 +1799,8 @@ html, body {
   left: 3px;
   z-index: 2;
   padding: 3px 5px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   line-height: 1;
   letter-spacing: 0.12em;
@@ -1829,7 +1857,8 @@ html, body {
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 12px;
   line-height: 1.2;
   color: var(--foreground);
@@ -1872,7 +1901,8 @@ html, body {
 
 .gm-tag {
   padding: 2px 5px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   line-height: 1.2;
   letter-spacing: 0.1em;
@@ -1936,7 +1966,7 @@ html, body {
 .gm-pop--heal { color: var(--chart-1); }
 .gm-pop--miss,
 .gm-pop--hit,
-.gm-pop--crit { font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+.gm-pop--crit { font-family: var(--font-mono); font-weight: 600; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
 .gm-pop--miss { color: var(--muted-foreground); }
 .gm-pop--hit { color: var(--destructive); }
 .gm-pop--crit { color: var(--chart-1); }

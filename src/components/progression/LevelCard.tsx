@@ -226,7 +226,7 @@ export function LevelCard({
                 variant="ghost"
                 onClick={onRegress}
                 disabled={busy !== null}
-                className="font-heading h-auto flex-1 px-3 py-2 text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                className="font-mono font-semibold h-auto flex-1 px-3 py-2 text-[8px] tracking-[0.14em] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
               >
                 ← Nível {characterLevel - 1}
               </Button>
@@ -238,7 +238,7 @@ export function LevelCard({
                 disabled={busy !== null || !sealed}
                 title={sealed ? undefined : 'Resolva as recompensas deste nível antes de avançar'}
                 className={cn(
-                  'font-heading h-auto flex-[2] px-3 py-2 text-[8px] tracking-[0.16em] transition-all duration-200',
+                  'font-mono font-semibold h-auto flex-[2] px-3 py-2 text-[8px] tracking-[0.16em] transition-all duration-200',
                   sealed && busy === null
                     ? 'border-[var(--chart-1)] bg-[var(--chart-2)]/20 text-[var(--foreground)] shadow-[0_0_10px_color-mix(in_oklch,var(--chart-1),transparent_80%)]'
                     : 'cursor-not-allowed border-[var(--border)] bg-transparent text-[var(--muted-foreground)]',
@@ -332,10 +332,10 @@ function RewardSection({
             <Table>
               <TableHeader>
                 <TableRow className="bg-secondary border-b-[var(--border)]">
-                  <TableHead className="font-heading w-12 border-r border-[var(--border)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
+                  <TableHead className="font-mono font-semibold w-12 border-r border-[var(--border)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
                     2D6
                   </TableHead>
-                  <TableHead className="font-heading px-2.5 py-[5px] text-[7px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
+                  <TableHead className="font-mono font-semibold px-2.5 py-[5px] text-[7px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
                     Efeito
                   </TableHead>
                 </TableRow>
@@ -389,7 +389,7 @@ function RewardSection({
             onClick={() => onUndo(kind)}
             disabled={busy !== null}
             className={cn(
-              'font-heading h-auto w-full border-[var(--border)] bg-transparent px-4 py-3 text-[9px] tracking-[0.16em]',
+              'font-mono font-semibold h-auto w-full border-[var(--border)] bg-transparent px-4 py-3 text-[9px] tracking-[0.16em]',
               'text-[var(--muted-foreground)] hover:text-[var(--destructive)]',
               busy !== null && 'cursor-wait opacity-50',
             )}
@@ -402,7 +402,7 @@ function RewardSection({
             onClick={() => onRoll(kind)}
             disabled={busy !== null || !classData}
             className={cn(
-              'font-heading h-auto w-full px-4 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
+              'font-mono font-semibold h-auto w-full px-4 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
               busy !== null || !classData
                 ? 'cursor-wait border-[var(--border)] bg-[var(--muted)] text-[var(--muted-foreground)]'
                 : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--destructive)] shadow-[0_0_12px_color-mix(in_oklch,var(--destructive),transparent_75%)]',
@@ -424,7 +424,7 @@ function RewardSection({
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-secondary flex flex-col gap-1 border border-[var(--border)] px-3 py-2">
-      <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
+      <span className="font-mono font-semibold text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
         {label}
       </span>
       <span className="font-heading truncate text-[18px] leading-none text-[var(--foreground)]">
@@ -446,7 +446,7 @@ function RewardReceipt({
   if (kind === 'hp') {
     return (
       <div className="flex flex-col gap-1 border border-[var(--chart-1)]/40 bg-[var(--chart-2)]/15 px-3 py-2.5">
-        <span className="font-heading text-[8px] tracking-[0.2em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold text-[8px] tracking-[0.2em] text-[var(--muted-foreground)] uppercase">
           PV ganhos
         </span>
         <span className="font-heading text-[28px] leading-none font-bold text-[var(--foreground)]">

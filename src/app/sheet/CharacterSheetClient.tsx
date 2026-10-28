@@ -694,7 +694,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
               variant="outline"
               onClick={() => setTableMode(true)}
               title="Números grandes, para ler com o celular do outro lado da mesa"
-              className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase"
+              className="font-mono font-semibold h-9 min-h-9 shrink-0 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase"
             >
               ⛶ Modo mesa
             </Button>
@@ -898,7 +898,7 @@ function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--pri
         bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 24,
         right: isMobile ? 16 : 24,
         zIndex: 120,
-        fontFamily: 'var(--font-heading)',
+        fontFamily: 'var(--font-mono)', fontWeight: 600,
         fontSize: 10,
         letterSpacing: '0.16em',
         textTransform: 'uppercase',

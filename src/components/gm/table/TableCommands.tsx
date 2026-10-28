@@ -150,7 +150,7 @@ export function TableCommands({
             const ration = findRation(seat.character.inventory)
             return (
               <li key={seat.character.id} className="flex items-center justify-between gap-2 text-[11px]">
-                <span className="font-heading text-[var(--foreground)]">{seat.character.name}</span>
+                <span className="font-mono font-semibold text-[var(--foreground)]">{seat.character.name}</span>
                 <span className={cn('font-mono', ration ? 'text-[var(--muted-foreground)]' : 'text-[var(--destructive)]')}>
                   {ration ? `${ration.quantity} ração(ões)` : 'sem ração'}
                 </span>

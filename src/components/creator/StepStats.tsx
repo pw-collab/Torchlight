@@ -23,7 +23,7 @@ const STAT_META: Record<Stat, { label: string; full: string }> = {
 const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 
 const STAT_CAPTION_CLASS =
-  'font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)]/70 uppercase'
+  'font-mono font-semibold text-[8px] tracking-[0.18em] text-[var(--muted-foreground)]/70 uppercase'
 
 /** One of the six 3d6 results, and the attribute it was placed on. */
 export interface StatRoll {

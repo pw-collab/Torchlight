@@ -100,7 +100,7 @@ export function TableToasts({ events, characterId, since }: Props) {
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                   <span
                     style={{
-                      fontFamily: 'var(--font-heading)',
+                      fontFamily: 'var(--font-mono)', fontWeight: 600,
                       fontSize: 10,
                       letterSpacing: '0.06em',
                       color: 'var(--foreground)',

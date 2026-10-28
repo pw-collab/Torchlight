@@ -27,7 +27,7 @@ interface Props extends AttackContext {
 }
 
 const ROLL_BUTTON_CLASS =
-  'font-heading bg-input border-input-border hover:border-primary h-9 min-h-9 shrink-0 px-2.5 text-[10px] font-bold tracking-[0.12em] uppercase'
+  'font-mono bg-input border-input-border hover:border-primary h-9 min-h-9 shrink-0 px-2.5 text-[10px] font-bold tracking-[0.12em] uppercase'
 
 /**
  * The quick attack menu on the dock: whatever is in hand, ready to roll.
@@ -80,7 +80,7 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
         }
       >
         <PopoverHeader className="p-0">
-          <PopoverTitle className="font-heading text-popover-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
+          <PopoverTitle className="font-mono text-popover-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
             Ataques
           </PopoverTitle>
         </PopoverHeader>
@@ -93,7 +93,7 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
             {onOpenInventory && (
               <Button
                 variant="outline"
-                className="font-heading bg-input border-input-border hover:border-primary h-10 text-[11px] font-bold tracking-[0.12em] uppercase"
+                className="font-mono bg-input border-input-border hover:border-primary h-10 text-[11px] font-bold tracking-[0.12em] uppercase"
                 onClick={() => { setOpen(false); onOpenInventory() }}
               >
                 Abrir inventário
@@ -105,7 +105,7 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
             {held.map(item => (
               <li key={item.id} className="bg-input flex items-center gap-2 border border-[var(--border)] px-2.5 py-2">
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="font-heading truncate text-[13px] leading-tight text-[var(--foreground)]">
+                  <span className="font-mono font-semibold truncate text-[13px] leading-tight text-[var(--foreground)]">
                     {item.name}
                   </span>
                   <span className="font-mono text-[9px] text-[var(--muted-foreground)]">

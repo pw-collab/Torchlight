@@ -27,7 +27,7 @@ export function HandoutShelf({ handouts, onOpen }: Props) {
           type="button"
           onClick={() => onOpen(handout)}
           title={`Reler "${handoutTitle(handout)}"`}
-          className="font-heading inline-flex cursor-pointer items-center gap-1 border px-2 py-[3px] text-[8px] tracking-[0.12em] uppercase transition-opacity hover:opacity-80"
+          className="font-mono font-semibold inline-flex cursor-pointer items-center gap-1 border px-2 py-[3px] text-[8px] tracking-[0.12em] uppercase transition-opacity hover:opacity-80"
           style={{
             color: 'var(--chart-2)',
             background: 'color-mix(in oklch, var(--chart-2), transparent 88%)',

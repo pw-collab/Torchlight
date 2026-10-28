@@ -97,7 +97,7 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
               : 'border-[var(--primary)] bg-[var(--primary)]/15',
           )}
         >
-          <span className="font-heading text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
+          <span className="font-mono font-semibold text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
             Rolagens iniciais
           </span>
           <span className="font-mono text-[10px] text-[var(--foreground)]">
@@ -148,10 +148,10 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
           <Table>
             <TableHeader>
               <TableRow className="border-b-[var(--border)] bg-[var(--card)]">
-                <TableHead className="font-heading text-muted-foreground w-12 border-r border-[var(--border)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
+                <TableHead className="font-mono font-semibold text-muted-foreground w-12 border-r border-[var(--border)] px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
                   2D6
                 </TableHead>
-                <TableHead className="font-heading text-muted-foreground px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
+                <TableHead className="font-mono font-semibold text-muted-foreground px-2.5 py-[5px] text-[7px] tracking-[0.14em] uppercase">
                   Efeito
                 </TableHead>
               </TableRow>
@@ -224,7 +224,7 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
 
       {/* Acquired talents */}
       <div>
-        <div className="font-heading text-muted-foreground mb-2 text-[7.5px] tracking-[0.14em] uppercase">
+        <div className="font-mono font-semibold text-muted-foreground mb-2 text-[7.5px] tracking-[0.14em] uppercase">
           Talentos de classe adquiridos ({classTalents.length})
         </div>
 
@@ -243,12 +243,12 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
               >
                 <Badge
                   variant="outline"
-                  className="font-heading mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--primary-foreground)] uppercase"
+                  className="font-mono font-semibold mt-px shrink-0 rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-[5px] py-px text-[7px] tracking-[0.12em] text-[var(--primary-foreground)] uppercase"
                 >
                   Classe
                 </Badge>
                 <ItemContent className="gap-0">
-                  <ItemTitle className="font-heading text-[10.5px] leading-snug text-[var(--foreground)]">
+                  <ItemTitle className="font-mono font-semibold text-[10.5px] leading-snug text-[var(--foreground)]">
                     {talent.name}
                   </ItemTitle>
                   {talent.description && (

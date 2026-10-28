@@ -92,7 +92,7 @@ function SubPanel({
         style={{ borderColor: 'color-mix(in oklch, var(--border), transparent 30%)' }}
       >
         <HugeiconsIcon icon={icon} size={16} strokeWidth={1.5} style={{ color: accent, flexShrink: 0 }} />
-        <h3 className="font-heading text-foreground min-w-0 flex-1 truncate text-[11px] font-semibold tracking-[0.14em] uppercase">
+        <h3 className="font-mono text-foreground min-w-0 flex-1 truncate text-[11px] font-semibold tracking-[0.14em] uppercase">
           {title}
         </h3>
         {count !== undefined && (
@@ -417,7 +417,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
                     {/* The bonus is a stat, so it gets the sheet's numeral
                         treatment rather than looking like another text box. */}
                     <span className="border-border bg-card flex shrink-0 items-center gap-1 border px-1.5 py-1">
-                      <span className="font-heading text-muted-foreground text-[8px] tracking-[0.12em] uppercase">Bônus</span>
+                      <span className="font-mono font-semibold text-muted-foreground text-[8px] tracking-[0.12em] uppercase">Bônus</span>
                       <Input
                         type="number"
                         value={area.bonus}

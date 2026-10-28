@@ -93,7 +93,7 @@ export function CombatRibbon({
           const current = !rolling && turn.side === side
           return (
             <li key={side} className="flex min-w-0 shrink-0 items-center gap-2">
-              {index > 0 && <span aria-hidden className="font-heading text-[14px] text-[var(--muted-foreground)]">›</span>}
+              {index > 0 && <span aria-hidden className="font-mono font-semibold text-[14px] text-[var(--muted-foreground)]">›</span>}
               <span
                 title={die == null ? `${SIDE_LABEL[side]}: d6 ainda não rolado` : `${SIDE_LABEL[side]}: d6 ${die}`}
                 className={cn('gm-side-die', current && 'is-current')}
@@ -197,7 +197,7 @@ export function ExplorationRibbon({
       </div>
 
       <div className="flex min-w-0 flex-[1_1_16rem] flex-wrap items-center gap-1.5 max-sm:order-last" role="group" aria-label="Nível de perigo">
-        <span className="font-heading mr-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">Perigo</span>
+        <span className="font-mono font-semibold mr-1 text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">Perigo</span>
         {/* Uma escolha só: os três unidos, como um seletor. */}
         <span className="flex">
           {DANGER_LEVELS.map(d => (

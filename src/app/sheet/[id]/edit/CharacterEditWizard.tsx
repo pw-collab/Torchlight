@@ -250,7 +250,7 @@ export function CharacterEditWizard({ character }: Props) {
           <div className="flex items-center justify-between gap-3">
             <Link
               href={`/sheet/${character.id}`}
-              className="font-heading flex min-h-11 items-center py-2 text-[11px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase transition-colors duration-200 hover:text-[var(--foreground)]"
+              className="font-mono font-semibold flex min-h-11 items-center py-2 text-[11px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase transition-colors duration-200 hover:text-[var(--foreground)]"
             >
               ← Voltar à ficha
             </Link>
@@ -278,7 +278,7 @@ export function CharacterEditWizard({ character }: Props) {
                   disabled={stepSaving}
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'tactile font-heading h-10 shrink-0 cursor-pointer border px-3 text-[11px] font-extrabold tracking-[0.06em] whitespace-nowrap uppercase',
+                    'tactile font-mono h-10 shrink-0 cursor-pointer border px-3 text-[11px] font-extrabold tracking-[0.06em] whitespace-nowrap uppercase',
                     'transition-colors duration-150 outline-none',
                     'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                     isActive
@@ -313,7 +313,7 @@ export function CharacterEditWizard({ character }: Props) {
         <>
           {/* Chapter heading */}
           <div className="mt-6 mb-5 w-full max-w-[640px] text-center">
-            <div className="font-heading mb-2 text-[9px] tracking-[0.26em] text-[var(--muted-foreground)] uppercase opacity-60">
+            <div className="font-mono font-semibold mb-2 text-[9px] tracking-[0.26em] text-[var(--muted-foreground)] uppercase opacity-60">
               ✦ {current.chapter} ✦
             </div>
             <h2 className="font-heading mb-2.5 text-[30px] leading-none font-bold tracking-[0.04em] text-[var(--foreground)]">
@@ -476,7 +476,7 @@ export function CharacterEditWizard({ character }: Props) {
         <div className="bg-background/95 fixed inset-x-0 bottom-0 z-10 flex items-center gap-2.5 overflow-hidden border-t border-[var(--border)] px-5 py-2 pb-[calc(8px+var(--safe-bottom))] backdrop-blur-[6px]">
           <span
             className={cn(
-              'font-heading max-w-[140px] shrink-0 truncate text-[13px] transition-colors duration-300',
+              'font-mono font-semibold max-w-[140px] shrink-0 truncate text-[13px] transition-colors duration-300',
               name ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
             )}
           >

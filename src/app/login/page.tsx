@@ -51,7 +51,7 @@ function LoginContent() {
       <h1 className="font-heading mb-1.5 text-center text-[32px] leading-none font-bold tracking-[0.05em] text-[var(--foreground)]">
         Torchlight
       </h1>
-      <p className="font-heading mb-8 text-[9px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase">
+      <p className="font-mono font-semibold mb-8 text-[9px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase">
         Ferramentas para Shadowdark RPG
       </p>
 
@@ -93,7 +93,7 @@ function LoginContent() {
         </CardContent>
 
         <CardFooter className="mt-4.5 justify-center border-t border-[var(--border)] px-0 pt-3.5">
-          <p className="font-heading text-center text-[7.5px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
+          <p className="font-mono font-semibold text-center text-[7.5px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
             Acesso restrito — apenas aventureiros autorizados
           </p>
         </CardFooter>

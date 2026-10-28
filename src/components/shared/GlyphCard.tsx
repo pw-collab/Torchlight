@@ -207,7 +207,7 @@ export function GlyphCard({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'var(--font-body)', fontSize: 6, color: 'var(--border)', lineHeight: '6px' }}>
                 <span>✦</span>
-                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: accent, lineHeight: 1 }}>↝</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', color: accent, lineHeight: 1 }}>↝</span>
                 <span>✦</span>
               </div>
             </div>
@@ -353,7 +353,7 @@ function CompactFace({ glyph, title, caption, description, status, tone }: {
     <>
       {/* Title bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: 8, border: `1px solid ${rule}`, flexShrink: 0 }}>
-        <p style={{ flex: 1, minWidth: 0, margin: 0, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: 'var(--foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+        <p style={{ flex: 1, minWidth: 0, margin: 0, fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: 'var(--foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
           {title}
         </p>
         <span aria-hidden className="[&>svg]:size-[18px]" style={{ display: 'flex', flexShrink: 0, color: 'var(--foreground)' }}>
@@ -370,7 +370,7 @@ function CompactFace({ glyph, title, caption, description, status, tone }: {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...mark }}>
             <span>✦</span>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
             <span>✦</span>
           </div>
         </div>

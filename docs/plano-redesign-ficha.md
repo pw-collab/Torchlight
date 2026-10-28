@@ -309,10 +309,11 @@ Mudanças no código:
 | `components/sheet/TalentsPanel.tsx` | muda de lugar (coluna identidade); quadrado do nível 19px em brasa |
 | `components/shared/GlyphCard.tsx` | variantes Passivo (`muted`, borda `border-control`) e Ativo (`accent`, borda `border-frame`); moldura tracejada; slot de usos (raios) |
 | `components/sheet/RollCard.tsx` | 4 modos do Result card; chip Vantagem/Desvantagem no canto; dados escolhido/descartado empilhados |
+| `components/sheet/BackstoryView.tsx` | recebe `HandoutShelf`, `RestButton` e o botão de Modo mesa, que saem do dock |
 | `components/sheet/RollHistory.tsx` | só a última; no hover, as anteriores sobem como balões roláveis, sem fundo de container |
-| `components/sheet/DiceRoller.tsx` | modo dock: 5 botões de dado com quantidade (esquerdo rola, direito soma 1) + botão d20 primário |
+| `components/sheet/DiceRoller.tsx` | modo dock: 5 botões de dado com quantidade (esquerdo rola, direito soma 1, "x" no canto limpa) + botão d20 primário que abre o painel atual |
 | `components/sheet/AttacksMenu.tsx` | gatilho vira botão Muted só com ícone de espada |
-| `components/sheet/TurnBanner.tsx` | ação vira o botão spirit do dock: "Iniciar turno" / "Encerrar turno"; o banner fica só com o texto |
+| `components/sheet/TurnBanner.tsx` | ação vira o botão spirit do dock: "Rolar iniciativa" → "Iniciar turno" / "Encerrar turno"; o banner fica só com o texto |
 | `components/sheet/TorchStatus.tsx` | 4 segmentos h14 gap 2, relógio Bricolage Bold 14; cor `ember` |
 | `components/ui/button.tsx` | variantes alinhadas ao 64:849: `default` (Primary/ember), `outline`, `muted`, nova `spirit`; borda 2px `border-frame` |
 | Novo: `components/shared/Divider.tsx` | linha + caveira 12px + linha, em `border-outline` |
@@ -332,9 +333,10 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Corrigir os três pares que falham.
 - Varredura visual do app inteiro, porque a troca é global. Atenção a `accent`, `secondary`, `chart-1`, `chart-2`.
 
-**Fase 2. Tipografia**
+**Fase 2. Tipografia** · **feita em 28/10**
 - Fontes em `layout.tsx`, `--font-heading` → Germania One, utilitários de texto.
 - Conferir quebras de linha: Germania One é mais estreita que Bricolage 800, os títulos vão encolher.
+- Regra aplicada no código todo: texto em `--font-heading` abaixo de 16px passou para `--font-mono` (Libre Franklin, peso 600 quando não havia peso), como o Figma faz. Germania One ficou nos títulos de 16px para cima, nos numerais e nos monogramas do Mestre. Botões passaram a Libre Franklin Bold. `font-synthesis-weight: none` evita negrito falso na Germania.
 
 **Fase 3. Layout da ficha (desktop)**
 - Novo grid (§3.3), card da Ficha com trilho + vitais + identidade, painel da direita, dock flutuante.
@@ -372,15 +374,18 @@ Cada fase é um PR que pode ir para produção sozinho.
    - Isso substitui o punhado misto do popover atual: cada botão rola só o próprio dado.
 7. **Botão "TURNO": um botão, dois estados.** "Iniciar turno" pede a vez (`onClaim`); durante a vez vira "Encerrar turno" (`onEnd`).
 
-### 7.2 Ainda em aberto
+### 7.2 Respondidas (28/10, segunda rodada)
 
-1. **Iniciativa.** O `TurnBanner` tem um terceiro estado, "Rolar pelo grupo" (o d6 de iniciativa no começo do combate). Proposta: o mesmo botão mostra "Rolar iniciativa" antes de existir ordem, e só depois alterna entre Iniciar e Encerrar.
-2. **Dados:** como tirar uma unidade? Proposta: Shift + botão direito tira uma; a quantidade também volta para 1 depois de rolar. No celular não há botão direito: o layout mobile segue com o popover atual.
-3. **O botão primário d20** (o de brasa) mantém o painel atual com Normal / Vantagem / Desvantagem, CD e modificador? Proposta: sim, clique abre o painel.
-4. **Handouts, descanso e modo mesa:** onde ficam agora que o dock só tem turno e pedidos?
-5. **Botão oculto no cabeçalho de Técnicas** (157x32). Qual ação era?
-6. **Coluna identidade no Grimório e na História.**
-7. **Nomes e contraste:** na Fase 1 segui as recomendações de §4.3 (`card` → `bg-base`, `accent` = marrom de destaque, `spirit` separado de `secondary`). As correções de contraste de §4.5 ficam nos componentes (Fase 4).
+1. **Iniciativa: sim.** O botão de turno tem três estados: "Rolar iniciativa" antes de existir ordem, depois "Iniciar turno" / "Encerrar turno".
+2. **Limpar a quantidade de um dado:** um botão "x" no canto superior direito do botão do dado, visível só quando a quantidade passa de 1. A quantidade também volta para 1 depois de rolar. No celular segue o popover atual.
+3. **Botão primário d20: sim,** o clique abre o painel atual (Normal / Vantagem / Desvantagem, CD, modificador).
+4. **Handouts, descanso e modo mesa vão para a aba História** do personagem (o `HandoutShelf`, o `RestButton` e o botão de Modo mesa saem do dock).
+5. **Botão oculto no cabeçalho de Técnicas:** resto do template, não entra.
+
+### 7.3 Ainda em aberto
+
+1. **Coluna identidade no Grimório e na História.** Na História ela pode ser o lugar natural de handouts, descanso e modo mesa (item 4 acima).
+2. **Nomes e contraste:** na Fase 1 segui as recomendações de §4.3 (`card` → `bg-base`, `accent` = marrom de destaque, `spirit` separado de `secondary`). As correções de contraste de §4.5 ficam nos componentes (Fase 4).
 
 ---
 

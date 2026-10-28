@@ -69,7 +69,7 @@ const INPUT_CLASS =
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontFamily: 'var(--font-heading)',
+      fontFamily: 'var(--font-mono)', fontWeight: 600,
       fontSize: 7,
       letterSpacing: '0.14em',
       textTransform: 'uppercase',
@@ -84,7 +84,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 function SectionDivider({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontFamily: 'var(--font-heading)',
+      fontFamily: 'var(--font-mono)', fontWeight: 600,
       fontSize: 8.5,
       letterSpacing: '0.2em',
       textTransform: 'uppercase',
@@ -214,7 +214,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <DialogHeader className="flex-row items-center justify-between border-b border-[var(--border)] pb-3.5">
-          <DialogTitle className="font-heading text-[11px] tracking-[0.18em] text-[var(--foreground)] uppercase">
+          <DialogTitle className="font-mono font-semibold text-[11px] tracking-[0.18em] text-[var(--foreground)] uppercase">
             ✦ Editar Personagem
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -303,7 +303,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 }}
               >
                 <div style={{
-                  fontFamily: 'var(--font-heading)', fontSize: 6.5,
+                  fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5,
                   letterSpacing: '0.15em', textTransform: 'uppercase',
                   color: 'var(--muted-foreground)', marginBottom: 4,
                 }}>
@@ -364,7 +364,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                 <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr', background: 'var(--card)', borderBottom: '1px solid var(--border)' }}>
                   {['2D6', 'Efeito'].map((h, i) => (
                     <div key={h} style={{
-                      fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em',
+                      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em',
                       textTransform: 'uppercase', color: 'var(--muted-foreground)', padding: '5px 10px',
                       borderRight: i === 0 ? '1px solid var(--border)' : 'none',
                     }}>
@@ -447,7 +447,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             {/* Acquired class talents list */}
             <div>
               <div style={{
-                fontFamily: 'var(--font-heading)', fontSize: 7.5, letterSpacing: '0.14em',
+                fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7.5, letterSpacing: '0.14em',
                 textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 7,
               }}>
                 Talentos adquiridos ({classTalents.length})
@@ -477,7 +477,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       }}
                     >
                       <span style={{
-                        fontFamily: 'var(--font-heading)', fontSize: 7,
+                        fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: 'var(--primary-foreground)',
                         background: 'var(--primary)',
@@ -488,7 +488,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
-                          fontFamily: 'var(--font-heading)', fontSize: 10.5,
+                          fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10.5,
                           color: 'var(--foreground)', lineHeight: 1.3,
                         }}>
                           {talent.name}
@@ -610,7 +610,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
             return (
               <div style={{ marginBottom: 10 }}>
                 <div style={{
-                  fontFamily: 'var(--font-heading)', fontSize: 7,
+                  fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7,
                   letterSpacing: '0.14em', textTransform: 'uppercase',
                   color: 'var(--muted-foreground)', marginBottom: 5,
                 }}>

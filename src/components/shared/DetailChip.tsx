@@ -16,7 +16,7 @@ interface Props {
 }
 
 const PANEL_LABEL: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-mono)', fontWeight: 600,
   fontSize: 11,
   letterSpacing: '0.12em',
   textTransform: 'uppercase',

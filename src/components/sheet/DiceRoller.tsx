@@ -51,7 +51,7 @@ interface Props {
 
 // Shared label treatment for the popover's form rows.
 const LABEL_CLASS =
-  'font-heading text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--muted-foreground)] uppercase'
+  'font-mono text-[11px] font-bold tracking-[0.16em] whitespace-nowrap text-[var(--muted-foreground)] uppercase'
 const FIELD_CLASS =
   'font-[var(--font-numeral)] h-11 flex-1 border-border bg-secondary text-center text-base text-secondary-foreground'
 const CAPTION_CLASS =
@@ -242,7 +242,7 @@ export function DiceRoller({
         )}
       >
         <PopoverHeader className="p-0">
-          <PopoverTitle className="font-heading text-popover-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
+          <PopoverTitle className="font-mono text-popover-foreground text-sm font-extrabold tracking-[0.14em] uppercase">
             Rolar Dados
           </PopoverTitle>
         </PopoverHeader>
@@ -278,7 +278,7 @@ export function DiceRoller({
                   {count > 0 && (
                     <span
                       aria-hidden
-                      className="bg-primary text-primary-foreground font-heading absolute -top-1 -right-1 flex size-4 items-center justify-center text-[9px] font-bold"
+                      className="bg-primary text-primary-foreground font-mono absolute -top-1 -right-1 flex size-4 items-center justify-center text-[9px] font-bold"
                     >
                       {count}
                     </span>
@@ -320,7 +320,7 @@ export function DiceRoller({
               render={<motion.button {...DICE_TAP} />}
               variant="hollow"
               className={cn(
-                'font-heading bg-primary text-primary-foreground h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
+                'font-mono bg-primary text-primary-foreground h-11 flex-1 text-[12px] font-bold tracking-[0.14em] uppercase',
                 'hover:bg-primary/80 disabled:opacity-35',
               )}
             >
@@ -333,7 +333,7 @@ export function DiceRoller({
               render={<motion.button {...DICE_TAP} />}
               variant="outline"
               className={cn(
-                'font-heading bg-input border-input-border h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
+                'font-mono bg-input border-input-border h-11 px-3 text-[11px] font-bold tracking-[0.12em] uppercase',
                 'hover:border-primary disabled:opacity-35',
               )}
             >
@@ -396,7 +396,7 @@ export function DiceRoller({
                 variant="outline"
                 style={{ color }}
                 className={cn(
-                  'font-heading bg-input border-input-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
+                  'font-mono bg-input border-input-border h-auto min-h-16 flex-col gap-1.5 px-1 py-2.5',
                   'text-[11px] font-bold tracking-[0.04em] normal-case',
                   'hover:border-primary hover:bg-accent',
                   mode === 'disadvantage' && disadvantageFrom.length > 0 &&

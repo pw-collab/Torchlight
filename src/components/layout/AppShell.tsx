@@ -79,7 +79,7 @@ function LogoMenu({
           <>
             <DropdownMenuSeparator />
             <div className="flex flex-col gap-0.5 px-2.5 py-1.5">
-              <span className="font-heading text-foreground text-[15px] leading-tight">
+              <span className="font-mono font-semibold text-foreground text-[15px] leading-tight">
                 {playerName}
               </span>
               {playerRole && (
@@ -140,7 +140,7 @@ export function AppShell({ children, playerName, playerRole, backHref, headerRig
             <Link
               href={backHref}
               className={cn(
-                'font-heading flex min-h-11 min-w-0 items-center gap-1.5 px-1.5',
+                'font-[family-name:var(--font-stat)] flex min-h-11 min-w-0 items-center gap-1.5 px-1.5 font-medium',
                 'text-xs tracking-[0.11em] uppercase transition-colors',
                 'text-muted-foreground hover:text-foreground',
               )}

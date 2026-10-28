@@ -79,7 +79,7 @@ export function MonsterPicker({
                 )}
               >
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="font-heading truncate text-[11px] text-[var(--foreground)]">
+                  <span className="font-mono font-semibold truncate text-[11px] text-[var(--foreground)]">
                     {npc.favorite && <span className="text-[var(--chart-1)]">★ </span>}{npc.name}
                   </span>
                   <span className="font-mono text-[10px] text-[var(--muted-foreground)]">

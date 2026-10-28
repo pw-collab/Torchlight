@@ -60,7 +60,7 @@ export function NPCListItem({ npc, selected, onSelect, onToggleFavorite }: Props
       <ItemContent className="gap-0">
         <ItemTitle
           className={cn(
-            'font-heading mb-[3px] block truncate text-sm leading-tight tracking-[0.03em]',
+            'font-mono font-semibold mb-[3px] block truncate text-sm leading-tight tracking-[0.03em]',
             selected ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
           )}
         >
@@ -85,7 +85,7 @@ export function NPCListItem({ npc, selected, onSelect, onToggleFavorite }: Props
             {npc.tags.map(tag => (
               <span
                 key={tag}
-                className="font-heading border border-[var(--border)] px-1.5 py-[1px] text-[7px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase"
+                className="font-mono font-semibold border border-[var(--border)] px-1.5 py-[1px] text-[7px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase"
               >
                 {tag}
               </span>

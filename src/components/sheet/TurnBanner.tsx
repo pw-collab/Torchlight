@@ -81,14 +81,14 @@ export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions
       </span>
 
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-heading truncate text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold truncate text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           {encounter
             ? `${encounter.name} · ${turn?.stage === 'turns' ? `rodada ${turn.round}` : 'iniciativa'}`
             : 'Exploração'}
         </span>
         <span
           role="status"
-          className="font-heading text-[13px] leading-tight"
+          className="font-mono font-semibold text-[13px] leading-tight"
           style={{ color: myTurn ? 'var(--chart-1)' : 'var(--foreground)' }}
         >
           {headline}
@@ -107,7 +107,7 @@ export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions
           variant="hollow"
           onClick={button.run}
           disabled={busy}
-          className="font-heading bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
+          className="font-mono bg-primary text-primary-foreground h-10 shrink-0 px-3.5 text-[10px] font-bold tracking-[0.14em] uppercase"
         >
           {button.label}
         </Button>
