@@ -348,7 +348,7 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <Button
                 variant="outline"
                 onClick={rollAndAdd}
-                className="text-foreground h-auto rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)]"
+                className="text-foreground h-auto rounded-[1px] border-[var(--primary)] bg-[var(--primary)]/15 px-3 py-[5px] text-[8px] tracking-[0.1em] transition-all duration-[220ms] hover:bg-[var(--primary)] hover:text-primary-foreground"
               >
                 ✦ Rolar 2d6
               </Button>
@@ -414,8 +414,10 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
               <div
                 className="worn-border animate-ink-spread"
                 style={{
-                  background: 'var(--primary)',
-                  border: '1px solid var(--border)',
+                  // A tint, not the solid ember: the light text below would sit
+                  // at 2:1 on the full fill.
+                  background: 'color-mix(in oklch, var(--primary), transparent 85%)',
+                  border: '1px solid var(--primary)',
                   padding: '8px 12px',
                   marginBottom: 10,
                   display: 'flex',

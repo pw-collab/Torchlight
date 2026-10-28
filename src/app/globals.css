@@ -55,8 +55,8 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
-  /* The one warm colour outside the reds: a light source that is burning
-     (the design's #fb9e32). Same in both themes — a flame doesn't change. */
+  /* A light source that is burning. The dark theme points it at --ember,
+     the same colour the Figma theme gives the torch. */
   --torch: oklch(0.777 0.159 64.5);
   /* Red as text, and the edge of a control. --primary is a fill: as text on
      the dark surfaces it reads at 2:1, and --input doubles as the selected-
@@ -999,47 +999,78 @@ html, body {
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.148 0.004 228.8);
-  --foreground: oklch(0.987 0.002 197.1);
-  --card: oklch(0.218 0.008 223.9);
-  --card-foreground: oklch(0.987 0.002 197.1);
-  --popover: oklch(0.218 0.008 223.9);
-  --popover-foreground: oklch(0.987 0.002 197.1);
-  --primary: oklch(0.444 0.177 26.899);
-  --primary-foreground: oklch(0.971 0.013 17.38);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.275 0.011 216.9);
-  --muted-foreground: oklch(0.723 0.014 214.4);
-  --accent: oklch(0.444 0.177 26.899);
-  --accent-foreground: oklch(0.971 0.013 17.38);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  /* Focus must stand out from --input-border, which already sits at 3:1:
-     at the old oklch(0.56 ...) a focused field barely changed. This is the
-     --chart-1 grey: 3.5:1 against the unfocused border. */
-  --ring: oklch(0.872 0.007 219.6);
-  --chart-1: oklch(0.872 0.007 219.6);
-  --chart-2: oklch(0.56 0.021 213.5);
-  --chart-3: oklch(0.45 0.017 213.2);
-  --chart-4: oklch(0.378 0.015 216);
-  --chart-5: oklch(0.275 0.011 216.9);
-  --sidebar: oklch(0.218 0.008 223.9);
-  --sidebar-foreground: oklch(0.987 0.002 197.1);
-  /* The active tab: the brand red, so its label reads at 7.6:1. The brighter
-     oklch(0.637 0.237 25.331) left it at 3.5:1. */
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: oklch(0.971 0.013 17.38);
-  --sidebar-accent: oklch(0.275 0.011 216.9);
-  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
-  --torch: oklch(0.777 0.159 64.5);
-  /* 4.8:1 on card, 5.4:1 on background. */
-  --primary-text: oklch(0.64 0.177 26.899);
-  /* 3:1 or better on background, card, muted and secondary. */
-  --input-border: oklch(1 0 0 / 36%);
+
+  /* ------------------------------------------------------------------
+     The Figma theme (Playground, collection "Theme", mode "Dark"), under
+     its own names. These are the source; the shadcn roles below only
+     point at them, so a value changes here and nowhere else.
+     ------------------------------------------------------------------ */
+  --bg-sunken: #110d0b;          /* the page behind everything */
+  --bg-base: #1c1512;            /* panels */
+  --bg-raised: #2a201c;          /* blocks on a panel: HP, attributes, the dock */
+  --bg-panel: #372b27;           /* what floats: popovers, menus */
+  --ember: #df7653;              /* the action colour, and the light */
+  --ember-foreground: #1b1513;
+  --spirit: #48b8d2;             /* the counterweight: turns, secondary actions */
+  --spirit-foreground: #131a1b;
+  --border-outline: #53433c;     /* panel frames and dividers */
+  --border-frame: #110d0b;       /* the ink line around controls */
+  --border-control: #8f796a;     /* the edge of a control, 3:1 or better */
+  /* Identity tags: class, archetype, ancestry. */
+  --class: var(--ember);
+  --class-foreground: #34140a;
+  --archetype: #9f815d;
+  --archetype-foreground: #201a13;
+  --ancestry: #8fb4c0;
+  --ancestry-foreground: #182e34;
+
+  /* ------------------------------------------------------------------
+     shadcn roles, mapped by what they do rather than by name: the
+     Figma "card" (#6e564e) is a highlighted item, which is shadcn's
+     --accent; shadcn's --card is the panel surface, Figma's bg-base.
+     --secondary stays a quiet surface; the cyan has its own --spirit.
+     ------------------------------------------------------------------ */
+  --background: var(--bg-sunken);
+  --foreground: #ecdbb8;
+  --card: var(--bg-base);
+  --card-foreground: #ecd9b7;
+  --popover: var(--bg-panel);
+  --popover-foreground: var(--foreground);
+  --primary: var(--ember);
+  --primary-foreground: var(--ember-foreground);
+  --secondary: #2d221f;
+  --secondary-foreground: var(--foreground);
+  --muted: #2d221f;
+  --muted-foreground: #b0a18f;
+  --accent: #6e564e;
+  --accent-foreground: #ecd9b7;
+  --destructive: #ff6467;
+  --border: var(--border-outline);
+  --input: rgb(242 162 136 / 15%);
+  /* The theme has no focus colour. The text colour stands 13:1 off the
+     page and well clear of --input-border, so a focused field reads. */
+  --ring: var(--foreground);
+  /* No warm chart ramp in the theme yet: these step down the palette. */
+  --chart-1: #d9c7a3;
+  --chart-2: #b0a18f;
+  --chart-3: #6e564e;
+  --chart-4: #53433c;
+  --chart-5: #2d221f;
+  --sidebar: var(--bg-base);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--ember);
+  --sidebar-primary-foreground: var(--ember-foreground);
+  --sidebar-accent: var(--muted);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border-outline);
+  --sidebar-ring: var(--border-control);
+  /* The light burns in the same ember as everything else now. */
+  --torch: var(--ember);
+  /* Ember clears AA as text on its own (5.9:1 on bg-base), so the
+     separate text shade the old red needed is just an alias now. */
+  --primary-text: var(--ember);
+  /* 4.4:1 on bg-base, 3.8:1 on muted. */
+  --input-border: var(--border-control);
 }
 
 @theme inline {
@@ -1080,6 +1111,23 @@ html, body {
   --color-card:        var(--card);
   --color-foreground:        var(--foreground);
   --color-background:        var(--background);
+  --color-bg-sunken:        var(--bg-sunken);
+  --color-bg-base:        var(--bg-base);
+  --color-bg-raised:        var(--bg-raised);
+  --color-bg-panel:        var(--bg-panel);
+  --color-ember:        var(--ember);
+  --color-ember-foreground:        var(--ember-foreground);
+  --color-spirit:        var(--spirit);
+  --color-spirit-foreground:        var(--spirit-foreground);
+  --color-border-outline:        var(--border-outline);
+  --color-border-frame:        var(--border-frame);
+  --color-border-control:        var(--border-control);
+  --color-class:        var(--class);
+  --color-class-foreground:        var(--class-foreground);
+  --color-archetype:        var(--archetype);
+  --color-archetype-foreground:        var(--archetype-foreground);
+  --color-ancestry:        var(--ancestry);
+  --color-ancestry-foreground:        var(--ancestry-foreground);
   --radius-sm:        calc(var(--radius) * 0.6);
   --radius-md:        calc(var(--radius) * 0.8);
   --radius-lg:        var(--radius);

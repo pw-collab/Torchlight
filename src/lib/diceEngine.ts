@@ -79,11 +79,11 @@ export interface DiceTheme {
 }
 
 const FALLBACK_THEME: DiceTheme = {
-  face: '#9f0712',
-  text: '#fef2f2',
-  crit: 0xd0d6d8,
+  face: '#df7653',
+  text: '#1b1513',
+  crit: 0xd9c7a3,
   fumble: 0xff6467,
-  neutral: 0x9ca8ab,
+  neutral: 0xb0a18f,
 }
 
 let probe: HTMLSpanElement | null = null
@@ -134,9 +134,8 @@ const asNumber = (hex: string) => parseInt(hex.slice(1), 16)
  * follow a light/dark theme switch without a reload.
  */
 export function readDiceTheme(): DiceTheme {
-  // Blood red with pale numerals: the same pairing the SVG dice and the
-  // roller buttons use, and the only one that holds contrast against a
-  // near-black backdrop.
+  // Ember with dark numerals: the same pairing the SVG dice and the roller
+  // buttons use, 5.9:1 between face and numeral.
   const face = readColor('--primary')
   const text = readColor('--primary-foreground')
   const crit = readColor('--chart-1')

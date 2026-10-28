@@ -64,7 +64,7 @@ Frame 1440x960 · VERTICAL · fill bg-sunken
       · GRID 10 col x 2 lin · gap 12 · pad 12 · fill bg-raised · stroke 2 border-frame
       ├─ col 1-2, lin 1 · Result card (última rolagem)
       ├─ col 1-2, lin 2 · ↳ Result card "Dano" (rolagem encadeada)
-      ├─ col 3-5 · VAZIO
+      ├─ col 3-5 · VAZIO no Figma → turno + pedidos do Mestre (§7.1)
       ├─ col 6-7, lin 1 · Botão Muted ícone espada (ataques)
       ├─ col 6-7, lin 2 · Botão Secondary "TURNO" (ciano)
       ├─ col 8-10, lin 1 · D4 · D6 · D8 (Outline)
@@ -123,14 +123,16 @@ HOJE (desktop ≥ 1100)                       FIGMA
 | Grid | 10x8, gap 24, pad 32 48 48 | 10x8, gap 24, pad 16 48 48 | só o topo (o header encolhe 8px) |
 | Vitals | bloco próprio, col 1-2 | coluna dentro do card da Ficha | `FloatingVitals` perde a moldura própria |
 | Trilho de abas | coluna 3 do grid, com régua | dentro do card da Ficha, à esquerda | `TabRail` sai de `.sheet-rail` |
-| Nome + tags | cabeçalho do `ClassPanel` (só na aba Atributos) | sempre visíveis, coluna identidade | sai do `ClassPanel` |
-| Talentos | 4ª coluna do painel Atributos | sempre visíveis, coluna identidade | sai de `.attr-panel` |
+| Nome + tags | cabeçalho do `ClassPanel` (só na aba Atributos) | coluna identidade (muda com a aba, §7.1) | sai do `ClassPanel` |
+| Talentos | 4ª coluna do painel Atributos | coluna identidade, na aba Atributos | sai de `.attr-panel` |
+| Equipados + bônus | dentro do `InventoryView` | coluna identidade, na aba Inventário | sai do `InventoryView` |
+| Condições | faixa de estado no dock | 1ª coluna da Ficha, abaixo dos atributos | `ConditionChips` muda de lugar |
 | Painel da aba | col 4-10 | col 6-10 (metade direita) | cabe 3 cards de técnica, não 3 + talentos |
 | Dock | card na col 1-2, l 5-8, com faixa de estado + histórico + 3 botões | bandeja flutuante col 2-9 por cima da base dos painéis | maior mudança de comportamento |
-| Dados | `DiceRoller` abre popover | D4 a D12 como botões diretos + d20 primário | `DiceRoller` ganha modo "teclado" |
-| Turno | botões dentro do `TurnBanner` | botão fixo "TURNO" no dock | `TurnBanner` encolhe |
-| Histórico | lista rolável (`RollHistory`) | só a última rolagem + a encadeada | decidir (ver §7) |
-| Editar | link no `TabRail` | oculto no Figma | decidir (ver §7) |
+| Dados | `DiceRoller` abre popover | D4 a D12 diretos: esquerdo rola, direito soma 1 (§7.1) | `DiceRoller` ganha modo "teclado" |
+| Turno | botões dentro do `TurnBanner` | botão fixo: "Iniciar turno" / "Encerrar turno" | `TurnBanner` encolhe |
+| Histórico | lista rolável (`RollHistory`) | só a última; hover mostra as anteriores como balões, sem fundo | `RollHistory` vira pilha flutuante |
+| Editar | link no `TabRail` | botão Muted com ícone, no pé do trilho, sempre visível | `TabRail` ganha pé |
 | TorchStatus | alinhado à coluna 1 | centralizado no header | `.app-header-center__box` simplifica |
 | Bordas de painel | 1px `--border` | 4px por fora `border-outline` | usar `outline`, não `border` |
 
@@ -296,19 +298,21 @@ Mudanças no código:
 |---|---|
 | `app/layout.tsx` | fontes (§4.6) |
 | `app/globals.css` | tokens (§4.2), `.sheet-*` (§3.3), `.attr-panel` some ou vira só o deck |
-| `components/layout/AppShell.tsx` | header 72px, pad 8; "‹ Voltar" em `muted-foreground`; centro do header centralizado |
+| `components/layout/AppShell.tsx` | header 72px, pad 8; "‹ Voltar" em `muted-foreground`; centro do header centralizado; caveira cor de osso (vetor `Profile-icon` do Figma) no lugar do `skull-icon.png` vermelho, também no login |
 | `app/sheet/CharacterSheetClient.tsx` | nova estrutura: `.sheet-card` (trilho + vitais + identidade) · `.sheet-panel` · `.sheet-dock` |
-| `components/sheet/TabRail.tsx` | botões 64x64; ativo = `bg-muted` + 3px `border-control`; inativo = `bg-base` + 2px `border-frame`, ícone `muted-foreground` |
-| `components/sheet/FloatingVitals.tsx` | sem moldura própria; retrato 292px com escudo de CA no canto; HP bar; dividers; grid 3x2 gap 4 |
+| `components/sheet/TabRail.tsx` | botões 64x64; ativo = `bg-muted` + 3px `border-control`; inativo = `bg-base` + 2px `border-frame`, ícone `muted-foreground`; Editar no pé da coluna |
+| `components/sheet/FloatingVitals.tsx` | sem moldura própria; retrato 292px com escudo de CA no canto; HP bar; dividers; grid 3x2 gap 4; condições abaixo dos atributos |
+| `components/sheet/ConditionChips.tsx` | sai da faixa de estado e vai para baixo dos atributos |
+| `components/sheet/InventoryView.tsx` | slots de equipar e bônus saem para a coluna identidade na aba Inventário |
 | `components/sheet/ClassPanel.tsx` | perde nome e tags; vira só o deck "Técnicas" com título de 24px |
 | `components/shared/DetailChip.tsx` | cores por tipo: `class`, `archetype`, `ancestry`; 1px `border-frame`; Libre SemiBold 14 |
 | `components/sheet/TalentsPanel.tsx` | muda de lugar (coluna identidade); quadrado do nível 19px em brasa |
 | `components/shared/GlyphCard.tsx` | variantes Passivo (`muted`, borda `border-control`) e Ativo (`accent`, borda `border-frame`); moldura tracejada; slot de usos (raios) |
 | `components/sheet/RollCard.tsx` | 4 modos do Result card; chip Vantagem/Desvantagem no canto; dados escolhido/descartado empilhados |
-| `components/sheet/RollHistory.tsx` | última rolagem + encadeada (ou lista, ver §7) |
-| `components/sheet/DiceRoller.tsx` | modo dock: 5 botões de dado diretos + botão d20 primário |
+| `components/sheet/RollHistory.tsx` | só a última; no hover, as anteriores sobem como balões roláveis, sem fundo de container |
+| `components/sheet/DiceRoller.tsx` | modo dock: 5 botões de dado com quantidade (esquerdo rola, direito soma 1) + botão d20 primário |
 | `components/sheet/AttacksMenu.tsx` | gatilho vira botão Muted só com ícone de espada |
-| `components/sheet/TurnBanner.tsx` | ação principal vira o botão "TURNO" (spirit) no dock |
+| `components/sheet/TurnBanner.tsx` | ação vira o botão spirit do dock: "Iniciar turno" / "Encerrar turno"; o banner fica só com o texto |
 | `components/sheet/TorchStatus.tsx` | 4 segmentos h14 gap 2, relógio Bricolage Bold 14; cor `ember` |
 | `components/ui/button.tsx` | variantes alinhadas ao 64:849: `default` (Primary/ember), `outline`, `muted`, nova `spirit`; borda 2px `border-frame` |
 | Novo: `components/shared/Divider.tsx` | linha + caveira 12px + linha, em `border-outline` |
@@ -323,7 +327,7 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Capturas Playwright da ficha, do painel do Mestre, da home e da criação, para comparar antes e depois.
 - Atualizar `replica/design/tokens.json` com os pares novos (§4.5).
 
-**Fase 1. Tokens de cor** (só `globals.css`, sem mexer em layout)
+**Fase 1. Tokens de cor** (só `globals.css`, sem mexer em layout) · **feita em 28/10**
 - Variáveis do Figma em `.dark`, nomes shadcn como alias, novas vars no `@theme inline`.
 - Corrigir os três pares que falham.
 - Varredura visual do app inteiro, porque a troca é global. Atenção a `accent`, `secondary`, `chart-1`, `chart-2`.
@@ -348,18 +352,35 @@ Cada fase é um PR que pode ir para produção sozinho.
 
 ---
 
-## 7. Decisões em aberto
+## 7. Decisões
 
-1. **A paleta quente vale para o app todo** (Mestre, home, criação de personagem) ou só para a ficha? Os tokens são globais; limitar à ficha exige escopo (`.sheet-theme`).
-2. **Abas.** O trilho agora mora no card da Ficha. A troca de aba muda só o painel da direita (Técnicas → Inventário → Grimório → História) e a Ficha fica sempre igual? É o que o desenho sugere.
-3. **Editar personagem.** O botão está oculto no Figma. Vai para o menu da caveira, para o clique no retrato, ou some do desktop?
-4. **Colunas 3 a 5 do dock estão vazias.** É o lugar da faixa de estado (turno, condições, pedidos do Mestre, handouts, descanso, modo mesa)? Hoje tudo isso fica no topo do dock.
-5. **Histórico de rolagens.** Só a última + a encadeada, ou a lista rolável continua (talvez abrindo por cima)?
-6. **Dados diretos.** Clicar em D6 rola 1d6 na hora? O botão d20 abre o painel completo (modo, CD, sorte)?
-7. **Botão "TURNO".** Substitui os botões do `TurnBanner` (rolar iniciativa, assumir, encerrar) com um rótulo que muda conforme o estado?
-8. **Botão oculto no cabeçalho de Técnicas** (157x32). Qual ação era?
-9. **Nomes no Figma.** Topa apagar `card` (usar `accent`) e criar `spirit` como variante própria de botão, em vez de mexer em `secondary` (§4.3)?
-10. **Contraste.** Topa as correções de §4.5, ou prefere ajustar no Figma primeiro?
+### 7.1 Respondidas (28/10)
+
+1. **Paleta: o app todo.** Mestre, home e criação de personagem também. Os tokens continuam globais, sem escopo por página.
+2. **Abas mudam duas coisas.** A troca de aba muda o painel da direita **e** a segunda coluna do card da Ficha (a coluna identidade).
+   - Atributos: nome, tags e talentos (como no Figma).
+   - Inventário: slots de equipar e os bônus (corpo a corpo, distância, CA).
+   - Grimório e História: ainda não definido. Até lá, a coluna mostra o mesmo conteúdo de Atributos.
+3. **Editar personagem: sempre visível.** Vai para a base do trilho de abas, com o componente `Button` (Style Muted, Type Icon, ícone `edit-03`). É o lugar do "Button - Edit" oculto no Figma (64x64, abaixo das abas). O trilho vira coluna com as abas no topo e o Editar no pé.
+4. **Colunas 3 a 5 do dock: só turno e pedidos do Mestre** (`TurnBanner` sem o botão, que vai para o "TURNO", e `PromptCard`).
+   - **Condições** saem do dock e vão para a primeira coluna do card da Ficha, logo abaixo dos atributos (no lugar do segundo divider).
+   - Handouts, descanso e modo mesa ainda precisam de lugar (ver §7.2).
+5. **Histórico: só a última rolagem visível.** No hover, sobem os balões das anteriores, roláveis, **sem fundo de container** (só os próprios Result cards flutuando por cima dos painéis).
+6. **Dados no dock.** Cada botão de dado guarda uma quantidade e mostra ela no rótulo (D6, 2D6, 3D6).
+   - **Botão direito:** soma uma unidade (o comportamento de hoje, que passa para o botão direito).
+   - **Botão esquerdo:** rola a quantidade mostrada e volta para 1.
+   - Isso substitui o punhado misto do popover atual: cada botão rola só o próprio dado.
+7. **Botão "TURNO": um botão, dois estados.** "Iniciar turno" pede a vez (`onClaim`); durante a vez vira "Encerrar turno" (`onEnd`).
+
+### 7.2 Ainda em aberto
+
+1. **Iniciativa.** O `TurnBanner` tem um terceiro estado, "Rolar pelo grupo" (o d6 de iniciativa no começo do combate). Proposta: o mesmo botão mostra "Rolar iniciativa" antes de existir ordem, e só depois alterna entre Iniciar e Encerrar.
+2. **Dados:** como tirar uma unidade? Proposta: Shift + botão direito tira uma; a quantidade também volta para 1 depois de rolar. No celular não há botão direito: o layout mobile segue com o popover atual.
+3. **O botão primário d20** (o de brasa) mantém o painel atual com Normal / Vantagem / Desvantagem, CD e modificador? Proposta: sim, clique abre o painel.
+4. **Handouts, descanso e modo mesa:** onde ficam agora que o dock só tem turno e pedidos?
+5. **Botão oculto no cabeçalho de Técnicas** (157x32). Qual ação era?
+6. **Coluna identidade no Grimório e na História.**
+7. **Nomes e contraste:** na Fase 1 segui as recomendações de §4.3 (`card` → `bg-base`, `accent` = marrom de destaque, `spirit` separado de `secondary`). As correções de contraste de §4.5 ficam nos componentes (Fase 4).
 
 ---
 
