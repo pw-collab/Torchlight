@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { TorchStatus } from '@/components/sheet/TorchStatus'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
+import { DiceKeys } from '@/components/sheet/DiceKeys'
 import { AttacksMenu } from '@/components/sheet/AttacksMenu'
 import { RollHistory } from '@/components/sheet/RollHistory'
 import { TabBar } from '@/components/sheet/TabBar'
@@ -45,7 +46,7 @@ import { TableToasts } from '@/components/sheet/TableToasts'
 import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
 import { describeRoll } from '@/lib/rollSpeech'
 import { PromptCard } from '@/components/sheet/PromptCard'
-import { TurnBanner } from '@/components/sheet/TurnBanner'
+import { TurnBanner, TurnButton } from '@/components/sheet/TurnBanner'
 import { TableMode } from '@/components/sheet/TableMode'
 import { HandoutShelf } from '@/components/sheet/HandoutShelf'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
@@ -614,6 +615,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
 
   const myTurn = turns.actingKey === myKey
 
+  const turnActions = isOwner
+    ? { onRollInitiative: () => void handleRollPartyInitiative(), onClaim: handleClaimTurn, onEnd: handleEndTurn }
+    : null
+
   /**
    * O que a mesa está esperando desta ficha: a morte rondando, a vez, os
    * pedidos do Mestre. No desktop fica no meio do dock, ao lado das rolagens;
@@ -635,11 +640,11 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           myKey={myKey}
           mine={myActor}
           out={outOfFight(character.conditions)}
-          actions={isOwner
-            ? { onRollInitiative: () => void handleRollPartyInitiative(), onClaim: handleClaimTurn, onEnd: handleEndTurn }
-            : null}
+          actions={turnActions}
           busy={turnBusy}
           notice={turnNotice?.ledger === turns ? turnNotice.text : null}
+          // The desktop dock has its own turn button (TurnButton) beside this.
+          withButton={isMobile}
         />
       )}
       <PromptCard prompts={prompts} onAnswer={answerPrompt} />
@@ -848,7 +853,21 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
                 onOpenInventory={() => setTab('inventory')}
               />
             </div>
+            <div className="sheet-dock__turn">
+              <TurnButton
+                inTable={Boolean(sessionId)}
+                encounter={encounter}
+                actors={encounterActors}
+                turns={turns}
+                myKey={myKey}
+                mine={myActor}
+                out={outOfFight(character.conditions)}
+                actions={turnActions}
+                busy={turnBusy}
+              />
+            </div>
             <div className="sheet-dock__dice">
+              <DiceKeys onRoll={handleRoll} />
               <DiceRoller
                 onRoll={handleRoll}
                 docked

@@ -28,6 +28,38 @@ interface Props {
   busy?: boolean
   /** A última jogada que o banco recusou ("Alguém assumiu a vez antes."). */
   notice?: string | null
+  /**
+   * O botão da vez dentro do banner. O dock do desktop tem um botão fixo para
+   * isso (TurnButton) e desliga este; o celular segue com ele aqui.
+   */
+  withButton?: boolean
+}
+
+type TurnInputs = Pick<Props, 'encounter' | 'actors' | 'turns' | 'myKey' | 'mine' | 'out'>
+
+/** Onde a vez está para esta ficha: o combate (ou a exploração) visto daqui. */
+function turnState({ encounter, actors, turns, myKey, mine, out }: TurnInputs) {
+  const turn = encounter ? combatTurn(encounter, actors, turns) : null
+  const status: TurnStatus = turn ? combatStatus(turn, mine) : explorationStatus(turns, myKey, out)
+  const rolling = turn?.stage === 'initiative'
+  return {
+    turn,
+    status,
+    myTurn: status === 'acting',
+    partyToRoll: rolling && encounter?.pcInitiative == null,
+  }
+}
+
+/** A jogada que cabe agora, se alguma: rolar a iniciativa, assumir ou encerrar a vez. */
+function turnMove(
+  { status, myTurn, partyToRoll }: ReturnType<typeof turnState>,
+  actions: Props['actions'],
+): { kind: 'initiative' | 'claim' | 'end'; run: () => void } | null {
+  if (!actions) return null
+  if (partyToRoll) return { kind: 'initiative', run: actions.onRollInitiative }
+  if (myTurn) return { kind: 'end', run: actions.onEnd }
+  if (status === 'ready') return { kind: 'claim', run: actions.onClaim }
+  return null
 }
 
 /**
@@ -39,25 +71,18 @@ interface Props {
  * entra a iniciativa: um d6 pelo grupo inteiro, rolado por quem tocar
  * primeiro.
  */
-export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions, busy, notice }: Props) {
-  const turn = encounter ? combatTurn(encounter, actors, turns) : null
-  const status: TurnStatus = turn ? combatStatus(turn, mine) : explorationStatus(turns, myKey, out)
-  const rolling = turn?.stage === 'initiative'
-  const myTurn = status === 'acting'
-  const partyToRoll = rolling && encounter?.pcInitiative == null
+export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions, busy, notice, withButton = true }: Props) {
+  const state = turnState({ encounter, actors, turns, myKey, mine, out })
+  const { turn, status, myTurn, partyToRoll } = state
 
   const { headline, detail } = describe(encounter, turn, status, turns.actingName, mine)
   const accent = myTurn ? 'var(--chart-1)' : status === 'ready' || partyToRoll ? 'var(--primary)' : 'var(--border)'
 
-  const button = !actions
-    ? null
-    : partyToRoll
-      ? { label: '🎲 Rolar pelo grupo', run: actions.onRollInitiative }
-      : myTurn
-        ? { label: 'Encerrar a vez', run: actions.onEnd }
-        : status === 'ready'
-          ? { label: 'Assumir a vez', run: actions.onClaim }
-          : null
+  const move = withButton ? turnMove(state, actions) : null
+  const button = move && {
+    label: move.kind === 'initiative' ? '🎲 Rolar pelo grupo' : move.kind === 'end' ? 'Encerrar a vez' : 'Assumir a vez',
+    run: move.run,
+  }
 
   const dice = encounter && (encounter.pcInitiative != null || encounter.npcInitiative != null)
     ? `d6 · grupo ${encounter.pcInitiative ?? '—'} × ${encounter.npcInitiative ?? '—'} inimigos`
@@ -113,6 +138,42 @@ export function TurnBanner({ encounter, actors, turns, myKey, mine, out, actions
         </Button>
       )}
     </motion.div>
+  )
+}
+
+const MOVE_LABEL = { initiative: 'Rolar iniciativa', claim: 'Iniciar turno', end: 'Encerrar turno' } as const
+
+/**
+ * O botão da vez no dock do desktop (o "Turno" do Figma, no ciano): rolar a
+ * iniciativa do grupo antes de haver ordem, depois iniciar e encerrar o turno.
+ * Fica sempre no lugar; quando não há jogada (fora da mesa, vez de outro, já
+ * agiu) aparece desligado em "Iniciar turno", e o porquê vem no title.
+ */
+export function TurnButton({ inTable, actions, busy, ...inputs }: TurnInputs & {
+  /** Fora de uma mesa não há vez a assumir. */
+  inTable: boolean
+  actions: Props['actions']
+  busy?: boolean
+}) {
+  const state = turnState(inputs)
+  const move = inTable ? turnMove(state, actions) : null
+  const why = !inTable
+    ? 'Entre numa mesa para usar a vez'
+    : !actions
+      ? 'Só o dono da ficha joga a vez'
+      : describe(inputs.encounter, state.turn, state.status, inputs.turns.actingName, inputs.mine).headline
+
+  return (
+    <Button
+      type="button"
+      variant="spirit"
+      onClick={move?.run}
+      disabled={!move || busy}
+      title={move ? MOVE_LABEL[move.kind] : why}
+      className="type-button h-full min-h-0 w-full min-w-0 px-2 text-[14px]"
+    >
+      {MOVE_LABEL[move?.kind ?? 'claim']}
+    </Button>
   )
 }
 

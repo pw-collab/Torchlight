@@ -53,6 +53,12 @@ interface Props {
    * two apart by weight rather than by hue.
    */
   tone?: 'passive' | 'activation'
+  /**
+   * Where the card comes from, which colours its type tag on the compact face
+   * (the Figma tags a class technique ember, an ancestry trait blue and an
+   * archetype talent brown).
+   */
+  origin?: 'class' | 'ancestry' | 'archetype'
   /** Detail face — what the card reveals once it is turned over. */
   children?: ReactNode
   /** Button row in the floating actions popover. */
@@ -78,7 +84,7 @@ interface Props {
  */
 export function GlyphCard({
   glyph, detailGlyph, face = 'masthead', title, caption, accent, description, status,
-  tone = 'passive', children, footer, controls, className,
+  tone = 'passive', origin = 'class', children, footer, controls, className,
   open: openProp, onOpenChange,
 }: Props) {
   const [uncontrolled, setUncontrolled] = useState(false)
@@ -174,7 +180,10 @@ export function GlyphCard({
             // Button's base is a label: nowrap + uppercase. The face holds
             // prose, so it wraps and keeps the casing it was written in.
             'whitespace-normal normal-case',
-            face === 'compact' && 'items-stretch justify-start gap-0 p-[3px] tracking-normal',
+            // The Figma's Button card: a 6px mat, dark for what holds, the
+            // lighter accent for what the character spends.
+            face === 'compact' && 'items-stretch justify-start gap-0 border-0 p-1.5 tracking-normal',
+            face === 'compact' && (tone === 'activation' ? 'bg-accent hover:bg-accent' : 'bg-muted hover:bg-muted'),
           )}
         >
           {face === 'compact' ? (
@@ -185,6 +194,7 @@ export function GlyphCard({
               description={description}
               status={status}
               tone={tone}
+              origin={origin}
             />
           ) : (
           <div style={{
@@ -333,76 +343,62 @@ export function GlyphCard({
 }
 
 /**
- * The compact face: a ruled title bar carrying the name and a small symbol,
- * over a ruled body with the type label and the clamped description. The
- * rules, the label and the corner marks are a step brighter on the cards the
- * character spends — same weight-not-hue idea as the masthead face.
+ * The compact face, as the Figma's Button card (80:491): inside the mat, a
+ * frame ruled 2px (the control edge for what holds, the ink line for what is
+ * spent) and doubled by a dashed line within, carrying the name, the type tag
+ * and the clamped description.
  */
-function CompactFace({ glyph, title, caption, description, status, tone }: {
+function CompactFace({ glyph, title, caption, description, status, tone, origin }: {
   glyph: ReactNode
   title: string
   caption: string
   description?: string
   status?: { text: string; color: string } | null
   tone: 'passive' | 'activation'
+  origin: 'class' | 'ancestry' | 'archetype'
 }) {
-  const rule = tone === 'activation' ? 'var(--input)' : 'var(--border)'
-  const mark: React.CSSProperties = { fontFamily: 'var(--font-body)', fontWeight: 500, fontSize: 6, lineHeight: '6px', color: rule }
+  const rule = tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'
+  const dashed: React.CSSProperties = { position: 'absolute', inset: 2, border: `2px dashed ${rule}`, pointerEvents: 'none' }
 
   return (
-    <>
-      {/* Title bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: 8, border: `1px solid ${rule}`, flexShrink: 0 }}>
-        <p style={{ flex: 1, minWidth: 0, margin: 0, fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: 'var(--foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
-          {title}
-        </p>
-        <span aria-hidden className="[&>svg]:size-[18px]" style={{ display: 'flex', flexShrink: 0, color: 'var(--foreground)' }}>
-          {glyph}
-        </span>
+    <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `2px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
+      <div aria-hidden style={dashed}>
+        <div style={dashed} />
       </div>
 
-      {/* Body */}
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `1px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
-        {/* Corner marks + roll arrow */}
-        <div aria-hidden style={{ position: 'absolute', inset: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', ...mark }}>
-            <span>✦</span><span>✦</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', ...mark }}>
-            <span>✦</span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 10, letterSpacing: '2.7px', lineHeight: '10px' }}>↝</span>
-            <span>✦</span>
-          </div>
-        </div>
-
-        {/* Type label, with the use counter at the other end when there is one */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, flexShrink: 0 }}>
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontWeight: 600,
-            fontSize: 8,
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            lineHeight: '11.429px',
-            margin: 0,
-            color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
-          }}>
+      {/* Name, then the type tag with the use counter at the other end */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+        <p className="type-title" style={{ margin: 0, color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--card-foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+          {title}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+          <span
+            className="[&>svg]:size-2.5"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 3px',
+              background: `var(--${origin})`, color: `var(--${origin}-foreground)`,
+              border: `1px solid ${tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'}`,
+              fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, lineHeight: '12px',
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+            }}
+          >
+            {glyph}
             {caption}
-          </p>
+          </span>
           {status && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11.429px', letterSpacing: '0.04em' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: tone === 'activation' ? 'var(--accent-foreground)' : status.color, lineHeight: '12px', letterSpacing: '0.04em' }}>
               {status.text}
             </span>
           )}
         </div>
-
-        {/* Description — fills the rest of the body, fading at the cut */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
-            {description}
-          </p>
-        </div>
       </div>
-    </>
+
+      {/* Description: fills the rest of the frame, fading at the cut */}
+      <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
+          {description}
+        </p>
+      </div>
+    </div>
   )
 }

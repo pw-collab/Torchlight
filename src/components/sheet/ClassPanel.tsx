@@ -11,7 +11,7 @@ import { rollWithMode, modifier, modifierStr, withDc } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import type { RollMode, RollResult } from '@/lib/dice'
 import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
-import { OriginIcon, type CardOrigin } from '@/components/shared/CardOrigin'
+import { OriginIcon } from '@/components/shared/CardOrigin'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -486,7 +486,7 @@ interface GrantedTechnique {
   key: string
   name: string
   description: string
-  origin: CardOrigin
+  origin: 'ancestry' | 'archetype'
   accent: string
 }
 
@@ -526,6 +526,7 @@ function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: 
       face="compact"
       glyph={<KindIcon tone={KIND_STYLE.passive.tone} />}
       detailGlyph={<OriginIcon origin={entry.origin} />}
+      origin={entry.origin}
       title={entry.name}
       caption={KIND_STYLE.passive.label}
       accent={entry.accent}

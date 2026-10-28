@@ -347,9 +347,15 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Abaixo de 1100px o grid empilha e o dock gruda na base da tela; o celular segue o layout próprio.
 - Achado no caminho: alguns textos usavam `--primary-foreground` como "texto claro"; com a brasa, essa cor virou marrom escuro. Trocados por `--foreground` (tags, legenda de técnica ativa, selo aceso, nome no celular, título da raiz) e, no PV do celular, o texto passou a escuro sobre a brasa.
 
-**Fase 4. Componentes**
-- Falta: teclado de dados (esquerdo rola, direito soma, "x" limpa), botão de turno com 3 estados, histórico com balões no hover, cards de técnica (Button card), Result card, quadrado do nível dos talentos em brasa, botão de ataque Muted, correções de contraste de §4.5, seções da História sem moldura dupla.
-- Na ordem: Button → Divider → Tags → Attribute/HP → Talent item → Button card → Result card → dock (dados, ataques, turno).
+**Fase 4. Componentes** · **feita em 28/10**
+- `Button`: variantes `muted` e `spirit` (Muted e Secondary do 64:849). O botão de ataques do dock passa a Muted.
+- Dados (`DiceKeys`): D4 a D12 no dock. Botão direito (ou + e ↑ no teclado) soma um dado; esquerdo rola o que mostra e volta a 1; o "x" no canto limpa. O d20 de brasa abre o painel de sempre, agora sem o punhado (que segue no celular).
+- Turno (`TurnButton`, no ciano): "Rolar iniciativa", "Iniciar turno", "Encerrar turno"; desligado em "Iniciar turno" quando não há jogada, com o motivo no title. O `TurnBanner` do desktop fica só com o texto.
+- Rolagens (`ResultCard` + `RollHistory`): o Result card do Figma, com o dano encadeado no ↳; antes do dano, as ofertas "Dano" e "Fortuna" na segunda linha. As anteriores sobem como balões no hover ou foco, sem fundo. Contraste corrigido: texto secundário e dado mantido na cor de texto do card; veredito, crítico e vantagem viram tags na borda.
+- Técnicas (`GlyphCard` compacto): o Button card do Figma, com esteira de 6px (escura no passivo, `accent` no que se gasta), moldura de 2px dobrada por tracejado e tag colorida pela origem (classe, ancestralidade, arquétipo).
+- Talentos: quadrado do nível em brasa.
+- História: as seções perdem a moldura própria dentro do painel.
+- Fora do escopo, já existia antes: o axe aponta `nested-interactive` nos 6 botões de atributo (`RollModeMenu` em volta de um `Button` com `span`).
 
 **Fase 5. Responsivo e estados**
 - O Figma só desenha 1440. Abaixo de 1100px: card da Ficha em cima, painel embaixo, dock grudado na base da tela. Celular: manter o layout atual (`isMobile`) só com tokens e fontes novos.

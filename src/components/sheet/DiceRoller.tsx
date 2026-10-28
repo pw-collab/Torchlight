@@ -31,8 +31,9 @@ interface Props {
   /** Anchors the button to the bottom-right of the viewport. */
   floating?: boolean
   /**
-   * The desktop sheet's dock: a solid red button filling its cell on the
-   * card's floor, opening the panel upward from its left edge.
+   * The desktop sheet's dock: a solid ember button filling its cell, opening
+   * the d20 panel (modes, DC, modifier, Fortuna) upward. The other dice have
+   * keys of their own beside it (see DiceKeys).
    */
   docked?: boolean
   /**
@@ -247,7 +248,9 @@ export function DiceRoller({
           </PopoverTitle>
         </PopoverHeader>
 
-        {/* ── The handful ────────────────────────────────────────────────── */}
+        {/* ── The handful: phones only. On the desktop dock every die has a
+            key of its own (see DiceKeys), so the panel keeps to the d20. ── */}
+        {!docked && (
         <div className="flex flex-col gap-2">
           <p className={CAPTION_CLASS}>
             Toque para somar ao punhado · botão direito remove
@@ -346,6 +349,7 @@ export function DiceRoller({
             </p>
           )}
         </div>
+        )}
 
         {/* Modifier — added once to the whole roll, handful or d20. */}
         <div className="flex items-center gap-2.5">

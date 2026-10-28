@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils"
 
 // Torchlight's button set (Figma component set 64-849) on top of lyra:
 // uppercase Libre Franklin Bold (the label family), square corners. `default`
-// is the solid ember action, `secondary` the quiet ruled button, `hollow` the
-// ember outline.
+// is the solid ember action (Figma Primary), `secondary` the quiet ruled
+// button, `hollow` the ember outline. `muted` and `spirit` are the Figma's
+// Muted and Secondary styles: a dark fill or the cyan, inside the 2px ink line.
 const buttonVariants = cva(
   "cn-button group/button font-mono font-bold inline-flex shrink-0 items-center justify-center whitespace-nowrap tracking-[0.08em] uppercase transition-all outline-none select-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
@@ -18,6 +19,8 @@ const buttonVariants = cva(
         ghost: "cn-button-variant-ghost",
         destructive: "cn-button-variant-destructive",
         hollow: "text-primary-text border-primary-text hover:bg-primary/10",
+        muted: "bg-muted text-foreground border-2 border-border-frame hover:border-border-control aria-expanded:border-border-control",
+        spirit: "bg-spirit text-spirit-foreground border-2 border-border-frame hover:bg-spirit/85",
         link: "cn-button-variant-link",
       },
       size: {
