@@ -46,7 +46,9 @@ export function RollModeMenu({ children, label, onRoll, align = 'center', disabl
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={label}
-        className={cn('group/roll cursor-pointer outline-none', className)}
+        // The trigger is the only control here (what it wraps is drawn, not
+        // focusable), so it carries the focus ring.
+        className={cn('group/roll cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring', className)}
       >
         {children}
       </DropdownMenuTrigger>

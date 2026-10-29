@@ -636,6 +636,9 @@ html, body {
   /* The dock rides the foot of the screen once the sheet scrolls. */
   .sheet-dock  { grid-area: auto; position: sticky; bottom: 8px; }
   .sheet-card__col { flex: 1 1 240px; overflow: visible; }
+  /* The vitals keep about the Figma's width, so the portrait does not grow
+     with the screen; the identity column takes what is left. */
+  .sheet-card__col--vitals { flex: 0 1 280px; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),

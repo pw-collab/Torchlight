@@ -357,11 +357,13 @@ Cada fase é um PR que pode ir para produção sozinho.
 - História: as seções perdem a moldura própria dentro do painel.
 - Fora do escopo, já existia antes: o axe aponta `nested-interactive` nos 6 botões de atributo (`RollModeMenu` em volta de um `Button` com `span`).
 
-**Fase 5. Responsivo e estados**
-- O Figma só desenha 1440. Abaixo de 1100px: card da Ficha em cima, painel embaixo, dock grudado na base da tela. Celular: manter o layout atual (`isMobile`) só com tokens e fontes novos.
-- Hover, foco, pressionado e desabilitado não estão no Figma. Propor: hover = `accent`, foco = `ring`, pressionado = `.tactile` atual, desabilitado = 50%.
+**Fase 5. Responsivo e estados** · **feita em 29/10**
+- Botões de atributo: cada um vira um controle só. O `Button` em `span` dentro do gatilho do `RollModeMenu` virou um `span` desenhado com `buttonVariants`, e o gatilho ganhou o anel de foco. O mesmo padrão saiu do "Atk" dos ataques e dos atributos dos inimigos no painel do Mestre. O axe da ficha fica sem violações sérias.
+- Foco visível nos botões feitos à mão do dock (o "x" dos dados, as ofertas de Dano e Fortuna) e no histórico de rolagens.
+- Empilhado (640 a 1100px): a coluna de vitais fica em até 280px, para o retrato não crescer com a tela; o rótulo do botão de turno quebra em duas linhas quando falta largura.
+- Hover, pressionado e desligado seguem o que já existia (`hover` no `accent` ou na borda de controle, `.tactile`, 50% de opacidade), agora aplicado aos componentes novos.
 
-**Fase 6. QA**
+**Fase 6. QA** · **rodada a cada fase**
 - `npm run lint`, `npm run build`, `npm run test:e2e` (inclui axe), `contrast.py`, comparação com as capturas da Fase 0.
 
 ---

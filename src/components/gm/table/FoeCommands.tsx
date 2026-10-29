@@ -9,7 +9,7 @@ import { FLEEING_ID, isFleeing } from '@/lib/encounterSetup'
 import { npcKey } from '@/lib/turns'
 import { RollableText } from '@/components/shared/RollableText'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DiceIcon, Flag01Icon, HeartPulseIcon, MagicWand01Icon, NextIcon, PencilEdit01Icon, PlayIcon,
   RunningShoesIcon, StopIcon, Sword01Icon, UserRemove01Icon,
@@ -269,16 +269,10 @@ function StatCheck({ actor, sheet, onRoll }: { actor: EncounterActor; sheet?: NP
                 onRoll(roll)
               }}
             >
-              <Button
-                type="button"
-                variant="outline"
-                render={<span />}
-                nativeButton={false}
-                className="flex h-14 w-full flex-col items-center justify-center gap-0.5"
-              >
+              <span className={cn(buttonVariants({ variant: 'outline' }), 'flex h-14 w-full flex-col items-center justify-center gap-0.5')}>
                 <span className="font-[var(--font-numeral)] text-lg text-[var(--foreground)]">{signed(mod)}</span>
                 <span className="font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
-              </Button>
+              </span>
             </RollModeMenu>
           )
         })}

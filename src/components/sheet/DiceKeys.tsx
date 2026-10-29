@@ -66,7 +66,7 @@ export function DiceKeys({ onRoll }: { onRoll?: (result: RollResult) => void }) 
                 onClick={() => setCount(sides, 1)}
                 title={`Voltar a um d${sides}`}
                 aria-label={`Voltar a um d${sides}`}
-                className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground absolute -top-2 -right-2 flex size-5 items-center justify-center border border-[var(--border-frame)] font-mono text-[11px] leading-none font-bold"
+                className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground absolute -top-2 -right-2 flex size-5 items-center justify-center border border-[var(--border-frame)] font-mono text-[11px] leading-none font-bold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
               >
                 ×
               </button>

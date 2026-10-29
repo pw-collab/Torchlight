@@ -807,7 +807,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
               />
             </div>
 
-            <div className="sheet-card__col">
+            <div className="sheet-card__col sheet-card__col--vitals">
               {vitals}
             </div>
 

@@ -21,7 +21,8 @@ interface Props {
 }
 
 const OFFER_CLASS =
-  'flex h-full min-w-0 flex-1 items-center justify-center gap-1.5 border-2 px-2 font-mono text-[10px] font-semibold tracking-[0.12em] uppercase'
+  'flex h-full min-w-0 flex-1 items-center justify-center gap-1.5 border-2 px-2 font-mono text-[10px] font-semibold tracking-[0.12em] uppercase' +
+  'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]'
 
 /**
  * The rolls in the desktop dock's first two columns. Only the latest shows: an

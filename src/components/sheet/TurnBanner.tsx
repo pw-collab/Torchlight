@@ -170,7 +170,7 @@ export function TurnButton({ inTable, actions, busy, ...inputs }: TurnInputs & {
       onClick={move?.run}
       disabled={!move || busy}
       title={move ? MOVE_LABEL[move.kind] : why}
-      className="type-button h-full min-h-0 w-full min-w-0 px-2 text-[14px]"
+      className="type-button h-full min-h-0 w-full min-w-0 px-2 text-[14px] leading-[1.1] whitespace-normal"
     >
       {MOVE_LABEL[move?.kind ?? 'claim']}
     </Button>

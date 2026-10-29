@@ -10,7 +10,8 @@ import { attackRoll, damageRoll, heldForCombat, parryRoll, type AttackContext } 
 import { DICE_SPRING } from '@/lib/diceMotion'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { DOCK_CELL_CLASS } from '@/components/sheet/dock'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   Popover,
   PopoverContent,
@@ -127,9 +128,9 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
                       align="end"
                       onRoll={mode => roll(attackRoll(item, ctx, mode))}
                     >
-                      <Button render={<span />} nativeButton={false} variant="outline" className={ROLL_BUTTON_CLASS}>
+                      <span className={cn(buttonVariants({ variant: 'outline' }), ROLL_BUTTON_CLASS)}>
                         Atk
-                      </Button>
+                      </span>
                     </RollModeMenu>
                     {item.damageDie && (
                       <Button variant="outline" className={ROLL_BUTTON_CLASS} onClick={() => roll(damageRoll(item))}>

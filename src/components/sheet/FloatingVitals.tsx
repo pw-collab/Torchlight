@@ -11,7 +11,7 @@ import { modifier, modifierStr, rollWithMode } from '@/lib/dice'
 import type { RollMode, RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
 import { STAT_FULL, STAT_KEYS, STAT_LABELS } from '@/data/stats'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -59,13 +59,11 @@ function AttributeTile({ stat, score, onRoll }: {
 }) {
   return (
     <RollModeMenu label={`Rolar ${STAT_FULL[stat]}`} disabled={!onRoll} onRoll={mode => onRoll?.(mode)}>
-      <Button
-        type="button"
-        variant="secondary"
+      {/* Drawn as a button, not one: the menu trigger around it is the control. */}
+      <span
         title={`Rolar ${STAT_FULL[stat]}`}
-        render={<span />}
-        nativeButton={false}
         className={cn(
+          buttonVariants({ variant: 'secondary' }),
           'h-full w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
           'border-2 border-[var(--border-frame)] bg-[var(--bg-raised)] hover:border-[var(--border-control)]',
           onRoll ? 'cursor-pointer' : 'cursor-default',
@@ -78,7 +76,7 @@ function AttributeTile({ stat, score, onRoll }: {
           <span className="text-muted-foreground font-normal">{STAT_LABELS[stat]}</span>
           <span className="font-medium text-[var(--accent-foreground)]">{score}</span>
         </span>
-      </Button>
+      </span>
     </RollModeMenu>
   )
 }
@@ -420,13 +418,10 @@ export function FloatingVitals({
                 disabled={!onRoll}
                 onRoll={mode => rollStat(key, mode)}
               >
-              <Button
-                type="button"
-                variant="secondary"
+              <span
                 title={`Rolar ${STAT_FULL[key]}`}
-                render={<span />}
-                nativeButton={false}
                 className={cn(
+                  buttonVariants({ variant: 'secondary' }),
                   'h-full w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
                   'border-input-border hover:border-ring bg-transparent',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
@@ -435,7 +430,7 @@ export function FloatingVitals({
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
-              </Button>
+              </span>
               </RollModeMenu>
             ))}
           </div>
