@@ -26,7 +26,7 @@ interface Props {
 }
 
 const CHIP =
-  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
+  'font-mono font-semibold h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.1em] uppercase'
 
 /**
  * "Todos, CON DC 12 contra o gás."
@@ -77,7 +77,7 @@ export function PromptComposer({ seats, onSend, onClose, busy, initialTargets }:
       style={{ background: 'var(--card)', border: '1px solid var(--primary)' }}
     >
       <div className="flex items-center justify-between">
-        <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           Pedir uma rolagem
         </span>
         <Button
@@ -127,7 +127,7 @@ export function PromptComposer({ seats, onSend, onClose, busy, initialTargets }:
 
       {/* DC e motivo */}
       <div className="flex items-center gap-2">
-        <Label htmlFor="prompt-dc" className="font-heading shrink-0 text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        <Label htmlFor="prompt-dc" className="font-mono font-semibold shrink-0 text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           DC
         </Label>
         <Input
@@ -203,7 +203,7 @@ export function PromptComposer({ seats, onSend, onClose, busy, initialTargets }:
           variant="hollow"
           onClick={send}
           disabled={busy || !validDc}
-          className="font-heading bg-primary text-primary-foreground h-8 min-h-8 flex-1 text-[9px] font-bold tracking-[0.12em] uppercase disabled:opacity-35"
+          className="font-mono bg-primary text-primary-foreground h-8 min-h-8 flex-1 text-[9px] font-bold tracking-[0.12em] uppercase disabled:opacity-35"
         >
           Enviar
         </Button>

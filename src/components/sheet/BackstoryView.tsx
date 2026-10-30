@@ -92,7 +92,7 @@ function SubPanel({
         style={{ borderColor: 'color-mix(in oklch, var(--border), transparent 30%)' }}
       >
         <HugeiconsIcon icon={icon} size={16} strokeWidth={1.5} style={{ color: accent, flexShrink: 0 }} />
-        <h3 className="font-heading text-foreground min-w-0 flex-1 truncate text-[11px] font-semibold tracking-[0.14em] uppercase">
+        <h3 className="font-mono text-foreground min-w-0 flex-1 truncate text-[11px] font-semibold tracking-[0.14em] uppercase">
           {title}
         </h3>
         {count !== undefined && (
@@ -204,9 +204,15 @@ function AddRow({
 interface Props {
   character: Character
   onUpdate: (patch: Partial<CharacterRow>) => void
+  /**
+   * The table's tools that are nobody's tab in particular: the handouts the
+   * Mestre gave, resting and the view from across the table. The desktop sheet
+   * puts them at the head of this tab; phones keep them on top of the sheet.
+   */
+  tableTools?: ReactNode
 }
 
-export function BackstoryView({ character, onUpdate }: Props) {
+export function BackstoryView({ character, onUpdate, tableTools }: Props) {
 
   // ── Caderno (§5.9) ────────────────────────────────────────────────────────
   const [notes, setNotes] = useState(character.notes)
@@ -302,6 +308,13 @@ export function BackstoryView({ character, onUpdate }: Props) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-4">
+
+      {tableTools && (
+        <section className="card-surface" style={card}>
+          <SectionHeading className="mb-4">Mesa</SectionHeading>
+          <div className="flex flex-col gap-3">{tableTools}</div>
+        </section>
+      )}
 
       {/* ── Seção 1: Conhecimentos ─────────────────────────────────────── */}
       <section className="card-surface" style={card}>
@@ -417,7 +430,7 @@ export function BackstoryView({ character, onUpdate }: Props) {
                     {/* The bonus is a stat, so it gets the sheet's numeral
                         treatment rather than looking like another text box. */}
                     <span className="border-border bg-card flex shrink-0 items-center gap-1 border px-1.5 py-1">
-                      <span className="font-heading text-muted-foreground text-[8px] tracking-[0.12em] uppercase">Bônus</span>
+                      <span className="font-mono font-semibold text-muted-foreground text-[8px] tracking-[0.12em] uppercase">Bônus</span>
                       <Input
                         type="number"
                         value={area.bonus}

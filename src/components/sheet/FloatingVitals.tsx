@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -11,10 +11,13 @@ import { modifier, modifierStr, rollWithMode } from '@/lib/dice'
 import type { RollMode, RollResult } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
 import { STAT_FULL, STAT_KEYS, STAT_LABELS } from '@/data/stats'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress, ProgressIndicator, ProgressTrack } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { FavouriteIcon, MinusPlus02Icon } from '@hugeicons/core-free-icons'
+import { Divider } from '@/components/shared/Divider'
 
 interface Props {
   // Vitals
@@ -38,17 +41,16 @@ interface Props {
   // Stats (desktop sidebar only)
   stats?: Record<Stat, number>
   onRoll?: (result: RollResult) => void
+  /** Desktop: what sits under the attributes (the active conditions). */
+  footer?: ReactNode
 }
 
 
 /**
- * One attribute on the desktop vitals: the modifier large on top — it is what
- * gets added to the roll — and the abbreviation with the raw score along the
- * foot. Pressing it opens the normal / advantage / disadvantage menu.
- *
- * The --input fill belongs to the grid holding the six (see .vitals-stats);
- * each tile only draws its --input rule over it, which is what reads as the
- * lines between them.
+ * One attribute on the desktop vitals (the Figma's Attribute Button, 181:625):
+ * the modifier large on top, since it is what gets added to the roll, and the
+ * abbreviation with the raw score along the foot. Pressing it opens the
+ * normal / advantage / disadvantage menu.
  */
 function AttributeTile({ stat, score, onRoll }: {
   stat: Stat
@@ -57,27 +59,41 @@ function AttributeTile({ stat, score, onRoll }: {
 }) {
   return (
     <RollModeMenu label={`Rolar ${STAT_FULL[stat]}`} disabled={!onRoll} onRoll={mode => onRoll?.(mode)}>
-      <Button
-        type="button"
-        variant="secondary"
+      {/* Drawn as a button, not one: the menu trigger around it is the control. */}
+      <span
         title={`Rolar ${STAT_FULL[stat]}`}
-        render={<span />}
-        nativeButton={false}
         className={cn(
-          'h-full min-h-14 w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
-          'border-input-border hover:border-ring bg-transparent',
+          buttonVariants({ variant: 'secondary' }),
+          'h-full w-full min-w-0 flex-col items-center justify-between gap-0 p-1 transition-colors duration-150',
+          'border-2 border-[var(--border-frame)] bg-[var(--bg-raised)] hover:border-[var(--border-control)]',
           onRoll ? 'cursor-pointer' : 'cursor-default',
         )}
       >
-        <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 500, fontSize: 24, letterSpacing: '1.12px', color: 'var(--muted-foreground)', lineHeight: '26px' }}>
+        <span className="type-display-lg text-foreground normal-case" style={{ lineHeight: '26px' }}>
           {modifierStr(score)}
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, lineHeight: 1.5, textTransform: 'uppercase' }}>
-          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 400, letterSpacing: '1.2px', color: 'var(--input)' }}>{STAT_LABELS[stat]}</span>
-          <span style={{ fontFamily: 'var(--font-stat)', fontWeight: 500, letterSpacing: '1.12px', color: 'var(--muted-foreground)' }}>{score}</span>
+        <span className="flex items-center gap-1.5 font-mono text-[10px] leading-[1.5] tracking-[0.12em] uppercase">
+          <span className="text-muted-foreground font-normal">{STAT_LABELS[stat]}</span>
+          <span className="font-medium text-[var(--accent-foreground)]">{score}</span>
         </span>
-      </Button>
+      </span>
     </RollModeMenu>
+  )
+}
+
+/** The Armour Class shield from the Figma (243:1943): ember, 52px, the number inked on it. */
+function ArmorShield({ ac }: { ac: number }) {
+  return (
+    <div
+      aria-label={`Classe de armadura ${ac}`}
+      role="img"
+      style={{ position: 'absolute', top: 6, right: 6, width: 52, height: 52, zIndex: 5, pointerEvents: 'none', display: 'grid', placeItems: 'center' }}
+    >
+      <svg aria-hidden viewBox="0 0 44 50" width={44} height={50} style={{ position: 'absolute', top: 1, left: 4 }}>
+        <path d="M22 1 L42 7 V24 C42 37 33 45 22 49 C11 45 2 37 2 24 V7 Z" fill="var(--ember)" stroke="var(--border-frame)" strokeWidth={2} />
+      </svg>
+      <span className="type-display-md text-[var(--ember-foreground)]" style={{ position: 'relative', lineHeight: 1, marginTop: -2 }}>{ac}</span>
+    </div>
   )
 }
 
@@ -85,7 +101,7 @@ export function FloatingVitals({
   ac, hpMax, hpCurrent, luckTokens, onHpChange, onLuckChange,
   characterId, portraitUrl, characterName, level, xp, onXpUpdate,
   className, ancestryName, onAvatarUpload, editHref,
-  stats, onRoll,
+  stats, onRoll, footer,
 }: Props) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
@@ -176,7 +192,7 @@ export function FloatingVitals({
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, fontSize: 14, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
             Pontos de Vida
           </span>
           <Button
@@ -203,7 +219,7 @@ export function FloatingVitals({
             </ProgressTrack>
           </Progress>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>XP</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>XP</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Input
                 type="number"
@@ -266,16 +282,14 @@ export function FloatingVitals({
   )
 
   // ════════════════════════════════════════════════════════════════════════
-  // DESKTOP — fills the vitals block the page grid lays out above the dock
-  // (see CharacterSheetClient). The portrait takes whatever height the stat
-  // grid leaves; the level reads in the class tag beside the name, so the
-  // portrait carries only the AC badge and the HP bar.
+  // DESKTOP: the vitals column of the character card (Figma 137:877). The
+  // page sets these straight into the column, which lays them out with its
+  // 16px gap: portrait with the AC shield, the HP block, a rule, the six
+  // attributes, a rule, then whatever the page hangs underneath.
   // ════════════════════════════════════════════════════════════════════════
   if (!isMobile) {
     return (
-      <div className="vitals-stack">
-
-        {/* Portrait container with the AC badge and HP bar overlays */}
+      <>
         <div className="vitals-portrait">
           <AvatarUpload
             characterId={characterId}
@@ -283,46 +297,39 @@ export function FloatingVitals({
             fluid
             onUpload={onAvatarUpload}
           />
+          <ArmorShield ac={ac} />
+        </div>
 
-          {/* AC badge — top-right overlay */}
-          <div style={{ position: 'absolute', top: 4, right: 4, width: 52, height: 50, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
-            <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 20, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
+        {/* HP (the Figma's HP bar, 250:1017): the heart, the points left over
+            the maximum, and the way into damage / heal / XP. */}
+        <div
+          className="flex shrink-0 items-center justify-between gap-1.5 border-2 border-[var(--border-frame)] bg-[var(--bg-raised)] px-3 py-2"
+        >
+          <div className="flex min-w-0 items-center gap-1.5">
+            <HugeiconsIcon icon={FavouriteIcon} size={32} strokeWidth={1.5} className="shrink-0 fill-[var(--ember)] text-[var(--ember)]" />
+            <span className="type-display-xl text-foreground" style={{ lineHeight: 1.2 }}>
+              <span
+                key={`flash-${flash ?? 'idle'}`}
+                className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
+                style={{ display: 'inline-block' }}
+              >{hpCurrent}</span>
+            </span>
+            <span className="type-display-md text-muted-foreground">/{hpMax}</span>
           </div>
-
-          {/* HP bar — bottom overlay, and the way into damage / heal / XP */}
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
             aria-label={`Pontos de vida: ${hpCurrent} de ${hpMax}. Abrir dano, cura e XP.`}
-            className="focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]"
-            style={{ position: 'absolute', bottom: 4, left: 4, right: 4, height: 36, overflow: 'hidden', cursor: 'pointer', zIndex: 5, padding: 0, border: 0, background: 'none' }}
+            className="bg-muted text-foreground size-10 min-h-10 shrink-0 border-2 border-[var(--foreground)] p-0 [&_svg]:size-6"
           >
-            {/* Depleted track */}
-            <span style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
-            {/* HP fill (red from left) */}
-            <span
-              key={flash ?? 'idle'}
-              style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }}
-            />
-            {/* Text */}
-            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 8px', gap: 4 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontWeight: 700, fontSize: 20, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
-                <span
-                  key={`flash-${flash ?? 'idle'}`}
-                  className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''}
-                  style={{ display: 'inline' }}
-                >{hpCurrent}</span>
-                <span style={{ color: 'var(--sidebar-foreground)' }}>/{hpMax}</span>
-              </span>
-              <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 9, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 2 }}>+</span>
-            </span>
-          </button>
+            <HugeiconsIcon icon={MinusPlus02Icon} size={24} strokeWidth={1.5} />
+          </Button>
         </div>
 
-        {/* Stats 3×2 grid, flush under the portrait */}
+        <Divider />
+
         {stats && (
           <div className="vitals-stats">
             {STAT_KEYS.map(key => (
@@ -336,9 +343,13 @@ export function FloatingVitals({
           </div>
         )}
 
+        <Divider />
+
+        {footer}
+
         {/* HP / XP overlay */}
         {hpOverlay}
-      </div>
+      </>
     )
   }
 
@@ -350,10 +361,10 @@ export function FloatingVitals({
 
       {/* Character heading */}
       <div style={{ paddingTop: 12 }}>
-        <p style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--muted-foreground)', letterSpacing: '0.07em', lineHeight: 1.4 }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', letterSpacing: '0.07em', lineHeight: 1.4 }}>
           {className} · {ancestryName}
         </p>
-        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: 'var(--primary-foreground)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 900, fontSize: 28, color: 'var(--foreground)', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {characterName}
         </p>
       </div>
@@ -373,7 +384,7 @@ export function FloatingVitals({
 
           {/* AC badge — top-right */}
           <div style={{ position: 'absolute', top: 5, right: 5, width: 44, height: 42, background: 'var(--secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 5, pointerEvents: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>AC</span>
             <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 18, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{ac}</span>
           </div>
 
@@ -386,12 +397,12 @@ export function FloatingVitals({
             <div style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
             <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 6px', gap: 3 }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--sidebar-foreground)', lineHeight: 1 }}>PV</span>
-              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--sidebar-foreground)', lineHeight: 1 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--primary-foreground)', lineHeight: 1 }}>PV</span>
+              <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--primary-foreground)', lineHeight: 1 }}>
                 <span key={`f-${flash ?? 'idle'}`} className={flash === 'damage' ? 'animate-damage' : flash === 'heal' ? 'animate-heal' : ''} style={{ display: 'inline' }}>{hpCurrent}</span>
-                <span style={{ color: 'var(--sidebar-foreground)' }}>/{hpMax}</span>
+                <span style={{ color: 'var(--primary-foreground)' }}>/{hpMax}</span>
               </span>
-              <span style={{ fontSize: 10, color: 'var(--sidebar-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
+              <span style={{ fontSize: 10, color: 'var(--primary-foreground)', transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 200ms', marginLeft: 1 }}>+</span>
             </div>
           </div>
         </div>
@@ -407,13 +418,10 @@ export function FloatingVitals({
                 disabled={!onRoll}
                 onRoll={mode => rollStat(key, mode)}
               >
-              <Button
-                type="button"
-                variant="secondary"
+              <span
                 title={`Rolar ${STAT_FULL[key]}`}
-                render={<span />}
-                nativeButton={false}
                 className={cn(
+                  buttonVariants({ variant: 'secondary' }),
                   'h-full w-full flex-col items-center justify-center gap-0 px-[3px] py-1 transition-colors duration-150',
                   'border-input-border hover:border-ring bg-transparent',
                   onRoll ? 'cursor-pointer' : 'cursor-default',
@@ -422,7 +430,7 @@ export function FloatingVitals({
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', letterSpacing: '1.2px', textTransform: 'uppercase', lineHeight: '15px' }}>{STAT_LABELS[key]}</span>
                 <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 24, color: 'var(--muted-foreground)', lineHeight: '26px', paddingTop: 2 }}>{modifierStr(stats[key])}</span>
                 <span style={{ fontFamily: 'var(--font-stat)', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: '15px', paddingTop: 2 }}>{stats[key]}</span>
-              </Button>
+              </span>
               </RollModeMenu>
             ))}
           </div>
@@ -432,7 +440,7 @@ export function FloatingVitals({
       {/* LV + EDITAR — full-width row, mirroring the desktop control row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ background: 'var(--secondary)', border: '1px solid var(--border)', padding: '4px 13px', display: 'flex', alignItems: 'center', gap: 4, height: 32, boxSizing: 'border-box' }}>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>LV</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--secondary-foreground)', lineHeight: 1 }}>LV</span>
           <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 24, color: 'var(--secondary-foreground)', lineHeight: 1 }}>{level}</span>
         </div>
         <Link

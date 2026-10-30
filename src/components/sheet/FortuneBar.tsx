@@ -36,7 +36,7 @@ export function FortuneBar({ luckTokens, onLuckChange }: Props) {
         ))}
       </div>
       <div style={{ flexShrink: 0, paddingLeft: 6, paddingRight: 2, display: 'flex', alignItems: 'center', minWidth: 60 }}>
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 9, letterSpacing: '2.16px', textTransform: 'uppercase', color: 'var(--card-foreground)', lineHeight: 1, flexShrink: 0 }}>
           Fortuna
         </span>
       </div>

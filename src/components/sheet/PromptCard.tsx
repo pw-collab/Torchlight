@@ -54,11 +54,11 @@ export function PromptCard({ prompts, onAnswer }: Props) {
             </span>
 
             <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+              <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
                 {prompt.actorName} pede uma rolagem
                 {p.secret && ' · em segredo'}
               </span>
-              <span className="font-heading text-[13px] leading-tight text-[var(--foreground)]">
+              <span className="font-mono font-semibold text-[13px] leading-tight text-[var(--foreground)]">
                 {attribute ? `${attribute} ` : ''}DC {p.dc}
               </span>
               {p.label && (
@@ -77,7 +77,7 @@ export function PromptCard({ prompts, onAnswer }: Props) {
                 type="button"
                 variant="hollow"
                 render={<span />}
-                className="font-heading bg-primary text-primary-foreground h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase"
+                className="font-mono bg-primary text-primary-foreground h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase"
               >
                 Rolar
               </Button>

@@ -113,7 +113,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
     <Dialog open onOpenChange={open => { if (!open) onClose() }}>
       <DialogContent className="flex max-h-[90vh] max-w-[920px] flex-col overflow-hidden border-t-2 border-t-[var(--border)] p-0">
         <DialogHeader className="border-b border-[var(--border)] px-5 py-3.5">
-          <DialogTitle className="font-heading text-[10px] tracking-[0.18em] text-[var(--foreground)] uppercase">
+          <DialogTitle className="font-mono font-semibold text-[10px] tracking-[0.18em] text-[var(--foreground)] uppercase">
             {isEditing ? '✎ Editar Ficha de NPC' : '✦ Nova Ficha de NPC'}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -132,13 +132,13 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
             <TabsList variant="line" className="h-auto w-full justify-start gap-0 bg-transparent">
               <TabsTrigger
                 value="md"
-                className="font-heading text-[9px] tracking-[0.12em] uppercase"
+                className="font-mono font-semibold text-[9px] tracking-[0.12em] uppercase"
               >
                 Markdown
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="font-heading text-[9px] tracking-[0.12em] uppercase"
+                className="font-mono font-semibold text-[9px] tracking-[0.12em] uppercase"
               >
                 Pré-visualização
               </TabsTrigger>
@@ -158,7 +158,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
             >
               <FieldLabel
                 htmlFor="npc-markdown"
-                className="text-muted-foreground font-heading mb-0.5 text-[8px] tracking-[0.16em] uppercase"
+                className="text-muted-foreground font-mono font-semibold mb-0.5 text-[8px] tracking-[0.16em] uppercase"
               >
                 Markdown — cole ou edite abaixo
               </FieldLabel>
@@ -179,7 +179,7 @@ export function NPCCreatorModal({ gmId, editNpc, onSave, onClose }: Props) {
           {(!stacked || activePane === 'preview') && (
             <ScrollArea className="bg-background flex-1">
               <div className="px-5 py-3.5">
-                <div className="text-muted-foreground font-heading mb-2.5 text-[8px] tracking-[0.16em] uppercase">
+                <div className="text-muted-foreground font-mono font-semibold mb-2.5 text-[8px] tracking-[0.16em] uppercase">
                   Pré-visualização
                 </div>
                 <NPCCard npc={previewNpc} />

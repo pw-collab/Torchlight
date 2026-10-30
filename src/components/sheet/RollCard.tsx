@@ -78,7 +78,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
         marginBottom: 6,
       }}>
         <span style={{
-          fontFamily: 'var(--font-heading)',
+          fontFamily: 'var(--font-mono)', fontWeight: 600,
           fontSize: 9,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
@@ -151,7 +151,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
           borderTop: '1px solid var(--border)',
         }}>
           <span style={{
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)',
             fontSize: 9,
             fontWeight: 700,
             letterSpacing: '0.14em',
@@ -174,7 +174,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
       {roll.rerollOf !== undefined && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
           <span style={{
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)', fontWeight: 600,
             fontSize: 8,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -214,7 +214,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
               : 'color-mix(in oklch, var(--primary), transparent 85%)',
             border: `1px solid ${crit ? 'var(--chart-1)' : 'var(--primary)'}`,
             color: crit ? 'var(--chart-1)' : 'var(--foreground)',
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)', fontWeight: 600,
             fontSize: 9,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -243,7 +243,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
             background: 'color-mix(in oklch, var(--chart-1), transparent 88%)',
             border: '1px solid var(--chart-1)',
             color: 'var(--chart-1)',
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)', fontWeight: 600,
             fontSize: 9,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
@@ -258,7 +258,7 @@ export function RollCard({ roll, onSpendFortune, fortuneLeft = 0, compact, onRol
       {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, paddingTop: 6, borderTop: '1px solid var(--border)' }}>
           <span style={{
-            fontFamily: 'var(--font-heading)',
+            fontFamily: 'var(--font-mono)', fontWeight: 600,
             fontSize: 8,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',

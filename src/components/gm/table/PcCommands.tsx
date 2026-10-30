@@ -154,13 +154,13 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
         <div className="flex items-center gap-3">
           <Link
             href={`/sheet/${c.id}`}
-            className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
+            className="font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
           >
             Abrir ficha
           </Link>
           <Link
             href={`/sheet/${c.id}/edit`}
-            className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
+            className="font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase underline underline-offset-2 hover:text-[var(--foreground)]"
           >
             Editar
           </Link>

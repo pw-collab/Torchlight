@@ -46,13 +46,13 @@ function paginateMarkdown(md: string, charsPerPage = 600): string[] {
 
 const mdComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="font-heading mb-2.5 text-sm leading-snug tracking-[0.1em] text-[var(--background)]">{children}</h1>
+    <h1 className="font-mono font-semibold mb-2.5 text-sm leading-snug tracking-[0.1em] text-[var(--background)]">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="font-heading mt-2 mb-1.5 text-xs leading-snug tracking-[0.08em] text-[var(--background)]">{children}</h2>
+    <h2 className="font-mono font-semibold mt-2 mb-1.5 text-xs leading-snug tracking-[0.08em] text-[var(--background)]">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="font-heading mt-1.5 mb-1 text-[11px] leading-snug tracking-[0.06em] text-[var(--background)]">{children}</h3>
+    <h3 className="font-mono font-semibold mt-1.5 mb-1 text-[11px] leading-snug tracking-[0.06em] text-[var(--background)]">{children}</h3>
   ),
   p: ({ children }) => <p className="mb-2 leading-[1.55]">{children}</p>,
   strong: ({ children }) => (
@@ -104,7 +104,7 @@ export function BookViewerModal({ item, onClose, onSaveContent, readOnly }: Prop
           {/* Header — wraps below the title on narrow viewports instead of
               forcing the (shrink-to-fit) dialog wider than the screen. */}
           <DialogHeader className="flex w-full max-w-[736px] flex-row flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <DialogTitle className="font-heading text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+            <DialogTitle className="font-mono font-semibold text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
               📖 {item.name}
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -208,7 +208,7 @@ export function BookViewerModal({ item, onClose, onSaveContent, readOnly }: Prop
       <Dialog open={editingContent} onOpenChange={setEditingContent}>
         <DialogContent className="max-w-[540px] border-t-2 border-t-[var(--border)] p-6">
           <DialogHeader>
-            <DialogTitle className="font-heading text-[9px] tracking-[0.18em] text-[var(--foreground)] uppercase">
+            <DialogTitle className="font-mono font-semibold text-[9px] tracking-[0.18em] text-[var(--foreground)] uppercase">
               Editar Conteúdo — {item.name}
             </DialogTitle>
             <DialogDescription className="sr-only">

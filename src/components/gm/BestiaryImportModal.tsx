@@ -50,7 +50,7 @@ export function BestiaryImportModal({ onImport, onClose }: Props) {
         }}
       >
         <div className="flex items-center justify-between">
-          <span className="font-heading text-[13px] tracking-[0.12em] text-[var(--foreground)] uppercase">
+          <span className="font-mono font-semibold text-[13px] tracking-[0.12em] text-[var(--foreground)] uppercase">
             Importar fichas
           </span>
           <Button
@@ -90,7 +90,7 @@ export function BestiaryImportModal({ onImport, onClose }: Props) {
             variant="outline"
             onClick={() => void confirm()}
             disabled={busy || parsed.length === 0}
-            className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] border-[var(--primary)] px-3 text-[9px] tracking-[0.12em] uppercase disabled:opacity-30"
+            className="font-mono font-semibold h-9 min-h-9 shrink-0 rounded-[1px] border-[var(--primary)] px-3 text-[9px] tracking-[0.12em] uppercase disabled:opacity-30"
           >
             {busy ? 'Importando…' : `Importar ${parsed.length || ''}`}
           </Button>

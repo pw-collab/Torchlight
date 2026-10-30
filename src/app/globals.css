@@ -1,4 +1,4 @@
-/* Bricolage Grotesque and Libre Franklin load from the <link> tags in
+/* Germania One, Bricolage Grotesque and Libre Franklin load from the <link> tags in
    layout.tsx, not from an @import here: a stylesheet @import is only
    discovered after this file itself downloads, so the preconnect there wins
    back a round trip on the Google Fonts handshake. */
@@ -55,8 +55,8 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
-  /* The one warm colour outside the reds: a light source that is burning
-     (the design's #fb9e32). Same in both themes — a flame doesn't change. */
+  /* A light source that is burning. The dark theme points it at --ember,
+     the same colour the Figma theme gives the torch. */
   --torch: oklch(0.777 0.159 64.5);
   /* Red as text, and the edge of a control. --primary is a fill: as text on
      the dark surfaces it reads at 2:1, and --input doubles as the selected-
@@ -65,16 +65,17 @@
   --primary-text: var(--primary);
   --input-border: var(--input);
 
-  /* Two families cover every role. Bricolage Grotesque takes the display
-     work; Libre Franklin takes running text and the small technical labels.
-     The embed pins Bricolage's wght axis at 800, so markup asking for 500 or
-     900 on a heading still renders ExtraBold — weight is no longer the lever
-     for hierarchy there, size and letter-spacing are. */
-  --font-heading: 'Bricolage Grotesque', sans-serif;
+  /* Three families, as the Figma sets them. Germania One takes titles from
+     16px up and the inked numerals; it has a single weight, so size is the
+     lever for hierarchy there (font-synthesis below keeps the browser from
+     faking a bold). Libre Franklin takes running text and every label under
+     16px: tags, chips, buttons. Bricolage Grotesque is left for the
+     technical readouts: the torch clock, the back link. */
+  --font-heading: 'Germania One', Georgia, serif;
   --font-body:    'Libre Franklin', sans-serif;
-  --font-mono:    'Libre Franklin', sans-serif;       /* small caps labels & metadata */
-  --font-stat:    'Bricolage Grotesque', sans-serif;  /* stat-grid labels & raw scores */
-  --font-numeral: 'Bricolage Grotesque', sans-serif;  /* inked numerals: modifiers, HP, AC */
+  --font-mono:    'Libre Franklin', sans-serif;       /* labels & metadata, under 16px */
+  --font-stat:    'Bricolage Grotesque', sans-serif;  /* clock and nav readouts */
+  --font-numeral: 'Germania One', Georgia, serif;     /* inked numerals: modifiers, HP, AC */
 
   --shadow-sm:    0 2px 6px rgba(0,0,0,0.35);
   --shadow-md:    0 4px 14px rgba(0,0,0,0.45);
@@ -132,6 +133,9 @@ html, body {
      `wdth` leaves `wght` under the control of `font-weight`. */
   font-optical-sizing: auto;
   font-variation-settings: 'wdth' 100;
+  /* Germania One ships one weight. Markup that still asks a title for bold
+     would get a smeared synthetic one; the variable families never need it. */
+  font-synthesis-weight: none;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -457,10 +461,8 @@ html, body {
   );
 }
 
-/* The header's middle lane. The sheet's light status rides here, lined up
-   with the first column of the content grid underneath (the same 1440px box
-   and 48px gutter as .sheet-grid) — but never nearer the left edge than
-   184px, which is where the logo menu and the back link end. */
+/* The header's middle lane. The sheet's light status rides here, centred
+   in the same 1440px box as .sheet-grid, as the Figma draws it. */
 .app-header-center {
   position: absolute;
   inset: 0;
@@ -469,122 +471,189 @@ html, body {
   pointer-events: none;
 }
 .app-header-center__box {
+  display: flex;
+  justify-content: center;
   width: 100%;
   max-width: 1440px;
   margin-inline: auto;
   padding-inline: 48px;
-  padding-left: max(48px, calc(184px - max(0px, (100vw - 1440px) / 2)));
 }
 .app-header-center__box > * { pointer-events: auto; }
 
 /* ============================================================
-   Character sheet — the design's ten-column screen grid
+   Character sheet: two halves over a floating dock
 
-   The sheet is one screen rather than a page that scrolls: ten
-   flexible columns and eight flexible rows, 24px gutters, capped at
-   1440px, as the Figma auto-layout draws it.
+   The Figma frame 137:556, as auto-layout. Ten columns at 24px
+   gutters, capped at 1440px:
 
-     cols 1–2    vitals (rows 1–4) · dock (rows 5–8)
-     col  3      nav rail (rows 1–8)
-     cols 4–10   the tab's panel (rows 1–7)
+     cols 1-5    the character card (rail · vitals · identity)
+     cols 6-10   the tab's panel
+     cols 2-9    the dock, on its own row, riding up over the foot
+                 of both halves by --dock-overlap
 
-   The rows split whatever height the viewport leaves, so the blocks
-   keep their proportions on any screen, and whatever does not fit
-   scrolls inside its own block. The top padding is the design's 16px
-   plus the 16px its 96px header has over AppShell's 80px one. Under
-   760px of height the grid stops shrinking and the page scrolls;
-   under 1100px of width it gives up the screen and stacks.
+   The Figma lays this out on eight flexible rows with the dock
+   absolute; two rows (the halves, then the dock at its own height)
+   keep the overlap at 40px on any screen. The card's columns and the
+   panel scroll inside themselves; under 640px of height the grid
+   stops shrinking and the page scrolls; under 1100px of width it
+   stacks.
    ============================================================ */
 .sheet-grid {
+  --dock-overlap: 40px;
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-template-rows: repeat(8, minmax(0, 1fr));
-  gap: 24px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  column-gap: 24px;
   max-width: 1440px;
   margin-inline: auto;
-  padding: 32px 48px 48px;
+  padding: 16px 48px 48px;
   /* AppShell offsets the fixed header; the grid takes the rest. */
-  height: calc(100dvh - 80px - var(--safe-top));
-  min-height: 760px;
+  height: calc(100dvh - 72px - var(--safe-top));
+  min-height: 640px;
 }
 
 /* grid-area: row-start / column-start / row-end / column-end */
-.sheet-vitals { grid-area: 1 / 1 / 5 / 3;  min-width: 0; min-height: 0; }
-.sheet-dock   { grid-area: 5 / 1 / 9 / 3;  min-width: 0; min-height: 0; }
-.sheet-panel  { grid-area: 1 / 4 / 8 / 11; min-width: 0; min-height: 0; overflow-y: auto; }
+.sheet-card  { grid-area: 1 / 1 / 2 / 6; }
+.sheet-panel { grid-area: 1 / 6 / 2 / 11; }
+.sheet-dock  { grid-area: 2 / 2 / 3 / 10; }
 
-/* The rail owns its column top to bottom: a rule down its left edge and
-   the tab squares pressed against its right one, beside the panel. */
-.sheet-rail {
-  grid-area: 1 / 3 / 9 / 4;
+/* Both halves: the panel surface, framed by a 4px rule drawn outside
+   the box (the Figma's OUTSIDE stroke), so it takes no room. */
+.sheet-card,
+.sheet-panel {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  border-left: 1px solid var(--sidebar-border);
+  min-height: 0;
+  background: var(--bg-base);
+  outline: 4px solid var(--border-outline);
 }
 
-/* The dock — the vitals' second card. What the table is waiting on sits on
-   top, the rolls fill the middle, and the two roll buttons hold the floor. */
-.sheet-dock {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
-}
-.sheet-dock__strip {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-  /* Whatever the table piles up here, the rolls keep some of the card. */
-  max-height: 60%;
+/* The panel scrolls inside its frame. Its foot stays clear of the dock,
+   so the last thing in it can always be scrolled into view. */
+.sheet-panel {
   overflow-y: auto;
+  padding-bottom: var(--dock-overlap);
 }
-.sheet-dock__strip:empty { display: none; }
-.sheet-dock__actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+/* The tab panels each brought cards of their own (the História tab one
+   per section); here the half is the card, so theirs fall away and the
+   section headings' rules do the separating. */
+.sheet-panel .card-surface,
+.sheet-panel > .panel-grid {
+  background: none;
+  border: 0;
+}
+
+/* The character card: the rail, then two columns that share the rest.
+   Each column scrolls on its own when the screen is short. */
+.sheet-card {
+  display: flex;
+  gap: 24px;
+  padding: 24px 24px calc(24px + var(--dock-overlap));
+  overflow: hidden;
+}
+.sheet-card__rail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   gap: 8px;
-  flex-shrink: 0;
 }
+.sheet-card__col {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sheet-card__col--identity { gap: 24px; }
+
+/* The dock: a tray that floats over the foot of both halves. Ten columns
+   on two 53px rows, as the Figma sets it:
+     cols 1-2   the latest roll        cols 6-7   attacks · turn
+     cols 3-5   turn and the Mestre    cols 8-10  dice */
+.sheet-dock {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(-1 * var(--dock-overlap));
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 53px);
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-raised);
+  border: 2px solid var(--border-frame);
+}
+.sheet-dock__rolls   { grid-area: 1 / 1 / 3 / 3;  min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+/* The latest roll fills the two rows of the rolls column; the older ones
+   rise over the panels as balloons while the stack is hovered or focused.
+   The list's padding covers the dock's own padding and border, so the
+   pointer never leaves the hover area on its way up. */
+.roll-stack {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  outline: none;
+}
+.roll-stack:focus-visible { box-shadow: 0 0 0 2px var(--ring); }
+.roll-stack__older {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  display: none;
+  flex-direction: column-reverse;
+  gap: 14px;
+  max-height: 50dvh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 10px 0 24px;
+  list-style: none;
+}
+.roll-stack:hover .roll-stack__older,
+.roll-stack:focus-within .roll-stack__older { display: flex; }
+.sheet-dock__strip   { grid-area: 1 / 3 / 3 / 6;  min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.sheet-dock__attacks { grid-area: 1 / 6 / 2 / 8;  min-width: 0; display: flex; }
+.sheet-dock__turn    { grid-area: 2 / 6 / 3 / 8;  min-width: 0; display: flex; }
+.sheet-dock__dice    { grid-area: 1 / 8 / 3 / 11; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 @media (max-width: 1100px) {
   .sheet-grid {
-    /* The vitals keep a portrait-sized column; the dock takes the rest of
-       the row beside them, and the panel runs full width underneath. */
-    grid-template-columns: auto minmax(200px, 280px) minmax(0, 1fr);
-    grid-template-rows: auto auto;
+    --dock-overlap: 0px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    row-gap: 24px;
     height: auto;
     min-height: 0;
     padding: 8px 24px 40px;
   }
-  .sheet-rail {
-    grid-area: 1 / 1 / 3 / 2;
-    align-items: flex-start;
-    padding-right: 16px;
-    border-left: 0;
-    border-right: 1px solid var(--sidebar-border);
-  }
-  .sheet-vitals { grid-area: 1 / 2 / 2 / 3; }
-  .sheet-dock   { grid-area: 1 / 3 / 2 / 4; }
-  .sheet-panel  { grid-area: 2 / 2 / 3 / 4; overflow: visible; }
+  .sheet-card  { grid-area: auto; flex-wrap: wrap; overflow: visible; }
+  .sheet-panel { grid-area: auto; overflow: visible; }
+  /* The dock rides the foot of the screen once the sheet scrolls. */
+  .sheet-dock  { grid-area: auto; position: sticky; bottom: 8px; }
+  .sheet-card__col { flex: 1 1 240px; overflow: visible; }
+  /* The vitals keep about the Figma's width, so the portrait does not grow
+     with the screen; the identity column takes what is left. */
+  .sheet-card__col--vitals { flex: 0 1 280px; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
-   which is measured in JS — this keeps the gutter at 16px for the frame
+   which is measured in JS. This keeps the gutter at 16px for the frame
    before that decision lands. */
 @media (max-width: 640px) {
   .sheet-grid { padding: 8px 16px 40px; }
 }
 
 /* ============================================================
-   Atributos panel — the techniques (three of four columns) beside
-   the talent list (the fourth), on one card surface. Each side
-   scrolls on its own, and the deck fades out where it is cut.
+   Atributos panel: the technique deck. On the desktop sheet it fills
+   the right half by itself (the talents moved to the character card);
+   on the stacked and mobile sheets the talent list still follows it,
+   on one card surface. The deck scrolls on its own and fades out
+   where it is cut.
    ============================================================ */
 .attr-panel {
   height: 100%;
@@ -601,7 +670,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   /* A grid that scrolls inside a fixed height squeezes auto rows to fit it,
-     and the cards — sized by their ratio — would ride over the next row.
+     and the cards, sized by their ratio, would ride over the next row.
      Rows take their content's full height and the deck scrolls instead. */
   grid-auto-rows: max-content;
   gap: 16px;
@@ -610,7 +679,7 @@ html, body {
   padding: 24px 24px 56px;
   mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
 }
-/* The name-and-tags row takes the deck's full width. */
+/* The heading row (the title, or the name and tags) takes the deck's full width. */
 .attr-panel__heading { grid-column: 1 / -1; min-width: 0; }
 .attr-panel__talents {
   min-height: 0;
@@ -621,6 +690,12 @@ html, body {
   padding: 24px;
   border-left: 1px solid var(--border);
 }
+
+/* Desktop: the deck alone, on the half's own surface. */
+.sheet-panel > .attr-panel { grid-template-columns: minmax(0, 1fr); background: none; border: 0; }
+.sheet-panel > .attr-panel > .attr-panel__deck { grid-column: auto; }
+/* On the character card the talent list is a column section, not a pane. */
+.sheet-card .attr-panel__talents { overflow: visible; padding: 0; border: 0; }
 
 @media (max-width: 1100px) {
   .attr-panel { height: auto; grid-template-columns: minmax(0, 1fr); }
@@ -674,36 +749,26 @@ html, body {
   .panel-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Vitals column internals: the portrait takes whatever height the stat grid
-   leaves in the block. Once the sheet stacks there is no height to share, so
-   the portrait falls back to a ratio of its own. */
-.vitals-stack {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+/* Vitals column internals (desktop): the portrait over the HP block, a
+   rule, the six attributes, a rule, then the conditions. The portrait is
+   292px in the Figma and gives up height first when the screen is short. */
 .vitals-portrait {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 1 292px;
+  min-height: 160px;
   width: 100%;
   background: var(--background);
 }
-/* The six attributes share one --input fill; each tile draws only its own
-   --input rule over it, and those rules are the lines between the tiles. */
 .vitals-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 56px);
+  gap: 4px;
   flex-shrink: 0;
-  background: var(--input);
 }
 
 @media (max-width: 1100px) {
-  .vitals-stack { height: auto; }
-  .vitals-portrait { flex: none; aspect-ratio: 268 / 356; }
+  .vitals-portrait { flex: none; aspect-ratio: 250 / 292; }
 }
 
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
@@ -941,7 +1006,7 @@ html, body {
   background: color-mix(in oklch, var(--muted-foreground), transparent 70%);
   transition: background 200ms var(--ease-ritual);
 }
-.roster-pager__dash--active { background: var(--destructive); }
+.roster-pager__dash--active { background: var(--primary); }
 
 /* ============================================================
    6-column layout grid (character sheet)
@@ -999,48 +1064,96 @@ html, body {
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.148 0.004 228.8);
-  --foreground: oklch(0.987 0.002 197.1);
-  --card: oklch(0.218 0.008 223.9);
-  --card-foreground: oklch(0.987 0.002 197.1);
-  --popover: oklch(0.218 0.008 223.9);
-  --popover-foreground: oklch(0.987 0.002 197.1);
-  --primary: oklch(0.444 0.177 26.899);
-  --primary-foreground: oklch(0.971 0.013 17.38);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.275 0.011 216.9);
-  --muted-foreground: oklch(0.723 0.014 214.4);
-  --accent: oklch(0.444 0.177 26.899);
-  --accent-foreground: oklch(0.971 0.013 17.38);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  /* Focus must stand out from --input-border, which already sits at 3:1:
-     at the old oklch(0.56 ...) a focused field barely changed. This is the
-     --chart-1 grey: 3.5:1 against the unfocused border. */
-  --ring: oklch(0.872 0.007 219.6);
-  --chart-1: oklch(0.872 0.007 219.6);
-  --chart-2: oklch(0.56 0.021 213.5);
-  --chart-3: oklch(0.45 0.017 213.2);
-  --chart-4: oklch(0.378 0.015 216);
-  --chart-5: oklch(0.275 0.011 216.9);
-  --sidebar: oklch(0.218 0.008 223.9);
-  --sidebar-foreground: oklch(0.987 0.002 197.1);
-  /* The active tab: the brand red, so its label reads at 7.6:1. The brighter
-     oklch(0.637 0.237 25.331) left it at 3.5:1. */
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: oklch(0.971 0.013 17.38);
-  --sidebar-accent: oklch(0.275 0.011 216.9);
-  --sidebar-accent-foreground: oklch(0.987 0.002 197.1);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.56 0.021 213.5);
-  --torch: oklch(0.777 0.159 64.5);
-  /* 4.8:1 on card, 5.4:1 on background. */
-  --primary-text: oklch(0.64 0.177 26.899);
-  /* 3:1 or better on background, card, muted and secondary. */
-  --input-border: oklch(1 0 0 / 36%);
+
+  /* ------------------------------------------------------------------
+     The Figma theme (Playground, collection "Theme", mode "Dark"), under
+     its own names. These are the source; the shadcn roles below only
+     point at them, so a value changes here and nowhere else.
+     ------------------------------------------------------------------ */
+  --bg-sunken: #110d0b;          /* the page behind everything */
+  --bg-base: #1c1512;            /* panels */
+  --bg-raised: #2a201c;          /* blocks on a panel: HP, attributes, the dock */
+  --bg-panel: #372b27;           /* what floats: popovers, menus */
+  --ember: #df7653;              /* the action colour, and the light */
+  --ember-foreground: #1b1513;
+  --spirit: #48b8d2;             /* the counterweight: turns, secondary actions */
+  --spirit-foreground: #131a1b;
+  --border-outline: #53433c;     /* panel frames and dividers */
+  --border-frame: #110d0b;       /* the ink line around controls */
+  --border-control: #8f796a;     /* the edge of a control, 3:1 or better */
+  /* Identity tags: class, archetype, ancestry. */
+  --class: var(--ember);
+  --class-foreground: #34140a;
+  --archetype: #9f815d;
+  --archetype-foreground: #201a13;
+  --ancestry: #8fb4c0;
+  --ancestry-foreground: #182e34;
+
+  /* ------------------------------------------------------------------
+     shadcn roles, mapped by what they do rather than by name: the
+     Figma "card" (#6e564e) is a highlighted item, which is shadcn's
+     --accent; shadcn's --card is the panel surface, Figma's bg-base.
+     --secondary stays a quiet surface; the cyan has its own --spirit.
+     ------------------------------------------------------------------ */
+  --background: var(--bg-sunken);
+  --foreground: #ecdbb8;
+  --card: var(--bg-base);
+  --card-foreground: #ecd9b7;
+  --popover: var(--bg-panel);
+  --popover-foreground: var(--foreground);
+  --primary: var(--ember);
+  --primary-foreground: var(--ember-foreground);
+  --secondary: #2d221f;
+  --secondary-foreground: var(--foreground);
+  --muted: #2d221f;
+  --muted-foreground: #b0a18f;
+  --accent: #6e564e;
+  --accent-foreground: #ecd9b7;
+  --destructive: #ff6467;
+  --border: var(--border-outline);
+  --input: rgb(242 162 136 / 15%);
+  /* The theme has no focus colour. The text colour stands 13:1 off the
+     page and well clear of --input-border, so a focused field reads. */
+  --ring: var(--foreground);
+  /* No warm chart ramp in the theme yet: these step down the palette. */
+  --chart-1: #d9c7a3;
+  --chart-2: #b0a18f;
+  --chart-3: #6e564e;
+  --chart-4: #53433c;
+  --chart-5: #2d221f;
+  --sidebar: var(--bg-base);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--ember);
+  --sidebar-primary-foreground: var(--ember-foreground);
+  --sidebar-accent: var(--muted);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border-outline);
+  --sidebar-ring: var(--border-control);
+  /* The light burns in the same ember as everything else now. */
+  --torch: var(--ember);
+  /* Ember clears AA as text on its own (5.9:1 on bg-base), so the
+     separate text shade the old red needed is just an alias now. */
+  --primary-text: var(--ember);
+  /* 4.4:1 on bg-base, 3.8:1 on muted. */
+  --input-border: var(--border-control);
 }
+
+/* ============================================================
+   Type scale: the Figma's text roles, one utility each. `type-*`
+   rather than `text-*`, which Tailwind already reads as size or colour.
+   ============================================================ */
+@utility type-display-xl { font-family: var(--font-heading); font-size: 48px; line-height: 1.2; }
+@utility type-display-lg { font-family: var(--font-numeral); font-size: 28px; line-height: 1; }
+@utility type-display-md { font-family: var(--font-heading); font-size: 24px; line-height: 1.2; }
+@utility type-display-sm { font-family: var(--font-heading); font-size: 18px; line-height: 1.2; }
+@utility type-title { font-family: var(--font-heading); font-size: 16px; line-height: 1.2; text-transform: uppercase; }
+@utility type-button { font-family: var(--font-mono); font-weight: 700; font-size: 16px; line-height: 1.2; text-transform: uppercase; }
+@utility type-tag { font-family: var(--font-mono); font-weight: 600; font-size: 14px; line-height: 1.3; }
+@utility type-body { font-family: var(--font-body); font-size: 12px; line-height: 1.5; }
+@utility type-caption { font-family: var(--font-mono); font-size: 10px; line-height: 1.2; }
+@utility type-label { font-family: var(--font-mono); font-size: 10px; line-height: 1.5; letter-spacing: 0.12em; text-transform: uppercase; }
+@utility type-clock { font-family: var(--font-stat); font-weight: 700; font-size: 14px; letter-spacing: 0.08em; }
+@utility type-nav { font-family: var(--font-stat); font-weight: 500; font-size: 12px; letter-spacing: 0.11em; text-transform: uppercase; }
 
 @theme inline {
   --font-sans:        var(--font-body);
@@ -1080,6 +1193,23 @@ html, body {
   --color-card:        var(--card);
   --color-foreground:        var(--foreground);
   --color-background:        var(--background);
+  --color-bg-sunken:        var(--bg-sunken);
+  --color-bg-base:        var(--bg-base);
+  --color-bg-raised:        var(--bg-raised);
+  --color-bg-panel:        var(--bg-panel);
+  --color-ember:        var(--ember);
+  --color-ember-foreground:        var(--ember-foreground);
+  --color-spirit:        var(--spirit);
+  --color-spirit-foreground:        var(--spirit-foreground);
+  --color-border-outline:        var(--border-outline);
+  --color-border-frame:        var(--border-frame);
+  --color-border-control:        var(--border-control);
+  --color-class:        var(--class);
+  --color-class-foreground:        var(--class-foreground);
+  --color-archetype:        var(--archetype);
+  --color-archetype-foreground:        var(--archetype-foreground);
+  --color-ancestry:        var(--ancestry);
+  --color-ancestry-foreground:        var(--ancestry-foreground);
   --radius-sm:        calc(var(--radius) * 0.6);
   --radius-md:        calc(var(--radius) * 0.8);
   --radius-lg:        var(--radius);
@@ -1132,7 +1262,7 @@ html, body {
 .gm-page--screen {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 80px - var(--safe-top));
+  height: calc(100dvh - 72px - var(--safe-top));
   min-height: 600px;
   padding-top: 8px;
   padding-bottom: 24px;
@@ -1183,7 +1313,8 @@ html, body {
   flex-shrink: 0;
   height: 36px;
   padding: 0 10px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1192,7 +1323,7 @@ html, body {
   background: var(--secondary);
   border: 1px solid var(--input-border);
 }
-.gm-side-die b { font-size: 16px; letter-spacing: 0; color: var(--foreground); }
+.gm-side-die b { font-family: var(--font-numeral); font-size: 16px; letter-spacing: 0; color: var(--foreground); }
 .gm-side-die.is-current { color: var(--foreground); border-color: var(--primary-text); }
 
 /* O medidor de luz da ficha mora numa barra de 56px; aqui, numa linha. */
@@ -1268,7 +1399,8 @@ html, body {
 .gm-callout--crit { border-left-color: var(--chart-1); }
 .gm-callout__body { display: flex; flex: 1 1 220px; flex-direction: column; gap: 2px; min-width: 0; }
 .gm-callout__title {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 12px;
   line-height: 1.25;
   letter-spacing: 0.08em;
@@ -1333,7 +1465,8 @@ html, body {
   min-width: 0;
 }
 .gm-side__head {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1529,7 +1662,8 @@ html, body {
 .gm-command:active:not(:disabled) { transform: scale(0.96); }
 .gm-command:disabled { opacity: 0.4; cursor: not-allowed; }
 .gm-command__label {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 10px;
   line-height: 1.15;
   letter-spacing: 0.08em;
@@ -1565,7 +1699,8 @@ html, body {
 }
 .gm-hint b {
   margin-right: 6px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-style: normal;
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -1648,7 +1783,8 @@ html, body {
   color: var(--sidebar-foreground);
 }
 .gm-hp__text small {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   letter-spacing: 0.24em;
 }
@@ -1716,7 +1852,7 @@ html, body {
   color: var(--secondary-foreground);
   background: var(--secondary);
 }
-.gm-fig__ac small { font-size: 8px; letter-spacing: 0.16em; }
+.gm-fig__ac small { font-family: var(--font-mono); font-weight: 600; font-size: 8px; letter-spacing: 0.16em; }
 .gm-fig__ac b { font-family: var(--font-numeral); font-size: 14px; }
 .gm-fig__flag {
   position: absolute;
@@ -1724,7 +1860,8 @@ html, body {
   left: 3px;
   z-index: 2;
   padding: 3px 5px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   line-height: 1;
   letter-spacing: 0.12em;
@@ -1781,7 +1918,8 @@ html, body {
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 12px;
   line-height: 1.2;
   color: var(--foreground);
@@ -1824,7 +1962,8 @@ html, body {
 
 .gm-tag {
   padding: 2px 5px;
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 9px;
   line-height: 1.2;
   letter-spacing: 0.1em;
@@ -1888,7 +2027,7 @@ html, body {
 .gm-pop--heal { color: var(--chart-1); }
 .gm-pop--miss,
 .gm-pop--hit,
-.gm-pop--crit { font-family: var(--font-heading); font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
+.gm-pop--crit { font-family: var(--font-mono); font-weight: 600; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; }
 .gm-pop--miss { color: var(--muted-foreground); }
 .gm-pop--hit { color: var(--destructive); }
 .gm-pop--crit { color: var(--chart-1); }

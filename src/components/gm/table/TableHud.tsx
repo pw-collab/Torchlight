@@ -40,7 +40,7 @@ export function SessionBadge({
 
   return (
     <div className="flex min-w-0 items-center gap-2 lg:gap-3">
-      <span className="font-heading hidden max-w-[18ch] truncate text-[15px] text-[var(--foreground)] xl:inline">
+      <span className="font-mono font-semibold hidden max-w-[18ch] truncate text-[15px] text-[var(--foreground)] xl:inline">
         {name}
       </span>
       {/* O código é a porta da mesa: é ele que o Mestre lê em voz alta, e
@@ -91,7 +91,7 @@ export function Presence({ seats, present }: { seats: Seat[]; present: ReadonlyS
             key={seat.character.id}
             title={`${seat.character.name}${seat.playerName ? ` (${seat.playerName})` : ''}: ${on ? 'na mesa' : 'fora'}`}
             className={cn(
-              'font-heading hidden size-6 place-items-center text-[9px] xl:grid',
+              'font-mono font-semibold hidden size-6 place-items-center text-[9px] xl:grid',
               on
                 ? 'border border-[var(--chart-2)] bg-[var(--input)] text-[var(--foreground)]'
                 : 'border border-dashed border-[var(--input-border)] text-[var(--muted-foreground)] opacity-50',
@@ -101,7 +101,7 @@ export function Presence({ seats, present }: { seats: Seat[]; present: ReadonlyS
           </span>
         )
       })}
-      <span className="font-heading ml-1 text-[10px] tracking-[0.12em] whitespace-nowrap text-[var(--foreground)] uppercase">
+      <span className="font-mono font-semibold ml-1 text-[10px] tracking-[0.12em] whitespace-nowrap text-[var(--foreground)] uppercase">
         {seats.length === 0 ? 'Mesa vazia' : <>{here}/{seats.length}<span className="hidden 2xl:inline"> na mesa</span></>}
       </span>
     </div>
@@ -144,7 +144,7 @@ export function TableTools({
         <TorchStatus inventory={carried} clock={clock} />
       </div>
       {(paused || drift !== 0) && (
-        <span className="font-heading text-[10px] tracking-[0.12em] whitespace-nowrap text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold text-[10px] tracking-[0.12em] whitespace-nowrap text-[var(--muted-foreground)] uppercase">
           {paused ? 'Parado' : `${drift > 0 ? '+' : ''}${drift} min`}
         </span>
       )}

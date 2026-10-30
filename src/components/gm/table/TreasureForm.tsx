@@ -97,7 +97,7 @@ export function TreasureForm({
             ['PC', copper, setCopper, 'var(--muted-foreground)'],
           ] as const).map(([label, value, set, color]) => (
             <label key={label} className="flex flex-col gap-1">
-              <span className="font-heading text-[10px] tracking-[0.14em] uppercase" style={{ color }}>{label}</span>
+              <span className="font-mono font-semibold text-[10px] tracking-[0.14em] uppercase" style={{ color }}>{label}</span>
               <Input
                 type="text"
                 inputMode="numeric"
@@ -154,11 +154,11 @@ export function TreasureForm({
             className="font-body border-border bg-secondary h-9 flex-1 text-[11px] italic"
           />
           <label className="flex items-center gap-1" title="Espaços de carga">
-            <span className="font-heading text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Esp.</span>
+            <span className="font-mono font-semibold text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Esp.</span>
             <Input value={slots} onChange={e => setSlots(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} disabled={!single} inputMode="numeric" className={cn(FIELD, 'w-11')} />
           </label>
           <label className="flex items-center gap-1" title="Quantidade">
-            <span className="font-heading text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Qtd.</span>
+            <span className="font-mono font-semibold text-[10px] tracking-[0.12em] text-[var(--muted-foreground)] uppercase">Qtd.</span>
             <Input value={qty} onChange={e => setQty(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))} disabled={!single} inputMode="numeric" className={cn(FIELD, 'w-12')} />
           </label>
         </div>

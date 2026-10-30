@@ -1103,7 +1103,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, a
               aria-pressed={dockOpen && deckPanel === panel.id}
               onClick={() => openDeck(panel.id)}
               className={cn(
-                'font-heading min-h-11 flex-1 border-b-2 text-[10px] tracking-[0.12em] uppercase transition-colors',
+                'font-mono font-semibold min-h-11 flex-1 border-b-2 text-[10px] tracking-[0.12em] uppercase transition-colors',
                 dockOpen && deckPanel === panel.id
                   ? 'border-[var(--primary)] bg-[var(--input)] text-[var(--foreground)]'
                   : 'border-transparent text-[var(--muted-foreground)]',
@@ -1140,7 +1140,7 @@ export function SessionPanel({ session, gmName, gmId, onSessionChange, onRoll, a
 
         <div className="gm-deck__commands">
           <div className="gm-deck__head">
-            <span className="font-heading min-w-0 truncate text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+            <span className="font-mono font-semibold min-w-0 truncate text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
               {focused
                 ? `${focused.kind === 'pc' ? 'Aventureiro' : 'Inimigo'} · ${focused.name}`
                 : encounter ? 'A mesa · combate' : 'A mesa · exploração'}

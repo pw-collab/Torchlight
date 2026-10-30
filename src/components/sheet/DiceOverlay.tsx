@@ -235,7 +235,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
               style={{
-                fontFamily: 'var(--font-heading)',
+                fontFamily: 'var(--font-mono)', fontWeight: 600,
                 fontSize: 9,
                 letterSpacing: '0.3em',
                 textTransform: 'uppercase',
@@ -293,7 +293,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                   {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                       <span style={{
-                        fontFamily: 'var(--font-heading)',
+                        fontFamily: 'var(--font-mono)', fontWeight: 600,
                         fontSize: 7,
                         letterSpacing: '0.16em',
                         textTransform: 'uppercase',
@@ -330,7 +330,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                       className={isCritical ? 'animate-crit' : 'animate-fumble'}
                       style={{
                         display: 'inline-block',
-                        fontFamily: 'var(--font-heading)',
+                        fontFamily: 'var(--font-mono)', fontWeight: 600,
                         fontSize: 10,
                         letterSpacing: '0.18em',
                         textTransform: 'uppercase',
