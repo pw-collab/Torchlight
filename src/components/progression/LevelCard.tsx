@@ -69,7 +69,7 @@ export function LevelCard({
         className={cn(
           'flex items-center justify-between border border-b-0 px-3 py-1.5',
           isCurrent && !sealed
-            ? 'bg-destructive border-[var(--muted-foreground)]'
+            ? 'bg-primary border-[var(--muted-foreground)]'
             : 'bg-secondary border-[var(--border)]',
         )}
       >
@@ -136,7 +136,7 @@ export function LevelCard({
                 ? 'border-[var(--chart-1)] bg-[var(--chart-2)]/20 text-[var(--chart-1)]'
                 : locked
                   ? 'border-[var(--border)] text-[var(--muted-foreground)]'
-                  : 'border-[var(--destructive)] text-[var(--destructive)]',
+                  : 'border-[var(--primary)] text-[var(--primary-text)]',
             )}
           >
             {sealed ? (
@@ -352,7 +352,7 @@ function RewardSection({
                       data-state={hit ? 'selected' : undefined}
                       className={cn(
                         'border-b-[var(--border)] transition-colors duration-200',
-                        hit ? 'bg-[var(--destructive)]/15' : i % 2 === 0 ? 'bg-secondary' : 'bg-transparent',
+                        hit ? 'bg-[var(--primary)]/15' : i % 2 === 0 ? 'bg-secondary' : 'bg-transparent',
                       )}
                     >
                       <TableCell
@@ -405,7 +405,7 @@ function RewardSection({
               'font-mono font-semibold h-auto w-full px-4 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
               busy !== null || !classData
                 ? 'cursor-wait border-[var(--border)] bg-[var(--muted)] text-[var(--muted-foreground)]'
-                : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--destructive)] shadow-[0_0_12px_color-mix(in_oklch,var(--destructive),transparent_75%)]',
+                : 'border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary-text)] shadow-[var(--glow-candle)]',
             )}
           >
             {rolling

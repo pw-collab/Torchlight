@@ -86,8 +86,8 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         className={cn(
           'h-auto w-full rounded-sm px-5 py-3.5 text-[11px] tracking-[0.18em] transition-all duration-200',
           rolling
-            ? 'text-muted-foreground cursor-wait border-[var(--destructive)] bg-[var(--destructive)]/15'
-            : 'border-[var(--destructive)] bg-[var(--destructive)]/15 text-[var(--destructive)]',
+            ? 'text-muted-foreground cursor-wait border-[var(--primary)] bg-[var(--primary)]/15'
+            : 'border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary-text)]',
         )}
       >
         {rolling
@@ -103,7 +103,7 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
         <Field className="w-full items-center gap-2">
           <FieldLabel
             htmlFor="hp-max"
-            className="font-mono font-semibold text-[8px] tracking-[0.22em] text-[var(--destructive)]/70 uppercase"
+            className="font-mono font-semibold text-[8px] tracking-[0.22em] text-[var(--primary-text)] uppercase"
           >
             HP Máximo
           </FieldLabel>
@@ -117,14 +117,14 @@ export function StepHP({ classId, con, hpMax, onRoll, editMode }: Props) {
               const n = parseInt(e.target.value)
               onRoll(isNaN(n) ? 1 : Math.min(999, Math.max(1, n)))
             }}
-            className="font-heading h-auto w-[120px] rounded-sm border-[var(--destructive)] bg-[var(--background)] px-3 py-2 text-center text-5xl font-bold text-[var(--foreground)] [-moz-appearance:textfield]"
+            className="font-heading h-auto w-[120px] rounded-sm border-[var(--primary)] bg-[var(--background)] px-3 py-2 text-center text-5xl font-bold text-[var(--foreground)] [-moz-appearance:textfield]"
           />
         </Field>
       )}
 
       {!editMode && hpMax > 0 && rawRoll !== null && (
-        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--destructive)] bg-[var(--destructive)]/15 px-4 py-6">
-          <span className="font-mono font-semibold text-[8px] tracking-[0.22em] text-[var(--destructive)]/70 uppercase">
+        <div className="flex w-full flex-col items-center gap-2 rounded-sm border border-[var(--primary)] bg-[var(--primary)]/15 px-4 py-6">
+          <span className="font-mono font-semibold text-[8px] tracking-[0.22em] text-[var(--primary-text)] uppercase">
             HP Máximo
           </span>
           <span className="font-heading text-[64px] leading-none font-bold text-[var(--foreground)]">

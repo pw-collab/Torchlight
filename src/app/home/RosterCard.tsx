@@ -30,7 +30,7 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
         // The viewer's own characters carry the campaign's red rule and a lit
         // edge; everyone else's sit back behind a dimmed border.
         char.isOwn
-          ? 'border-2 border-[var(--destructive)] shadow-[0_0_18px_color-mix(in_oklch,var(--destructive),transparent_78%)]'
+          ? 'border-2 border-[var(--primary)] shadow-[0_0_18px_color-mix(in_oklch,var(--primary),transparent_78%)]'
           : 'border-2 border-[color-mix(in_oklch,var(--muted-foreground),transparent_80%)]',
       )}
       style={{ animationDelay: `${Math.min(index * 45, 400)}ms` }}

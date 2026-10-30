@@ -1006,7 +1006,7 @@ html, body {
   background: color-mix(in oklch, var(--muted-foreground), transparent 70%);
   transition: background 200ms var(--ease-ritual);
 }
-.roster-pager__dash--active { background: var(--destructive); }
+.roster-pager__dash--active { background: var(--primary); }
 
 /* ============================================================
    6-column layout grid (character sheet)

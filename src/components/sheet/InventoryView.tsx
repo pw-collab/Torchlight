@@ -180,7 +180,7 @@ function isLightSource(name: string): boolean {
 
 /** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
 const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
-  blood: 'border-[var(--destructive)] bg-[var(--destructive)]/15',
+  blood: 'border-[var(--primary)] bg-[var(--primary)]/25',
   mist:  'border-[var(--chart-4)] bg-[var(--muted)]',
   amber: 'border-[var(--primary)] bg-[var(--primary)]/15',
   dark:  'border-[var(--border)] bg-[var(--card)]',
@@ -417,7 +417,7 @@ function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, chil
             className={cn(
               'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
               'bg-[var(--background)] hover:bg-[var(--background)]',
-              open ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--muted-foreground)]',
+              open ? 'z-[2] border-[var(--primary)]' : 'z-[1] border-[var(--muted-foreground)]',
             )}
           >
             {dot && (
@@ -491,11 +491,11 @@ function GridAvailableTile({ onClick }: { onClick: () => void }) {
       variant="outline"
       className={cn(
         'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
-        'border-[var(--destructive)]/25 bg-[var(--background)] transition-colors duration-200',
-        'hover:border-[var(--destructive)]/55 hover:bg-[var(--destructive)]/5',
+        'border-[var(--primary)]/25 bg-[var(--background)] transition-colors duration-200',
+        'hover:border-[var(--primary)]/55 hover:bg-[var(--primary)]/5',
       )}
     >
-      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--destructive)]/40">+</span>
+      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--primary)]/50">+</span>
     </Button>
   )
 }
@@ -539,7 +539,7 @@ const PACK_POPOVER_POSITION = {
 
 /** Shared chrome: the blood top rule and square edges the old pane carried. */
 const PACK_POPOVER_CLASS =
-  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--destructive)] bg-[var(--background)] p-0'
+  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--primary)] bg-[var(--background)] p-0'
 
 const POPOVER_SECTION = 'border-b border-[var(--border)] px-3 py-2.5 last:border-b-0'
 
@@ -1353,7 +1353,7 @@ export function InventoryView({
           <Button
             variant="outline"
             onClick={() => setSelectingSlot(slot)}
-            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--destructive)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
+            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--border-control)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
           >
             <HugeiconsIcon icon={emptyIcon} size={22} strokeWidth={1.5} style={{ opacity: 0.3 }} />
             <span>+ Equipar</span>

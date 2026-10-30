@@ -366,6 +366,11 @@ Cada fase é um PR que pode ir para produção sozinho.
 **Fase 6. QA** · **rodada a cada fase**
 - `npm run lint`, `npm run build`, `npm run test:e2e` (inclui axe), `contrast.py`, comparação com as capturas da Fase 0.
 
+**Varredura das outras telas** · **feita em 30/10**
+- Home, criação, edição e painel do Mestre abertos com o Supabase falso, como Jogador e como Mestre.
+- Na paleta antiga, o vermelho de `--destructive` fazia papel de destaque (o primário era um vermelho escuro). Na nova, ele lê como erro. Onde era destaque, passou a brasa: nível atual na edição (card, faixa e trilha), botões de rolar da progressão e da criação (PV), moldura do personagem próprio e paginação da home, slot selecionado, "+" dos slots livres, pílula "Atk" e popover do inventário, "Restaurar" das técnicas, brilho do botão do login. O tracejado de "+ Equipar" passou à borda de controle.
+- Continuam em `--destructive`: erros, dano, falha, desvantagem, inimigos, remover/desequipar e modificadores negativos.
+
 ---
 
 ## 7. Decisões

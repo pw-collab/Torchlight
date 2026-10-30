@@ -335,7 +335,7 @@ function SpellLikeSection({
                 <Button
                   onClick={() => restore(ability.id)}
                   variant="hollow"
-                  className="tactile w-full border-[var(--destructive)] text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
+                  className="tactile w-full"
                 >
                   Restaurar
                 </Button>
