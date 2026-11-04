@@ -93,7 +93,7 @@ export function StepReview(props: Props) {
               borderRadius: 2,
             }}>
               <p style={{
-                fontFamily: 'var(--font-heading)',
+                fontFamily: 'var(--font-mono)', fontWeight: 600,
                 fontSize: 6,
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
@@ -297,7 +297,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
 }
 
 const blockTitle: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-mono)', fontWeight: 600,
   fontSize: 7,
   letterSpacing: '0.16em',
   textTransform: 'uppercase',

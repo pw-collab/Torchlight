@@ -117,7 +117,7 @@ export function StepEquipment({
           <div className="mb-[5px] flex items-center justify-between">
             <span
               className={cn(
-                'font-heading text-[7px] tracking-[0.16em] uppercase',
+                'font-mono font-semibold text-[7px] tracking-[0.16em] uppercase',
                 encumbered ? 'text-[var(--destructive)]' : 'text-muted-foreground',
               )}
             >

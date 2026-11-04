@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { Fragment, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import {
   BodyArmorIcon,
@@ -145,7 +146,7 @@ function calculateAC(inv: InventoryItem[], dex: number): number {
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      fontFamily: 'var(--font-heading)',
+      fontFamily: 'var(--font-mono)', fontWeight: 600,
       fontSize: 7,
       letterSpacing: '0.14em',
       textTransform: 'uppercase' as const,
@@ -179,7 +180,7 @@ function isLightSource(name: string): boolean {
 
 /** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
 const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
-  blood: 'border-[var(--destructive)] bg-[var(--destructive)]/15',
+  blood: 'border-[var(--primary)] bg-[var(--primary)]/25',
   mist:  'border-[var(--chart-4)] bg-[var(--muted)]',
   amber: 'border-[var(--primary)] bg-[var(--primary)]/15',
   dark:  'border-[var(--border)] bg-[var(--card)]',
@@ -325,7 +326,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <HugeiconsIcon icon={catalogIconFor(cat)} size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: 'var(--muted-foreground)' }} />
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)', flex: 1 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)', flex: 1 }}>
                   {cat.name}
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--chart-1)', flexShrink: 0 }}>
@@ -370,7 +371,7 @@ const TYPE_ACCENT: Record<ItemType, { color: string }> = {
 const TILE_ICON_SIZE = 26
 
 const TILE_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-heading)',
+  fontFamily: 'var(--font-mono)', fontWeight: 600,
   fontSize: 8,
   // The tile is a Button, and its variant sets `whitespace-nowrap`; without
   // this the two lines the clamp allows are never reached and long names are
@@ -416,7 +417,7 @@ function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, chil
             className={cn(
               'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
               'bg-[var(--background)] hover:bg-[var(--background)]',
-              open ? 'z-[2] border-[var(--destructive)]' : 'z-[1] border-[var(--muted-foreground)]',
+              open ? 'z-[2] border-[var(--primary)]' : 'z-[1] border-[var(--muted-foreground)]',
             )}
           >
             {dot && (
@@ -490,11 +491,11 @@ function GridAvailableTile({ onClick }: { onClick: () => void }) {
       variant="outline"
       className={cn(
         'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
-        'border-[var(--destructive)]/25 bg-[var(--background)] transition-colors duration-200',
-        'hover:border-[var(--destructive)]/55 hover:bg-[var(--destructive)]/5',
+        'border-[var(--primary)]/25 bg-[var(--background)] transition-colors duration-200',
+        'hover:border-[var(--primary)]/55 hover:bg-[var(--primary)]/5',
       )}
     >
-      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--destructive)]/40">+</span>
+      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--primary)]/50">+</span>
     </Button>
   )
 }
@@ -538,7 +539,7 @@ const PACK_POPOVER_POSITION = {
 
 /** Shared chrome: the blood top rule and square edges the old pane carried. */
 const PACK_POPOVER_CLASS =
-  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--destructive)] bg-[var(--background)] p-0'
+  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--primary)] bg-[var(--background)] p-0'
 
 const POPOVER_SECTION = 'border-b border-[var(--border)] px-3 py-2.5 last:border-b-0'
 
@@ -563,7 +564,7 @@ function PopoverCloseButton() {
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ minWidth: 0 }}>
-      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
         {label}
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--foreground)', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -591,8 +592,8 @@ function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: Re
   const color = tone === 'equipped' ? 'var(--chart-2)' : 'var(--primary)'
   return (
     <span style={{
-      fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
-      color: tone === 'equipped' ? color : 'var(--primary-foreground)',
+      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+      color: tone === 'equipped' ? color : 'var(--foreground)',
       background: `color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 80 : 85}%)`,
       border: `1px solid color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 65 : 70}%)`,
       padding: '1px 5px',
@@ -637,17 +638,17 @@ function ItemDetailPopover({ item, now, onEdit, onRemove, onEquipToggle, onConsu
           <ItemGlyph item={item} size={20} now={now} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
             {item.name}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
               {TYPE_LABEL[item.type] ?? item.type}
             </span>
             {item.equipped && <StateBadge tone="equipped">Equipado</StateBadge>}
             {item.isLit && <StateBadge tone="lit">Acesa</StateBadge>}
             {isTwoHanded(item) && (
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
                 2 mãos
               </span>
             )}
@@ -738,10 +739,10 @@ function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
           <HugeiconsIcon icon={MoneyBag01Icon} size={20} strokeWidth={1.5} style={{ width: 20, height: 20 }} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
             Bolsa de moedas
           </div>
-          <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
             Tesouro
           </div>
         </div>
@@ -760,7 +761,7 @@ function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
             className="worn-border"
             style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
           >
-            <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
               {label}
             </div>
             <NumInput
@@ -1014,6 +1015,12 @@ interface Props {
   onLightChange?: (change: { action: 'lit' | 'out'; itemName: string; minutesLeft: number }) => void
   /** O relógio da mesa, quando o personagem está numa (ver `lib/dungeonClock`). */
   clock?: TableClock | null
+  /**
+   * Where the equipment slots and the bonuses render, when not beside the
+   * pack. The desktop sheet hands in the character card's second column;
+   * the slots stay this component's (one state, one picker), only drawn there.
+   */
+  equipmentTarget?: HTMLElement | null
 }
 
 /** The purse is not a row in the inventory, so selection needs a name for it. */
@@ -1033,7 +1040,7 @@ export function InventoryView({
   onUpdate, onAcChange, onMeleeRangedUpdate,
   onRoll, meleeBonus, rangedBonus,
   gold, silver, copper, onCurrencyUpdate,
-  onLightChange, clock,
+  onLightChange, clock, equipmentTarget,
 }: Props) {
   const [selectingSlot, setSelectingSlot] = useState<EquipSlot | null>(null)
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
@@ -1246,7 +1253,7 @@ export function InventoryView({
           gap: 6,
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
           {label}
         </span>
 
@@ -1256,11 +1263,11 @@ export function InventoryView({
               <span style={{ color: 'var(--foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
                 <ItemGlyph item={item} size={16} now={now} />
               </span>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
                 {item.name}
               </span>
               {isTwoHanded(item) && (
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', flexShrink: 0 }}>
                   2 mãos
                 </span>
               )}
@@ -1346,7 +1353,7 @@ export function InventoryView({
           <Button
             variant="outline"
             onClick={() => setSelectingSlot(slot)}
-            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--destructive)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
+            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--border-control)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
           >
             <HugeiconsIcon icon={emptyIcon} size={22} strokeWidth={1.5} style={{ opacity: 0.3 }} />
             <span>+ Equipar</span>
@@ -1374,14 +1381,14 @@ export function InventoryView({
           opacity: 0.6,
         }}
       >
-        <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
           {label}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ color: 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
             <HugeiconsIcon icon={iconFor(item)} size={16} strokeWidth={1.5} />
           </span>
-          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 10, color: 'var(--muted-foreground)', flex: 1, lineHeight: 1.3 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--muted-foreground)', flex: 1, lineHeight: 1.3 }}>
             {item.name}
           </span>
         </div>
@@ -1399,12 +1406,67 @@ export function InventoryView({
     )
   }
 
+  // Equipamento: armadura and the two hands, three wide cards stacked on a
+  // nested six-column grid, then the combat bonuses under them.
+  const equipment = (
+    <div className={cn('grid-6 grid-6--tight', !equipmentTarget && 'col-span-2 col-sm-full')} style={{ alignContent: 'start' }}>
+      <div className="col-span-6">
+        <SectionSubheading>Equipamento</SectionSubheading>
+      </div>
+      {renderEquipSlot('armor', 'Armadura', armorItem, BodyArmorIcon, 'col-span-6')}
+      {renderHandSlot('mainHand', 'col-span-6')}
+      {renderHandSlot('offHand', 'col-span-6')}
+
+      {/* Bônus — the two attack bonuses side by side, under the slots
+          they apply to. */}
+      <div className="col-span-6" style={{ marginTop: 6 }}>
+        <SectionSubheading>Bônus</SectionSubheading>
+      </div>
+      {([
+        { key: 'meleeBonus' as const, label: 'Corpo-a-corpo', value: meleeBonus },
+        { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
+      ] as const).map(({ key, label, value }) => (
+        <div
+          key={key}
+          className="col-span-3"
+          style={{
+            // The same raised tile as the attributes, now that the bonuses sit
+            // in the character card beside them.
+            background: 'var(--bg-raised)',
+            border: '2px solid var(--border-frame)',
+            padding: 8,
+            boxSizing: 'border-box',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+            {label}
+          </div>
+          <NumInput
+            value={value}
+            aria-label={label}
+            onCommit={n => onMeleeRangedUpdate({ [key]: n })}
+            className={cn(
+              'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
+              value > 0
+                ? 'text-[var(--chart-2)]'
+                : value < 0
+                  ? 'text-destructive'
+                  : 'text-[var(--foreground)]',
+            )}
+          />
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     // No page shell: this renders straight into the sheet's content column,
     // which spans six of the page's twelve columns and already carries the
     // page's margins. Nothing sits on the row below any more — the coin purse
     // moved into the pack, where it is just another item you can click.
     <>
+        {equipmentTarget && createPortal(equipment, equipmentTarget)}
         <div className="card-surface" style={{ padding: 24 }}>
           <div className="grid-6">
 
@@ -1418,65 +1480,17 @@ export function InventoryView({
             </div>
           )}
 
-          {/* Two-column split on the six-column grid — Equipamento takes a
+          {/* Two-column split on the six-column grid: Equipamento takes a
               third (span 2), Mochila the rest (span 4); both fill the row on
-              narrow widths. */}
+              narrow widths. With an equipmentTarget the slots render there
+              instead and the pack takes the whole row. */}
 
-          {/* Equipamento — armadura and the two hands, three wide cards
-              stacked on a nested six-column grid, then the combat bonuses
-              under them. */}
-          <div className="grid-6 grid-6--tight col-span-2 col-sm-full" style={{ alignContent: 'start' }}>
-            <div className="col-span-6">
-              <SectionSubheading>Equipamento</SectionSubheading>
-            </div>
-            {renderEquipSlot('armor', 'Armadura', armorItem, BodyArmorIcon, 'col-span-6')}
-            {renderHandSlot('mainHand', 'col-span-6')}
-            {renderHandSlot('offHand', 'col-span-6')}
-
-            {/* Bônus — the two attack bonuses side by side, under the slots
-                they apply to. */}
-            <div className="col-span-6" style={{ marginTop: 6 }}>
-              <SectionSubheading>Bônus</SectionSubheading>
-            </div>
-            {([
-              { key: 'meleeBonus' as const, label: 'Corpo-a-corpo', value: meleeBonus },
-              { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
-            ] as const).map(({ key, label, value }) => (
-              <div
-                key={key}
-                className="col-span-3"
-                style={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  padding: 8,
-                  boxSizing: 'border-box',
-                  textAlign: 'center',
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
-                  {label}
-                </div>
-                <NumInput
-                  value={value}
-                  aria-label={label}
-                  onCommit={n => onMeleeRangedUpdate({ [key]: n })}
-                  className={cn(
-                    'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
-                    value > 0
-                      ? 'text-[var(--chart-2)]'
-                      : value < 0
-                        ? 'text-destructive'
-                        : 'text-[var(--foreground)]',
-                  )}
-                />
-              </div>
-            ))}
-          </div>
+          {!equipmentTarget && equipment}
 
           {/* Mochila — item grid with the detail pane below it. The panel has
               no heading of its own any more, so this one carries the carga,
               the item count and the two ways of adding something. */}
-          <div className="grid-6 grid-6--tight col-span-4 col-sm-full" style={{ alignContent: 'start' }}>
+          <div className={cn('grid-6 grid-6--tight', equipmentTarget ? 'col-span-6' : 'col-span-4 col-sm-full')} style={{ alignContent: 'start' }}>
             <div className="col-span-6">
               <SectionSubheading
                 trailing={
@@ -1488,7 +1502,7 @@ export function InventoryView({
                       <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                         {carried}/{capacity}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
                         {isEncumbered ? 'Sobrecarregado' : 'Carga'}
                       </span>
                     </span>
@@ -1496,7 +1510,7 @@ export function InventoryView({
                       <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1 }}>
                         {inventory.length}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
                         {inventory.length === 1 ? 'Item' : 'Itens'}
                       </span>
                     </span>
@@ -1619,7 +1633,7 @@ export function InventoryView({
                   onClick={() => equipItem(item.id, selectingSlot!)}
                   className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)' }}>
                     <ItemGlyph item={item} size={14} now={now} />
                     <span>{item.name}</span>
                     {isTwoHanded(item) && (
@@ -1681,7 +1695,7 @@ export function InventoryView({
                   onClick={() => equipItem(replaceFor, slot)}
                   className="block h-auto w-full rounded-none border-b border-b-[var(--border)] px-0 py-2 text-left normal-case transition-colors duration-200 hover:bg-[var(--input)]"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--foreground)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--foreground)' }}>
                     <ItemGlyph item={item} size={14} now={now} />
                     <span>{item.name}</span>
                   </div>

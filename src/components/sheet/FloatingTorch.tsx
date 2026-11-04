@@ -83,7 +83,7 @@ export function FloatingTorch({ inventory, onClick, clock }: Props) {
 
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 3, minWidth: 64 }}>
         <span style={{
-          fontFamily: 'var(--font-heading)',
+          fontFamily: 'var(--font-mono)', fontWeight: 600,
           fontSize: 7.5,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',

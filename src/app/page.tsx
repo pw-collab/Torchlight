@@ -10,7 +10,7 @@ export default async function LandingPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-primary-foreground mb-2 text-4xl font-bold">🕯️ Torchlight</h1>
+      <h1 className="text-foreground mb-2 text-4xl font-bold">🕯️ Torchlight</h1>
       <p className="text-muted-foreground mb-8">Shadowdark RPG Companion</p>
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Link

@@ -13,10 +13,10 @@ import { cn } from '@/lib/utils'
  */
 
 export const LABEL =
-  'font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
+  'font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase'
 
 export const CHIP =
-  'font-heading h-8 min-h-8 px-2.5 text-[10px] tracking-[0.08em] uppercase'
+  'font-mono font-semibold h-8 min-h-8 px-2.5 text-[10px] tracking-[0.08em] uppercase'
 
 export const FIELD =
   'font-mono border-input-border bg-secondary h-9 px-2 text-center text-[13px]'
@@ -116,7 +116,7 @@ export function SubView({ title, onBack, children }: { title: string; onBack: ()
         <Button type="button" variant="ghost" size="icon-sm" onClick={onBack} aria-label="Voltar aos comandos" title="Voltar">
           <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={1.75} />
         </Button>
-        <span className="font-heading min-w-0 truncate text-[13px] tracking-[0.1em] text-[var(--foreground)] uppercase">
+        <span className="font-mono font-semibold min-w-0 truncate text-[13px] tracking-[0.1em] text-[var(--foreground)] uppercase">
           {title}
         </span>
       </div>

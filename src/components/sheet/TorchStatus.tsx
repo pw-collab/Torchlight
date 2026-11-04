@@ -110,7 +110,7 @@ export function TorchStatus({ inventory, onClick, clock }: Props) {
       </span>
 
       <span
-        className="font-heading shrink-0 text-center text-sm leading-[14px] font-bold tracking-[1.12px] whitespace-nowrap"
+        className="font-mono shrink-0 text-center text-sm leading-[14px] font-bold tracking-[1.12px] whitespace-nowrap"
         style={{ color: isLow ? 'var(--destructive)' : 'var(--muted-foreground)' }}
       >
         {source ? countdown(seconds) : '--:--'}

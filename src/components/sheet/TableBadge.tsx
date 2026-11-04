@@ -59,7 +59,7 @@ export function TableBadge({ session, loading, busy, error, onJoin, onLeave, gmP
             variant="outline"
             title={session ? `Na mesa: ${session.name}` : 'Entrar em uma mesa'}
             className={cn(
-              'font-heading h-9 min-h-9 gap-1.5 rounded-[1px] px-2.5 text-[9px] tracking-[0.14em] uppercase',
+              'font-mono font-semibold h-9 min-h-9 gap-1.5 rounded-[1px] px-2.5 text-[9px] tracking-[0.14em] uppercase',
               session
                 ? 'border-[var(--chart-2)] bg-[var(--card)] text-[var(--foreground)]'
                 : 'border-[var(--border)] bg-transparent text-[var(--muted-foreground)]',
@@ -99,7 +99,7 @@ export function TableBadge({ session, loading, busy, error, onJoin, onLeave, gmP
               </p>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="font-heading text-muted-foreground text-[8px] tracking-[0.16em] uppercase">
+                <span className="font-mono font-semibold text-muted-foreground text-[8px] tracking-[0.16em] uppercase">
                   Código
                 </span>
                 <span className="font-mono text-[15px] tracking-[0.3em] text-[var(--foreground)]">
@@ -112,7 +112,7 @@ export function TableBadge({ session, loading, busy, error, onJoin, onLeave, gmP
                 variant="outline"
                 onClick={async () => { await onLeave(); setOpen(false) }}
                 disabled={busy}
-                className="font-heading h-10 rounded-[1px] border-[var(--destructive)] text-[10px] tracking-[0.14em] text-[var(--destructive)] uppercase"
+                className="font-mono font-semibold h-10 rounded-[1px] border-[var(--destructive)] text-[10px] tracking-[0.14em] text-[var(--destructive)] uppercase"
               >
                 Sair da mesa
               </Button>
@@ -130,7 +130,7 @@ export function TableBadge({ session, loading, busy, error, onJoin, onLeave, gmP
               </p>
 
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="table-code" className="font-heading text-muted-foreground text-[8px] tracking-[0.16em] uppercase">
+                <Label htmlFor="table-code" className="font-mono font-semibold text-muted-foreground text-[8px] tracking-[0.16em] uppercase">
                   Código da sessão
                 </Label>
                 <Input
@@ -157,7 +157,7 @@ export function TableBadge({ session, loading, busy, error, onJoin, onLeave, gmP
                 variant="hollow"
                 onClick={() => void submit()}
                 disabled={busy || code.trim().length < 6}
-                className="font-heading bg-primary text-primary-foreground h-11 text-[11px] font-bold tracking-[0.14em] uppercase disabled:opacity-35"
+                className="font-mono bg-primary text-primary-foreground h-11 text-[11px] font-bold tracking-[0.14em] uppercase disabled:opacity-35"
               >
                 {busy ? 'Entrando…' : 'Entrar'}
               </Button>

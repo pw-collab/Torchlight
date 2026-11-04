@@ -44,14 +44,14 @@ export function TableMode({ character, clock, onClose }: Props) {
     >
       {/* Cabeçalho: quem é, e a saída. */}
       <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-        <span className="font-heading truncate text-[13px] tracking-[0.08em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold truncate text-[13px] tracking-[0.08em] text-[var(--muted-foreground)] uppercase">
           {character.name}
         </span>
         <Button
           type="button"
           variant="outline"
           onClick={onClose}
-          className="font-heading h-11 min-h-11 shrink-0 rounded-[1px] px-3.5 text-[10px] tracking-[0.14em] uppercase"
+          className="font-mono font-semibold h-11 min-h-11 shrink-0 rounded-[1px] px-3.5 text-[10px] tracking-[0.14em] uppercase"
         >
           ✕ Sair
         </Button>
@@ -60,7 +60,7 @@ export function TableMode({ character, clock, onClose }: Props) {
       <div className="flex flex-1 flex-col justify-center gap-6 px-5 py-6">
         {/* PV — o número que a mesa pergunta. */}
         <div className="flex flex-col items-center gap-2">
-          <span className="font-heading text-[11px] tracking-[0.24em] text-[var(--muted-foreground)] uppercase">
+          <span className="font-mono font-semibold text-[11px] tracking-[0.24em] text-[var(--muted-foreground)] uppercase">
             Pontos de Vida
           </span>
           <span
@@ -133,7 +133,7 @@ function BigStat({
       className="flex flex-col items-center gap-1 py-3"
       style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
     >
-      <span className="font-heading text-[9px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
+      <span className="font-mono font-semibold text-[9px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
         {label}
       </span>
       <span

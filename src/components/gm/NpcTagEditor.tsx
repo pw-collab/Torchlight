@@ -31,14 +31,14 @@ export function NpcTagEditor({ tags, suggestions, onChange }: Props) {
 
   return (
     <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-      <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+      <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
         Tags
       </span>
 
       {tags.map(tag => (
         <span
           key={tag}
-          className="font-heading inline-flex items-center gap-1 border border-[var(--border)] bg-[var(--card)] px-2 py-[3px] text-[8px] tracking-[0.1em] text-[var(--foreground)] uppercase"
+          className="font-mono font-semibold inline-flex items-center gap-1 border border-[var(--border)] bg-[var(--card)] px-2 py-[3px] text-[8px] tracking-[0.1em] text-[var(--foreground)] uppercase"
         >
           {tag}
           <button
@@ -69,7 +69,7 @@ export function NpcTagEditor({ tags, suggestions, onChange }: Props) {
           variant="ghost"
           onClick={() => add(tag)}
           title={`Marcar como ${tag}`}
-          className="font-heading h-7 min-h-7 px-1.5 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase opacity-60 hover:opacity-100"
+          className="font-mono font-semibold h-7 min-h-7 px-1.5 text-[8px] tracking-[0.1em] text-[var(--muted-foreground)] uppercase opacity-60 hover:opacity-100"
         >
           + {tag}
         </Button>

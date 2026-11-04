@@ -15,7 +15,7 @@ interface Props {
 }
 
 const PILL =
-  'font-heading h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase'
+  'font-mono font-semibold h-8 min-h-8 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase'
 
 /** Uma linha do resumo. Some quando não há o que contar. */
 function Line({ glyph, children }: { glyph: string; children: React.ReactNode }) {
@@ -68,7 +68,7 @@ export function SessionRecap({ sessionId, sessionName, events, onClose }: Props)
       style={{ background: 'var(--card)', border: '1px solid var(--primary)' }}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-heading text-[11px] tracking-[0.14em] text-[var(--foreground)] uppercase">
+        <span className="font-mono font-semibold text-[11px] tracking-[0.14em] text-[var(--foreground)] uppercase">
           📜 {recap.sessionName}
         </span>
         <div className="flex items-center gap-1.5">

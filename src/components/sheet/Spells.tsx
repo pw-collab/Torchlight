@@ -160,7 +160,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 {tierNumeral(spell.tier)}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 11, color: 'var(--muted-foreground)', letterSpacing: '0.03em', marginBottom: 2 }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 11, color: 'var(--muted-foreground)', letterSpacing: '0.03em', marginBottom: 2 }}>
                   {spell.name}
                 </div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>
@@ -294,7 +294,7 @@ function SpellCard({
             { label: 'Conjuração', value: spell.castingTime },
           ] as { label: string; value: string | null | undefined }[]).map(({ label, value }) => value ? (
             <div key={label}>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, marginBottom: 1 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, marginBottom: 1 }}>
                 {label}
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--foreground)' }}>
@@ -380,7 +380,7 @@ export function Spells({
             {/* Casting controls */}
             {onUpdate && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
                   Bônus
                 </span>
                 <NumInput
@@ -396,7 +396,7 @@ export function Spells({
                         : 'text-[var(--foreground)]',
                   )}
                 />
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
                   Atrib.
                 </span>
                 <NativeSelect

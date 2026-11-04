@@ -147,7 +147,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
       <span
         className={cn(
           'font-mono self-end pr-0.5 text-[7px] tracking-[0.1em]',
-          isCurrent ? 'text-[var(--destructive)]' : 'text-[var(--muted-foreground)]',
+          isCurrent ? 'text-[var(--primary-text)]' : 'text-[var(--muted-foreground)]',
         )}
       >
         {`// ${level}`}
@@ -159,7 +159,7 @@ function LevelBox({ ref, state, hitDie, isSelected, fill, onSelect }: BoxProps) 
           isSelected ? 'h-[94px] w-[124px] sm:h-[106px] sm:w-[142px]' : 'h-[78px] w-[104px] sm:h-[88px] sm:w-[116px]',
           locked && 'bg-secondary/60 border-[var(--border)]',
           !locked && !isCurrent && 'bg-secondary border-[var(--border)]',
-          isCurrent && 'bg-destructive border-[var(--muted-foreground)]',
+          isCurrent && 'bg-primary border-[var(--muted-foreground)]',
           isSelected && !isCurrent && 'border-[var(--muted-foreground)]',
         )}
       >

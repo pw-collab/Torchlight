@@ -40,10 +40,10 @@ interface Props {
 }
 
 const SECTION_LABEL_CLASS =
-  'font-heading mb-0.5 text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
+  'font-mono font-semibold mb-0.5 text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
 
 const FIELD_LABEL_CLASS =
-  'font-heading text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
+  'font-mono font-semibold text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
 
 const TEXTAREA_CLASS =
   'h-auto resize-y rounded-sm border-[var(--border)] bg-[var(--card)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--foreground)] italic transition-colors duration-200 focus-visible:border-[var(--primary)]'

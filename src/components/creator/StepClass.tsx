@@ -122,7 +122,7 @@ export function StepClass({ classId, onChange }: Props) {
                           >
                             {TECH_KIND_LABEL[t.kind ?? 'passive']}
                           </Badge>
-                          <span className="font-heading text-[13px] tracking-[0.03em] text-[var(--foreground)]">
+                          <span className="font-mono font-semibold text-[13px] tracking-[0.03em] text-[var(--foreground)]">
                             {t.name}
                           </span>
                         </span>

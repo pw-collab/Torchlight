@@ -19,7 +19,7 @@ interface Props {
 }
 
 const CHIP =
-  'font-heading h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase'
+  'font-mono font-semibold h-7 min-h-7 rounded-[1px] px-2 text-[8px] tracking-[0.1em] uppercase'
 
 /**
  * O bestiário como uma lista que se procura.
@@ -50,7 +50,7 @@ export function BestiaryToolbar({
           onClick={onToggleFavorites}
           title="Só o que está marcado para a sessão de hoje"
           className={cn(
-            'font-heading h-9 min-h-9 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase',
+            'font-mono font-semibold h-9 min-h-9 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase',
             onlyFavorites
               ? 'border-[var(--chart-1)] text-[var(--chart-1)]'
               : 'border-[var(--border)] text-[var(--muted-foreground)]',
@@ -64,7 +64,7 @@ export function BestiaryToolbar({
           variant="outline"
           onClick={onImport}
           title="Colar vários statblocks de uma vez"
-          className="font-heading h-9 min-h-9 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
+          className="font-mono font-semibold h-9 min-h-9 shrink-0 rounded-[1px] px-2.5 text-[8.5px] tracking-[0.12em] uppercase"
         >
           ⇩ Importar
         </Button>

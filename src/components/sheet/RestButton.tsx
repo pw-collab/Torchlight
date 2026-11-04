@@ -35,7 +35,7 @@ export function RestButton({ rations, hpFull, busy, onRest }: Props) {
             : `Recuperar todo o PV, as magias e as técnicas, e consumir uma ração (${rations} restante${rations === 1 ? '' : 's'})`
       }
       className={cn(
-        'font-heading h-9 min-h-9 shrink-0 gap-1.5 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase',
+        'font-mono font-semibold h-9 min-h-9 shrink-0 gap-1.5 rounded-[1px] px-3 text-[8.5px] tracking-[0.14em] uppercase',
         noFood
           ? 'border-[var(--destructive)] text-[var(--destructive)]'
           : 'border-[var(--border)] text-[var(--muted-foreground)]',

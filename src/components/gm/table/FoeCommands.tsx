@@ -9,7 +9,7 @@ import { FLEEING_ID, isFleeing } from '@/lib/encounterSetup'
 import { npcKey } from '@/lib/turns'
 import { RollableText } from '@/components/shared/RollableText'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DiceIcon, Flag01Icon, HeartPulseIcon, MagicWand01Icon, NextIcon, PencilEdit01Icon, PlayIcon,
   RunningShoesIcon, StopIcon, Sword01Icon, UserRemove01Icon,
@@ -217,7 +217,7 @@ function Abilities({ sheet, actor, onRoll }: { sheet?: NPC; actor: EncounterActo
       ))}
       {sheet.features.map((feature, index) => (
         <div key={index} className="border-l-2 border-[var(--border)] pl-2.5">
-          <p className="font-heading m-0 text-[11px] tracking-[0.06em] text-[var(--foreground)]">
+          <p className="font-mono font-semibold m-0 text-[11px] tracking-[0.06em] text-[var(--foreground)]">
             {feature.title}
             {feature.tag && <span className="font-body text-[var(--muted-foreground)] italic"> · {feature.tag}</span>}
           </p>
@@ -269,16 +269,10 @@ function StatCheck({ actor, sheet, onRoll }: { actor: EncounterActor; sheet?: NP
                 onRoll(roll)
               }}
             >
-              <Button
-                type="button"
-                variant="outline"
-                render={<span />}
-                nativeButton={false}
-                className="flex h-14 w-full flex-col items-center justify-center gap-0.5"
-              >
+              <span className={cn(buttonVariants({ variant: 'outline' }), 'flex h-14 w-full flex-col items-center justify-center gap-0.5')}>
                 <span className="font-[var(--font-numeral)] text-lg text-[var(--foreground)]">{signed(mod)}</span>
-                <span className="font-heading text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
-              </Button>
+                <span className="font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
+              </span>
             </RollModeMenu>
           )
         })}

@@ -33,7 +33,7 @@ export function OrnateTitle({
         ❧
       </span>
       <span
-        className="font-heading truncate tracking-[0.2em] uppercase"
+        className="font-mono truncate font-semibold tracking-[0.2em] uppercase"
         style={{ fontSize, color }}
       >
         {children}

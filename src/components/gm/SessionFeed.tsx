@@ -54,7 +54,7 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
     // Ocupa a altura do bloco em que a mesa o põe e rola por dentro.
     <div className="gm-feed flex h-full flex-col border border-[var(--border)] bg-[var(--card)]">
       <div className="flex min-h-11 shrink-0 items-center gap-2 border-b border-[var(--border)] py-1.5 pr-2 pl-4">
-        <span className="font-heading mr-auto text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+        <span className="font-mono font-semibold mr-auto text-[11px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
           Diário da mesa
         </span>
         {/* Um seletor, não seis botões: a coluna do diário é estreita. */}
@@ -106,7 +106,7 @@ export function SessionFeed({ events, loading, onReveal }: Props) {
 
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span
-                    className="font-heading text-[12px] leading-snug"
+                    className="font-mono font-semibold text-[12px] leading-snug"
                     style={{ color: accent ?? 'var(--foreground)' }}
                   >
                     {eventHeadline(event)}

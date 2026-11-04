@@ -33,7 +33,7 @@ export const ANCESTRY_GLYPH: Record<string, string> = {
 }
 
 const STEP_LABEL_CLASS =
-  'font-heading mb-2.5 block text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
+  'font-mono font-semibold mb-2.5 block text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
 
 /** 0 passes unnoticed, 6 gets hunted — the scale reads green to blood. */
 function pariahTone(level: number): string {

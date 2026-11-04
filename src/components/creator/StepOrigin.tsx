@@ -150,7 +150,7 @@ export function StepOrigin({
               >
                 <span
                   className={cn(
-                    'font-heading text-[13px] tracking-[0.03em]',
+                    'font-mono font-semibold text-[13px] tracking-[0.03em]',
                     active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                   )}
                 >
@@ -231,7 +231,7 @@ export function StepOrigin({
                 <span className="min-w-0">
                   <span
                     className={cn(
-                      'font-heading block text-[12.5px] tracking-[0.03em]',
+                      'font-mono font-semibold block text-[12.5px] tracking-[0.03em]',
                       active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]',
                     )}
                   >
@@ -377,7 +377,7 @@ export function StepOrigin({
 }
 
 const SUB_LABEL_CLASS =
-  'font-heading text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
+  'font-mono font-semibold text-muted-foreground text-[7px] tracking-[0.16em] uppercase'
 
 const CHIP_CLASS =
   'rounded-[10px] border-[var(--border)] bg-[var(--card)] px-2.5 py-[3px] text-[11px] text-[var(--foreground)]'

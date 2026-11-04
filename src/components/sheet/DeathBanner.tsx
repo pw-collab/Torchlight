@@ -57,10 +57,10 @@ export function DeathBanner({ conditions, myTurn, onDeathRoll, busy }: Props) {
         </span>
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="font-heading text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
+          <span className="font-mono font-semibold text-[8px] tracking-[0.16em] text-[var(--muted-foreground)] uppercase">
             {state === 'dying' ? `Morrendo · ${roundsLabel(rounds)}` : state === 'stable' ? 'Estável' : 'Morto'}
           </span>
-          <span className="font-heading text-[14px] leading-tight" style={{ color: accent }}>
+          <span className="font-mono font-semibold text-[14px] leading-tight" style={{ color: accent }}>
             {state === 'dying'
               ? myTurn
                 ? 'Sua vez: role contra a morte'
@@ -88,7 +88,7 @@ export function DeathBanner({ conditions, myTurn, onDeathRoll, busy }: Props) {
             disabled={busy}
             title={`d20 contra DC ${DEATH_DC}: um 20 natural levanta com 1 PV, qualquer outra coisa gasta uma rodada`}
             className={
-              'font-heading h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase ' +
+              'font-mono h-11 shrink-0 px-4 text-[11px] font-bold tracking-[0.14em] uppercase ' +
               'bg-[var(--destructive)] text-[var(--background)] ' +
               (myTurn ? 'animate-flicker' : '')
             }

@@ -27,7 +27,7 @@ export default function SheetNotFound() {
       <Link
         href="/home"
         style={{
-          fontFamily: 'var(--font-heading)',
+          fontFamily: 'var(--font-mono)', fontWeight: 600,
           fontSize: 10,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',

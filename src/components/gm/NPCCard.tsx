@@ -24,7 +24,7 @@ function StatPair({ label, value }: { label: string; value: string | number | un
   if (value == null || value === '') return null
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED }}>
+      <span style={{ fontWeight: 500, fontSize: 11, whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em', color: INK_MUTED }}>
         {label}
       </span>
       <span style={{ color: INK_RULE, fontSize: 10, margin: '0 1px' }}>|</span>
@@ -151,7 +151,7 @@ export function NPCCard({ npc, onDelete, onEdit, onDuplicate, onRoll }: Props) {
             <>
               <hr style={{ border: 'none', borderTop: `0.5px solid ${INK_RULE}`, margin: '4px 0' }} />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-heading)', letterSpacing: '0.05em', color: INK_MUTED, whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 500, fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.05em', color: INK_MUTED, whiteSpace: 'nowrap' }}>
                   Experience:
                 </span>
                 <span style={{ fontSize: 11.5, color: 'var(--background)', fontFamily: 'var(--font-body)' }}>
@@ -173,7 +173,7 @@ export function NPCCard({ npc, onDelete, onEdit, onDuplicate, onRoll }: Props) {
               borderBottom: '1.5px solid var(--card)',
               paddingBottom: 2,
               margin: '0 0 8px',
-              fontFamily: 'var(--font-heading)',
+              fontFamily: 'var(--font-mono)',
               color: 'var(--background)',
             }}>
               Features

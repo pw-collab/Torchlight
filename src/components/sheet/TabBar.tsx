@@ -62,7 +62,7 @@ export function TabBar<K extends string>({ tabs, active, onChange, trailing }: P
                 key={t.key}
                 value={t.key}
                 className={cn(
-                  'tactile font-heading h-12 border border-transparent font-extrabold whitespace-nowrap',
+                  'tactile font-mono h-12 border border-transparent font-bold whitespace-nowrap',
                   'text-muted-foreground hover:text-foreground',
                   'data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:border-sidebar-ring',
                   isMobile
