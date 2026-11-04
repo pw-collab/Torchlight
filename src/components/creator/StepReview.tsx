@@ -7,7 +7,8 @@ import { getDomain } from '@/data/domains/index'
 import { getSpell } from '@/data/spells/index'
 import { modifier, modifierStr } from '@/lib/dice'
 import type { Stat } from '@/types/class.types'
-import type { KnowledgeArea } from '@/types/character.types'
+import type { BackgroundDetails, Impulses, KnowledgeArea, Relations } from '@/types/character.types'
+import { storyMarkdown } from '@/lib/story'
 import type { InventoryItem } from '@/types/inventory.types'
 import type { Talent } from '@/types/talent.types'
 
@@ -15,6 +16,11 @@ const STAT_LABELS: Record<Stat, string> = {
   str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR',
 }
 const STAT_KEYS: Stat[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
+
+/** Tira negrito e itálico de um trecho em Markdown. */
+function plain(text: string): string {
+  return text.replace(/(\*\*|__|\*|_)(.+?)\1/g, '$2')
+}
 
 interface Props {
   name: string
@@ -27,9 +33,9 @@ interface Props {
   faith: string
   knowledgeAreas: KnowledgeArea[]
   spells: string[]
-  backgroundDetails: { concept?: string; origin?: string; backstory?: string; traumaticEvents?: string }
-  relations: { family?: string; allies?: string; rivals?: string; faction?: string }
-  impulses: { secrets?: string; flaws?: string; fears?: string; objectives?: string }
+  backgroundDetails: BackgroundDetails
+  relations: Relations
+  impulses: Impulses
   /** Creation extras — absent while editing an existing sheet. */
   archetypeId?: string
   equipment?: InventoryItem[]
@@ -45,6 +51,9 @@ export function StepReview(props: Props) {
   const ancestry = getAncestry(ancestryId)
   const archetype = archetypeId ? getArchetype(archetypeId) : null
   const domain = domainId ? getDomain(domainId) : null
+  // O resumo é texto corrido: sem a marcação do Markdown.
+  const story = plain(storyMarkdown(backgroundDetails).replace(/^\s*(?:>\s?|#{1,6}\s+|[-*+]\s+)/gm, '')).replace(/\s+/g, ' ').trim()
+  const cast = [...relations.people, ...relations.institutions].map(x => x.name.trim()).filter(Boolean)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -205,7 +214,7 @@ export function StepReview(props: Props) {
       </div>
 
       {/* Narrative summary */}
-      {(backgroundDetails.concept || backgroundDetails.backstory || impulses.objectives || relations.faction) && (
+      {(backgroundDetails.concept || story || impulses.objectives.length > 0 || cast.length > 0) && (
         <div style={{
           padding: '14px 16px',
           background: 'var(--card)',
@@ -221,16 +230,22 @@ export function StepReview(props: Props) {
               {backgroundDetails.concept}
             </p>
           )}
-          {backgroundDetails.backstory && (
+          {story && (
             <p style={flavorText}>
-              {backgroundDetails.backstory.slice(0, 180)}
-              {backgroundDetails.backstory.length > 180 ? '…' : ''}
+              {story.slice(0, 180)}
+              {story.length > 180 ? '…' : ''}
             </p>
           )}
-          {impulses.objectives && (
+          {impulses.objectives.length > 0 && (
             <p style={flavorText}>
-              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Objetivo: </span>
-              {impulses.objectives}
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>O que quer: </span>
+              {impulses.objectives.map(plain).join('; ')}
+            </p>
+          )}
+          {cast.length > 0 && (
+            <p style={flavorText}>
+              <span style={{ color: 'var(--muted-foreground)', fontStyle: 'normal' }}>Pessoas e instituições: </span>
+              {cast.join(', ')}
             </p>
           )}
         </div>

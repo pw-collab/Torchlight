@@ -19,7 +19,7 @@ import { getAncestry } from '@/data/ancestries/index'
 import { getArchetype, getArchetypesForClass } from '@/data/archetypes/index'
 import { armorClassFor, kitToInventoryItem, startingGearItems } from '@/lib/inventory'
 import type { Stat } from '@/types/class.types'
-import type { CharacterRow, KnowledgeArea } from '@/types/character.types'
+import type { BackgroundDetails, CharacterRow, Impulses, KnowledgeArea, Relations } from '@/types/character.types'
 import type { InventoryItem } from '@/types/inventory.types'
 import type { LevelEntry } from '@/types/progression.types'
 import type { Talent } from '@/types/talent.types'
@@ -95,15 +95,9 @@ export default function CharacterCreatorPage() {
   const [spells, setSpells] = useState<string[]>([])
 
   // Narrative
-  const [backgroundDetails, setBackgroundDetails] = useState<{
-    concept?: string; origin?: string; backstory?: string; traumaticEvents?: string
-  }>({})
-  const [relations, setRelations] = useState<{
-    family?: string; allies?: string; rivals?: string; faction?: string
-  }>({})
-  const [impulses, setImpulses] = useState<{
-    secrets?: string; flaws?: string; fears?: string; objectives?: string
-  }>({})
+  const [backgroundDetails, setBackgroundDetails] = useState<BackgroundDetails>({ facts: [] })
+  const [relations, setRelations] = useState<Relations>({ people: [], institutions: [] })
+  const [impulses, setImpulses] = useState<Impulses>({ objectives: [], secrets: [], flaws: [], fears: [] })
 
   const [saving, setSaving] = useState(false)
 

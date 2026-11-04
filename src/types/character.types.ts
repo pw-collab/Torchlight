@@ -4,6 +4,7 @@ import type { LevelEntry } from './progression.types'
 import type { Talent } from './talent.types'
 import type { TechniqueState } from './technique.types'
 import { getItem } from '@/data/equipment/index'
+import { normalizeBackground, normalizeImpulses, normalizeRelations } from '@/lib/story'
 
 export interface KnowledgeArea {
   name: string
@@ -77,52 +78,98 @@ export interface Character {
   domainId: string
   faith: string
   backgroundText: string
-  backgroundDetails: {
-    concept?: string
-    origin?: string
-    backstory?: string
-    traumaticEvents?: string
-  }
-  relations: {
-    family?: string
-    allies?: string
-    rivals?: string
-    faction?: string
-  }
-  impulses: {
-    secrets?: string
-    flaws?: string
-    fears?: string
-    objectives?: string
-  }
+  backgroundDetails: BackgroundDetails
+  relations: Relations
+  impulses: Impulses
+}
+
+// ─── A aba História (ver lib/story) ───────────────────────────────────────────
+
+/** Um fato curto da capa, com o rótulo que o jogador escolher: Patrono, Mentor, Declara vir de. */
+export interface StoryFact {
+  id: string
+  label: string
+  value: string
+}
+
+/** Alguém da vida do personagem, como o capítulo "Pessoas e instituições" o descreve. */
+export interface StoryPerson {
+  id: string
+  name: string
+  /** O que a pessoa é para o personagem, numa linha: "o irmão mais novo, 17 anos; rival". */
+  role: string
+  /** O que o personagem sabe dela, e como a vê. */
+  note: string
+}
+
+/** Uma instituição: a academia que deixou para trás, a fé que o persegue. */
+export interface StoryInstitution {
+  id: string
+  name: string
+  note: string
+}
+
+export interface BackgroundDetails {
+  /** O conceito, a apresentação logo abaixo do nome. Também é o texto do card no elenco da home. */
+  concept?: string
+  /** O título que abre o conceito, em destaque: "O Desertor Iluminado". */
+  epithet?: string
+  /** A linha em itálico sob o nome: "nascido Aoth Hahpet". */
+  alias?: string
+  /** A cidade de onde veio. Na capa, junto do domínio: "Origem: Toyalis, Hazlan". */
+  hometown?: string
+  theme?: string
+  appearance?: string
+  /** "De onde vem": a terra e a cultura que o formaram. */
+  origin?: string
+  /** O capítulo História, em Markdown. */
+  backstory?: string
+  /** Campo antigo. Hoje é um quadro dentro da História (ver `storyMarkdown`). */
+  traumaticEvents?: string
+  /** "Por que anda com eles", em Markdown. */
+  companions?: string
+  facts: StoryFact[]
+}
+
+/** O que o banco guarda: tudo opcional, e `facts` pode nem existir. */
+export type RawBackgroundDetails = Partial<Omit<BackgroundDetails, 'facts'>> & {
+  facts?: StoryFact[]
+}
+
+export interface Relations {
+  people: StoryPerson[]
+  institutions: StoryInstitution[]
 }
 
 /**
- * Relations as they come out of the DB. Família, Aliados and Rivais were
- * rosters of names before they became free text, so old rows still hold
- * arrays where new ones hold a string.
+ * Relações como saem do banco. Antes das pessoas e instituições eram
+ * Família, Aliados e Rivais em texto livre (e antes disso, listas de nomes)
+ * e uma Facção; linhas antigas ainda chegam assim.
  */
 export interface RawRelations {
+  people?: StoryPerson[]
+  institutions?: StoryInstitution[]
   family?: string | string[]
   allies?: string | string[]
   rivals?: string | string[]
   faction?: string
 }
 
-/** Joins a legacy roster back into text, one name per line. */
-function relationText(value: string | string[] | undefined): string | undefined {
-  if (value === undefined) return undefined
-  return Array.isArray(value) ? value.join('\n') : value
+/** Cada impulso é uma lista de bullets de uma linha. */
+export interface Impulses {
+  /** "O que ele quer": na ficha, "O que Ralf quer", com o primeiro nome. */
+  objectives: string[]
+  secrets: string[]
+  flaws: string[]
+  fears: string[]
 }
 
-export function normalizeRelations(raw: RawRelations | undefined): Character['relations'] {
-  if (!raw) return {}
-  return {
-    family: relationText(raw.family),
-    allies: relationText(raw.allies),
-    rivals: relationText(raw.rivals),
-    faction: raw.faction,
-  }
+/** Impulsos como saem do banco: listas, ou o texto corrido de antes. */
+export interface RawImpulses {
+  objectives?: string | string[]
+  secrets?: string | string[]
+  flaws?: string | string[]
+  fears?: string | string[]
 }
 
 // Legacy row format for equipment items coming from old DB rows
@@ -213,9 +260,9 @@ export interface CharacterRow {
   domain_id?: string | null
   faith?: string | null
   background_text?: string | null
-  background_details?: Character['backgroundDetails']
+  background_details?: RawBackgroundDetails
   relations?: RawRelations
-  impulses?: Character['impulses']
+  impulses?: RawImpulses
   player_name?: string | null
 }
 
@@ -267,8 +314,8 @@ export function rowToCharacter(row: CharacterRow): Character {
     domainId: row.domain_id ?? '',
     faith: row.faith ?? '',
     backgroundText: row.background_text ?? '',
-    backgroundDetails: row.background_details ?? {},
+    backgroundDetails: normalizeBackground(row.background_details),
     relations: normalizeRelations(row.relations),
-    impulses: row.impulses ?? {},
+    impulses: normalizeImpulses(row.impulses),
   }
 }

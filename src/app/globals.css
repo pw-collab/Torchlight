@@ -771,6 +771,353 @@ html, body {
   .vitals-portrait { flex: none; aspect-ratio: 250 / 292; }
 }
 
+/* ============================================================
+   A aba História, como a ficha do jogador
+
+   Quatro capítulos que se leem como um documento: a capa (nome,
+   apresentação, fatos, tema, aparência, o que ele quer), a História
+   em Markdown, Por dentro e Pessoas e instituições. Cada capítulo
+   alterna entre a leitura e o editor.
+
+   O painel muda de largura conforme a tela (metade da ficha no
+   desktop, tela cheia ao empilhar, o celular), então as colunas
+   seguem a largura da própria aba, não a da tela.
+   ============================================================ */
+.story {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.story-section { padding: 24px; }
+@container (max-width: 420px) {
+  .story-section { padding: 16px; }
+}
+
+/* Cabeçalho de capítulo: título, ação de editar, subtítulo em itálico. */
+.story-chapter__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border);
+}
+.story-chapter__title {
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 24px;
+  line-height: 1.1;
+  color: var(--card-foreground);
+  text-wrap: balance;
+}
+.story-subtitle {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.story-chapter__body { margin-top: 20px; }
+
+/* Rótulo de bloco, o versalete vermelho da ficha: Tema, Segredos, Medos. */
+.story-label {
+  margin: 0 0 6px;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-text);
+}
+.story-block + .story-block { margin-top: 20px; }
+/* Os bullets da leitura no corpo do texto, fora de um bloco em Markdown. */
+.story-block > .story-list { font-size: 14px; line-height: 1.6; color: var(--foreground); }
+
+/* ── A capa ─────────────────────────────────────────────────── */
+.story-cover__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--primary);
+}
+.story-cover__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 36px;
+  line-height: 1.05;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.story-cover__alias {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+.story-cover__pitch {
+  margin: 16px 0 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--foreground);
+}
+.story-cover__epithet { font-weight: 600; color: var(--primary-text); }
+.story-cover__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+@container (min-width: 540px) {
+  .story-cover__body { grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr); }
+}
+
+/* Os fatos: a coluna de fichário da capa. */
+.story-facts {
+  margin: 0;
+  align-self: start;
+  padding: 14px 16px 4px;
+  background: var(--bg-raised);
+  border-top: 3px solid var(--chart-1);
+}
+.story-facts dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.story-facts dd {
+  margin: 1px 0 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+/* ── Texto em Markdown ──────────────────────────────────────── */
+.story-prose {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--foreground);
+  overflow-wrap: break-word;
+}
+.story-prose > :first-child { margin-top: 0; }
+.story-prose > :last-child { margin-bottom: 0; }
+.story-prose p { margin: 0 0 0.85em; }
+.story-prose strong { font-weight: 600; }
+.story-prose code {
+  padding: 0 4px;
+  font-size: 0.92em;
+  background: var(--muted);
+}
+.story-prose--compact { font-size: 13px; line-height: 1.55; }
+
+/* Letra capitular: o parágrafo que abre o capítulo desce três linhas.
+   `initial-letter` mede a letra pela altura das linhas; onde ele não
+   existe (Firefox), a letra flutua num tamanho que dá as mesmas três, e o
+   `flow-root` faz um parágrafo curto crescer até a altura dela. */
+.story-prose[data-lead] > p:first-child { display: flow-root; }
+.story-prose[data-lead] > p:first-child::first-letter {
+  float: left;
+  margin: 0.07em 0.08em 0 0;
+  font-family: var(--font-heading);
+  font-size: 5.9em;
+  line-height: 0.74;
+  color: var(--primary-text);
+}
+@supports (initial-letter: 3) or (-webkit-initial-letter: 3) {
+  .story-prose[data-lead] > p:first-child::first-letter {
+    float: none;
+    margin: 0 0.12em 0 0;
+    font-size: inherit;
+    line-height: inherit;
+    -webkit-initial-letter: 3;
+    initial-letter: 3;
+  }
+}
+
+.story-h3 {
+  margin: 1.5em 0 0.5em;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 1.15;
+  color: var(--foreground);
+}
+.story-prose .story-label { margin: 1.4em 0 0.4em; }
+.story-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 1.6em 0;
+}
+.story-divider::before,
+.story-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-outline);
+}
+.story-divider__mark {
+  width: 7px;
+  height: 7px;
+  background: var(--primary-text);
+  transform: rotate(45deg);
+}
+.story-link {
+  color: var(--primary-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Listas com losango, como os bullets da ficha. O losango é um quadrado
+   girado: fica nítido em qualquer tamanho e pega a cor do tema. */
+.story-list {
+  margin: 0 0 0.85em;
+  padding: 0;
+  list-style: none;
+}
+.story-list > li {
+  position: relative;
+  margin-bottom: 0.4em;
+  padding-left: 1.25em;
+}
+.story-list > li::before {
+  content: '';
+  position: absolute;
+  left: 0.15em;
+  top: 0.62em;
+  width: 0.4em;
+  height: 0.4em;
+  background: var(--primary-text);
+  transform: rotate(45deg);
+}
+.story-list > li:last-child { margin-bottom: 0; }
+.story-ordered {
+  margin: 0 0 0.85em;
+  padding-left: 1.5em;
+  list-style: decimal;
+}
+.story-ordered > li { margin-bottom: 0.4em; padding-left: 0.2em; }
+.story-ordered > li::marker { color: var(--primary-text); font-family: var(--font-heading); }
+
+/* Quadro destacado: o `>` do Markdown. */
+.story-callout {
+  margin: 1.5em 0;
+  padding: 20px 24px;
+  background: var(--bg-raised);
+  border-left: 4px solid var(--primary);
+}
+.story-callout > :first-child { margin-top: 0; }
+.story-callout > :last-child { margin-bottom: 0; }
+@container (max-width: 420px) {
+  .story-callout { padding: 16px; }
+}
+
+/* Dentro do quadro, uma lista rotulada vira colunas, cada uma sob um fio. */
+.story-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px 24px;
+  margin: 1.1em 0 0;
+  padding: 0;
+  list-style: none;
+}
+.story-columns > li {
+  padding-top: 8px;
+  border-top: 2px solid var(--chart-1);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.story-columns > li > p { margin: 0; }
+.story-columns > li > strong:first-child,
+.story-columns > li > p:first-child > strong:first-child {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-text);
+}
+
+/* ── Por dentro e Pessoas ───────────────────────────────────── */
+.story-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px 24px;
+}
+@container (min-width: 500px) {
+  .story-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.story-pair > .story-block + .story-block { margin-top: 0; }
+
+.story-people {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px 24px;
+}
+@container (min-width: 500px) {
+  .story-people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.story-person {
+  padding-top: 8px;
+  border-top: 2px solid var(--chart-1);
+}
+.story-person__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+.story-person__role {
+  margin: 2px 0 6px;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--primary-text);
+}
+
+.story-institutions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px 24px;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: var(--bg-raised);
+}
+.story-institution__name {
+  margin: 0 0 4px;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary-text);
+}
+
+/* Capítulo vazio: um convite a escrever, no lugar do texto. */
+.story-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  border: 1px dashed var(--border-control);
+}
+
 /* Clickable dice formula tokens (used by RollableText and injectDiceSpans) */
 .dice-formula {
   color: var(--foreground);

@@ -761,7 +761,14 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onLostSpellsChange={ids => void handleTechniqueStatesChange(withLostSpells(character.techniqueStates, ids))}
       />
     ),
-    backstory: <BackstoryView character={character} onUpdate={updateCharacter} tableTools={isMobile ? undefined : tableTools} />,
+    backstory: (
+      <BackstoryView
+        character={character}
+        onUpdate={updateCharacter}
+        tableTools={isMobile ? undefined : tableTools}
+        playerName={playerName}
+      />
+    ),
   }
 
   const panel = panels[tab]

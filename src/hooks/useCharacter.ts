@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Character, CharacterRow } from '@/types/character.types'
-import { normalizeRelations, rowToCharacter } from '@/types/character.types'
+import { rowToCharacter } from '@/types/character.types'
+import { normalizeBackground, normalizeImpulses, normalizeRelations } from '@/lib/story'
 import { createCharacterSaver } from '@/lib/characterSaver'
 
 function patchCharacter(character: Character, updates: Partial<CharacterRow>): Character {
@@ -32,9 +33,9 @@ function patchCharacter(character: Character, updates: Partial<CharacterRow>): C
     ...(updates.knowledge_areas !== undefined && { knowledgeAreas: updates.knowledge_areas }),
     ...(updates.domain_id !== undefined && { domainId: updates.domain_id ?? '' }),
     ...(updates.faith !== undefined && { faith: updates.faith ?? '' }),
-    ...(updates.background_details !== undefined && { backgroundDetails: updates.background_details }),
+    ...(updates.background_details !== undefined && { backgroundDetails: normalizeBackground(updates.background_details) }),
     ...(updates.relations !== undefined && { relations: normalizeRelations(updates.relations) }),
-    ...(updates.impulses !== undefined && { impulses: updates.impulses }),
+    ...(updates.impulses !== undefined && { impulses: normalizeImpulses(updates.impulses) }),
   }
 }
 
