@@ -21,11 +21,20 @@ export function heldForCombat(inventory: InventoryItem[]): InventoryItem[] {
   return [...held.filter(i => i.type === 'weapon'), ...held.filter(i => i.type === 'shield')]
 }
 
-/** Attack: d20 + STR (melee) or DEX (ranged), the sheet's bonus, the weapon's own. */
-export function attackRoll(item: InventoryItem, ctx: AttackContext, mode: RollMode = 'normal'): RollResult {
+/**
+ * What an attack adds to the d20: STR (melee) or DEX (ranged), the sheet's
+ * bonus, the weapon's own. The equipment card shows this same number, so it is
+ * counted here and nowhere else.
+ */
+export function attackBonus(item: InventoryItem, ctx: AttackContext): number {
   const isRanged = item.weaponKind === 'ranged'
   const attrMod = modifier(isRanged ? ctx.dex : ctx.str)
-  const bonus = attrMod + (isRanged ? ctx.rangedBonus : ctx.meleeBonus) + (item.attackBonus ?? 0)
+  return attrMod + (isRanged ? ctx.rangedBonus : ctx.meleeBonus) + (item.attackBonus ?? 0)
+}
+
+/** Attack: d20 + the weapon's attack bonus. */
+export function attackRoll(item: InventoryItem, ctx: AttackContext, mode: RollMode = 'normal'): RollResult {
+  const bonus = attackBonus(item, ctx)
   const roll = rollWithMode('d20', `Ataque: ${item.name}`, item.weaponKind ?? 'melee', bonus, mode)
   // The damage rides along so the card can offer it the moment the attack
   // lands — and double it on a natural 20 without anyone remembering to.

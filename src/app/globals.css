@@ -734,6 +734,65 @@ html, body {
 }
 
 /* ============================================================
+   Inventário panel: the pack (Figma 339:697)
+
+   The half is the card; the pack is a heading row over a grid of portrait
+   cells (GridItemTile and its kin in InventoryView). The grid scrolls on
+   its own and fades out where it is cut, like the technique deck, so the
+   mask never touches the panel's own 4px frame. The stacked and phone
+   sheets let the page scroll instead.
+   ============================================================ */
+.inv-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.inv-panel__equipment { padding: 24px 24px 0; }
+.inv-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 24px 0;
+}
+/* Takes the room the title does not, and wraps inside it. */
+.inv-panel__tools {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.inv-panel__grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(var(--inv-cols, 6), minmax(0, 1fr));
+  /* Cells are sized by their ratio, so rows take their full height and the
+     grid scrolls, instead of squeezing to fit (see .attr-panel__deck). */
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 6px;
+  /* The extra bottom room lets the last row scroll clear of the fade. */
+  padding: 24px 24px 56px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
+}
+.inv-panel__form { grid-column: 1 / -1; }
+
+@media (max-width: 1100px) {
+  .inv-panel { height: auto; overflow: visible; }
+  .inv-panel__grid { overflow: visible; padding-bottom: 24px; mask-image: none; }
+}
+@media (max-width: 767px) {
+  .inv-panel__equipment,
+  .inv-panel__head { padding: 16px 16px 0; }
+  .inv-panel__grid { padding: 16px; }
+}
+
+/* ============================================================
    Sheet panel — the grimoire's content container
 
    A card surface holding a three-column grid: full-width section rows

@@ -371,6 +371,15 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Na paleta antiga, o vermelho de `--destructive` fazia papel de destaque (o primário era um vermelho escuro). Na nova, ele lê como erro. Onde era destaque, passou a brasa: nível atual na edição (card, faixa e trilha), botões de rolar da progressão e da criação (PV), moldura do personagem próprio e paginação da home, slot selecionado, "+" dos slots livres, pílula "Atk" e popover do inventário, "Restaurar" das técnicas, brilho do botão do login. O tracejado de "+ Equipar" passou à borda de controle.
 - Continuam em `--destructive`: erros, dano, falha, desvantagem, inimigos, remover/desequipar e modificadores negativos.
 
+**Aba Inventário** · **feita em 06/11** (Figma `339:697`)
+- Cabeçalho da Mochila (`339:734`): título de 18px, contadores "Carga" e "Itens", "Criar" (Outline) e "Adicionar" (Primary). Sem régua embaixo.
+- Grade (`339:738`): 6 colunas, gap 6, células em retrato 102:138 (97 x 131,2 no desktop, igual ao Figma). Quatro estados: ocupada (título em `bg-panel` sobre a ilustração, contagem na emenda, marca de equipado no canto), eco de item grande (tracejado, só o nome), livre ("+") e trancada (cadeado, só enche a linha). A grade rola sozinha, com o mesmo fade de 56px do deck de técnicas, para a máscara não apagar a moldura de 4px do painel.
+- Equipamento (`345:2082`): rótulo pequeno em cima de cada cartão, nome, uma linha de números (bônus de ataque e dado, CA, ou minutos de luz) e as ações. O "Desequipar" virou o botão de ícone com borda `destructive`. O bônus de ataque que o cartão mostra vem de `attackBonus()` em `lib/attacks.ts`, a mesma conta da rolagem.
+- Ilustrações: os 8 aquarelas do Figma foram para `public/items` (320px em WebP, ~140 KB no total; os originais têm 1024px e 1,5 MB cada). `lib/itemArt.ts` escolhe a ilustração, primeiro pelo nome (tocha, mochila, símbolo sagrado, ração, bolsa de moedas), depois pelo tipo (arma corpo a corpo, armadura, equipamento). Sem ilustração ainda: escudo, arma à distância, documento e tesouro; essas células mostram o ícone num fundo liso.
+- Luz: a tocha acesa brilha em brasa e a consumida fica cinza (o Figma mostra todas iguais).
+- Celular: a grade tem 4 colunas e o equipamento vem acima da mochila. O popover de detalhes e a bolsa de moedas seguem como estavam.
+- Achado no caminho: `outline-none` junto de `focus-visible:outline-2` deixa o contorno em `none` no Tailwind 4, então o anel de foco não aparecia. Nas células novas ele só usa `focus-visible`.
+
 ---
 
 ## 7. Decisões
