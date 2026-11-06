@@ -1,37 +1,22 @@
 'use client'
 
-import { Field, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/components/ui/field'
+import type { ReactNode } from 'react'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-
-interface BackgroundDetails {
-  concept?: string
-  origin?: string
-  backstory?: string
-  traumaticEvents?: string
-}
-
-interface Relations {
-  family?: string
-  allies?: string
-  rivals?: string
-  faction?: string
-}
-
-interface Impulses {
-  secrets?: string
-  flaws?: string
-  fears?: string
-  objectives?: string
-}
+import { BulletEditor } from '@/components/sheet/story/BulletEditor'
+import { MarkdownEditor } from '@/components/sheet/story/MarkdownEditor'
+import { InstitutionsEditor, PeopleEditor } from '@/components/sheet/story/PeopleEditor'
+import { FieldLabel as StoryLabel, TextField } from '@/components/sheet/story/fields'
+import { storyMarkdown } from '@/lib/story'
+import type { BackgroundDetails, Impulses, Relations } from '@/types/character.types'
 
 interface Props {
   backgroundDetails: BackgroundDetails
   relations: Relations
   impulses: Impulses
-  onBackgroundChange: (patch: BackgroundDetails) => void
-  onRelationsChange: (patch: Relations) => void
-  onImpulsesChange: (patch: Impulses) => void
+  onBackgroundChange: (next: BackgroundDetails) => void
+  onRelationsChange: (next: Relations) => void
+  onImpulsesChange: (next: Impulses) => void
   /** Creation: the character's name is settled here, with the rest of the story. */
   name?: string
   onNameChange?: (name: string) => void
@@ -42,20 +27,32 @@ interface Props {
 const SECTION_LABEL_CLASS =
   'font-mono font-semibold mb-0.5 text-[8px] tracking-[0.22em] text-[var(--muted-foreground)] uppercase'
 
-const FIELD_LABEL_CLASS =
-  'font-mono font-semibold text-muted-foreground block text-[7px] tracking-[0.14em] uppercase'
+/** Um capítulo do passo, com o nome em versalete como os outros passos. */
+function Chapter({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <h3 className={SECTION_LABEL_CLASS}>{title}</h3>
+        {note && <p className="text-muted-foreground mt-1 text-[11px] leading-snug italic">{note}</p>}
+      </div>
+      {children}
+    </section>
+  )
+}
 
-const TEXTAREA_CLASS =
-  'h-auto resize-y rounded-sm border-[var(--border)] bg-[var(--card)] px-[11px] py-2.5 text-[11px] leading-normal text-[var(--foreground)] italic transition-colors duration-200 focus-visible:border-[var(--primary)]'
-
-const INPUT_CLASS =
-  'h-auto w-full flex-1 rounded-sm border-[var(--border)] bg-[var(--card)] px-2.5 py-[7px] text-xs text-[var(--foreground)] transition-colors duration-200 focus-visible:border-[var(--primary)]'
-
+/**
+ * A narrativa da criação, com os mesmos campos e editores da aba História
+ * da ficha: o que se escreve aqui é o que a ficha mostra. A capa completa
+ * (alcunha, fatos, tema, aparência) fica para a ficha, onde há espaço.
+ */
 export function StepNarrative({
   backgroundDetails, relations, impulses,
   onBackgroundChange, onRelationsChange, onImpulsesChange,
   name, onNameChange, hook,
 }: Props) {
+  const saveBackground = (patch: Partial<BackgroundDetails>) => onBackgroundChange({ ...backgroundDetails, ...patch })
+  const saveImpulses = (patch: Partial<Impulses>) => onImpulsesChange({ ...impulses, ...patch })
+
   return (
     <div className="flex flex-col gap-7">
 
@@ -84,102 +81,92 @@ export function StepNarrative({
             {hook}
           </p>
           <p className="text-muted-foreground mt-1.5 text-[10px]">
-            Use-o como ponto de partida do passado abaixo — ou contradiga-o de propósito.
+            Use-o como ponto de partida da história abaixo, ou contradiga-o de propósito.
           </p>
         </div>
       )}
 
-      {/* Histórico */}
-      <FieldSet>
-        <FieldLegend className={SECTION_LABEL_CLASS}>✎ Histórico</FieldLegend>
-        <FieldGroup className="mt-2.5 grid grid-cols-2 gap-2.5">
-          {(
-            [
-              { key: 'concept',        label: 'Conceito',           placeholder: 'Em uma frase, quem és tu?' },
-              { key: 'origin',         label: 'Origem',             placeholder: 'De onde e como chegaste aqui?' },
-              { key: 'backstory',      label: 'Passado',            placeholder: 'O que moldou o personagem antes da aventura...' },
-              { key: 'traumaticEvents',label: 'Eventos Traumáticos', placeholder: 'Cicatrizes que o tempo não apagou...' },
-            ] as { key: keyof BackgroundDetails; label: string; placeholder: string }[]
-          ).map(({ key, label, placeholder }) => (
-            <Field key={key} className="gap-1">
-              <FieldLabel htmlFor={`bg-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
-              <Textarea
-                id={`bg-${key}`}
-                defaultValue={backgroundDetails[key] ?? ''}
-                onBlur={e => onBackgroundChange({ ...backgroundDetails, [key]: e.target.value })}
-                placeholder={placeholder}
-                rows={3}
-                className={TEXTAREA_CLASS}
-              />
-            </Field>
-          ))}
-        </FieldGroup>
-      </FieldSet>
+      <Chapter title="✎ Quem é">
+        <TextField
+          id="narrative-concept"
+          label="Conceito"
+          hint="Também é o texto do card na tela inicial."
+          value={backgroundDetails.concept ?? ''}
+          onSave={concept => saveBackground({ concept })}
+          placeholder="Em uma frase, quem és tu?"
+          multiline
+          minRows={2}
+          maxLength={400}
+        />
+        <TextField
+          id="narrative-origin"
+          label="De onde vem"
+          value={backgroundDetails.origin ?? ''}
+          onSave={origin => saveBackground({ origin })}
+          placeholder="A terra e a cultura de onde vem, e o que aprendeu lá."
+          multiline
+          minRows={2}
+        />
+        <MarkdownEditor
+          id="narrative-story"
+          label="História"
+          value={storyMarkdown(backgroundDetails)}
+          // Os eventos traumáticos de antes já vêm no texto, como quadro.
+          onSave={backstory => saveBackground({ backstory, traumaticEvents: undefined })}
+          placeholder="O que aconteceu antes da primeira sessão. Use o Quadro para destacar uma marca, um juramento, uma cicatriz."
+          minRows={6}
+        />
+      </Chapter>
 
-      {/* Relações */}
-      <FieldSet>
-        <FieldLegend className={SECTION_LABEL_CLASS}>◈ Relações</FieldLegend>
-        <FieldGroup className="mt-2.5 flex flex-col gap-3">
-          {(
-            [
-              { key: 'family', label: 'Família', placeholder: 'Quem o criou, quem o renegou — um por linha.' },
-              { key: 'allies', label: 'Aliados', placeholder: 'Quem atende quando ele chama, e a que preço.' },
-              { key: 'rivals', label: 'Rivais',  placeholder: 'Quem o procura, e o que quer dele.' },
-            ] as { key: 'family' | 'allies' | 'rivals'; label: string; placeholder: string }[]
-          ).map(({ key, label, placeholder }) => (
-            <Field key={key} className="gap-1">
-              <FieldLabel htmlFor={`rel-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
-              <Textarea
-                id={`rel-${key}`}
-                defaultValue={relations[key] ?? ''}
-                onBlur={e => onRelationsChange({ ...relations, [key]: e.target.value })}
-                placeholder={placeholder}
-                rows={2}
-                className={TEXTAREA_CLASS}
-              />
-            </Field>
-          ))}
+      <Chapter title="◈ Pessoas e instituições" note="Quem é cada um, e como os vê.">
+        <PeopleEditor people={relations.people} onSave={people => onRelationsChange({ ...relations, people })} />
+        <div>
+          <StoryLabel>Instituições</StoryLabel>
+          <InstitutionsEditor
+            institutions={relations.institutions}
+            onSave={institutions => onRelationsChange({ ...relations, institutions })}
+          />
+        </div>
+      </Chapter>
 
-          <Field className="gap-1">
-            <FieldLabel htmlFor="rel-faction" className={FIELD_LABEL_CLASS}>Facção</FieldLabel>
-            <Input
-              id="rel-faction"
-              type="text"
-              defaultValue={relations.faction ?? ''}
-              onBlur={e => onRelationsChange({ ...relations, faction: e.target.value })}
-              placeholder="Guilda, culto, ordem ou grupo..."
-              className={INPUT_CLASS}
-            />
-          </Field>
-        </FieldGroup>
-      </FieldSet>
-
-      {/* Impulsos */}
-      <FieldSet>
-        <FieldLegend className={SECTION_LABEL_CLASS}>⚡ Impulsos</FieldLegend>
-        <FieldGroup className="mt-2.5 grid grid-cols-2 gap-2.5">
-          {(
-            [
-              { key: 'secrets',    label: 'Segredos',   placeholder: 'O que ninguém pode saber...' },
-              { key: 'flaws',      label: 'Falhas',     placeholder: 'Os vícios e fraquezas que te definem...' },
-              { key: 'fears',      label: 'Medos',      placeholder: 'O que te paralisa no escuro...' },
-              { key: 'objectives', label: 'Objetivos',  placeholder: 'O que te faz continuar andando...' },
-            ] as { key: keyof Impulses; label: string; placeholder: string }[]
-          ).map(({ key, label, placeholder }) => (
-            <Field key={key} className="gap-1">
-              <FieldLabel htmlFor={`imp-${key}`} className={FIELD_LABEL_CLASS}>{label}</FieldLabel>
-              <Textarea
-                id={`imp-${key}`}
-                defaultValue={impulses[key] ?? ''}
-                onBlur={e => onImpulsesChange({ ...impulses, [key]: e.target.value })}
-                placeholder={placeholder}
-                rows={3}
-                className={TEXTAREA_CLASS}
-              />
-            </Field>
-          ))}
-        </FieldGroup>
-      </FieldSet>
+      <Chapter title="⚡ Impulsos" note="Um item por linha: Enter abre o próximo.">
+        <div>
+          <StoryLabel>O que quer</StoryLabel>
+          <BulletEditor
+            items={impulses.objectives}
+            onSave={objectives => saveImpulses({ objectives })}
+            label="O que quer"
+            placeholder="O que te faz continuar andando."
+          />
+        </div>
+        <div>
+          <StoryLabel>Segredos</StoryLabel>
+          <BulletEditor
+            items={impulses.secrets}
+            onSave={secrets => saveImpulses({ secrets })}
+            label="Segredos"
+            placeholder="O que ninguém pode saber."
+          />
+        </div>
+        <div>
+          <StoryLabel>Falhas</StoryLabel>
+          <BulletEditor
+            items={impulses.flaws}
+            onSave={flaws => saveImpulses({ flaws })}
+            label="Falhas"
+            placeholder="Os vícios e fraquezas que te definem."
+          />
+        </div>
+        <div>
+          <StoryLabel>Medos</StoryLabel>
+          <BulletEditor
+            items={impulses.fears}
+            onSave={fears => saveImpulses({ fears })}
+            label="Medos"
+            placeholder="O que te paralisa no escuro."
+          />
+        </div>
+      </Chapter>
 
     </div>
   )
