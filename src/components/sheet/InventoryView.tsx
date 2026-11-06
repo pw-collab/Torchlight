@@ -3,11 +3,13 @@
 import { cn } from '@/lib/utils'
 import { Fragment, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Image from 'next/image'
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import {
   BodyArmorIcon,
   BookOpen02Icon,
   BowArrowIcon,
+  CancelCircleIcon,
   Coins01Icon,
   FlameIcon,
   KnightShieldIcon,
@@ -22,7 +24,8 @@ import type { RollResult } from '@/lib/dice'
 import type { Item as CatalogItem } from '@/data/inventory/index'
 import { WEAPONS, ARMORS, GEAR } from '@/data/inventory/index'
 import type { RollMode } from '@/lib/dice'
-import { attackRoll, damageRoll, parryRoll } from '@/lib/attacks'
+import { attackBonus, attackRoll, damageRoll, parryRoll } from '@/lib/attacks'
+import { ITEM_ART, itemArt } from '@/lib/itemArt'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import { sendToDiscord } from '@/lib/discord'
 import { extinguishSource, lightSource, minutesLeft, snuff } from '@/lib/light'
@@ -33,7 +36,7 @@ import { serverNow } from '@/lib/serverClock'
 import { tableNow, type TableClock } from '@/lib/dungeonClock'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionSubheading } from '@/components/shared/SectionHeading'
-import { Button, type buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -84,6 +87,13 @@ function iconFor(item: InventoryItem, burning = false): IconSvgElement {
   if (item.isLight) return burning ? FlameIcon : LIGHT_ICON[item.lightKind ?? 'torch']
   if (item.type === 'weapon' && item.weaponKind === 'ranged') return BowArrowIcon
   return TYPE_ICON[item.type] ?? PackageIcon
+}
+
+/** A source of light as the pack draws it: burning, or spent. Anything else is just carried. */
+function lightState(item: InventoryItem, now: number): 'burning' | 'spent' | undefined {
+  if (!item.isLight) return undefined
+  if (minutesLeft(item, now) <= 0) return 'spent'
+  return item.isLit ? 'burning' : undefined
 }
 
 /** The same reading for a catalog row, which has the shape but not the flags. */
@@ -176,21 +186,6 @@ const BTN_VARIANT_MAP: Record<BtnVariant, ButtonVariants['variant']> = {
 function isLightSource(name: string): boolean {
   const n = name.toLowerCase()
   return n.includes('tocha') || n.includes('torch') || n.includes('lampião') || n.includes('lantern') || n.includes('vela') || n.includes('candle')
-}
-
-/** Compact contextual action pill — used for Atk/Dmg/Aparar/Acender inside the tight equip-slot cards. */
-const COMBAT_PILL_TONE: Record<'blood' | 'mist' | 'amber' | 'dark', string> = {
-  blood: 'border-[var(--primary)] bg-[var(--primary)]/25',
-  mist:  'border-[var(--chart-4)] bg-[var(--muted)]',
-  amber: 'border-[var(--primary)] bg-[var(--primary)]/15',
-  dark:  'border-[var(--border)] bg-[var(--card)]',
-}
-
-function combatPill(tone: keyof typeof COMBAT_PILL_TONE): string {
-  return cn(
-    'h-auto rounded-[1px] px-3 py-1.5 text-[8px] tracking-[0.8px] text-[var(--foreground)]',
-    COMBAT_PILL_TONE[tone],
-  )
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -366,44 +361,49 @@ const TYPE_ACCENT: Record<ItemType, { color: string }> = {
   document: { color: 'var(--muted-foreground)' },
 }
 
-/** Icon size inside a pack cell. The tile and the echoes of the space it spills
-    into share it, so one item reads as one object across all its slots. */
-const TILE_ICON_SIZE = 26
+// ─── The pack grid ────────────────────────────────────────────────────────────
+//
+// Figma 339:738. Every cell of the pack is a portrait card, 102 by 138, on a
+// 6px grid. One shape, four states:
+//   occupied   a title bar over the item's illustration       GridItemTile
+//   echo       the rest of the room an oversized item takes   GridEchoTile
+//   available  a free cell: "+" adds an item                  GridAvailableTile
+//   locked     filler that pads the grid out to a full row    GridEmptyTile
 
-const TILE_LABEL_STYLE: React.CSSProperties = {
-  fontFamily: 'var(--font-mono)', fontWeight: 600,
-  fontSize: 8,
-  // The tile is a Button, and its variant sets `whitespace-nowrap`; without
-  // this the two lines the clamp allows are never reached and long names are
-  // simply cut off mid-word.
-  whiteSpace: 'normal',
-  letterSpacing: '0.3px',
-  textTransform: 'uppercase',
-  color: 'var(--muted-foreground)',
-  textAlign: 'center',
-  lineHeight: 1.2,
-  width: '100%',
-  display: '-webkit-box',
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-}
+/** What every cell shares: the portrait ratio and the 2px outline. */
+const CELL = 'relative aspect-[102/138] w-full min-w-0 border-2'
+
+// No `outline-none` here: in Tailwind 4 it pins the outline style to `none`, and
+// `focus-visible:outline-2` then draws nothing. The browser already shows an
+// outline for keyboard focus only, so this just sets how it looks.
+const CELL_FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
+
+/** A cell's name, in the bar across its head: two lines at most, then an ellipsis. */
+const CELL_TITLE =
+  'line-clamp-2 w-full text-center font-mono text-[10px] leading-none font-semibold tracking-[0.3px] text-card-foreground uppercase [word-break:break-word]'
+
+/** Icon size on an occupied cell whose item has no illustration yet. */
+const TILE_ICON_SIZE = 40
 
 /**
- * Occupied grid cell ("Default" state, Figma 91-1044) — icon + name, gold
- * border — and the anchor its own details hang from. The cell is the trigger,
- * so the popup opens against the thing that was clicked; `children` is the
- * `PopoverContent` that belongs to it.
+ * Occupied cell — a title bar over the item's illustration, and the anchor its
+ * own details hang from. The cell is the trigger, so the popup opens against
+ * the thing that was clicked; `children` is the `PopoverContent` that belongs
+ * to it.
  */
-function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, children }: {
+function GridItemTile({ label, title, art, fallback, open, badge, equipped, light, onOpenChange, children }: {
   label: string
   title: string
-  icon: React.ReactNode
+  /** The item's illustration. Without one, `fallback` is drawn on a plain ground. */
+  art: string | null
+  fallback: IconSvgElement
   open: boolean
-  /** Top-right numeral — a stack's count, or the coins in the purse. */
+  /** Hung over the seam between title and art — a stack's count, or the coins in the purse. */
   badge?: React.ReactNode
-  /** Top-left pip, marking something in hand or worn. */
-  dot?: boolean
+  /** The ember mark in the corner of whatever is in hand or worn. */
+  equipped?: boolean
+  /** A source of light: burning, the cell glows; spent, its drawing is greyed out. */
+  light?: 'burning' | 'spent'
   onOpenChange: (open: boolean) => void
   children: React.ReactNode
 }) {
@@ -411,36 +411,63 @@ function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, chil
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger
         render={
-          <Button
+          <button
+            type="button"
             title={title}
-            variant="outline"
             className={cn(
-              'relative -mt-px -ml-px aspect-square h-auto w-full flex-col justify-end gap-[3px] p-1.5',
-              'bg-[var(--background)] hover:bg-[var(--background)]',
-              open ? 'z-[2] border-[var(--primary)]' : 'z-[1] border-[var(--muted-foreground)]',
+              CELL, CELL_FOCUS,
+              'bg-bg-base text-card-foreground flex cursor-pointer flex-col items-center justify-end overflow-hidden',
+              'transition-[border-color,box-shadow] duration-150',
+              open ? 'border-primary' : 'border-border-outline hover:border-border-control',
+              light === 'burning' && 'shadow-[0_0_14px_color-mix(in_oklch,var(--ember),transparent_55%)]',
             )}
           >
-            {dot && (
-              <span aria-hidden style={{
-                position: 'absolute', top: 4, left: 4,
-                width: 5, height: 5, borderRadius: '50%',
-                background: 'var(--chart-2)',
-              }} />
-            )}
-            {badge != null && (
-              <span style={{
-                position: 'absolute', top: 4, right: 4,
-                fontFamily: 'var(--font-numeral)', fontSize: 11,
-                color: 'var(--muted-foreground)', lineHeight: 1,
-              }}>
-                {badge}
-              </span>
-            )}
-            <span style={{ flex: '1 0 0', minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {icon}
+            <span className="bg-bg-panel flex min-h-9 w-full shrink-0 items-center justify-center p-1.5">
+              <span className={CELL_TITLE}>{label}</span>
             </span>
-            <span style={TILE_LABEL_STYLE}>{label}</span>
-          </Button>
+
+            <span className="relative min-h-0 w-full flex-1">
+              {art ? (
+                // The files are already 320px; the optimiser has nothing to add.
+                <Image
+                  src={art}
+                  alt=""
+                  fill
+                  sizes="120px"
+                  unoptimized
+                  className={cn('object-cover', light === 'spent' && 'opacity-50 grayscale')}
+                />
+              ) : (
+                <span className="bg-bg-raised text-muted-foreground absolute inset-0 flex items-center justify-center">
+                  <HugeiconsIcon
+                    icon={fallback}
+                    size={TILE_ICON_SIZE}
+                    strokeWidth={1.5}
+                    style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE }}
+                  />
+                </span>
+              )}
+
+              {badge != null && (
+                <span className="bg-bg-sunken text-card-foreground absolute top-[-4px] left-1/2 -translate-x-1/2 px-1.5 py-[3px] font-mono text-[8px] leading-none font-semibold tracking-[0.3px] whitespace-nowrap">
+                  {badge}
+                </span>
+              )}
+
+              {equipped && (
+                <>
+                  <Image
+                    src="/items/equipado.svg"
+                    alt=""
+                    width={12}
+                    height={11}
+                    className="absolute bottom-1.5 left-1.5 h-[11px] w-[11.7333px]"
+                  />
+                  <span className="sr-only">Equipado</span>
+                </>
+              )}
+            </span>
+          </button>
         }
       />
       {children}
@@ -453,69 +480,45 @@ function GridItemTile({ label, title, icon, open, badge, dot, onOpenChange, chil
  * simply delete a free cell somewhere else in the grid; drawing its echo puts
  * the weight where the eye expects it — right beside the thing carrying it.
  */
-function GridEchoTile({ label, icon }: { label: string; icon: IconSvgElement }) {
+function GridEchoTile({ label }: { label: string }) {
   return (
     <div
+      aria-hidden
       title={`${label} — ocupa este slot`}
-      style={{
-        width: '100%',
-        aspectRatio: '1 / 1',
-        boxSizing: 'border-box',
-        margin: '-1px 0 0 -1px',
-        border: '1px dashed var(--muted-foreground)',
-        background: 'var(--muted)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 3,
-        padding: 6,
-        position: 'relative',
-        zIndex: 0,
-        opacity: 0.45,
-      }}
+      className={cn(CELL, 'border-border-outline bg-bg-panel flex items-center justify-center border-dashed p-1.5')}
     >
-      <HugeiconsIcon icon={icon} size={TILE_ICON_SIZE} strokeWidth={1.5} />
-      <span style={{ ...TILE_LABEL_STYLE, fontSize: 7 }}>{label}</span>
+      <span className={CELL_TITLE}>{label}</span>
     </div>
   )
 }
 
-/** Free grid cell ("Available" state) — click to add an item from the catalog. */
+/** Free cell ("Free" in the Figma) — click to add an item from the catalog. */
 function GridAvailableTile({ onClick }: { onClick: () => void }) {
   return (
-    <Button
+    <button
+      type="button"
       onClick={onClick}
       title="Adicionar item"
       aria-label="Adicionar item"
-      variant="outline"
       className={cn(
-        'tactile relative z-[1] -mt-px -ml-px aspect-square h-auto w-full p-1.5',
-        'border-[var(--primary)]/25 bg-[var(--background)] transition-colors duration-200',
-        'hover:border-[var(--primary)]/55 hover:bg-[var(--primary)]/5',
+        CELL, CELL_FOCUS,
+        'tactile border-border-outline bg-bg-sunken font-heading text-foreground flex cursor-pointer items-center justify-center text-[32px] leading-8',
+        'hover:border-border-control hover:bg-bg-base',
       )}
     >
-      <span aria-hidden className="font-heading text-[32px] leading-none text-[var(--primary)]/50">+</span>
-    </Button>
+      <span aria-hidden>+</span>
+    </button>
   )
 }
 
-/** Non-interactive filler cell ("Empty" state) — diagonal hatch pattern padding the grid to a full row. */
+/** Non-interactive filler cell ("Empty") — a locked, dashed cell padding the grid to a full row. */
 function GridEmptyTile() {
   return (
-    <div
-      aria-hidden
-      style={{
-        width: '100%',
-        aspectRatio: '1 / 1',
-        boxSizing: 'border-box',
-        margin: '-1px 0 0 -1px',
-        border: '1px dashed var(--border)',
-        background: 'repeating-linear-gradient(45deg, var(--border) 0px, var(--border) 1px, transparent 1px, transparent 7px), var(--background)',
-        position: 'relative',
-        zIndex: 0,
-      }}
-    />
+    <div aria-hidden className={cn(CELL, 'border-border-outline bg-bg-base flex border-dashed')}>
+      <span className="border-bg-raised flex flex-1 items-center justify-center border-2 border-dashed p-0.5">
+        <Image src="/items/cadeado.svg" alt="" width={24} height={24} />
+      </span>
+    </div>
   )
 }
 
@@ -994,6 +997,45 @@ function EditItemModal({ item, onSave, onCancel }: {
   )
 }
 
+// ─── The equipment cards ──────────────────────────────────────────────────────
+//
+// Figma 345:2082. Armour and the two hands, three cards in the character
+// card's second column, each under its own small label.
+
+/** The label above a card: where on the body it goes. */
+const EQUIP_LABEL =
+  'text-muted-foreground font-mono text-[7px] leading-[11px] font-semibold tracking-[1.12px] uppercase'
+
+const EQUIP_CARD = 'flex min-h-[110px] flex-col gap-1.5 border-2 p-3'
+
+const EQUIP_TITLE =
+  'text-card-foreground line-clamp-2 min-w-0 flex-1 font-mono text-xs leading-[1.15] font-semibold tracking-[0.3px] uppercase [word-break:break-word]'
+
+/** The one line of figures under a card's name, on the floating surface. */
+const EQUIP_STRIP = 'bg-bg-panel text-muted-foreground flex items-start gap-2 p-[3px] font-mono text-xs leading-3'
+
+/**
+ * Figma 64:849 at card size. The component is 36px tall there with the 2px ink
+ * line inside a 10px padding; the box here puts the line outside the padding.
+ */
+const EQUIP_BUTTON = 'h-9 min-w-9 border-2 px-2 text-xs leading-4 tracking-[0.8px]'
+
+/** The card's ✕ — takes the item out of the hand or off the body. */
+function UnequipButton({ name, onClick }: { name: string; onClick: () => void }) {
+  return (
+    <Button
+      type="button"
+      variant="muted"
+      onClick={onClick}
+      aria-label={`Desequipar ${name}`}
+      title="Desequipar"
+      className="border-destructive text-destructive hover:border-destructive hover:bg-bg-panel size-9 p-0"
+    >
+      <HugeiconsIcon icon={CancelCircleIcon} size={16} strokeWidth={1.5} style={{ width: 16, height: 16 }} />
+    </Button>
+  )
+}
+
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 interface Props {
@@ -1209,16 +1251,17 @@ export function InventoryView({
   // Grid cells: the purse, then every item — one cell per slot it weighs, the
   // extras drawn as echoes so the room it takes is visible where it is taken —
   // then one "+" quick-add cell per slot of remaining carga capacity, then
-  // diagonal filler padding the grid out to a full row of GRID_COLS. 4 columns
-  // — the Mochila grid shares the row with the Equipamento column.
-  const GRID_COLS = 4
+  // locked filler padding the grid out to a full row. Six cells to a row beside
+  // the character card (Figma 339:738), four on the phone, where the pack has
+  // the whole width and the cells would otherwise shrink past reading.
+  const gridCols = equipmentTarget ? 6 : 4
   const availableCount = Math.max(0, capacity - carried)
   // An empty purse still needs somewhere to be, so it holds a cell even when it
   // weighs nothing.
   const purseCells = Math.max(1, purseSlots)
   const itemCells = inventory.reduce((n, i) => n + tileCount(i), 0)
   const preFillerCount = purseCells + itemCells + availableCount
-  const totalCells = Math.ceil(preFillerCount / GRID_COLS) * GRID_COLS
+  const totalCells = Math.ceil(preFillerCount / gridCols) * gridCols
   const emptyCellCount = totalCells - preFillerCount
 
   // Equipamento column — three cards, one per slot the data model keeps. The
@@ -1233,132 +1276,120 @@ export function InventoryView({
     const claimed = !own ? handOccupant(slot) : undefined
     return claimed
       ? renderBothHandsEcho(claimed, spanClass, SLOT_LABELS[slot])
-      : renderEquipSlot(slot, SLOT_LABELS[slot], own, Sword03Icon, spanClass)
+      : renderEquipSlot(slot, SLOT_LABELS[slot], own, spanClass)
   }
 
-  /** One Equipamento slot card — a wide rectangle stacked with the others.
-      `spanClass` places the card on the nested six-column grid. */
-  function renderEquipSlot(slot: EquipSlot, label: string, item: InventoryItem | undefined, emptyIcon: IconSvgElement, spanClass: string) {
+  /** One Equipamento slot (Figma 347:2163): its label, then a card — the item
+      filed under it, or the dashed "+ Equipar" that opens the picker.
+      `spanClass` places it on the nested six-column grid. */
+  function renderEquipSlot(slot: EquipSlot, label: string, item: InventoryItem | undefined, spanClass: string) {
     return (
-      <div
-        className={spanClass}
-        style={{
-          background: item ? 'var(--card)' : 'var(--background)',
-          border: '2px solid var(--border)',
-          padding: 12,
-          boxSizing: 'border-box',
-          minHeight: 110,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-        }}
-      >
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
-          {label}
-        </span>
-
-        {item ? (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: 'var(--foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
-                <ItemGlyph item={item} size={16} now={now} />
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--foreground)', flex: 1, lineHeight: 1.3 }}>
-                {item.name}
-              </span>
-              {isTwoHanded(item) && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', flexShrink: 0 }}>
-                  2 mãos
-                </span>
-              )}
-            </div>
-
-            {slot === 'armor' && (item.acBonus || item.type === 'armor') && (
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)' }}>
-                CA {calcAC}
-              </div>
+      <div className={cn('flex flex-col gap-[3px]', spanClass)}>
+        <span className={EQUIP_LABEL}>{label}</span>
+        {item ? renderEquipCard(slot, item) : (
+          <button
+            type="button"
+            onClick={() => setSelectingSlot(slot)}
+            aria-label={`Equipar em ${label}`}
+            className={cn(
+              'border-border-outline bg-bg-sunken text-card-foreground flex min-h-[110px] w-full cursor-pointer items-center justify-center border-2 border-dashed p-3',
+              'font-mono text-xs leading-[1.15] font-semibold tracking-[0.3px] uppercase transition-colors',
+              'hover:border-border-control hover:bg-bg-base',
+              CELL_FOCUS,
             )}
+          >
+            + Equipar
+          </button>
+        )}
+      </div>
+    )
+  }
 
-            {item.type === 'shield' && item.acBonus && (
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8.5, color: 'var(--muted-foreground)' }}>
-                +{item.acBonus} CA
-              </div>
-            )}
+  /** The card of something worn or held: its name, the one figure that matters
+      about it, and what can be done with it from here. */
+  function renderEquipCard(slot: EquipSlot, item: InventoryItem) {
+    // One write to light, one to snuff — the minutes in between come off the
+    // table clock (server time, pauses and turns applied), so they keep running
+    // with the tab closed.
+    const remaining = item.isLight ? minutesLeft(item, now) : 0
+    const burning = Boolean(item.isLight && item.isLit) && remaining > 0
 
+    function toggleLight() {
+      const next = burning ? extinguishSource(item, clickNow()) : lightSource(item, clickNow())
+      updateItem(item.id, {
+        isLit: next.isLit,
+        litAt: next.litAt,
+        lightMinutesLeft: next.lightMinutesLeft,
+      })
+      if (!burning) sendToDiscord({ type: 'torch_lit', minutesLeft: remaining })
+      onLightChange?.({
+        action: burning ? 'out' : 'lit',
+        itemName: item.name,
+        minutesLeft: remaining,
+      })
+    }
+
+    const bonus = item.type === 'weapon' ? attackBonus(item, { str, dex, meleeBonus, rangedBonus }) : 0
+    const figures: React.ReactNode[] = []
+    if (item.type === 'weapon') {
+      figures.push(<span key="atk">{bonus >= 0 ? `+${bonus}` : bonus}</span>)
+      if (item.damageDie) figures.push(<span key="dmg">{item.damageDie}</span>)
+    }
+    if (slot === 'armor' && (item.acBonus || item.type === 'armor')) figures.push(<span key="ac">CA {calcAC}</span>)
+    if (item.type === 'shield' && item.acBonus) figures.push(<span key="shield">+{item.acBonus} CA</span>)
+    if (item.isLight) {
+      figures.push(
+        <span key="light" className={burning && remaining <= 10 ? 'text-destructive' : undefined}>
+          {remaining}min
+        </span>,
+      )
+    }
+
+    return (
+      <div className={cn(EQUIP_CARD, 'border-border-outline bg-bg-base')}>
+        <div className="flex items-start gap-1.5">
+          <span className={EQUIP_TITLE}>{item.name}</span>
+          {isTwoHanded(item) && (
+            <span className="text-muted-foreground shrink-0 font-mono text-[8px] leading-none font-semibold tracking-[0.12em] uppercase">
+              2 mãos
+            </span>
+          )}
+        </div>
+
+        {figures.length > 0 && <div className={EQUIP_STRIP}>{figures}</div>}
+
+        <div className="mt-auto flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5">
             {item.type === 'weapon' && (
-              <div style={{ display: 'flex', gap: 4 }}>
+              <>
                 <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={mode => rollAttack(item, mode)}>
-                  <Button render={<span />} variant="outline" className={combatPill('blood')}>Atk</Button>
+                  {/* Drawn as a button, not one: the menu trigger around it is the control. */}
+                  <span className={cn(buttonVariants({ variant: 'default' }), EQUIP_BUTTON, 'border-border-frame')}>Atk</span>
                 </RollModeMenu>
-                {item.damageDie && <Button onClick={() => rollDamage(item)} variant="outline" className={combatPill('mist')}>Dmg</Button>}
-              </div>
+                {item.damageDie && (
+                  <Button onClick={() => rollDamage(item)} variant="muted" className={EQUIP_BUTTON}>Dmg</Button>
+                )}
+              </>
             )}
 
             {item.type === 'shield' && onRoll && (
-              <div style={{ display: 'flex', gap: 4 }}>
-                <Button onClick={() => rollParry(item)} variant="outline" className={combatPill('mist')}>Aparar</Button>
-              </div>
+              <Button onClick={() => rollParry(item)} variant="muted" className={EQUIP_BUTTON}>Aparar</Button>
             )}
 
-            {item.isLight && (() => {
-              // One write to light, one to snuff — the minutes in between come
-              // off the table clock (server time, pauses and turns applied),
-              // so they keep running with the tab closed.
-              const remaining = minutesLeft(item, now)
-              const burning = Boolean(item.isLit) && remaining > 0
+            {item.isLight && (
+              <Button
+                onClick={toggleLight}
+                disabled={!burning && remaining <= 0}
+                variant={burning ? 'muted' : 'default'}
+                className={cn(EQUIP_BUTTON, !burning && 'border-border-frame')}
+              >
+                {burning ? 'Apagar' : remaining > 0 ? 'Acender' : 'Consumida'}
+              </Button>
+            )}
+          </div>
 
-              return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Button
-                    onClick={() => {
-                      const next = burning ? extinguishSource(item, clickNow()) : lightSource(item, clickNow())
-                      updateItem(item.id, {
-                        isLit: next.isLit,
-                        litAt: next.litAt,
-                        lightMinutesLeft: next.lightMinutesLeft,
-                      })
-                      if (!burning) sendToDiscord({ type: 'torch_lit', minutesLeft: remaining })
-                      onLightChange?.({
-                        action: burning ? 'out' : 'lit',
-                        itemName: item.name,
-                        minutesLeft: remaining,
-                      })
-                    }}
-                    disabled={!burning && remaining <= 0}
-                    variant="outline" className={combatPill(burning ? 'amber' : 'dark')}>
-                    {burning ? 'Apagar' : remaining > 0 ? 'Acender' : 'Consumida'}
-                  </Button>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 8,
-                    color: burning
-                      ? remaining <= 10 ? 'var(--destructive)' : 'var(--chart-1)'
-                      : 'var(--muted-foreground)',
-                  }}>
-                    {remaining}min
-                  </span>
-                </div>
-              )
-            })()}
-
-            <Button
-              variant="link"
-              onClick={() => unequipItem(item.id)}
-              className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--destructive)] no-underline"
-            >
-              Desequipar
-            </Button>
-          </>
-        ) : (
-          <Button
-            variant="outline"
-            onClick={() => setSelectingSlot(slot)}
-            className="h-auto flex-1 flex-col gap-[5px] rounded-[1px] border-dashed border-[var(--border-control)] bg-transparent text-[9px] tracking-[0.12em] text-[var(--muted-foreground)] transition-all duration-300"
-          >
-            <HugeiconsIcon icon={emptyIcon} size={22} strokeWidth={1.5} style={{ opacity: 0.3 }} />
-            <span>+ Equipar</span>
-          </Button>
-        )}
+          <UnequipButton name={item.name} onClick={() => unequipItem(item.id)} />
+        </div>
       </div>
     )
   }
@@ -1367,41 +1398,17 @@ export function InventoryView({
       and not a second item — the same weapon, shown where its other hand is. */
   function renderBothHandsEcho(item: InventoryItem, spanClass: string, label = SLOT_LABELS.offHand) {
     return (
-      <div
-        className={spanClass}
-        style={{
-          background: 'var(--muted)',
-          border: '2px dashed var(--border)',
-          padding: 12,
-          boxSizing: 'border-box',
-          minHeight: 110,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          opacity: 0.6,
-        }}
-      >
-        <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
-          {label}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ color: 'var(--muted-foreground)', lineHeight: 1, flexShrink: 0, display: 'inline-flex' }}>
-            <HugeiconsIcon icon={iconFor(item)} size={16} strokeWidth={1.5} />
+      <div className={cn('flex flex-col gap-[3px]', spanClass)}>
+        <span className={EQUIP_LABEL}>{label}</span>
+        <div className={cn(EQUIP_CARD, 'border-border-outline bg-bg-panel border-dashed')}>
+          <span className={cn(EQUIP_TITLE, 'text-muted-foreground flex-none')}>{item.name}</span>
+          <span className="text-muted-foreground font-[family-name:var(--font-body)] text-xs italic">
+            Ocupada pelas duas mãos
           </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: 'var(--muted-foreground)', flex: 1, lineHeight: 1.3 }}>
-            {item.name}
-          </span>
+          <div className="mt-auto flex justify-end">
+            <UnequipButton name={item.name} onClick={() => unequipItem(item.id)} />
+          </div>
         </div>
-        <span style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 9.5, color: 'var(--muted-foreground)' }}>
-          Ocupada pelas duas mãos
-        </span>
-        <Button
-          variant="link"
-          onClick={() => unequipItem(item.id)}
-          className="mt-auto h-auto self-start p-0 text-[7px] tracking-[0.12em] text-[var(--destructive)] no-underline"
-        >
-          Desequipar
-        </Button>
       </div>
     )
   }
@@ -1409,11 +1416,11 @@ export function InventoryView({
   // Equipamento: armadura and the two hands, three wide cards stacked on a
   // nested six-column grid, then the combat bonuses under them.
   const equipment = (
-    <div className={cn('grid-6 grid-6--tight', !equipmentTarget && 'col-span-2 col-sm-full')} style={{ alignContent: 'start' }}>
+    <div className="grid-6 grid-6--tight" style={{ alignContent: 'start' }}>
       <div className="col-span-6">
         <SectionSubheading>Equipamento</SectionSubheading>
       </div>
-      {renderEquipSlot('armor', 'Armadura', armorItem, BodyArmorIcon, 'col-span-6')}
+      {renderEquipSlot('armor', 'Armadura', armorItem, 'col-span-6')}
       {renderHandSlot('mainHand', 'col-span-6')}
       {renderHandSlot('offHand', 'col-span-6')}
 
@@ -1467,132 +1474,125 @@ export function InventoryView({
     // moved into the pack, where it is just another item you can click.
     <>
         {equipmentTarget && createPortal(equipment, equipmentTarget)}
-        <div className="card-surface" style={{ padding: 24 }}>
-          <div className="grid-6">
+        <div className="inv-panel card-surface">
+          {/* Without a character card beside it (the phone) the equipment
+              rides above the pack instead. */}
+          {!equipmentTarget && <div className="inv-panel__equipment">{equipment}</div>}
 
-          {addingForm !== null && (
-            <div className="col-span-6">
-              <AddItemForm
-                initialForm={addingForm}
-                onAdd={addItem}
-                onCancel={() => setAddingForm(null)}
-              />
-            </div>
-          )}
-
-          {/* Two-column split on the six-column grid: Equipamento takes a
-              third (span 2), Mochila the rest (span 4); both fill the row on
-              narrow widths. With an equipmentTarget the slots render there
-              instead and the pack takes the whole row. */}
-
-          {!equipmentTarget && equipment}
-
-          {/* Mochila — item grid with the detail pane below it. The panel has
-              no heading of its own any more, so this one carries the carga,
-              the item count and the two ways of adding something. */}
-          <div className={cn('grid-6 grid-6--tight', equipmentTarget ? 'col-span-6' : 'col-span-4 col-sm-full')} style={{ alignContent: 'start' }}>
-            <div className="col-span-6">
-              <SectionSubheading
-                trailing={
-                  // Takes the room the title does not, and wraps inside it —
-                  // otherwise "Mochila" is the first thing squeezed away on a
-                  // phone, and it is the one word here that names the section.
-                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 10, flex: '1 1 0', minWidth: 0 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
-                        {carried}/{capacity}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: isEncumbered ? 'var(--destructive)' : 'var(--muted-foreground)', lineHeight: 1 }}>
-                        {isEncumbered ? 'Sobrecarregado' : 'Carga'}
-                      </span>
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1 }}>
-                        {inventory.length}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', lineHeight: 1 }}>
-                        {inventory.length === 1 ? 'Item' : 'Itens'}
-                      </span>
-                    </span>
-                    <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                      <Button onClick={() => setAddingForm({})} variant="secondary" size="sm" className="tactile">Criar</Button>
-                      <Button onClick={() => setShowCatalog(true)} variant="hollow" size="sm" className="tactile">Adicionar</Button>
-                    </span>
-                  </div>
-                }
-              >
-                Mochila
-              </SectionSubheading>
-            </div>
-
-            {/* Item grid — purse / occupied / echo / available / empty-filler
-                cells. Fluid: fills the column width, tiles stay square via
-                aspect-ratio. Each occupied cell is the anchor its own details
-                hang from; there is no fixed pane under the grid any more. */}
-            <div className="col-span-6" style={{ border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: `repeat(${GRID_COLS}, minmax(64px, 1fr))`, alignContent: 'start' }}>
-                <GridItemTile
-                  label="Bolsa de moedas"
-                  title={`Bolsa de moedas — ${purseTotal} ${purseTotal === 1 ? 'moeda' : 'moedas'}`}
-                  icon={
-                    <HugeiconsIcon
-                      icon={MoneyBag01Icon}
-                      size={TILE_ICON_SIZE}
-                      strokeWidth={1.5}
-                      style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE, color: 'var(--chart-1)' }}
-                    />
-                  }
-                  badge={purseTotal > 0 ? purseTotal : undefined}
-                  open={purseOpen}
-                  onOpenChange={next => setSelectedItemId(next ? COIN_PURSE_ID : null)}
+          {/* The heading carries the carga, the item count and the two ways of
+              adding something (Figma 339:734). It takes the room the title
+              does not, and wraps inside it — otherwise "Mochila" is the first
+              thing squeezed away on a phone, and it is the one word here that
+              names the section. */}
+          <header className="inv-panel__head">
+            <h2 className="font-heading text-foreground shrink-0 text-[18px] leading-none font-normal">Mochila</h2>
+            <div className="inv-panel__tools">
+              <span className="inline-flex items-center gap-1">
+                <span className={cn('font-heading text-[14px] leading-[14px]', isEncumbered ? 'text-destructive' : 'text-muted-foreground')}>
+                  {carried}/{capacity}
+                </span>
+                <span className={cn('font-mono text-[8px] leading-2 font-semibold tracking-[1.12px] uppercase', isEncumbered ? 'text-destructive' : 'text-muted-foreground')}>
+                  {isEncumbered ? 'Sobrecarregado' : 'Carga'}
+                </span>
+              </span>
+              <span className="text-muted-foreground inline-flex items-center gap-1">
+                <span className="font-heading text-[14px] leading-[14px]">{inventory.length}</span>
+                <span className="font-mono text-[8px] leading-2 font-semibold tracking-[1.12px] uppercase">
+                  {inventory.length === 1 ? 'Item' : 'Itens'}
+                </span>
+              </span>
+              <span className="flex gap-2">
+                <Button
+                  onClick={() => setAddingForm({})}
+                  variant="outline"
+                  className="tactile bg-muted text-foreground hover:bg-bg-panel h-8 border-2 border-foreground px-[18px] text-base leading-[1.2] tracking-normal"
                 >
-                  <CoinPursePopover
-                    gold={gold}
-                    silver={silver}
-                    copper={copper}
-                    slots={purseSlots}
-                    onUpdate={onCurrencyUpdate}
+                  Criar
+                </Button>
+                <Button
+                  onClick={() => setShowCatalog(true)}
+                  className="tactile h-8 border-2 border-border-frame px-[18px] text-base leading-[1.2] tracking-normal"
+                >
+                  Adicionar
+                </Button>
+              </span>
+            </div>
+          </header>
+
+          {/* Item grid (Figma 339:738) — purse / occupied / echo / available /
+              locked-filler cells, six to a row beside the character card.
+              Fluid: tiles keep their portrait ratio at any width. Each occupied
+              cell is the anchor its own details hang from; there is no fixed
+              pane under the grid. The grid scrolls on its own and fades out
+              where it is cut. */}
+          <div className="inv-panel__grid" style={{ '--inv-cols': gridCols } as React.CSSProperties}>
+            {addingForm !== null && (
+              <div className="inv-panel__form">
+                <AddItemForm
+                  initialForm={addingForm}
+                  onAdd={addItem}
+                  onCancel={() => setAddingForm(null)}
+                />
+              </div>
+            )}
+
+            <GridItemTile
+              label="Bolsa de moedas"
+              title={`Bolsa de moedas — ${purseTotal} ${purseTotal === 1 ? 'moeda' : 'moedas'}`}
+              art={ITEM_ART.purse}
+              fallback={MoneyBag01Icon}
+              badge={purseTotal > 0 ? purseTotal : undefined}
+              open={purseOpen}
+              onOpenChange={next => setSelectedItemId(next ? COIN_PURSE_ID : null)}
+            >
+              <CoinPursePopover
+                gold={gold}
+                silver={silver}
+                copper={copper}
+                slots={purseSlots}
+                onUpdate={onCurrencyUpdate}
+              />
+            </GridItemTile>
+            {Array.from({ length: purseCells - 1 }).map((_, i) => (
+              <GridEchoTile key={`purse-echo-${i}`} label="Bolsa de moedas" />
+            ))}
+            {inventory.map(item => (
+              <Fragment key={item.id}>
+                <GridItemTile
+                  label={item.name}
+                  title={item.name}
+                  art={itemArt(item)}
+                  fallback={iconFor(item)}
+                  badge={item.quantity > 1 ? `x${item.quantity}` : undefined}
+                  equipped={item.equipped}
+                  light={lightState(item, now)}
+                  open={selectedItemId === item.id}
+                  onOpenChange={next => setSelectedItemId(next ? item.id : null)}
+                >
+                  <ItemDetailPopover
+                    item={item}
+                    now={now}
+                    onEdit={() => { setSelectedItemId(null); setEditingId(item.id) }}
+                    onRemove={() => removeItem(item.id)}
+                    onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
+                    onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
+                    onOpen={item.type === 'document' ? () => { setSelectedItemId(null); setBookViewItem(item) } : undefined}
+                    onRollAttack={item.type === 'weapon' && onRoll ? mode => rollAttack(item, mode) : undefined}
+                    onRollDamage={item.damageDie && onRoll ? () => rollDamage(item) : undefined}
+                    onRollParry={item.type === 'shield' && onRoll ? () => rollParry(item) : undefined}
                   />
                 </GridItemTile>
-                {Array.from({ length: purseCells - 1 }).map((_, i) => (
-                  <GridEchoTile key={`purse-echo-${i}`} label="Bolsa de moedas" icon={MoneyBag01Icon} />
+                {Array.from({ length: tileCount(item) - 1 }).map((_, i) => (
+                  <GridEchoTile key={`${item.id}-echo-${i}`} label={item.name} />
                 ))}
-                {inventory.map(item => (
-                  <Fragment key={item.id}>
-                    <GridItemTile
-                      label={item.name}
-                      title={item.name}
-                      icon={<ItemGlyph item={item} size={TILE_ICON_SIZE} now={now} />}
-                      badge={item.quantity > 1 ? `×${item.quantity}` : undefined}
-                      dot={item.equipped}
-                      open={selectedItemId === item.id}
-                      onOpenChange={next => setSelectedItemId(next ? item.id : null)}
-                    >
-                      <ItemDetailPopover
-                        item={item}
-                        now={now}
-                        onEdit={() => { setSelectedItemId(null); setEditingId(item.id) }}
-                        onRemove={() => removeItem(item.id)}
-                        onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
-                        onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
-                        onOpen={item.type === 'document' ? () => { setSelectedItemId(null); setBookViewItem(item) } : undefined}
-                        onRollAttack={item.type === 'weapon' && onRoll ? mode => rollAttack(item, mode) : undefined}
-                        onRollDamage={item.damageDie && onRoll ? () => rollDamage(item) : undefined}
-                        onRollParry={item.type === 'shield' && onRoll ? () => rollParry(item) : undefined}
-                      />
-                    </GridItemTile>
-                    {Array.from({ length: tileCount(item) - 1 }).map((_, i) => (
-                      <GridEchoTile key={`${item.id}-echo-${i}`} label={item.name} icon={iconFor(item)} />
-                    ))}
-                  </Fragment>
-                ))}
-                {Array.from({ length: availableCount }).map((_, i) => (
-                  <GridAvailableTile key={`add-${i}`} onClick={() => setShowCatalog(true)} />
-                ))}
-                {Array.from({ length: emptyCellCount }).map((_, i) => (
-                  <GridEmptyTile key={`empty-${i}`} />
-                ))}
-              </div>
-          </div>
+              </Fragment>
+            ))}
+            {Array.from({ length: availableCount }).map((_, i) => (
+              <GridAvailableTile key={`add-${i}`} onClick={() => setShowCatalog(true)} />
+            ))}
+            {Array.from({ length: emptyCellCount }).map((_, i) => (
+              <GridEmptyTile key={`empty-${i}`} />
+            ))}
           </div>
         </div>
 
