@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect, useId, type ReactNode } from 'react'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { clipBounds } from '@/lib/clip'
+import { HoverCard, HoverCardContent } from '@/components/ui/hover-card'
 
 interface Props {
   /** Name shown on the closed chip, e.g. `Bard`. */
@@ -47,28 +47,16 @@ export function ChipDetail({ label, children }: { label: string; children: React
  * Solid header tag that condenses a block's identity (`Monge Nv III`) and
  * keeps the rest of the detail one hover away (a tap on mobile, where there
  * is no hover to give). Used for the class, archetype and ancestry tags.
+ *
+ * The detail is a `HoverCard`: portalled out of the page and stacked at
+ * `--z-popover`, so a block that scrolls on its own (the sheet's columns)
+ * neither grows a scrollbar for it nor slices it in half.
  */
 export function DetailChip({ label, trailing, children, detailLabel, tone }: Props) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
-
-  // The panel hangs off the chip's left edge, which pushes it past the right
-  // of its block for any chip that isn't the first one. Measure once it is up
-  // and slide it back inside — the block's own edges when it scrolls on its
-  // own, the screen's otherwise — never past the left edge either. Written
-  // onto the node rather than held in state: the panel mounts fresh at
-  // left: 0 on every open, so there is nothing to keep between them.
-  useLayoutEffect(() => {
-    const wrap = wrapRef.current
-    const panel = panelRef.current
-    if (!open || !wrap || !panel) return
-    const { left } = wrap.getBoundingClientRect()
-    const bounds = clipBounds(wrap, 16)
-    const overflow = left + panel.offsetWidth - bounds.right
-    if (overflow > 0) panel.style.left = `${-Math.min(overflow, Math.max(0, left - bounds.left))}px`
-  }, [open])
+  const detailsId = useId()
 
   // Tapping opens on mobile, so tapping elsewhere is what closes it again.
   useEffect(() => {
@@ -112,6 +100,7 @@ export function DetailChip({ label, trailing, children, detailLabel, tone }: Pro
       <button
         type="button"
         aria-expanded={open}
+        aria-describedby={open ? detailsId : undefined}
         aria-label={`${label}${trailing ? ` ${trailing}` : ''} — ${detailLabel}`}
         onClick={isMobile ? () => setOpen(o => !o) : undefined}
         style={{
@@ -137,30 +126,20 @@ export function DetailChip({ label, trailing, children, detailLabel, tone }: Pro
         )}
       </button>
 
-      {open && (
-        <div
-          ref={panelRef}
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            zIndex: 30,
-            width: 'max-content',
-            minWidth: '100%',
-            maxWidth: 'min(340px, calc(100vw - 32px))',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-            background: 'var(--popover)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.7)',
-            padding: '10px 12px 12px',
-            textAlign: 'left',
-          }}
+      <HoverCard open={open}>
+        <HoverCardContent
+          anchor={wrapRef}
+          id={detailsId}
+          role="tooltip"
+          align="start"
+          sideOffset={6}
+          collisionPadding={16}
+          positionerClassName="pointer-events-none"
+          className="w-max max-w-[min(340px,calc(100vw-32px))] gap-2.5 border border-[var(--border)] px-3 pt-2.5 pb-3 text-left text-sm shadow-[0_6px_20px_rgba(0,0,0,0.7)] ring-0"
         >
           {children}
-        </div>
-      )}
+        </HoverCardContent>
+      </HoverCard>
     </div>
   )
 }
