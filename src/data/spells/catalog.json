@@ -3081,5 +3081,470 @@
       "Psion"
     ],
     "school": "Transmutation"
+  },
+  {
+    "id": "aura-sight-wis",
+    "name": "Aura Sight [WIS]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "5 rds",
+    "castingTime": "Action",
+    "description": "You perceive the auras of creatures and objects, revealing their alignment, emotions, health, or magical nature. This allows you to detect invisible creatures, enchanted items, or strong supernatural presences.\nCritical Fail: Your vision is flooded with overwhelming energy, blinding you for 1d4 rounds.\nPower Score Effect: You gain deeper insight, allowing you to see hidden motives or sense if a creature is lying.",
+    "summary": "See auras, invisible beings and magic.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "clairaudience-int",
+    "name": "Clairaudience [INT]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "2 rounds per caster level",
+    "castingTime": "Action",
+    "description": "You hear sounds from a distant, known location as if you were standing there. You must be familiar with the place or describe it accurately. Cannot hear through thick magical barriers.\nCritical Fail: You hear distorted whispers or phantom noises, making it impossible to distinguish real sounds for 1d6 rounds.\nPower Score Effect: You can pinpoint exact voices, even in a crowded or chaotic environment.",
+    "summary": "Hear a distant, known place.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "clairvoyance-wis",
+    "name": "Clairvoyance [WIS]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "1 round per caster level",
+    "castingTime": "Action",
+    "description": "You see a distant, familiar location as if you were present. You can look around but cannot hear sounds. Requires concentration and cannot bypass total darkness or magical concealment.\nCritical Fail: Your vision is disoriented, causing you to see random locations or disturbing hallucinations for 1d4 rounds.\nPower Score Effect: You gain brief insight into the past of the area, seeing recent events that occurred there.",
+    "summary": "See a distant, familiar place.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "object-reading-wis",
+    "name": "Object Reading [WIS]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Touch",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "By handling an item, you mentally glimpse its history, sensing who last held it, strong emotions linked to it, or important past events. The more powerful or ancient the item, the harder the reading.\nCritical Fail: You receive false or misleading visions, confusing you for 1 minute.\nPower Score Effect: You get an exact mental image of the previous owner’s face, name, or location.",
+    "summary": "Glimpse an item's history by holding it.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "precognition-wis",
+    "name": "Precognition [WIS]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "1 minute",
+    "castingTime": "Action",
+    "description": "You receive a brief glimpse of the near future, warning you of danger, good fortune, or key events. This is vague and symbolic, not exact. Can be used once per day per person/situation.\nCritical Fail: You suffer a false vision, misleading you into a poor decision or a minor penalty (-2) on your next saving throw.\nPower Score Effect: Your vision is clear and actionable, allowing you to reroll one check related to the foresight within the next hour.",
+    "summary": "Glimpse the near future as a vague warning.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "sensitivity-to-psychic-impressions-wis",
+    "name": "Sensitivity to Psychic Impressions [WIS]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "5 rds",
+    "castingTime": "Action",
+    "description": "You sense strong emotions or traumatic events that happened in an area or object within the last 24 hours. Can detect recent violence, supernatural influence, or lingering energy.\nCritical Fail: You experience a painful psychic echo, stunning you for 1 round.\nPower Score Effect: You see a brief, clear vision of an important event, knowing exactly what happened instead of vague impressions.",
+    "summary": "Sense strong emotions and events left behind.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "detonate-int",
+    "name": "Detonate [INT]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You cause an object or small area to violently explode, dealing 2d10 damage to creatures and objects within 5 feet. The explosion does not produce fire, but it can shatter fragile objects and cause concussive force damage.\nCritical Fail: The explosion backfires, causing 1d6 damage to you and knocking you prone.\nPower Score Effect: The explosion doubles in size or ignites flammable materials.",
+    "summary": "Make an object or small area explode.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Evocation"
+  },
+  {
+    "id": "disintegrate-int",
+    "name": "Disintegrate [INT]",
+    "tier": 4,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You completely erase a non-living object (no larger than 5 cubic feet) from existence. Against a creature, they must have less than 50 HP or the effect fails. Living creatures get no save but must be weaker than you (DM’s discretion).\nCritical Fail: The energy overloads, draining you of half your remaining PSPs and stunning you for 1 round.\nPower Score Effect: You can affect a larger area (10 cubic feet) or remove a creature up to 75 HP.",
+    "summary": "Erase an object, or a weak creature.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Transmutation"
+  },
+  {
+    "id": "project-force-int",
+    "name": "Project Force [INT]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You create an invisible force blast, knocking a creature back 10 feet or dealing 1d8 damage if they hit a wall or hard surface. Can be used to push heavy objects or slam doors open.\nCritical Fail: The force backfires, sending you flying backward 5 feet instead.\nPower Score Effect: The force doubles in power, pushing targets 20 feet or dealing 2d8 damage.",
+    "summary": "Blast a creature back with unseen force.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Evocation"
+  },
+  {
+    "id": "telekinesis-int",
+    "name": "Telekinesis [INT]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "Focus",
+    "castingTime": "Action",
+    "description": "You mentally lift and move objects up to 200 lbs. If used on a creature, they can resist with Strength vs. your Power Score. You can throw or drop objects as an attack, dealing 1d6 per 50 lbs.\nCritical Fail: You lose control, causing the object to drop or move randomly, possibly hitting allies.\nPower Score Effect: You can move up to 500 lbs and hold concentration without spending PSPs for 1 round.",
+    "summary": "Lift and move objects with your mind.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Transmutation"
+  },
+  {
+    "id": "animal-affinity-con",
+    "name": "Animal Affinity [CON]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "10 rds",
+    "castingTime": "Action",
+    "description": "You temporarily gain the physical abilities of an animal, choosing from enhanced Strength, Dexterity, or Constitution. This provides +2 to the chosen ability score and grants related advantages (e.g., a cheetah’s speed, a bear’s strength).\nCritical Fail: Your body malfunctions, causing you to suffer -2 to all physical stats for the duration instead.\nPower Score Effect: You gain +4 instead of +2 and can combine two abilities (e.g., speed and strength).",
+    "summary": "Gain the body of an animal.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Transmutation"
+  },
+  {
+    "id": "complete-healing-con",
+    "name": "Complete Healing [CON]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Touch",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You completely heal a target, restoring all lost HP and removing diseases or poisons. You must touch the target and concentrate for 1 full round before the effect takes place.\nCritical Fail: You suffer 1d6 damage as the energy backlashes into your body instead of healing.\nPower Score Effect: You also restore lost limbs or cure magical afflictions.",
+    "summary": "Fully heal a target and cure ailments.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Necromancy"
+  },
+  {
+    "id": "death-field-con",
+    "name": "Death Field [CON]",
+    "tier": 4,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You emit a wave of pure life-draining energy, dealing 4d10 damage to all creatures within range (15-foot radius). Weaker creatures (less than half your HD) must save vs. death or die instantly.\nCritical Fail: The energy turns against you, dealing half damage to yourself.\nPower Score Effect: Damage increases to 5d10, and creatures with less than ⅔ your HD must save or die.",
+    "summary": "A life-draining wave hurts all nearby.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Necromancy"
+  },
+  {
+    "id": "energy-containment-con",
+    "name": "Energy Containment [CON]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "10 rds",
+    "castingTime": "Action",
+    "description": "You absorb and store energy-based attacks, such as fire, lightning, or magic missiles. Instead of taking damage, you harmlessly absorb the attack, storing up to 30 points of damage. You can release this stored energy later, dealing half of it as a blast.\nCritical Fail: Instead of absorbing, you take double damage from the attack.\nPower Score Effect: You can absorb up to 50 points and release the full stored damage instead of half.",
+    "summary": "Absorb energy attacks, then release them.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Abjuration"
+  },
+  {
+    "id": "life-draining-con",
+    "name": "Life Draining [CON]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Touch",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You touch a target and drain their vitality, dealing 3d8 damage while healing yourself for half the damage inflicted. The target must fail a saving throw vs. death or suffer 1d4 permanent HP loss.\nCritical Fail: The energy backlashes, dealing 1d6 damage to yourself instead.\nPower Score Effect: You heal all the damage dealt instead of half.",
+    "summary": "Drain a target's life to heal yourself.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Necromancy"
+  },
+  {
+    "id": "metamorphosis-con",
+    "name": "Metamorphosis [CON]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "( 5 x LV) minutes",
+    "castingTime": "Action",
+    "description": "You completely reshape your body, mimicking another humanoid race, growing natural weapons, or adapting to an environment (e.g., gills for water breathing). You cannot mimic specific individuals, only general forms.\nCritical Fail: Your transformation partially fails, leaving you deformed (-2 to Charisma) for the duration.\nPower Score Effect: You gain one extra enhancement, such as natural armor, extra limbs, or enhanced speed.",
+    "summary": "Reshape your body to a new form.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Transmutation"
+  },
+  {
+    "id": "shadow-form-con",
+    "name": "Shadow-form [CON]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "5 rounds per caster level",
+    "castingTime": "Action",
+    "description": "You partially shift into shadow, making you 50% harder to hit and allowing you to move through narrow spaces. You can still be damaged by light-based attacks and cannot pass through solid objects.\nCritical Fail: You become stuck between forms, suffering 1d4 Constitution damage until you rest.\nPower Score Effect: You become completely intangible, immune to non-magical attacks for 1 round per level.",
+    "summary": "Become shadow: harder to hit, slip through gaps.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Transmutation"
+  },
+  {
+    "id": "banishment-wis",
+    "name": "Banishment [WIS]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You forcefully eject a creature from this plane, sending them to a random extraplanar location. If the target has fewer Hit Dice than you, they receive no saving throw. If their HD is equal or higher, they must make a saving throw vs. spells to resist.\nCritical Fail: The effect backfires, sending you to another plane instead.\nPower Score Effect: You can select the plane where the creature is sent rather than it being random.",
+    "summary": "Eject a creature to a random plane.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Abjuration"
+  },
+  {
+    "id": "probability-travel-wis",
+    "name": "Probability Travel [WIS]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "3 rounds per caster level",
+    "castingTime": "Action",
+    "description": "You phase through alternate realities, selectively choosing the one with the best possible outcome for your actions. While active, you gain +2 to attack rolls, AC, and saving throws. If used for movement, you automatically bypass obstacles or traps. You can bring 1 willing creature per level along with you.\nCritical Fail: You become temporarily lost in the timestream, unable to act for 1d4 rounds.\nPower Score Effect: The bonuses increase to +4, and you can extend the effect to non-willing creatures, forcing them into a different probability.",
+    "summary": "Pick the best outcome: bonuses to attacks, AC and saves.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Conjuration"
+  },
+  {
+    "id": "summon-planar-creature-wis",
+    "name": "Summon Planar Creature [WIS]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "1 round per caster level",
+    "castingTime": "Action",
+    "description": "You open a rift to another plane, summoning a creature native to that plane. The creature’s HD cannot exceed your level, and its reaction to you depends on the plane of origin and the circumstances.\nCritical Fail: A hostile creature is summoned instead, attacking indiscriminately.\nPower Score Effect: You summon a stronger creature (HD +2), and it is friendly by default.",
+    "summary": "Open a rift and summon a planar creature.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Conjuration"
+  },
+  {
+    "id": "teleport-wis",
+    "name": "Teleport [WIS]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You instantly transport yourself to a known location within 100 miles per level. The success depends on familiarity:\n• Very familiar: No error.\n• Seen once: 10% chance of failure.\n• Described only: 30% chance of failure.\nIf failed, you land in a random nearby location.\nCritical Fail: You arrive partially embedded in solid matter, taking 4d10 damage.\nPower Score Effect: You can bring additional creatures (up to 1 per level).",
+    "summary": "Jump to a known place up to 100 miles per level away.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Conjuration"
+  },
+  {
+    "id": "teleport-other-wis",
+    "name": "Teleport Other [WIS]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You teleport a creature or object within range to a location you know. If the target is unwilling, they must fail a saving throw vs. spells to be affected. The teleportation follows the same accuracy rules as Teleport.\nCritical Fail: The target is sent to a completely unknown location, potentially very dangerous.\nPower Score Effect: The target cannot resist (no saving throw).",
+    "summary": "Send a creature or object to a place you know.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Conjuration"
+  },
+  {
+    "id": "time-space-anchor-wis",
+    "name": "Time/Space Anchor [WIS]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "10 rds",
+    "castingTime": "Action",
+    "description": "You create an invisible barrier that prevents all forms of teleportation, planar travel, or phasing within a 30-foot radius. Any creature attempting to teleport or shift must make a saving throw vs. spells or be stopped.\nCritical Fail: The effect reverses, making teleportation easier instead (-2 penalty to saves against teleportation).\nPower Score Effect: The anchor lasts 1 hour instead of 10 rounds.",
+    "summary": "Block teleportation and planar travel in an area.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Abjuration"
+  },
+  {
+    "id": "domination-cha",
+    "name": "Domination [CHA]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "1 round per caster level",
+    "castingTime": "Action",
+    "description": "You take full control of a creature’s actions. The target must fail a saving throw vs. spells to resist. The dominated creature acts as you command, though self-destructive orders allow a new saving throw.\nCritical Fail: Your mind is momentarily overwhelmed, leaving you stunned for 1 round.\nPower Score Effect: The domination lasts 1 minute per level instead of rounds.",
+    "summary": "Take full control of a creature's actions.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Enchantment"
+  },
+  {
+    "id": "fate-link-cha",
+    "name": "Fate Link [CHA]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "5 rounds per caster level",
+    "castingTime": "Action",
+    "description": "You mentally link yourself to a target, causing both of you to share all damage taken (split 50/50). If one of you is stunned, blinded, or paralyzed, the other suffers the same effect.\nCritical Fail: The link malfunctions, causing you to take all of the target’s damage for 1d4 rounds.\nPower Score Effect: You can link multiple creatures (up to 3 total).",
+    "summary": "Share damage and conditions with a target.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Enchantment"
+  },
+  {
+    "id": "mass-domination-cha",
+    "name": "Mass Domination [CHA]",
+    "tier": 4,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "1 round per caster level",
+    "castingTime": "Action",
+    "description": "As Domination, but you can control up to 3 creatures simultaneously. Targets must fail a saving throw vs. spells to resist. They will not obey blatantly suicidal commands.\nCritical Fail: Your mind is overwhelmed, rendering you unable to use Telepathy powers for 1d6 rounds.\nPower Score Effect: You can dominate up to 5 creatures at once.",
+    "summary": "Dominate up to 3 creatures at once.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Enchantment"
+  },
+  {
+    "id": "mindlink-cha",
+    "name": "Mindlink [CHA]",
+    "tier": 1,
+    "type": "Psion",
+    "range": "Far",
+    "duration": "1 hour per caster level",
+    "castingTime": "Action",
+    "description": "You establish a direct mental connection with a willing creature, allowing instant communication regardless of distance. If the creature is unwilling, they must fail a saving throw vs. spells to resist.\nCritical Fail: The connection is unstable, giving you incoherent thoughts and distracting mental noise for 1d6 rounds (-2 to concentration-based actions).\nPower Score Effect: The link becomes permanent, lasting until you choose to end it.",
+    "summary": "Talk mind to mind at any distance.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "mindwipe-cha",
+    "name": "Mindwipe [CHA]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Touch",
+    "duration": "Instant",
+    "castingTime": "Action",
+    "description": "You erase specific memories from a creature’s mind. You can remove up to 1 hour per level of memories. The target must fail a saving throw vs. spells to be affected.\nCritical Fail: Your own mind suffers a temporary backlash, causing you to forget a random piece of information for 1 hour.\nPower Score Effect: You can implant false memories instead of just erasing them.",
+    "summary": "Erase memories from a creature's mind.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Enchantment"
+  },
+  {
+    "id": "probe-cha",
+    "name": "Probe [CHA]",
+    "tier": 2,
+    "type": "Psion",
+    "range": "Near",
+    "duration": "Focus",
+    "castingTime": "Action",
+    "description": "You delve into a creature’s mind, uncovering surface thoughts and recent memories. If the target is aware of the intrusion, they can resist with a saving throw vs. spells.\nCritical Fail: The target notices and resists forcefully, causing 1d6 psychic damage to you.\nPower Score Effect: You gain access to deep memories, uncovering secrets, motives, or hidden knowledge.",
+    "summary": "Read surface thoughts and recent memories.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Divination"
+  },
+  {
+    "id": "superior-invisibility-cha",
+    "name": "Superior Invisibility [CHA]",
+    "tier": 3,
+    "type": "Psion",
+    "range": "Self",
+    "duration": "5 rounds per caster level",
+    "castingTime": "Action",
+    "description": "You mentally erase your presence from the minds of others, making yourself completely undetectable. This invisibility cannot be seen even by magical detection, though creatures immune to mind-affecting effects (like undead) can still perceive you.\nCritical Fail: Your mind becomes partially disconnected, giving you -2 to all actions for 1d4 rounds.\nPower Score Effect: The effect lasts 10 rounds per level instead of 5.",
+    "summary": "Vanish from the minds of others.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Illusion"
+  },
+  {
+    "id": "switch-personality-cha",
+    "name": "Switch Personality [CHA]",
+    "tier": 4,
+    "type": "Psion",
+    "range": "Touch",
+    "duration": "1 hour per caster level",
+    "castingTime": "Action",
+    "description": "You swap minds with a creature, placing your consciousness in their body and theirs in yours. The target must fail a saving throw vs. spells to resist. If your body dies while in another’s, your consciousness remains trapped in their body permanently.\nCritical Fail: The swap half-succeeds, causing both minds to be partially entangled, giving both characters -2 to Intelligence and Wisdom for 1d6 hours.\nPower Score Effect: The switch becomes permanent until you choose to reverse it.",
+    "summary": "Swap minds with a creature.",
+    "classes": [
+      "Psion"
+    ],
+    "school": "Enchantment"
   }
 ]
