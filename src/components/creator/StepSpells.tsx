@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { getLearnableSpells, getSpell, maxSpellTier, tierNumeral } from '@/data/spells/index'
+import { getLearnableSpells, getSpell, maxSpellTier } from '@/data/spells/index'
 import { getClass } from '@/data/classes/index'
 import { TRADITION_LABEL, type SpellTradition } from '@/types/class.types'
-import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
-import { OriginIcon } from '@/components/shared/CardOrigin'
+import { GlyphCard, faceText } from '@/components/shared/GlyphCard'
+import { SpellDetail, SpellTagIcon, spellCaption, spellFootnote } from '@/components/shared/SpellDetail'
 import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -137,15 +137,21 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
           return (
             <GlyphCard
               key={spell.id}
-              glyph={<OriginIcon origin="spell" />}
+              face="compact"
+              origin="spell"
+              glyph={<SpellTagIcon />}
               title={spell.name}
-              // Same label the sheet's grimoire carries: school then circle.
-              caption={`${spell.school || spell.type} ${tierNumeral(spell.tier)}`}
+              // Same tag the sheet's grimoire carries: school then circle.
+              caption={spellCaption(spell)}
               accent={accent}
-              description={spell.description}
-              status={learned ? { text: '✓', color: accent } : null}
+              // Lit once it is one of the character's spells, dark while it is
+              // still on offer.
+              tone={learned ? 'activation' : 'passive'}
+              description={faceText(spell.summary, spell.description)}
+              footnote={spellFootnote(spell)}
+              status={learned ? { text: '✓', color: accent } : { text: `DC ${10 + spell.tier}`, color: 'var(--muted-foreground)' }}
               open={openId === spell.id}
-              onOpenChange={open => setOpenId(open ? spell.id : null)}
+              onOpenChange={open => setOpenId(cur => (open ? spell.id : cur === spell.id ? null : cur))}
               footer={
                 <Button
                   variant={learned ? 'hollow' : 'secondary'}
@@ -158,22 +164,14 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
                 </Button>
               }
             >
-              <div className="mb-2 flex flex-wrap gap-1">
-                <Badge variant="outline" className={SPELL_CHIP_CLASS}>Nível {spell.tier}</Badge>
-                {spell.castingTime && (
-                  <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.castingTime}</Badge>
-                )}
-                {spell.range && (
-                  <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.range}</Badge>
-                )}
-                {spell.duration && (
-                  <Badge variant="outline" className={SPELL_CHIP_CLASS}>{spell.duration}</Badge>
-                )}
-              </div>
-              <p style={DETAIL_BODY}>{spell.description}</p>
-              <p className="font-mono text-muted-foreground mt-2 text-[8px] tracking-[0.08em] uppercase">
-                {spell.classes.join(' · ')}
-              </p>
+              <SpellDetail
+                spell={spell}
+                footnote={
+                  <p className="font-mono m-0 text-[9px] tracking-[0.08em] uppercase opacity-80">
+                    {spell.classes.join(' · ')}
+                  </p>
+                }
+              />
             </GlyphCard>
           )
         })}
@@ -187,6 +185,3 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
     </div>
   )
 }
-
-const SPELL_CHIP_CLASS =
-  'font-mono rounded-[1px] border-[var(--border)] bg-[var(--input)] px-1.5 py-0.5 text-[7px] tracking-[0.06em] text-muted-foreground'

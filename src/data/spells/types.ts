@@ -17,6 +17,8 @@ export interface Spell {
   duration: string | null
   castingTime: string
   description: string
+  /** One line for the card's face; the description is the far side. */
+  summary?: string
   classes: string[]
   school: string
 }

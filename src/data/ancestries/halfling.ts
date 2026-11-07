@@ -8,6 +8,7 @@ export const halfling: Ancestry = {
   traits: [
     {
       name: 'Stealthy',
+      summary: '1/dia, invisível por 3 rodadas.',
       description: 'Uma vez por dia, você pode se tornar invisível por 3 rodadas.',
     },
   ],

@@ -23,6 +23,7 @@ export const wizard: Class = {
     {
       id: 'spellcasting',
       name: 'Spellcasting',
+      summary: 'Conjura as magias Arcanas que conhece. Começa com três.',
       description:
         'Você pode conjurar magias de mago que conhece. Você começa conhecendo três magias de 1º nível à sua escolha da lista Arcana. A cada nível você escolhe novas magias de acordo com a tabela de Magias de Mago Conhecidas.',
       kind: 'passive',
@@ -30,6 +31,7 @@ export const wizard: Class = {
     {
       id: 'learning_spells',
       name: 'Learning Spells',
+      summary: 'Aprende magia de pergaminho: um dia e INT CD 15.',
       description:
         'Você pode aprender permanentemente uma magia de mago de um pergaminho de magia estudando-o por um dia e tendo êxito em um teste de Inteligência CD 15. Independente do resultado, o pergaminho é consumido. Magias aprendidas desta forma não contam para o limite de magias conhecidas.',
       kind: 'passive',

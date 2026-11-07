@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useId, useRef, useCallback, type ReactNode } from 'react'
 import { Popover } from '@base-ui/react/popover'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -26,16 +26,45 @@ const ACTIONS_COLLISION = { side: 'flip', align: 'shift', fallbackAxisSide: 'non
 /** What Tab can land on inside the actions. */
 const TABBABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]'
 
-/** Prose on the card's detail face. Shared so the decks stay in step. */
+/** Prose on the card's detail face, at the size the face itself reads. */
 export const DETAIL_BODY: React.CSSProperties = {
   fontFamily: 'var(--font-body)',
-  fontSize: 14,
+  fontSize: 12,
   letterSpacing: 'normal',
-  color: 'var(--foreground)',
+  color: 'inherit',
   lineHeight: 1.5,
   textAlign: 'left',
   margin: 0,
 }
+
+/**
+ * What the face says: the entry's own one-liner when it has one, otherwise
+ * the first sentence of the full text. The whole text is on the far side.
+ */
+export function faceText(summary: string | undefined, description: string): string {
+  if (summary?.trim()) return summary.trim()
+  const firstLine = description.trim().split('\n')[0] ?? ''
+  return (firstLine.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? firstLine).trim()
+}
+
+/** Where a card comes from, as the compact face's type tag colours it. */
+export type GlyphCardOrigin = 'class' | 'ancestry' | 'archetype' | 'spell'
+
+/**
+ * One card open at a time. Opening a card announces it; any other open card
+ * turns back over when it hears the announcement.
+ */
+const OPEN_EVENT = 'glyph-card:open'
+
+/**
+ * A press that lands here leaves the open card alone: the menus and dialogs
+ * its own actions open are portalled out of the card, so they read as
+ * "outside" by position alone.
+ */
+const KEEP_OPEN = '[role="menu"], [role="listbox"], [role="dialog"], [data-glyph-card-keep]'
+
+/** Inside the detail face, a click on one of these is not a click to close. */
+const INTERACTIVE = 'a, button, input, select, textarea, label, summary, [role="button"], [contenteditable="true"]'
 
 interface Props {
   /** Symbol drawn in the card's masthead and beside the detail heading. */
@@ -54,8 +83,16 @@ interface Props {
   caption: string
   /** Accent colour for the roll arrow and the detail face's chrome. */
   accent: string
-  /** Preview text on the face — clamped to whatever the masthead left. */
+  /**
+   * The short line on the face: what the card does, at a glance (see
+   * `faceText`). The full rules go on the far side, as `children`.
+   */
   description?: string
+  /**
+   * A line at the foot of the compact face, for the facts read at a glance —
+   * a spell's range and duration.
+   */
+  footnote?: string
   /** Compact counter beside the caption, e.g. `2/3`. */
   status?: { text: string; color: string } | null
   /**
@@ -67,9 +104,9 @@ interface Props {
   /**
    * Where the card comes from, which colours its type tag on the compact face
    * (the Figma tags a class technique ember, an ancestry trait blue and an
-   * archetype talent brown).
+   * archetype talent brown; a spell is violet).
    */
-  origin?: 'class' | 'ancestry' | 'archetype'
+  origin?: GlyphCardOrigin
   /** Detail face — what the card reveals once it is turned over. */
   children?: ReactNode
   /** Button row in the floating actions popover. */
@@ -84,22 +121,28 @@ interface Props {
 }
 
 /**
- * The sheet's card face: a ruled masthead carrying the symbol, the name and
- * the category label, over a clamped description.
+ * The sheet's card: the name, the type and a one-line summary on the face,
+ * the full rules on the far side.
  *
  * Opening turns the card over in place — same card, same size, same spot in
- * the deck, the detail written on its far side. Anything to press comes up as
- * a popover hanging off the bottom edge, since the two faces leave no room
- * for it. Shared by the class block's techniques (on the compact face), the
- * grimoire and the creator's pickers.
+ * the deck, the detail written on its far side in the same frame and at the
+ * same type size as the face. Anything to press comes up as a popover hanging
+ * off the bottom edge, since the two faces leave no room for it.
+ *
+ * Only one card is open at a time. A click on the turned card (anywhere but a
+ * control), a press outside it, Escape or opening another card turns it back.
+ *
+ * Shared by the technique deck and the grimoire (on the compact face) and the
+ * creator's pickers (on the masthead face).
  */
 export function GlyphCard({
-  glyph, detailGlyph, face = 'masthead', title, caption, accent, description, status,
+  glyph, detailGlyph, face = 'masthead', title, caption, accent, description, footnote, status,
   tone = 'passive', origin = 'class', children, footer, controls, className,
   open: openProp, onOpenChange,
 }: Props) {
   const [uncontrolled, setUncontrolled] = useState(false)
   const open = openProp ?? uncontrolled
+  const cardId = useId()
 
   const rootRef = useRef<HTMLDivElement>(null)
   const faceRef = useRef<HTMLButtonElement>(null)
@@ -129,14 +172,42 @@ export function GlyphCard({
     onOpenChangeRef.current?.(next)
   }, [])
 
-  // Escape turns the card back over. Nothing is covered any more — the detail
-  // is the card itself — so the page keeps its scroll.
+  // While the card is open, anything that means "done with it" turns it back
+  // over: Escape, a press anywhere outside the card and its actions, or
+  // another card opening. Nothing is covered — the detail is the card
+  // itself — so the page keeps its scroll.
   useEffect(() => {
     if (!open) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [open, setOpen])
+    window.dispatchEvent(new CustomEvent<string>(OPEN_EVENT, { detail: cardId }))
+
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const onOtherOpen = (e: Event) => { if ((e as CustomEvent<string>).detail !== cardId) setOpen(false) }
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target
+      if (!(target instanceof Element)) return
+      if (rootRef.current?.contains(target) || actionsRef.current?.contains(target)) return
+      if (target.closest(KEEP_OPEN)) return
+      setOpen(false)
+    }
+
+    window.addEventListener('keydown', onKey)
+    window.addEventListener(OPEN_EVENT, onOtherOpen)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener(OPEN_EVENT, onOtherOpen)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [open, setOpen, cardId])
+
+  // A click on the turned card turns it back — unless it landed on one of its
+  // controls (a choice, a dice roll in the text) or ended a text selection.
+  function handleDetailClick(e: React.MouseEvent<HTMLDivElement>) {
+    const target = e.target
+    if (target instanceof Element && target.closest(INTERACTIVE)) return
+    if (window.getSelection()?.toString()) return
+    setOpen(false)
+  }
 
   // Focus follows the turn, so a card opened from the keyboard can be read and
   // closed from there too. Only when focus was already on this card or in its
@@ -181,15 +252,12 @@ export function GlyphCard({
           // order and out of the pointer's reach while it faces the table.
           inert={open}
           className={cn(
-            'card-flip__face tactile h-auto w-full flex-col p-1',
-            'bg-input border-input-border',
+            'card-flip__face tactile h-auto w-full flex-col',
             // Button's base is a label: nowrap + uppercase. The face holds
             // prose, so it wraps and keeps the casing it was written in.
             'whitespace-normal normal-case',
-            // The Figma's Button card: a 6px mat, dark for what holds, the
-            // lighter accent for what the character spends.
-            face === 'compact' && 'items-stretch justify-start gap-0 border-0 p-1.5 tracking-normal',
-            face === 'compact' && (tone === 'activation' ? 'bg-accent hover:bg-accent' : 'bg-muted hover:bg-muted'),
+            faceMat(face, tone),
+            face === 'compact' && 'items-stretch justify-start gap-0 tracking-normal',
           )}
         >
           {face === 'compact' ? (
@@ -198,6 +266,7 @@ export function GlyphCard({
               title={title}
               caption={caption}
               description={description}
+              footnote={footnote}
               status={status}
               tone={tone}
               origin={origin}
@@ -291,49 +360,60 @@ export function GlyphCard({
           )}
         </Button>
 
-        {/* ── Back: the detail ──────────────────────────────────────────── */}
+        {/* ── Back: the detail ──────────────────────────────────────────────
+            The same piece of card as the face: the same mat, the same frame,
+            the same name and tag at the top, and the full text at the face's
+            own size. A click anywhere on it that is not a control turns the
+            card back over. */}
         <div
           ref={detailRef}
           tabIndex={-1}
           inert={!open}
           aria-label={title}
-          className="card-flip__face--back card-flip__face bg-input flex flex-col p-1 outline-none"
-          style={{ border: `1px solid ${accent}`, boxSizing: 'border-box' }}
+          onClick={handleDetailClick}
+          className={cn('card-flip__face--back card-flip__face flex cursor-pointer flex-col outline-none', faceMat(face, tone))}
         >
-          <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 9px 12px' }}>
-            {/* Heading */}
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
-              <span
-                className="[&>svg]:size-4"
-                style={{ width: 32, height: 32, flexShrink: 0, border: `1px solid ${accent}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 14, color: accent, lineHeight: 1 }}
-              >
-                {detailGlyph ?? glyph}
-              </span>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center' }}>
-                <p style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: accent, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {title}
-                </p>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: accent, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: 1 }}>
-                  {caption}
-                </p>
+          {face === 'compact' ? (
+            <CompactFrame tone={tone}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                  <CompactTitle title={title} tone={tone} />
+                  <CloseButton onClose={() => setOpen(false)} tone={tone} />
+                </div>
+                <CompactTagRow glyph={glyph} caption={caption} status={status} tone={tone} origin={origin} />
               </div>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setOpen(false)}
-                aria-label="Fechar"
-                className="shrink-0 text-sm leading-none text-[var(--muted-foreground)] hover:bg-transparent hover:text-[var(--foreground)]"
-              >
-                ✕
-              </Button>
+              <DetailBody tone={tone}>{children}</DetailBody>
+            </CompactFrame>
+          ) : (
+            <div style={{ border: '1px solid var(--border)', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 8, padding: 12 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
+                <span
+                  className="[&>svg]:size-4"
+                  style={{ width: 28, height: 28, flexShrink: 0, border: `1px solid ${accent}`, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 13, color: accent, lineHeight: 1 }}
+                >
+                  {detailGlyph ?? glyph}
+                </span>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <p style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, color: 'var(--foreground)', lineHeight: 1.15, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+                    {title}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                    <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 8, letterSpacing: '1px', textTransform: 'uppercase', lineHeight: '11px', color: 'var(--muted-foreground)', margin: 0 }}>
+                      {caption}
+                    </p>
+                    {status && (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: status.color, lineHeight: '11px', letterSpacing: '0.04em' }}>
+                        {status.text}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <CloseButton onClose={() => setOpen(false)} tone="passive" />
+              </div>
+              <div style={{ height: 1, background: 'var(--border)', flexShrink: 0 }} />
+              <DetailBody tone="passive">{children}</DetailBody>
             </div>
-            {/* Divider */}
-            <div style={{ height: 1, background: accent, flexShrink: 0 }} />
-            {/* The detail itself — scrolls, because the card will not grow */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              {children}
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -382,62 +462,139 @@ export function GlyphCard({
 }
 
 /**
- * The compact face, as the Figma's Button card (80:491): inside the mat, a
- * frame ruled 2px (the control edge for what holds, the ink line for what is
- * spent) and doubled by a dashed line within, carrying the name, the type tag
- * and the clamped description.
+ * The card's mat — the edge around the frame — shared by both faces so the
+ * card looks like one object whichever side is up. The Figma's Button card
+ * (compact) has a 6px mat, dark for what holds and the lighter accent for
+ * what the character spends; the masthead face sits on the input tint.
  */
-function CompactFace({ glyph, title, caption, description, status, tone, origin }: {
-  glyph: ReactNode
-  title: string
-  caption: string
-  description?: string
-  status?: { text: string; color: string } | null
-  tone: 'passive' | 'activation'
-  origin: 'class' | 'ancestry' | 'archetype'
-}) {
+function faceMat(face: 'masthead' | 'compact', tone: 'passive' | 'activation'): string {
+  if (face === 'masthead') return 'bg-input border border-input-border p-1'
+  return cn('border-0 p-1.5', tone === 'activation' ? 'bg-accent hover:bg-accent' : 'bg-muted hover:bg-muted')
+}
+
+/** Text colour on the compact frame: light on the accent mat, card ink on the dark one. */
+function inkFor(tone: 'passive' | 'activation') {
+  return tone === 'activation' ? 'var(--accent-foreground)' : 'var(--card-foreground)'
+}
+
+/**
+ * The compact frame, as the Figma's Button card (80:491): inside the mat, a
+ * frame ruled 2px (the control edge for what holds, the ink line for what is
+ * spent) and doubled by a dashed line within. Both faces draw it.
+ */
+function CompactFrame({ tone, children }: { tone: 'passive' | 'activation'; children: ReactNode }) {
   const rule = tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'
   const dashed: React.CSSProperties = { position: 'absolute', inset: 2, border: `2px dashed ${rule}`, pointerEvents: 'none' }
 
   return (
-    <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `2px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 12, padding: 12, overflow: 'hidden' }}>
+    <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `2px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 10, padding: 12, overflow: 'hidden' }}>
       <div aria-hidden style={dashed}>
         <div style={dashed} />
       </div>
+      {children}
+    </div>
+  )
+}
 
-      {/* Name, then the type tag with the use counter at the other end */}
+/** The name across the top of the compact frame, wrapping onto a second line. */
+function CompactTitle({ title, tone }: { title: string; tone: 'passive' | 'activation' }) {
+  return (
+    <p className="type-title" style={{ flex: 1, minWidth: 0, margin: 0, color: inkFor(tone), textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
+      {title}
+    </p>
+  )
+}
+
+/** The type tag, coloured by where the card comes from, with the use counter at the other end. */
+function CompactTagRow({ glyph, caption, status, tone, origin }: {
+  glyph: ReactNode
+  caption: string
+  status?: { text: string; color: string } | null
+  tone: 'passive' | 'activation'
+  origin: GlyphCardOrigin
+}) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 6, rowGap: 2, minWidth: 0 }}>
+      <span
+        className="[&>svg]:size-2.5"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 3px', maxWidth: '100%',
+          background: `var(--${origin})`, color: `var(--${origin}-foreground)`,
+          border: `1px solid ${tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'}`,
+          fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, lineHeight: '12px',
+          letterSpacing: '0.06em', textTransform: 'uppercase',
+        }}
+      >
+        {glyph}
+        <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{caption}</span>
+      </span>
+      {status && (
+        <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: tone === 'activation' ? 'var(--accent-foreground)' : status.color, lineHeight: '12px', letterSpacing: '0.04em' }}>
+          {status.text}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** The ✕ in the detail's corner — the one control that only closes. */
+function CloseButton({ onClose, tone }: { onClose: () => void; tone: 'passive' | 'activation' }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon-xs"
+      onClick={onClose}
+      aria-label="Fechar"
+      className="-mt-0.5 -mr-1 shrink-0 text-xs leading-none opacity-70 hover:bg-transparent hover:opacity-100"
+      style={{ color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)' }}
+    >
+      ✕
+    </Button>
+  )
+}
+
+/** The full text on the far side. It scrolls, because the card will not grow. */
+function DetailBody({ tone, children }: { tone: 'passive' | 'activation'; children: ReactNode }) {
+  return (
+    <div
+      className="card-detail-scroll"
+      style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 1.5, color: inkFor(tone), textAlign: 'left' }}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** The compact face: the name, the type tag and the short summary. */
+function CompactFace({ glyph, title, caption, description, footnote, status, tone, origin }: {
+  glyph: ReactNode
+  title: string
+  caption: string
+  description?: string
+  footnote?: string
+  status?: { text: string; color: string } | null
+  tone: 'passive' | 'activation'
+  origin: GlyphCardOrigin
+}) {
+  return (
+    <CompactFrame tone={tone}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
-        <p className="type-title" style={{ margin: 0, color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--card-foreground)', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>
-          {title}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-          <span
-            className="[&>svg]:size-2.5"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 3px',
-              background: `var(--${origin})`, color: `var(--${origin}-foreground)`,
-              border: `1px solid ${tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'}`,
-              fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, lineHeight: '12px',
-              letterSpacing: '0.06em', textTransform: 'uppercase',
-            }}
-          >
-            {glyph}
-            {caption}
-          </span>
-          {status && (
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, color: tone === 'activation' ? 'var(--accent-foreground)' : status.color, lineHeight: '12px', letterSpacing: '0.04em' }}>
-              {status.text}
-            </span>
-          )}
-        </div>
+        <CompactTitle title={title} tone={tone} />
+        <CompactTagRow glyph={glyph} caption={caption} status={status} tone={tone} origin={origin} />
       </div>
 
-      {/* Description: fills the rest of the frame, fading at the cut */}
+      {/* The summary: fills the rest of the frame, fading if it ever runs long */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', paddingBottom: FACE_CLEARANCE, maskImage: FACE_FADE, WebkitMaskImage: FACE_FADE }}>
         <p style={{ fontFamily: 'var(--font-body)', fontWeight: 400, fontSize: 12, color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)', lineHeight: 1.5, margin: 0, textAlign: 'left', overflowWrap: 'anywhere' }}>
           {description}
         </p>
       </div>
-    </div>
+
+      {footnote && (
+        <p style={{ flexShrink: 0, margin: 0, paddingTop: 6, borderTop: `1px dashed ${tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'}`, fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 10, lineHeight: '12px', letterSpacing: '0.06em', textTransform: 'uppercase', color: tone === 'activation' ? 'var(--accent-foreground)' : 'var(--muted-foreground)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {footnote}
+        </p>
+      )}
+    </CompactFrame>
   )
 }

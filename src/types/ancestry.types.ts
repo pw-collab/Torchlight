@@ -1,5 +1,7 @@
 export interface Trait {
   name: string
+  /** One line for the card's face; the description is the far side. */
+  summary?: string
   description: string
 }
 

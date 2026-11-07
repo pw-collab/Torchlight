@@ -8,6 +8,7 @@ export const tiefling: Ancestry = {
   traits: [
     {
       name: 'Heatsight',
+      summary: '1/dia, vê o calor dos vivos por 3 rodadas.',
       description:
         '1/dia você pode ver as assinaturas de calor de criaturas vivas por 3 rodadas.',
     },

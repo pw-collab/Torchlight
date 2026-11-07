@@ -10,7 +10,7 @@ import type { TechniqueState } from '@/types/technique.types'
 import { rollWithMode, modifier, modifierStr, withDc } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import type { RollMode, RollResult } from '@/lib/dice'
-import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
+import { GlyphCard, DETAIL_BODY, faceText } from '@/components/shared/GlyphCard'
 import { OriginIcon } from '@/components/shared/CardOrigin'
 import { RollableText } from '@/components/shared/RollableText'
 import { Button, type buttonVariants } from '@/components/ui/button'
@@ -141,9 +141,9 @@ function ChoiceSection({
               </span>
               <span style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: 700,
-                color: 'var(--foreground)',
+                color: 'inherit',
                 background: 'color-mix(in oklch, var(--primary), transparent 82%)',
                 border: '1px solid color-mix(in oklch, var(--primary), transparent 70%)',
                 padding: '2px 8px',
@@ -445,7 +445,7 @@ function TechniqueCard({
       caption={style.label}
       accent={style.color}
       tone={style.tone}
-      description={technique.description}
+      description={faceText(technique.summary, technique.description)}
       status={statusLine}
       controls={
         // Ability cards — activation techniques, floating beneath the card
@@ -454,7 +454,7 @@ function TechniqueCard({
         ) : null
       }
     >
-      <p style={DETAIL_BODY}>
+      <p style={{ ...DETAIL_BODY, whiteSpace: 'pre-line' }}>
         <RollableText text={technique.description} label={technique.name} onRoll={onRoll} />
       </p>
       {kind === 'passive' && technique.modifier && <PassiveModifierLine technique={technique} stats={stats} />}
@@ -487,6 +487,8 @@ function TechniqueCard({
 interface GrantedTechnique {
   key: string
   name: string
+  /** The one line on the card's face. */
+  summary?: string
   description: string
   origin: 'ancestry' | 'archetype'
   accent: string
@@ -504,6 +506,7 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
     ? ancestry.traits.map(trait => ({
         key: `ancestry:${ancestry.id}:${trait.name}`,
         name: trait.name,
+        summary: trait.summary,
         description: trait.description,
         ...ANCESTRY_STYLE,
       }))
@@ -514,6 +517,7 @@ function grantedTechniques(ancestry?: Ancestry, archetype?: Archetype): GrantedT
     granted.push({
       key: `archetype:${archetype.id}`,
       name: archetype.name,
+      summary: archetype.talentSummary,
       description: archetype.talent,
       ...ARCHETYPE_STYLE,
     })
@@ -532,7 +536,7 @@ function GrantedCard({ entry, onRoll }: { entry: GrantedTechnique; onRoll?: (r: 
       title={entry.name}
       caption={KIND_STYLE.passive.label}
       accent={entry.accent}
-      description={entry.description}
+      description={faceText(entry.summary, entry.description)}
     >
       {/* Archetype talents are written as a paragraph of flavour followed by
           the rule itself — the line break between them has to survive. */}

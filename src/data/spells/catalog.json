@@ -8,6 +8,7 @@
     "duration": "1 torch",
     "castingTime": "Action",
     "description": "You understand the literal meaning of any spoken and written language. It takes about 10 rounds to read one page of text.",
+    "summary": "Understand any spoken or written language.",
     "classes": [
       "Arcane",
       "Divine",
@@ -24,6 +25,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "An illusion covers your entire body to alter your appearance. Physical interaction can’t extend for the illusive parts.",
+    "summary": "An illusion changes how you look.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -39,6 +41,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You gain the service of a familiar, a spirit that takes an animal form you choose such as cats, frogs, ferrets, crows, hawks, snakes, owls, ravens, toads, weasels, or even mice.\nA creature acting as a familiar can benefit a wizard, conveying its sensory powers to its master, conversing with him, and serving as a guard/scout/spy as well.\nA familiar have 1d4 hit points plus 1 hit point per caster level, and an AC of 10 + Caster level. It can’t attack but can deliver close (touch) spells.\nA wizard can have only one familiar at a time, however, and he has no control over what sort of creature answers the summoning, if any at all come.",
+    "summary": "An animal spirit serves you as scout and spy.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -54,6 +57,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A wave of thunderous force sweeps out from you out to a close area around where you stand.\nCreatures and objects within the area of effect are pushed 10 feet away from you.",
+    "summary": "Push everything close to you 10 feet away.",
     "classes": [
       "Arcane"
     ],
@@ -68,6 +72,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "You conjure a vengeful undead creature to do your bidding. When you cast this spell, you choose to summon either a wight or wraith. It appears next to you and is under your control. The undead creature acts on your turn. After 1 day, it melts away into smoke.",
+    "summary": "Summon a wight or wraith under your control for a day.",
     "classes": [
       "Arcane"
     ],
@@ -82,6 +87,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You conjure a corrosive bolt that hits one foe, dealing 1d6 damage a round. The bolt remains in the target for as long as you focus.",
+    "summary": "One foe takes 1d6 damage each round while you focus.",
     "classes": [
       "Arcane"
     ],
@@ -96,6 +102,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Teleport yourself and willing creatures within close range to a specified location on your same plane with a 50% chance of arriving off-target if the location is unknown.",
+    "summary": "Teleport yourself and close allies anywhere on this plane.",
     "classes": [
       "Arcane"
     ],
@@ -110,6 +117,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "You conjure a weightless, glassy sphere around you that extends out to close range. For the spell's duration, nothing can pass through or crush the sphere. You can roll the sphere a near distance on your turn.",
+    "summary": "An unbreakable glass sphere surrounds you.",
     "classes": [
       "Arcane"
     ],
@@ -124,6 +132,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You can sense the presence of magic within near range for the spell's duration. If you focus for two rounds, you discern its general properties. Full barriers block this spell.",
+    "summary": "Sense magic within near; focus to learn what it does.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -139,6 +148,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You spread your fingers with thumbs touching, unleashing a circle of flame that roars out to a close area around where you stand. Creatures within the area of effect take 1d6 damage, and flammable objects catch fire.",
+    "summary": "A ring of flame deals 1d6 to everything close.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -154,6 +164,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "One weapon you touch is imbued with a sacred blessing. The weapon becomes magical and has +1 to attack and damage rolls for the duration.",
+    "summary": "A touched weapon becomes magical, +1 to hit and damage.",
     "classes": [
       "Divine"
     ],
@@ -168,6 +179,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Compel a creature you can see to speak the truth while within range. They cannot utter a deliberate lie.",
+    "summary": "A creature you see cannot tell a deliberate lie.",
     "classes": [
       "Divine"
     ],
@@ -182,6 +194,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You throw the divining bones or peer into the blackness between the stars, seeking a portent. You can ask the GM one yes or no question. The GM truthfully answers \"yes\" or \"no.\" If you cast this spell more than once in 24 hours, treat a failed spellcasting check for it as a critical failure, instead.",
+    "summary": "Ask the GM one yes-or-no question.",
     "classes": [
       "Divine"
     ],
@@ -196,6 +209,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "You touch one object, such as a door threshold, setting a magical alarm on it. If any creature you do not designate while casting the spell touches or crosses past the object, a magical bell sounds in your head.",
+    "summary": "A mental bell rings when anyone crosses a touched object.",
     "classes": [
       "Arcane"
     ],
@@ -210,6 +224,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You paralyze one creature you can see within range. If the target is LV 9+, it may make a STR check vs. your last spellcasting check at the start of its turn to end the spell.",
+    "summary": "Paralyze one creature you can see.",
     "classes": [
       "Arcane"
     ],
@@ -224,6 +239,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You teleport yourself and up to one other willing creature to any point you can see.",
+    "summary": "Teleport you and one ally to a point you can see.",
     "classes": [
       "Arcane"
     ],
@@ -238,6 +254,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "A tunnel of your height opens in a barrier you touch and lasts for the duration. The passage can be up to near distance in length and must be in a straight line.",
+    "summary": "Open a tunnel through a barrier you touch.",
     "classes": [
       "Arcane"
     ],
@@ -252,6 +269,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Send a strobing orb of energy streaking toward a target within range. Choose an energy type from fire, cold, or electricity. The orb deals 3d8 damage and delivers a concussive blast of the chosen energy type. If the energy type is anathema to the target's existence, the orb deals double damage to it.",
+    "summary": "An energy orb deals 3d8 fire, cold or lightning.",
     "classes": [
       "Arcane"
     ],
@@ -266,6 +284,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "An invisible layer of magical force protects your vitals. Your armor class becomes 14 (18 on a critical spellcasting check) for the spell’s duration.",
+    "summary": "Your AC becomes 14 (18 on a critical).",
     "classes": [
       "Arcane"
     ],
@@ -280,6 +299,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call down punishing flames on a creature you can see within range. It takes 1d6 damage.",
+    "summary": "Punishing flames deal 1d6 to a creature you see.",
     "classes": [
       "Divine"
     ],
@@ -294,6 +314,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You magically mute sound in a near cube within the spell’s range. Creatures inside the area are deafened, and any sounds they create cannot be heard.",
+    "summary": "Mute all sound in a near cube.",
     "classes": [
       "Arcane"
     ],
@@ -308,6 +329,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You hurl a small flame that erupts into a fiery blast. All creatures in a near-sized cube around where the flame lands take 4d6 damage.",
+    "summary": "A fiery blast deals 4d6 in a near cube.",
     "classes": [
       "Arcane"
     ],
@@ -322,6 +344,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "You instantly banish a creature you touch, sending it and all possessions it carries to face the judgment of your god. You can banish an intelligent creature of LV 10 or less. When the creature returns in 5 rounds, it has been healed to full hit points if its deeds pleased your god. It has been reduced to 1 hit point if its deeds angered your god. If your god can't judge its actions, it is unchanged.",
+    "summary": "Banish a creature to face your god's judgment.",
     "classes": [
       "Divine"
     ],
@@ -336,6 +359,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "All allies within near range of you regain 2d6 hit points.",
+    "summary": "All allies within near regain 2d6 HP.",
     "classes": [
       "Divine"
     ],
@@ -350,6 +374,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You can float a near distance vertically per round on your turn. You can also push against solid objects to move horizontally.",
+    "summary": "Float up or down a near distance each round.",
     "classes": [
       "Arcane"
     ],
@@ -364,6 +389,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A door, window, gate, chest, or portal you can see within range instantly opens, defeating all mundane locks and barriers. This spell creates a loud knock audible to all within earshot.",
+    "summary": "Instantly open a door, lock or portal, loudly.",
     "classes": [
       "Arcane"
     ],
@@ -378,6 +404,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You may make an attempt to cast this spell when you fall. Your rate of descent slows so that you land safely on your feet.",
+    "summary": "Cast as you fall to land safely.",
     "classes": [
       "Arcane"
     ],
@@ -392,6 +419,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Mighty beings come to your aid. The beings must have a combined total of 20 levels or less. Chaotic PCs summon demons/devils, and lawful or neutral PCs summon angels. The beings act of free will to aid you on your turn. After 10 rounds, they return to their realms. You cannot cast this spell again until you complete penance.",
+    "summary": "Summon angels or demons, up to 20 levels, for 10 rounds.",
     "classes": [
       "Divine"
     ],
@@ -406,6 +434,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You transform a creature you touch into another natural creature you choose of equal or smaller size. Any gear the target carries melds into its new form. The target gains the creature's hit points, armor class, and attacks, but retains its intellect. If the target goes to 0 hit points, it reverts to its true form at half its prior hit points. You can target any willing creature with this spell, or an unwilling creature whose level is less than or equal to half your level rounded down (minimum 1).",
+    "summary": "Turn a touched creature into another natural creature.",
     "classes": [
       "Arcane"
     ],
@@ -420,6 +449,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You send a brief, mental message to any creature with whom you are familiar who is on the same plane.",
+    "summary": "Send a short mental message to someone you know.",
     "classes": [
       "Arcane"
     ],
@@ -434,6 +464,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "Create a number of illusory duplicates of yourself equal to half your level rounded down (minimum 1). Each time a creature attacks you, the attack misses and causes one of the duplicates to evaporate. If all the illusions have disappeared, the spell ends.",
+    "summary": "Illusory doubles absorb attacks against you.",
     "classes": [
       "Arcane"
     ],
@@ -448,6 +479,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "With the touch of your hands, you expunge curses and illnesses. One curse, illness, or affliction of your choice affecting the target creature ends.",
+    "summary": "End one curse, illness or affliction on a touched target.",
     "classes": [
       "Divine"
     ],
@@ -462,6 +494,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "One creature you touch is healed to full hit points. You cannot cast this spell again until you complete a rest.",
+    "summary": "Heal one touched creature to full HP.",
     "classes": [
       "Divine"
     ],
@@ -476,6 +509,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You create a convincing visible and audible illusion that fills up to a near-sized cube in range. The illusion cannot cause harm, but creatures who believe the illusion is real react to it as though it were. A creature who inspects the illusion from afar must pass a Wisdom check vs. your last spellcasting check to perceive the false nature of the illusion. Touching the illusion also reveals its false nature.",
+    "summary": "Create a convincing sight-and-sound illusion.",
     "classes": [
       "Arcane"
     ],
@@ -490,6 +524,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Rebuke creatures who oppose your alignment, forcing them to flee. You must present a holy symbol to cast this spell. If you are lawful or neutral, this spell affects demons, devils, and outsiders. If you are chaotic, this spell affects angels and natural creatures of the wild. Affected creatures within near of you must make a CHA check vs. your spellcasting check. If a creature fails by 10+ points and is equal to or less than your level, it is destroyed. Otherwise, on a fail, it flees from you for 5 rounds.",
+    "summary": "Force opposing creatures near you to flee.",
     "classes": [
       "Divine"
     ],
@@ -504,6 +539,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You look into a crystal ball or reflecting pool, calling up images of a distant place. For the spell's duration, you can see and hear a creature or location you choose that is on the same plane. This spell is DC 18 to cast if you try to scry on a creature or location that is unfamiliar to you. Each round, creatures you view may make a Wisdom check vs. your last spellcasting check. On a success, they become aware of your magical observation.",
+    "summary": "See and hear a distant creature or place.",
     "classes": [
       "Arcane"
     ],
@@ -518,6 +554,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You seek your entity's counsel. Ask the GM up to three yes or no questions. The GM truthfully answers \"yes\" or \"no\" to each. If you cast this spell more than once in 24 hours, treat a failed spellcasting check for it as a critical failure, instead.",
+    "summary": "Ask the GM up to three yes-or-no questions.",
     "classes": [
       "Divine",
       "Primal",
@@ -534,6 +571,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "Your feet lift from the ground, and you take to the air like a hummingbird. You can fly near for the spell's duration and are able to hover in place.",
+    "summary": "Fly a near distance and hover in place.",
     "classes": [
       "Arcane"
     ],
@@ -548,6 +586,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You peer into the mind of one creature you can see within range. Each round, you learn the target’s immediate thoughts. On its turn, the target makes a Wisdom check vs. your last spellcasting check. If the target succeeds, it notices your presence in its mind and the spell ends. \"Magic is simply the art of doing and undoing.\" -Creeg, human wizard",
+    "summary": "Read the surface thoughts of a creature you see.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -563,6 +602,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You weave a lulling spell that fills a near-sized cube extending from you. Choose a number of living creatures in the area up to to your level. Those creatures fall into a deep sleep if they are LV 2 or less. Vigorous shaking or being injured wakes them.",
+    "summary": "Creatures of LV 2 or less in a near cube fall asleep.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -578,6 +618,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Weapons become magical +2 and deal an additional d8 damage for the spell's duration.",
+    "summary": "Weapons become +2 and deal an extra d8.",
     "classes": [
       "Divine"
     ],
@@ -592,6 +633,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "A putrid cloud of yellow poison fills a near-sized cube within range. It spreads around corners. Creatures inside the cloud are blinded and take 2d6 damage at the beginning of their turns. A creature of LV 9 or less that ends its turn fully inside the cloud dies.",
+    "summary": "A poison cloud blinds and deals 2d6 each turn.",
     "classes": [
       "Arcane"
     ],
@@ -606,6 +648,7 @@
     "duration": "10 minutes",
     "castingTime": "Action",
     "description": "One creature you touch becomes impervious to the wild fury of the elements. Choose fire, cold, or electricity. For the spell's duration, the target is immune to harm from energy of the chosen type.",
+    "summary": "A touched creature becomes immune to fire, cold or lightning.",
     "classes": [
       "Arcane"
     ],
@@ -620,6 +663,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "A creature you touch becomes invisible for the spell’s duration. The spell ends if the target attacks or casts a spell.",
+    "summary": "A touched creature turns invisible until it attacks.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -635,6 +679,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You utter a divine censure, blinding or deafening one creature you can see in range. The creature has disadvantage on tasks requiring the lost sense.",
+    "summary": "Blind or deafen one creature you see.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -650,6 +695,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A creature you touch regains 1d4 hit points on your turn for the duration. This spell also regrows lost body parts.",
+    "summary": "A touched creature regains 1d4 HP each turn and regrows limbs.",
     "classes": [
       "Divine"
     ],
@@ -664,6 +710,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Present a holy symbol and force undead creatures within near range to flee or be destroyed on a failed CHA check vs. your spellcasting check.",
+    "summary": "Undead near you flee or are destroyed.",
     "classes": [
       "Divine"
     ],
@@ -678,6 +725,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call down a holy pillar of fire, immolating one creature you can see within range. The target takes 2d6 damage.",
+    "summary": "A holy pillar of fire deals 2d6 to one creature.",
     "classes": [
       "Divine"
     ],
@@ -692,6 +740,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You interpret the meaning of supernatural portents and omens. Ask the GM one question about a specific course of action. The GM says whether the action will lead to “weal” or “woe.”",
+    "summary": "Learn if a course of action leads to weal or woe.",
     "classes": [
       "Divine",
       "Witchcraft"
@@ -707,6 +756,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A green ray shoots from your finger and turns a creature or object into ash. A target creature of LV 6 or less instantly dies. If it is LV 7+, it takes 5d6 damage, instead. A non-magical object up to the size of a large tree is destroyed.",
+    "summary": "A green ray turns a creature or object to ash.",
     "classes": [
       "Arcane"
     ],
@@ -721,6 +771,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "End one spell that affects one target you can see in range.\nFor higher tiers, make a spellcasting check as if you’re casting the targeted spell.",
+    "summary": "End one spell on a target you see.",
     "classes": [
       "Arcane"
     ],
@@ -735,6 +786,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "You touch one humanoid’s remains, and it rises as a zombie or skeleton under your control. The remains must have at least three limbs and its head intact. The undead creature acts on your turn. After 1 day, the creature collapses into grave dust.",
+    "summary": "Raise a corpse as a zombie or skeleton for a day.",
     "classes": [
       "Arcane"
     ],
@@ -749,6 +801,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "A protective force wrought of your holy conviction surrounds you. You gain a +2 bonus to your armor class for the duration.",
+    "summary": "+2 to your AC.",
     "classes": [
       "Divine"
     ],
@@ -763,6 +816,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "One weapon you touch is wreathed in purifying flames. It deals an additional 1d4 damage (1d6 vs. undead) for the duration.",
+    "summary": "A touched weapon deals +1d4 (1d6 vs. undead).",
     "classes": [
       "Divine"
     ],
@@ -777,6 +831,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You become the divine avatar of your god's wrath, wreathed in holy flames or a black aura of smoldering corruption. For the spell's duration, you can fly a near distance, your weapons are magical, and you have a +4 bonus to your weapon attacks and damage.",
+    "summary": "Fly, and gain +4 to weapon attacks and damage.",
     "classes": [
       "Divine"
     ],
@@ -791,6 +846,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You magically hold a portal closed for the duration. A creature must make a successful STR check vs. your spellcasting check to open the portal. The knock spell ends this spell.",
+    "summary": "Hold a door shut; opening it takes a STR check.",
     "classes": [
       "Arcane"
     ],
@@ -805,6 +861,7 @@
     "duration": "1d8 days",
     "castingTime": "Action",
     "description": "You magically beguile one humanoid of LV 2 or less within near range, who regards you as a friend for the duration. The spell ends if you or your allies do anything harmful to the target. The target knows it was magically charmed after the spell ends.",
+    "summary": "A humanoid of LV 2 or less sees you as a friend.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -820,6 +877,7 @@
     "duration": "1 hour real time",
     "castingTime": "Action",
     "description": "One object you touch glows with bright, heatless light, illuminating out to a near distance for 1 hour of real time.",
+    "summary": "A touched object glows out to near for 1 hour.",
     "classes": [
       "Arcane",
       "Divine"
@@ -835,6 +893,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "In a puff of smoke, you teleport a near distance to an area you can see.",
+    "summary": "Teleport a near distance to a spot you see.",
     "classes": [
       "Arcane"
     ],
@@ -849,6 +908,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You conjure an invisible, grape-sized eye within range. You can see through the eye. It can see in the dark out to near range, fly near on your turn, and squeeze through openings as narrow as a keyhole.",
+    "summary": "An invisible flying eye you can see through.",
     "classes": [
       "Arcane"
     ],
@@ -863,6 +923,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "An invisible, near-sized cube of null-magic appears centered on you. Within the cube, no spells can be cast. Magic items and spells have no effect in the zone, and no magic can enter. The cube moves with you. Spells such as dispel magic have no effect on it. Another antimagic shell does not affect this one.",
+    "summary": "No magic works in a near cube around you.",
     "classes": [
       "Arcane",
       "Divine"
@@ -878,6 +939,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You shoot a blue-white ray of lightning from your hands, hitting all creatures in a straight line out to a far distance. Creatures struck by the lightning take 3d6 damage.",
+    "summary": "A line of lightning deals 3d6 out to far.",
     "classes": [
       "Arcane"
     ],
@@ -892,6 +954,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You mesmerize one creature you can see in range. The target can't take actions, and it moves in a random direction on its turn. If the target is LV 9+, it may make a WIS check vs. your last spellcasting check at the start of its turn to end the spell.",
+    "summary": "A creature can't act and wanders at random.",
     "classes": [
       "Arcane"
     ],
@@ -906,6 +969,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Conjure a circle of runes around yourself and name a type of creature. Creatures of the chosen type cannot attack or cast hostile spells on anyone inside the circle, and can't possess, compel, or beguile anyone inside the circle.",
+    "summary": "A rune circle wards off one type of creature.",
     "classes": [
       "Arcane"
     ],
@@ -920,6 +984,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "This spell can't target creatures. You turn a tree-sized collection of raw materials into a finished work. For example, you convert a pile of bricks or rocks into a bridge. The finished work converts back to raw materials when the spell ends.",
+    "summary": "Turn raw materials into a finished work.",
     "classes": [
       "Arcane"
     ],
@@ -934,6 +999,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Your touch restores ebbing life. Roll a number of d6s equal to 1 + half your level (rounded down). One target you touch regains that many hit points.",
+    "summary": "A touched target regains (1 + half level) d6 HP.",
     "classes": [
       "Priest"
     ],
@@ -948,6 +1014,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You issue a verbal command to one creature in range who can understand you. The command must be one word, such as “kneel.” The target obeys the command for as long as you focus. If your command is ever directly harmful to the creature, it may make a Charisma check vs. your last spellcasting check. On a success, the spell ends.",
+    "summary": "A creature obeys a one-word command.",
     "classes": [
       "Arcane",
       "Divine",
@@ -964,6 +1031,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You create a floating, circular disk of force with a concave center. It can carry up to 20 gear slots. It hovers at waist level and automatically stays within near of you. It can’t cross over drop-offs or pits taller than a human.",
+    "summary": "A floating disk carries 20 gear slots for you.",
     "classes": [
       "Arcane"
     ],
@@ -978,6 +1046,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You fold space and time, transporting yourself and all willing creatures within close range to a location on another plane of your choice. Unless you have been to your intended location before, you appear in a random place on the destination plane.",
+    "summary": "Travel with close allies to another plane.",
     "classes": [
       "Arcane"
     ],
@@ -992,6 +1061,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You magically paralyze one humanoid creature of LV 4 or less you can see within range.",
+    "summary": "Paralyze a humanoid of LV 4 or less.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1007,6 +1077,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You transform yourself and any gear you carry into another natural creature you've seen of level 10 or less. You gain the creature's hit points, armor class, and attacks, but retain your intellect. If you go to 0 hit points while under the effects of this spell, you revert to your true form at 1 hit point.",
+    "summary": "Turn into a natural creature of LV 10 or less.",
     "classes": [
       "Arcane",
       "Primal"
@@ -1022,6 +1093,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Alter reality with a single wish, interpreted by the GM. A failed spellcasting check is treated as a critical failure and rolls the mishap with disadvantage.",
+    "summary": "Alter reality with a single wish.",
     "classes": [
       "Arcane"
     ],
@@ -1036,6 +1108,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Utter the Word of Doom. One creature you target of LV 9 or less dies if it hears you. Treat a failed spellcasting check for this spell as a critical failure, and roll the mishap with disadvantage.",
+    "summary": "A creature of LV 9 or less that hears you dies.",
     "classes": [
       "Arcane"
     ],
@@ -1050,6 +1123,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Reach into the outer planes and summon an elemental or outsider of LV 7 or less under your control. If you lose focus, you lose control and the creature becomes hostile towards you and your allies. A spellcasting check is required to return the creature to the outer planes.",
+    "summary": "Summon an elemental or outsider of LV 7 or less.",
     "classes": [
       "Arcane"
     ],
@@ -1064,6 +1138,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You move and shape water. You can cause a section of water up to 100 feet in width and depth to change shape, defy gravity, or flow in a different direction.",
+    "summary": "Move and reshape up to 100 feet of water.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1079,6 +1154,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Lift a creature or object weighing 1,000 pounds or less and move it in any direction or hold it in place.",
+    "summary": "Lift and move up to 1,000 pounds with your mind.",
     "classes": [
       "Arcane"
     ],
@@ -1093,6 +1169,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "Creates a near-sized cube of sticky spider web within range. Creatures stuck in the web must succeed on a Strength check vs. your spellcasting check to free themselves.",
+    "summary": "Sticky webs fill a near cube and trap creatures.",
     "classes": [
       "Arcane"
     ],
@@ -1107,6 +1184,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "For the spell's duration, chaotic beings have disadvantage on attack rolls and hostile spellcasting checks against the target. These beings also can't possess, compel, or beguile it. When cast on an already-possessed target, the possessing entity makes a CHA check vs. the last spellcasting check. On a failure, the entity is expelled.",
+    "summary": "Chaotic beings struggle to harm or possess the target.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1122,6 +1200,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "You magically change your physical form, gaining one feature that modifies your existing anatomy. For example, you can grow functional gills on your neck or bear claws on your fingers. This spell can’t grow wings or limbs.",
+    "summary": "Grow one new feature, like gills or claws.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -1137,6 +1216,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A creature you target turns into a statue made of hardened salt. You can target a creature you can see of LV 5 or less. If you focus on this spell for 3 rounds in a row, the transformation becomes permanent.",
+    "summary": "Turn a creature of LV 5 or less into salt.",
     "classes": [
       "Divine"
     ],
@@ -1151,6 +1231,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You and your gear turn into a cloud of smoke for the spell's duration. You can fly and pass through any gap that smoke could. You can sense the terrain and any movement around you out to a near distance. You can't cast spells while in this form.",
+    "summary": "Become smoke that flies through any gap.",
     "classes": [
       "Arcane"
     ],
@@ -1165,6 +1246,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A glowing bolt of force streaks from your open hand, dealing 1d4 damage to one target.\nWizards (Class) have advantage on checks to cast this spell.",
+    "summary": "A bolt of force deals 1d4 to one target.",
     "classes": [
       "Arcane"
     ],
@@ -1179,6 +1261,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "An object you touch that weighs no more than 5 pounds becomes fixed in its current location. It can support up to 5,000 pounds of weight for the duration of the spell.",
+    "summary": "Fix a small object in place; it holds 5,000 pounds.",
     "classes": [
       "Arcane"
     ],
@@ -1193,6 +1276,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A dead body you touch answers your questions in a distant, wheezing voice. You can ask the dead body up to three yes or no questions (one at a time). The GM truthfully answers \"yes\" or \"no\" to each. If you cast this spell more than once in 24 hours, treat a failed spellcasting check for it as a critical failure, instead.",
+    "summary": "A corpse answers three yes-or-no questions.",
     "classes": [
       "Arcane",
       "Divine",
@@ -1209,6 +1293,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Your skin becomes like granite. For the spell's duration, your armor class becomes 17 (20 on a critical spellcasting check).",
+    "summary": "Your AC becomes 17 (20 on a critical).",
     "classes": [
       "Arcane"
     ],
@@ -1223,6 +1308,7 @@
     "duration": "5 rounds",
     "castingTime": "Action",
     "description": "Conjures a contiguous, transparent wall of force in a near-sized area of your choice that blocks physical objects on the same plane.",
+    "summary": "An invisible wall blocks everything physical.",
     "classes": [
       "Arcane"
     ],
@@ -1237,6 +1323,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "One creature you touch gains a luck token.",
+    "summary": "A touched creature gains a luck token.",
     "classes": [
       "Divine"
     ],
@@ -1251,6 +1338,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Commune directly with your god for guidance. Ask the GM one question. The GM answers the question truthfully using the knowledge your god possesses. You cannot cast this spell again until you complete penance.",
+    "summary": "Your god truthfully answers one question.",
     "classes": [
       "Divine"
     ],
@@ -1265,6 +1353,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You cause a creature or an object to grow or shrink double its size. If the target is unwilling, must make a DC 13 CON check.\nIf the target is a creature, everything it is wearing and carrying changes size with it. Any item dropped by an affected creature returns to normal size at once. Any physical damage increases or decreases it’s dice damage category.",
+    "summary": "Double or halve the size of a creature or object.",
     "classes": [
       "Arcane"
     ],
@@ -1279,6 +1368,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "You touch one humanoid’s remains, and it rises as a zombie or skeleton under your control. The remains must have at least three limbs and its head intact. The undead creature acts on your turn. After 1 day, the creature collapses into grave dust.",
+    "summary": "Raise a corpse as a zombie or skeleton for a day.",
     "classes": [
       "Necromancer"
     ],
@@ -1293,6 +1383,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You touch a corpse or other remains. the target is protected from decay and can't become undead.\nA failed spellcasting check kills instantly the creature. You can’t cast this spell again (forever) if you critical fail.",
+    "summary": "Protect a corpse from decay and undeath.",
     "classes": [
       "Arcane"
     ],
@@ -1307,6 +1398,7 @@
     "duration": "3 rds",
     "castingTime": "Action",
     "description": "The selected target has its body accelerated in time, meaning it can take an additional turn per round.\nWhen the spell ends, the target is overcome by a wave of lethargy and cannot act for 1 full round.\nA failure to cast this spell causes the caster to have lethargy effect.",
+    "summary": "The target takes an extra turn each round.",
     "classes": [
       "Arcane"
     ],
@@ -1321,6 +1413,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Necromantic energy washes over a creature draining moisture and vitality from it.\nA target plant creature of LV 4 or less instantly dies. If it is a living creature, it takes 3d8 damage instead.\nA non-magical plant up to the size of a large tree is withers and dies.",
+    "summary": "Drain a creature for 3d8; kills weak plants.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1336,6 +1429,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "Thin and wispy flames wreathe your body for the duration, shedding light to a near distance (see Light Sources, pg. 84).\nThe shield grants immunity to cold damage. Melee attacks hitting you returns 1d6 fire damage to the attacker.",
+    "summary": "Immune to cold; melee attackers take 1d6 fire.",
     "classes": [
       "Arcane"
     ],
@@ -1350,6 +1444,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "Thin and wispy snow wreathe your body for the duration, shedding light to a near distance (see Light Sources, pg. 84).\nThe shield grants immunity to fire damage. Melee attacks hitting you returns 1d6 cold damage to the attacker.",
+    "summary": "Immune to fire; melee attackers take 1d6 cold.",
     "classes": [
       "Arcane"
     ],
@@ -1364,6 +1459,7 @@
     "duration": "1 Touch until 5 rds",
     "castingTime": "Action",
     "description": "You imbue your touch to drain life essence.\nOne target you touch with a successful attack roll takes a number of d6 equal to half your level (rounded down) and you regain HP equal to the half of the damage. \nAdditionally,  the target permanently loses 1 CON that can be restored only by a priest on the next 24 hours.\nUndead creatures are unaffected by this spell.",
+    "summary": "Drain a touched target and heal half the damage.",
     "classes": [
       "Arcane"
     ],
@@ -1378,6 +1474,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "This spell grows an inert duplicate of a living creature as a safeguard against death.\nThis clone needs to form inside a vessel while the spell is casting; you can also choose to have the clone be a younger version of the same creature. It remains inert and endures indefinitely, as long as its vessel remains undisturbed.\nAt any time after the clone matures for 3 months, if the original creature dies, its soul transfers to the clone, provided that the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment.\nTreat a failed spellcasting check for it as a critical failure instead. Roll twice and combine both effects. If you roll a 1 instead, you intantly die additionally.",
+    "summary": "Grow a duplicate that takes over when you die.",
     "classes": [
       "Arcane"
     ],
@@ -1392,6 +1489,7 @@
     "duration": "5 days",
     "castingTime": "Action",
     "description": "This spell attracts or repels creatures of your choice. You target something within range, either a Huge or smaller object or creature or an area that is no larger than a 20-story building.\nAntipathy. The enchantment causes creatures of the kind you designated of lower level tha yours to feel an intense urge to leave the area and avoid the target.\nSympathy. The enchantment causes the specified creatures of lower level tha yours to feel an intense urge to approach the target while within 60 feet of it or able to see it.",
+    "summary": "Make chosen creatures flee from or crave a target.",
     "classes": [
       "Arcane",
       "Primal"
@@ -1407,6 +1505,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You unleash the power of your mind to blast the intellect of up to ten creatures.\nA target creature of LV 15 or less instantly dies. If it is LV 11+, it is stunned for 1d6 rounds and takes 7d6 damage instead.\nCreatures that have an Intelligence score of 2 or lower are unaffected.",
+    "summary": "Blast the minds of up to ten creatures.",
     "classes": [
       "Arcane"
     ],
@@ -1421,6 +1520,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Evokes four near sized blazing meteors to crash the ground. Each one causes 10d6 fire and 10d6 bludgeoning damage.",
+    "summary": "Four meteors, each 10d6 fire and 10d6 bludgeoning.",
     "classes": [
       "Arcane"
     ],
@@ -1435,6 +1535,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Casts Polymorph spell (pg. 67) targeting up to ten creatures.",
+    "summary": "Polymorph up to ten creatures.",
     "classes": [
       "Arcane",
       "Primal"
@@ -1450,6 +1551,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Immune to all damage until the spell ends.",
+    "summary": "Immune to all damage.",
     "classes": [
       "Arcane"
     ],
@@ -1464,6 +1566,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "Open a portal at a point within far to another location on any plane.",
+    "summary": "Open a portal to any place on any plane.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1479,6 +1582,7 @@
     "duration": "1 session",
     "castingTime": "Action",
     "description": "The creature can't be surprised and has advantage on d20 checks. Additionally, other creatures have disadvantage on attack rolls against the target for the duration.\nThis spell immediately ends if you cast it again before its duration ends.",
+    "summary": "Can't be surprised; advantage on d20 checks.",
     "classes": [
       "Arcane"
     ],
@@ -1493,6 +1597,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You energize a fresh corpse to rise as a Wight to do your bidding. It acts on your turn. After 1 day it turns to dust.",
+    "summary": "Raise a fresh corpse as a wight for a day.",
     "classes": [
       "Arcane",
       "Necromancer"
@@ -1508,6 +1613,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You instantly banish a creature you touch, sending it and all possessions it carries to another dimension.\nYou can banish an intelligent creature of LV 10 or less.\nIf you focus on this spell for 6 rounds in a row, a creature native to a different plane of existence than the one you’re on, it returns to its home plane.",
+    "summary": "Banish a touched creature to another dimension.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1523,6 +1629,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "",
+    "summary": "Wards a creature against death.",
     "classes": [
       "Divine"
     ],
@@ -1537,6 +1644,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A melee weapon you touch becomes thirsty for blood. It now heals the wielder for an amount of HP equal to the damage it deals, encouraging the wielder to keep fighting.",
+    "summary": "A melee weapon heals its wielder for the damage it deals.",
     "classes": [
       "Divine"
     ],
@@ -1551,6 +1659,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You draw a magic circle out to near-sized cube centered on yourself. For the spell’s duration, undead creatures LV 9 or less cannot attack or cast a hostile spell on anyone inside the circle. The undead also can’t possess, compel, or beguile anyone inside the circle.",
+    "summary": "Undead of LV 9 or less can't harm those in the circle.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1566,6 +1675,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "You magically create darkness in a near cube within the spell’s range. Creatures inside the area are blinded and they are obscured from view from the outside. Only magical light can penetrate this magical darkness.",
+    "summary": "Magical darkness blinds a near cube.",
     "classes": [
       "Arcane"
     ],
@@ -1580,6 +1690,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You know the direction and range of the closest nonanimated corpse.",
+    "summary": "Find the direction of the nearest corpse.",
     "classes": [
       "Arcane",
       "Divine"
@@ -1595,6 +1706,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You call on your faith’s favor to part the sea. You create passages or hold back the tide in a double near cube within the spell range.",
+    "summary": "Part the sea or hold back the tide.",
     "classes": [
       "Divine",
       "Primal"
@@ -1610,6 +1722,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "The caster return a non-animated dead creature you touch to life with 1 hit point, but must provide a sacrifice one soul of equal level to do so. The ritual takes three rounds to cast.\nThe spell neutralizes any illnesses and wounds but not restore missing body parts.",
+    "summary": "Bring a dead creature back at 1 HP, for a soul.",
     "classes": [
       "Divine",
       "Necromancer"
@@ -1625,6 +1738,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "An undead creature you touch, whose level is equal to or less than yours, is instantly sent to its final afterlife, reducing it to grave dust.",
+    "summary": "Turn a touched undead of your level or less to dust.",
     "classes": [
       "Divine"
     ],
@@ -1639,6 +1753,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You draw a magic circle with necrotic energy out to nearsized cube centered on yourself. For the spell’s duration, enemy living creatures LV 9 or below cannot attack or cast a hostile spell on anyone inside the circle.",
+    "summary": "Living foes of LV 9 or less can't harm those in the circle.",
     "classes": [
       "Divine"
     ],
@@ -1653,6 +1768,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "Your skin becomes covered in hardened bone armor, taking 1d8 damage to your maximum HP. For the spell’s duration, your armor class becomes 17 (20 on a critical spellcasting check.).",
+    "summary": "Bone armor: AC 17, but lose 1d8 max HP.",
     "classes": [
       "Arcane"
     ],
@@ -1667,6 +1783,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "You summon forth a mummy from its hidden crypt who will act on your turn and do your bidding. After 5 rounds, it melts away into smoke.\nA critical fail on casting this spell still summons the mummy, but it turns against you during its 5 round lifespan. Do not roll on the mishap table.",
+    "summary": "A mummy fights for you for 5 rounds.",
     "classes": [
       "Arcane",
       "Grave Warden"
@@ -1682,6 +1799,7 @@
     "duration": "Permanent",
     "castingTime": "Action",
     "description": "After a day of preparation and ceremony, you embalm a corpse as a mummy who acts on your turn. Mummies deteriorate when walking long distances, but can be carried in a casket or left to guard a location. This minion does not count against the LV limit of other raised undead minions.",
+    "summary": "Embalm a corpse into a lasting mummy servant.",
     "classes": [
       "Divine"
     ],
@@ -1696,6 +1814,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "Your soul willingly leaves your body and occupies a target in near range. An unwilling target can make a CHA check vs. your spellcasting check. If they fail, you control the target on your turn, but your body stands in a helpless daze.\nWhen the target returns to its body, it becomes aware of the possession, but retains no memories of what transpired. If the target dies, you return to your body as long as it is within near range, otherwise you return to your body and drop to 0 HP.",
+    "summary": "Leave your body and control a creature near you.",
     "classes": [
       "Divine",
       "Necromancer"
@@ -1711,6 +1830,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "An infusion of positive energy grants a creature continuous healing. The target regains half of its hit points. For the duration of the spell, the target regains 1 hit point per turn.\nEach time the creature regains hit points from regeneration, one damaged or ruined organ (if any) regrows. During the spell's duration, the creature can also take an action to reattach severed body parts.",
+    "summary": "Heal half HP, then 1 HP per turn; organs regrow.",
     "classes": [
       "Divine"
     ],
@@ -1725,6 +1845,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call a storm made of sheets of roaring flame, immolating five creatures you can see within range. A target takes 3d10 damage.",
+    "summary": "Flames deal 3d10 to five creatures you see.",
     "classes": [
       "Divine"
     ],
@@ -1739,6 +1860,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You take control of the weather within 5 miles of you for 1 entire day. \nYou change the current weather conditions, which are determined by the DM based on the climate and season.\nWeather conditions will be changed in three categories: precipitation, temperature, and wind.",
+    "summary": "Control the weather within 5 miles for a day.",
     "classes": [
       "Divine"
     ],
@@ -1753,6 +1875,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "A flood of healing energy flows from you into injured creatures around you. You restore up to 500 hit points, divided as you choose among any number of creatures that you can see within range. Creatures healed by this spell are also cured of all diseases and any effect making them blinded or deafened.",
+    "summary": "Split 500 HP of healing among creatures you see.",
     "classes": [
       "Divine"
     ],
@@ -1767,6 +1890,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You confers on a creature the ability to see all things as they actually are. The creature sees invisible creatures or objects normally, sees through illusions, and sees the true form of polymorphed, changed, or transmuted things, its eyes ignores magical darkness.",
+    "summary": "See through invisibility, illusions and disguises.",
     "classes": [
       "Divine"
     ],
@@ -1781,6 +1905,7 @@
     "duration": null,
     "castingTime": "Action",
     "description": "",
+    "summary": "Call on your god to intervene directly.",
     "classes": [
       "Divine"
     ],
@@ -1795,6 +1920,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You form a ballista made of bone from a corpse you touch.\nIt fires a bolt of bone shards during your turn, automatically hitting a target in near range, doing 4d6 damage. \nThe bone ballista has 10 HP, 11 AC, and can be damaged by physical or magical attacks.",
+    "summary": "A bone ballista auto-hits for 4d6 each turn.",
     "classes": [
       "Divine"
     ],
@@ -1809,6 +1935,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Brings to your mind legends about an important person, place, or thing. The divination brings legends (if any) about the person, place, or things to your mind. These may be legends that are still current, legends that have been forgotten, or even information that has never been generally known. If the person, place, or thing is not of legendary importance, you gain no information.\nThe spell is cast with incense and strips of ivory formed into a rectangle, but some item of value to the caster must be sacrificed in addition (a potion, magical scroll, magical item, etc.)",
+    "summary": "Recall legends about a person, place or thing.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -1824,6 +1951,7 @@
     "duration": "1 rd",
     "castingTime": "Action",
     "description": "You conjure a bubbling cauldron next to you. It can produce one of the following effects: \n• Any broken mundane item placed inside the cauldron is repaired. \n• A fat, croaking toad leaps out and follows your instructions for the next 3 rounds. \n• You can place up to 3 item slots of items inside the cauldron. The cauldron expels these items the next time you cast this spell (expelling items counts as the cauldron's single effect).",
+    "summary": "A cauldron mends items, spawns a toad or stores gear.",
     "classes": [
       "Witchcraft"
     ],
@@ -1838,6 +1966,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "One creature you target takes 1d4 damage, and it can't see you until the end of its next turn.",
+    "summary": "Deal 1d4 and the target can't see you next turn.",
     "classes": [
       "Witchcraft"
     ],
@@ -1852,6 +1981,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You summon a floating marsh light that bobs in the air and casts light out to a close radius around it. The light can change colors and take on vague shapes. It can float up to a near distance on your turn.",
+    "summary": "A floating light you move and reshape.",
     "classes": [
       "Witchcraft"
     ],
@@ -1866,6 +1996,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You curse one creature to takes 1d4 penalty on the next d20 roll. Dispels bless.",
+    "summary": "A creature takes -1d4 on its next d20 roll.",
     "classes": [
       "Witchcraft"
     ],
@@ -1880,6 +2011,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You touch a creature to bestow a curse from the following effects\n- Decrease an ability score up tol to your spellcasting attribute bonus.\n- Disadvantage on a specific type of rolls (attacks, casting spells, STR checks etc.\n- Each turn, the target has a 50% chance of taking no action.\n\nYou may also invent your own curse, but it should be no more powerful than those described above.",
+    "summary": "Curse a touched creature with a lasting hindrance.",
     "classes": [
       "Witchcraft"
     ],
@@ -1894,6 +2026,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call upon the Willowman to appear in one creature's mind, filling it with supernatural terror. Choose one creature of LV 2 or less within range. That creature must immediately make a morale or fear check. Even creatures that are not normally subject to morale checks (such as undead) must do so.",
+    "summary": "A creature of LV 2 or less must check morale.",
     "classes": [
       "Witchcraft"
     ],
@@ -1908,6 +2041,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A pale glow surrounds and outlines the subjects. Outlined subjects shed light as candles. Outlined creatures is always visible.",
+    "summary": "Outline creatures in light so they can't hide.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -1923,6 +2057,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You can whisper messages and receive whispered replies with little chance of being overheard. You point your finger at each creature you want to receive the message. When you whisper, the whispered message is audible to all targeted creatures within range.",
+    "summary": "Whisper secret messages to creatures you point at.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -1938,6 +2073,7 @@
     "duration": null,
     "castingTime": "Action",
     "description": "A coruscating ray springs from your hand. The subject takes 1d4 STR damage. The target’s STR and cannot drop below 1.",
+    "summary": "A ray deals 1d4 STR damage.",
     "classes": [
       "Witchcraft"
     ],
@@ -1952,6 +2088,7 @@
     "duration": "1 round per caster level",
     "castingTime": "Action",
     "description": "Remove curse instantaneously removes all curses on an object or a creature. Do not remove permanent curses but can suppress an effect to remove a wield item.",
+    "summary": "Remove all non-permanent curses on a target.",
     "classes": [
       "Arcane",
       "Divine",
@@ -1968,6 +2105,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Stops Near raging creatures from hostile actions. Creatures affected cannot take violent actions. Any damage on an affect creature ends the spell.",
+    "summary": "Raging creatures near you can't act violently.",
     "classes": [
       "Divine",
       "Witchcraft"
@@ -1983,6 +2121,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "The target becomes immune to poison for the duration of spell.",
+    "summary": "The target is immune to poison.",
     "classes": [
       "Divine",
       "Primal",
@@ -1999,6 +2138,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "",
+    "summary": "Poison a creature or object.",
     "classes": [
       "Witchcraft"
     ],
@@ -2013,6 +2153,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "Imbues a near sized area with negative energy. Undead creatures are resistant to Turn undead spell and receive +1 to all rolls.\nAdditionally, Animate dead and similar spells is always cast as critical success.",
+    "summary": "Empower undead in a near area against turning.",
     "classes": [
       "Divine",
       "Witchcraft"
@@ -2028,6 +2169,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "One target you touch of LV 4 or less collapses helplessly with disturbing, pained laughter for the spell's duration.",
+    "summary": "A touched creature of LV 4 or less collapses laughing.",
     "classes": [
       "Witchcraft"
     ],
@@ -2042,6 +2184,7 @@
     "duration": "3 rds",
     "castingTime": "Action",
     "description": "You can comprehend and communicate with animals.",
+    "summary": "Understand and talk with animals.",
     "classes": [
       "Primal",
       "Witchcraft"
@@ -2057,6 +2200,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A dense swarm of biting bats, rats, or locusts appears in a nearsized cube around a point you can see within range. All creatures that start their turn within the swarm take 2d6 damage and are blinded.",
+    "summary": "A biting swarm blinds and deals 2d6 each turn.",
     "classes": [
       "Witchcraft"
     ],
@@ -2071,6 +2215,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Sticky spidersilk covers your hands and feet. For the spell's duration, you can walk on vertical surfaces as easily as if it were flat ground.",
+    "summary": "Walk on walls as if they were floors.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2086,6 +2231,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You transform a broomstick into a flying broomstick. The broomstick's rider can fly a near distance each round and can hover in place.",
+    "summary": "Ride a flying broomstick a near distance per round.",
     "classes": [
       "Witchcraft"
     ],
@@ -2100,6 +2246,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You perform choreographed and precise steps of a dance that macabrely hypnotizes those who watch. Choose a number of living creatures that can see you to take 2d8 damage. Creatures killed by the spell damage come back as zombies.",
+    "summary": "A dance deals 2d8; the slain rise as zombies.",
     "classes": [
       "Primal",
       "Witchcraft"
@@ -2115,6 +2262,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You raise an army of skeletons to your aid from 2d4 human-like corpses. They carry whatever weapon they died with. If uknown, assume a weapon that causes 1d6 damage, such as a shortsword or mace. Your spellcasting bonus is used for any checks and determine the total HP.\nThey act on your turn and return to the afterlife after 10 rounds.",
+    "summary": "Raise 2d4 corpses as armed skeletons.",
     "classes": [
       "Necromancer",
       "Witchcraft"
@@ -2130,6 +2278,7 @@
     "duration": null,
     "castingTime": "Action",
     "description": "You flash eight multicolored rays",
+    "summary": "Flash eight multicolored rays.",
     "classes": [
       "Arcane"
     ],
@@ -2144,6 +2293,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You grant a creature the ability to see all things as they truly are, up to 60 feet. The target can see through magical darkness, spot invisible creatures, detect illusions, perceive secret doors, and see the true forms of polymorphed or disguised creatures. This spell does not allow vision through solid objects or into other planes.",
+    "summary": "See through darkness, invisibility and illusions.",
     "classes": [
       "Arcane"
     ],
@@ -2158,6 +2308,7 @@
     "duration": "3 rds",
     "castingTime": "Action",
     "description": "You gain a powerful gaze attack, allowing you to affect one creature within range each round. When casting, choose one of the following effects (this choice is fixed for the spell’s duration):\n- Charm: The creature becomes loyal to you, following your commands as if under a charm spell.\n- Fear: The creature is overcome with terror and flees from you for 1d4 rounds.\n- Sicken: The creature is weakened, moving and attacking at half effectiveness for the spell’s duration.\n- Sleep: The creature falls into a deep, comatose sleep.\nEach creature affected can make a DC 15 WIS check to resist the effect. This spell does not affect undead or creatures on other planes.",
+    "summary": "Charm, frighten or sicken one creature each round.",
     "classes": [
       "Arcane"
     ],
@@ -2172,6 +2323,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You make a section of metal, stone, or wood transparent as glass, up to 3 feet wide by 2 feet high. The transparency can be limited to your sight only, or you can create a one-way window that others can see through. This effect does not work on lead, gold, or platinum. The window retains the strength of the original material.",
+    "summary": "Make a patch of wall or stone see-through.",
     "classes": [
       "Arcane"
     ],
@@ -2186,6 +2338,7 @@
     "duration": "1d4 days",
     "castingTime": "Action",
     "description": "You take control of a humanoid whose LV is half your level or lower (rounded down). \nOnce dominated, the creature will follow your commands, though it may resist actions against its nature with a DC 15 WIS check. Self-destructive commands are ignored. If a protection from evil effect surrounds the target, you cannot control it while the protection lasts.",
+    "summary": "Take control of a weaker humanoid.",
     "classes": [
       "Arcane"
     ],
@@ -2200,6 +2353,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call upon a powerful entity for supernatural guidance, asking one question. Roll 2d6 to determine the response:\n- 2–6: The entity is displeased and refuses to answer. You are compelled to perform a quest or task for it.\n- 7–9: The entity is indifferent and provides a minor vision, which may be cryptic or unrelated.\n- 10+: The entity grants a clear vision answering your question.\n\nYou can sacrifice a precious item to improve your roll: +1 for a valuable item, +2 for an extremely valuable item, and +3 for a priceless item.",
+    "summary": "Ask a powerful entity one question, at a risk.",
     "classes": [
       "Arcane",
       "Divine"
@@ -2215,6 +2369,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You create a twisting, colorful pattern in the air, mesmerizing creatures within a near-sized area. A total of up to 12 (or your level) Hit Dice of creatures can be affected. Creatures that see the pattern become fascinated, standing transfixed as long as you maintain focus. Any damage inflicted on an affected creature immediately breaks the spell’s effect on that creature.",
+    "summary": "A pattern transfixes creatures in a near area.",
     "classes": [
       "Arcane"
     ],
@@ -2229,6 +2384,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You unleash a blast of frigid air from your hands in a near-sized long cone. All creatures in the area take 5d8 cold damage.",
+    "summary": "A cone of frost deals 5d8 cold.",
     "classes": [
       "Arcane"
     ],
@@ -2243,6 +2399,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You project a fan of clashing colors to a close area around where you stand. Creatures with 4 Hit Dice or fewer becomes stunned for 1 round. Creatures with 2 Hit Dice or fewer who fail the check are instead knocked unconscious for 2d4 rounds.",
+    "summary": "Stun or knock out weak creatures close to you.",
     "classes": [
       "Arcane"
     ],
@@ -2257,6 +2414,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You touch a creature and restore 1d8 hit points. This spell does not affect creatures without corporeal bodies, undead, or creatures of extraplanar origin.\nReverse: Inflict 1d8 damage instead",
+    "summary": "A touched creature regains 1d8 HP.",
     "classes": [
       "Divine",
       "Witchcraft"
@@ -2272,6 +2430,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You touch a creature and restore 2d8+Half your level of hit points. This spell does not affect incorporeal, nonliving, or extraplanar creatures.\nReverse: Inflict damage instead.",
+    "summary": "A touched creature regains 2d8 + half level HP.",
     "classes": [
       "Divine"
     ],
@@ -2286,6 +2445,7 @@
     "duration": "10 minutes (real)",
     "castingTime": "Action",
     "description": "You instill courage in one creature within range, granting it advantage on checks against fear effects for the duration. If the creature failed a check against fear earlier that day, it can immediately attempt the save again with advantage. This spell has no effect on undead.",
+    "summary": "Advantage against fear; retry a failed fear check.",
     "classes": [
       "Divine"
     ],
@@ -2300,6 +2460,7 @@
     "duration": "1d4 rds",
     "castingTime": "Action",
     "description": "You stop the flow of time within a 15-foot sphere around you, freezing all other creatures in the area. You can act for 1d4 rounds in a row. If you leave the area, the spell immediately ends, and time resumes.",
+    "summary": "Freeze time and act for 1d4 rounds.",
     "classes": [
       "Arcane"
     ],
@@ -2314,6 +2475,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "You create an illusion of sound at a location within range. The sound can resemble anything from whispering voices to roaring animals. It can remain stationary, approach, or recede as you choose. Creatures that hear the sound will believe it is real unless they have reason to doubt it.",
+    "summary": "Create an illusion of any sound.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2329,6 +2491,7 @@
     "duration": null,
     "castingTime": "Action",
     "description": "You animate one or more inanimate objects within range, up to a total volume of 10 cubic feet. The objects obey your commands, either attacking your designated target or performing simple tasks. Animated objects deal 1d6 damage per attack and have AC 13. They vanish or fall inert when the spell ends or when destroyed. Attempting to animate an object in someone’s possession grants them a DC 15 WIS check to resist.",
+    "summary": "Animate objects that fight or work for you.",
     "classes": [
       "Divine"
     ],
@@ -2343,6 +2506,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "A floating shield made of arcane energy hovers around you, ready to intercept attacks. You gain a +2 bonus to your armor class for the duration. The shield completely blocks magic missile.",
+    "summary": "+2 to AC; blocks magic missile.",
     "classes": [
       "Arcane"
     ],
@@ -2357,6 +2521,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You conjure a dagger of ice and hurl it at a target within range. On a hit, the target takes 2d4 damage. When the ice knife strikes, it shatters, releasing a burst of freezing air. All creatures within a Close radius take 1d4 cold damage and have their movement halved for 1d3 rounds.",
+    "summary": "An ice dagger deals 2d4, then bursts with cold.",
     "classes": [
       "Arcane",
       "Primal"
@@ -2372,6 +2537,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You conjure a circle of spectral cards that slice through the air out to a close area around you. Each creature in the area takes 1d10 force damage and is blinded until the end of its next turn.",
+    "summary": "Spectral cards deal 1d10 and blind those close.",
     "classes": [
       "Arcane",
       "Primal"
@@ -2387,6 +2553,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You unleash a blast of freezing ice in a near-sized cube. Creatures in the area take 1d8 damage and its legs are frozen for 1 round.",
+    "summary": "Ice deals 1d8 and freezes legs in a near cube.",
     "classes": [
       "Arcane"
     ],
@@ -2401,6 +2568,7 @@
     "duration": "1 rd",
     "castingTime": "Action",
     "description": "You intensify gravity in a near-sized cube around you. Each creature in the area takes has its speed limited to Close for the duration. Any unattended object within the area becomes immovable.",
+    "summary": "Heavy gravity slows creatures near you.",
     "classes": [
       "Arcane"
     ],
@@ -2415,6 +2583,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "You gain the ability to speak and understand all languages within Near. This allows you to communicate effectively with any creature that understands language. This spell does not enable communication with animals or influence a creature’s disposition toward you.",
+    "summary": "Speak and understand every language.",
     "classes": [
       "Arcane"
     ],
@@ -2429,6 +2598,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You create intense pressure and unleashes it, deciding if the pressure pulls or pushes near creatures and objects. Each creature in area takes 1d6 damage and is either pulled toward you or pushed away from you, depending on the choice you made for the spell.",
+    "summary": "Deal 1d6 and pull or push nearby creatures.",
     "classes": [
       "Arcane"
     ],
@@ -2443,6 +2613,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "A creature you touch becomes invisible for the spell’s duration.",
+    "summary": "A touched creature turns invisible.",
     "classes": [
       "Arcane"
     ],
@@ -2457,6 +2628,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You trap one creature within a terrifying, illusory prison that only it perceives. The creature takes is surrounded by a deadly illusion like fiery walls, serrated blades, or other horrors you decide.  If it attempts to break free by moving or touching through the illusion, it takes an 5d10 psychic damage, and the spell ends.",
+    "summary": "Trap a creature in a deadly illusion (5d10 to escape).",
     "classes": [
       "Arcane"
     ],
@@ -2471,6 +2643,7 @@
     "duration": "Special",
     "castingTime": "Action",
     "description": "You utter a word of power, stunning one near creature of level lower than 7 for 4 rounds, lower than LV 14 for 2 rounds, LV 15+ not affected.",
+    "summary": "Stun one creature for up to 4 rounds.",
     "classes": [
       "Arcane"
     ],
@@ -2485,6 +2658,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Unleashes a bolt of lightning that strikes one creature or object, then arcs to additional targets within range. The initial target takes 6d6 damage. Each subsequent target in the chain takes 1d6 less damage than the previous target, until the spell either exhausts its power or runs out of targets. Each target can only be struck once.",
+    "summary": "Lightning deals 6d6, then arcs to more targets.",
     "classes": [
       "Arcane"
     ],
@@ -2499,6 +2673,7 @@
     "duration": "1 rd",
     "castingTime": "Action",
     "description": "You release a strong blast of wind within Near in one direction. The wind extinguishes unprotected flames, scatters light objects, and disperses vapors and gases. Man-sized creatures are held motionless if moving against the wind. Larger creatures are slowed by half for one round. Gaseous or unsecured levitating creatures are blown away from the caster.",
+    "summary": "A blast of wind puts out flames and pushes creatures.",
     "classes": [
       "Arcane",
       "Primal"
@@ -2514,6 +2689,7 @@
     "duration": "1 hour",
     "castingTime": "Action",
     "description": "You compel a creature within range to follow a reasonable course of action you describe in one or two sentences. The creature must be able to understand your language. The action cannot be directly self-destructive but may involve risky or unusual behavior if worded convincingly.",
+    "summary": "A creature follows a reasonable suggestion.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2529,6 +2705,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You alter the dimensions of an area completely enclosed by earth, rock, or similar material. The area can be up to a Near-sized cube. You choose to either double or halve the distance across the area for those traveling within it.\nCreatures affected by the distortion cannot detect the change and perceive the area as normal unless they use true seeing.",
+    "summary": "Double or halve distances in an enclosed area.",
     "classes": [
       "Arcane"
     ],
@@ -2543,6 +2720,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You sense the direction of a well-known or clearly visualized object within range. If searching for a general item type, the spell directs you to the nearest one. If searching for a specific item, you must have seen it firsthand.",
+    "summary": "Sense the direction of an object you know.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2558,6 +2736,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You create a silent, motionless visual illusion of an object, creature, or force that is no larger than an elephant. You can move the illusion within the spell’s range.\nCreatures that interact with the illusion in a meaningful way may realize it is fake.",
+    "summary": "A silent visual illusion you can move.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2573,6 +2752,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You weave a captivating string of words, like singing, tell a story or similar, distracting creatures of your choice within range. Affected creatures is distracted as long as you maintain focus.",
+    "summary": "Captivate chosen creatures while you focus.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2588,6 +2768,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You call upon the Willowman to appear in one creature's mind, filling it with supernatural terror. Choose one creature of LV 6 or less within range. That creature must immediately make a morale or fear check. Even creatures that are not normally subject to morale checks (such as undead) must do so.",
+    "summary": "A creature of LV 6 or less must check morale.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2603,6 +2784,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You send a faint, magical whisper on the wind to a specific location within range that you are familiar with. When it arrives, the wind delivers a message of up to 25 words, a brief sound lasting 1 round, or simply a faint breeze. The message is delivered regardless of whether anyone is there to hear it, after which the wind dissipates.\nThis spell cannot activate magical effects, speak command words, or mimic spell incantations.",
+    "summary": "Send a 25-word message on the wind.",
     "classes": [
       "Arcane",
       "Primal",
@@ -2619,6 +2801,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You create an invisible magical sensor at a known or obvious location within range. You can choose to hear (clairaudience) or see (clairvoyance) through the sensor, but not both at the same time. The sensor remains fixed in place, though you can rotate your view in any direction.\nThe sensor does not work through magical darkness and cannot benefit from supernatural or enhanced senses. It functions only on the plane you currently occupy.",
+    "summary": "See or hear through a distant invisible sensor.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2634,6 +2817,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Your hand glows with cold blue energy, channeling negative energy into a creature you touch. The target takes 3d4 damage and 1 CON and STR damage.",
+    "summary": "A touch deals 3d4 and drains STR and CON.",
     "classes": [
       "Arcane"
     ],
@@ -2648,6 +2832,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "Your shadow elongates and moves independently at a rate of near per round, stretching up to double near. It can slither along floors and walls but cannot physically interact with objects.\nYou can see, hear, and speak through your shadow as if you were there. It is 90% undetectable in dim or dark environments, but in bright light, it may be noticed. The shadow shares your AC and can only be struck by magical weapons (+1 or better) or spells. Any damage dealt to the shadow is taken by you.",
+    "summary": "Send your shadow to scout for you.",
     "classes": [
       "Arcane"
     ],
@@ -2662,6 +2847,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You send a beam of biting cold from your outstretched hand to one creature. The target takes 1d4 damage. \nFreezes the target on the ground for one round if hit the max damage.",
+    "summary": "A cold ray deals 1d4 to one creature.",
     "classes": [
       "Arcane"
     ],
@@ -2676,6 +2862,7 @@
     "duration": "5 rds",
     "castingTime": "Action",
     "description": "One weapon you touch is wreathed in elemental energy.\nChoose an energy type from fire, cold or electricity. The wea pon deals an additional 1d4 damage\nof the chosen type for the duration.\nIf the energy type is anathema to the target's existence (for example, cold energy against a\nfire elemental), the additional damage is doubled instead.",
+    "summary": "A touched weapon deals +1d4 fire, cold or lightning.",
     "classes": [
       "Arcane",
       "Primal"
@@ -2691,6 +2878,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "you touch a flask or some other vessel containing water and transform it into unholy water.\nThe entire batch of holy water can be hurled at a target that is close or near as an attack using STR or DEX. If the target is a living creature it takes 1d4 damage.\nAny unholy water you have created transforms back into the water it was before after a day, or if you create more unholy water.",
+    "summary": "Turn water into unholy water to throw.",
     "classes": [
       "Divine"
     ],
@@ -2705,6 +2893,7 @@
     "duration": "1 day",
     "castingTime": "Action",
     "description": "You jinx a creature you can see. The creature has disadvantage on one specific task of your choosing, excluding attacks rolls and spells.\nRepeated attempts at the same task still have disadvantage",
+    "summary": "A creature has disadvantage on one task you choose.",
     "classes": [
       "Divine",
       "Witchcraft"
@@ -2720,6 +2909,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Your touch causes boils and blisters to erupt from skin.\nRoll a number of d4s equal to half your level (rounded down). One living target you touch loses\nthat many hit points.",
+    "summary": "A touch deals (half level) d4 damage.",
     "classes": [
       "Divine"
     ],
@@ -2734,6 +2924,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Ominous trumpets sound from the heavens.\nChoose a creature you can see that defies your diety's will. The creature takes 3d6 damage\nfrom the fiery doom that rains down upon it.\nAny creatures that are near the target take 1d6 damage.",
+    "summary": "Fiery doom deals 3d6 to a foe, 1d6 to those near.",
     "classes": [
       "Divine"
     ],
@@ -2748,6 +2939,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "A thick swarm of locusts appears in a near sized area.\nEach creature caught in the swarm has disadvantage on attack rolls and checks, and they spend\ntheir 1st turn in the swarm unable to move. They can't see beyond the swarm, and creaures outside\nthe swarm cannot see in.\nEach time the caster makes a spellcasting check to maintain focus, they can move the swarm to\nan area in range.",
+    "summary": "Locusts blind and hinder everyone in a near area.",
     "classes": [
       "Divine"
     ],
@@ -2762,6 +2954,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Dark tendrils erupt from your body, lashing out at all creatures within close. Each creature in the area takes 1d6  damage and cannot take reactions until the start of their next turn.",
+    "summary": "Shadow tendrils deal 1d6 to all close to you.",
     "classes": [
       "Witchcraft"
     ],
@@ -2776,6 +2969,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You conjure a hovering blade of pure planar destruction. You can immediately command the blade to make two attacks right after cast. Each hit deals 3d12 damage.\nThe blade scores a critical hit on an 18–20, dealing 8d12 damage instead.\nOn each of your turns, you may move the blade up to near and make one attack.\nThe blade phases through all barriers, including magical ones such as wall of force.",
+    "summary": "A floating blade strikes for 3d12 each turn.",
     "classes": [
       "Arcane",
       "Witchcraft"
@@ -2791,6 +2985,7 @@
     "duration": "Focus",
     "castingTime": "Action",
     "description": "You magically create ghostly sounds echoing in a near cube within the spell’s range. Creatures casting spells inside the area are distracted by the sounds, and any Focus is break.",
+    "summary": "Ghostly echoes break the focus of casters inside.",
     "classes": [
       "Arcane"
     ],
@@ -2805,6 +3000,7 @@
     "duration": "10 rounds",
     "castingTime": "Action",
     "description": "You use a vial of holy water to fill one creature with divine clarity and hope. \nA target suffering from a minor or moderate Horror effect can anticipate their weekly recovery check with ADV. If the target is under the effects of an Evil or profane spell, they may immediately reroll their save against that effect (no bonus).\n\nIf the target is not currently under a Horror effect, they gain divine resilience. The next Horror check within the spell’s duration, is made with ADV.",
+    "summary": "Holy water eases horror and evil spells on a creature.",
     "classes": [
       "Divine"
     ],
@@ -2819,6 +3015,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "Rids the world of an undead without harm its body, freeing its soul to the afterlife.\nIf cast on a corpse, it becomes immune to spells like animate dead and that would interfere with its eternal rest. Also prevents a victim slain by an undead rise as a spawn.\nIf cast on an existing undead, it must make a DC 15 WIS check or feels an overwhelming desire to return to its grave. This desire persists for 1 day. Liches are banished to its phylactery for 24 hours.\nDarklords makes this check with ADV and automatically wakes at the next dusk.",
+    "summary": "Free an undead's soul or keep a corpse from rising.",
     "classes": [
       "Divine"
     ],
@@ -2833,6 +3030,7 @@
     "duration": "1 hour",
     "castingTime": "Action",
     "description": "You force a natural or afflicted lycanthrope you touch to assume one of its beast or hybrid forms for the spell duration. If it has both forms, it chooses which one to assume.\nThe transformation starts immediately, and the target loses its next action.",
+    "summary": "Force a lycanthrope into its beast form.",
     "classes": [
       "Arcane",
       "Primal"
@@ -2848,6 +3046,7 @@
     "duration": "( 10 x LV) minutes",
     "castingTime": "Action",
     "description": "You shape shift into an animal form. You remain in animal form for a number of minutes equal to 10 x your LV. You choose the animal’s appearance. Your statistics remain the same in animal with the following changes (choose one when you shift):\n• Keen: You have a +2 bonus to Wisdom checks and cannot be surprised.\n• Nimble: You have a +2 bonus to Dexterity and have advantage on checks to hide and remain hidden.\n• Robust: You have a +1 bonus to Armor Class, Strength, and Constitution\nIf you are reduced to zero HP in animal form, you revert to your true form at one HP.\n—-\nLV 1 - Can shape shift into an animal no larger than a boar that cannot fly. Your attacks in animal form deal 1d4 damage.\nLV 3 - Can shape shift into an animal no larger than a rhinoceros that cannot fly. Your attacks in animal form deal 1d6 damage.\nLV 5 - Can shape shift into an animal that can fly and is no larger than a rhinoceros. Your attacks in animal form deal 1d8 damage.\nLV 7 - Can shape shift into an animal no larger than a giraffe. Your attacks in animal form deal 1d10 damage.",
+    "summary": "Shift into an animal form with one boon.",
     "classes": [
       "Druid"
     ],
@@ -2862,6 +3061,7 @@
     "duration": "Instant",
     "castingTime": "Action",
     "description": "You verbally control one 0-level non-insect animal companion such as a fox, owl, or iguana. You can train a calm or captive animal to become new Animal Companion. You can only have one animal companion at a time, and its LV cannot not exceed yours. For every 2 LV of the animal, training takes 1 day. You must know its language to understand it.",
+    "summary": "Command a loyal animal companion.",
     "classes": [
       "Primal"
     ],
@@ -2876,6 +3076,7 @@
     "duration": "10 rds",
     "castingTime": "Action",
     "description": "You alter the molecular structure of a small object, changing its density, hardness, or state of matter. You can turn wood into metal, solid into liquid, or make fragile objects incredibly durable. The object reverts after the duration ends.\nCritical Fail: The object transforms into an unintended material or becomes brittle and breaks.\nPower Score Effect: The transformation lasts 1 hour instead of 5 minutes.",
+    "summary": "Change what a small object is made of.",
     "classes": [
       "Psion"
     ],

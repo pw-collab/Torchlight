@@ -13,6 +13,7 @@ export const barbarian: Class = {
     {
       id: 'thoughtless_frenzy',
       name: 'Thoughtless Frenzy',
+      summary: 'Por 3 rodadas: dois ataques, +FOR no dano e +1 em testes.',
       description:
         'No seu turno, você pode entrar em Frenesi Irracional, que dura três rodadas:\n• Você faz dois ataques com arma no seu turno, em vez de um.\n• Você ganha bônus de dano igual ao seu modificador de Força.\n• Você tem +1 em todos os testes.\n• Magias ou habilidades que tentem enfeitiçar ou amedrontar você sofrem penalidade igual a metade do seu nível — o mesmo vale para testes de medo, horror e loucura.\nDurante o Frenesi, inimigos têm vantagem em ataques contra você. Recupera-se o uso após um descanso.',
       kind: 'limited_use',
@@ -21,6 +22,7 @@ export const barbarian: Class = {
     {
       id: 'strength_is_all',
       name: 'Strength is All',
+      summary: 'FOR na iniciativa, na intimidação, na carga e em dobro nos testes.',
       description:
         'Um corpo forte é tudo de que você precisa:\n• Some seu modificador de Força às rolagens de iniciativa.\n• Você pode usar Força no lugar de Carisma ao intimidar uma criatura.\n• Você dobra seu modificador de Força em testes de Força.\n• Some seu modificador de Força à sua capacidade de carga.',
       kind: 'passive',

@@ -240,6 +240,13 @@ html, body {
   -webkit-backface-visibility: hidden;
 }
 .card-flip__face--back { transform: rotateY(180deg); }
+/* The full text on the far side scrolls inside the frame, on a thin bar
+   in the frame's own colour rather than the browser's grey slab. */
+.card-detail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: currentColor transparent;
+  overscroll-behavior: contain;
+}
 
 /* Actions float clear of the card. Both faces are the same size, so there
    is no room inside for a row of buttons — they hang off the bottom edge
@@ -1506,6 +1513,9 @@ html, body {
   --archetype-foreground: #201a13;
   --ancestry: #8fb4c0;
   --ancestry-foreground: #182e34;
+  /* Spells, on the grimoire's cards. */
+  --spell: #b59fd6;
+  --spell-foreground: #221a2e;
 
   /* ------------------------------------------------------------------
      shadcn roles, mapped by what they do rather than by name: the

@@ -16,12 +16,14 @@ export const commoner: Class = {
     {
       id: 'beginners_luck',
       name: "Beginner's Luck",
+      summary: 'Usa qualquer equipamento até o 1º nível.',
       description: 'Pode empunhar todo tipo de equipamento até alcançar o 1º nível.',
       kind: 'passive',
     },
     {
       id: 'zero_level',
       name: 'Nível 0',
+      summary: 'Sobreviva à primeira aventura para chegar ao 1º nível.',
       description:
         'Personagens de nível 0 alcançam o 1º nível depois de sobreviver à sua primeira aventura.',
       kind: 'passive',

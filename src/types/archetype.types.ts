@@ -47,6 +47,8 @@ export interface Archetype {
   summary: string
   /** The advantage the archetype grants. Absent while the entry is unwritten. */
   talent?: string
+  /** The talent in one line, for the card's face. */
+  talentSummary?: string
   /** Pick one to answer — they define *how* the character acts. */
   questions?: string[]
   /** Pick one to answer — they define the character's ties to the world. */

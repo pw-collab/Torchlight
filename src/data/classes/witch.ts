@@ -21,6 +21,7 @@ export const witch: Class = {
     {
       id: 'familiar',
       name: 'Familiar',
+      summary: 'Um animal falante que serve de origem às suas magias.',
       description:
         'Você tem um pequeno animal — um corvo, rato ou sapo — que o serve lealmente e fala o Comum. Seu familiar pode ser a origem das magias que você conjura: trate-o como se fosse você para determinar alcances. Se ele morrer, você pode restaurá-lo sacrificando permanentemente 1d4 pontos de vida.',
       kind: 'passive',
@@ -28,6 +29,7 @@ export const witch: Class = {
     {
       id: 'spellcasting',
       name: 'Spellcasting',
+      summary: 'Conjura magias de Bruxaria com CAR. DC 10 + círculo.',
       description:
         'Você pode conjurar as magias de bruxa que conhece. Você conhece três magias de 1º círculo à sua escolha da lista de Bruxaria. A cada nível, escolha novas magias conforme a tabela de Magias de Bruxa Conhecidas. Você usa Carisma para conjurar; a DC é 10 + o círculo da magia.\nSe falhar em um teste de conjuração, não pode lançar aquela magia até completar um descanso. Se rolar um 1 natural, role também na tabela de Percalço Diabólico do círculo da magia.',
       kind: 'passive',
@@ -35,6 +37,7 @@ export const witch: Class = {
     {
       id: 'brew_potion',
       name: 'Brew Potion',
+      summary: '1 hora no caldeirão: poção de uma magia que você conjura.',
       description:
         'Usando um caldeirão, você pode preparar uma poção de qualquer magia que possa conjurar. Role como um teste de conjuração; leva uma hora, mas não exige componentes caros. A poção dura 24 horas antes de apodrecer em água salobra.',
       kind: 'passive',

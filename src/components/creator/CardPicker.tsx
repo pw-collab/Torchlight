@@ -71,7 +71,7 @@ export function CardPicker({
             description={option.description}
             status={chosen ? { text: '✓', color: accent } : null}
             open={openId === option.id}
-            onOpenChange={open => setOpenId(open ? option.id : null)}
+            onOpenChange={open => setOpenId(cur => (open ? option.id : cur === option.id ? null : cur))}
             footer={
               <Button
                 variant={chosen ? 'hollow' : 'secondary'}
@@ -98,7 +98,7 @@ export function DetailBlock({ label, children }: { label: string; children: Reac
       <span className="font-mono font-semibold text-[8px] tracking-[0.18em] text-[var(--muted-foreground)] uppercase">
         {label}
       </span>
-      <div className="font-sans text-[13px] leading-relaxed text-[var(--foreground)]">
+      <div className="font-sans text-[12px] leading-normal text-[var(--foreground)]">
         {children}
       </div>
     </div>

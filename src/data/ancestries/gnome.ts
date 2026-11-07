@@ -8,6 +8,7 @@ export const gnome: Ancestry = {
   traits: [
     {
       name: 'Trickster',
+      summary: '1/dia, força uma criatura a repetir um ataque ou teste.',
       description:
         '1/dia, escolha uma criatura como alvo de suas travessuras: você pode forçar a repetição de um ataque ou teste.',
     },

@@ -15,6 +15,7 @@ export const monk: Class = {
     {
       id: 'iron_shirt',
       name: 'Iron Shirt',
+      summary: 'Sem armadura: +1 CA e +½ nível na CA.',
       description:
         'Enquanto sem armadura, você tem +1 CA. Além disso, adicione metade do seu nível (arredondado para baixo) como bônus à sua CA.',
       kind: 'passive',
@@ -22,6 +23,7 @@ export const monk: Class = {
     {
       id: 'iron_palm',
       name: 'Iron Palm',
+      summary: 'Desarmado: 1d4 de dano, +1 e +½ nível no ataque.',
       description:
         'Seus ataques desarmados causam 1d4 de dano e você tem +1 para rolamentos de ataque com eles. Além disso, adicione metade do seu nível ao bônus de ataque.',
       kind: 'passive',
@@ -29,6 +31,7 @@ export const monk: Class = {
     {
       id: 'mysticism',
       name: 'Mysticism',
+      summary: 'Teste para usar uma técnica mística; falhou, perde até descansar.',
       description:
         'Faça um teste de atributo para usar uma técnica mística que você escolher. Se falhar, não poderá usar aquela técnica novamente até descansar com sucesso.',
       kind: 'spell_like',

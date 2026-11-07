@@ -15,6 +15,7 @@ export const psionicist: Class = {
     {
       id: 'psychic_shield',
       name: 'Psychic Shield',
+      summary: '+½ nível na CA.',
       description:
         'Adicione metade do seu nível (arredondado para baixo) à sua CA.',
       kind: 'passive',
@@ -22,6 +23,7 @@ export const psionicist: Class = {
     {
       id: 'wild_talent',
       name: 'Wild Talent',
+      summary: 'Role uma Disciplina (1d6) e uma Ciência Psiônica (1d100).',
       description:
         'Você desenvolveu um poder psiônico selvagem e sobreviveu aos seus efeitos colaterais. Role 1d6 para determinar sua Disciplina Psiônica, depois role 1d100 para obter uma Ciência Psiônica dessa disciplina. Você pode rolar uma nova Disciplina no lugar de um rolamento de Talento de Classe. ' +
         'Disciplinas (1d6): 1 Clarividência, 2 Psicocinesia, 3 Psicometabolismo, 4 Telepath, 5 Psicoportsção, 6 Escolha qualquer.',
@@ -30,6 +32,7 @@ export const psionicist: Class = {
     {
       id: 'psionic_devotion',
       name: 'Psionic Devotion',
+      summary: '3/dia, ativa a Devoção da sua disciplina.',
       description:
         '3/dia, você pode estender sua disciplina para ativar sua Devoção Psiônica. O efeito depende de sua disciplina: Clarividência – Percepção Intuitiva (visão 360°, detecta invisíveis, localização precisa por 5 rodadas); Psicocinesia – Mente sobre Matéria (move objetos, controla fogo/luz/som ou lança objetos como armas 1d6 por 10 rodadas); Psicometabolismo – Corpo Adaptável (+2 CA, +2 FOR/DES/CON, ou andar sobre água/paredes por 10 rodadas); Telepatia – Toque Mental (comunicação mental, sentir/influenciar emoções ou sugestão simples por 10 rodadas); Psicoportsção – Passo Dimensional (teleporte até alcance distante ou incorpóreo por 1 rodada).',
       kind: 'limited_use',
@@ -42,6 +45,7 @@ export const psionicist: Class = {
     {
       id: 'psionic_checks',
       name: 'Psionic Checks',
+      summary: 'Ativa Ciências rolando 1d20 abaixo do Poder (PS).',
       description:
         'Você pode conjurar as Ciências Psiônicas que conhece. Para ativar, role 1d20 e obtenha um resultado menor do que o Poder da Ciência (PS). O PS é calculado como ATR − modificador. Por exemplo, uma ciência com PS de "INT −3" tem uma pontuação três menor que sua Inteligência.',
       kind: 'passive',

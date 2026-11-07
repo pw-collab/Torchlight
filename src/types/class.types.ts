@@ -99,6 +99,8 @@ export interface ClassTechnique {
   /** Stable identifier — used as the key in TechniqueState records. */
   id: string
   name: string
+  /** One line for the card's face; the description is the far side. */
+  summary?: string
   description: string
   /**
    * Mechanical kind. Defaults to 'passive' when omitted.

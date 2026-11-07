@@ -2,16 +2,14 @@
 
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { MagicWand01Icon } from '@hugeicons/core-free-icons'
 import { getSpell, getSpellsForClass, tierNumeral } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
 import { rollWithMode, modifier, withDc } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
 import type { RollMode, RollResult } from '@/lib/dice'
 import { NumInput } from '@/components/sheet/NumInput'
-import { GlyphCard, DETAIL_BODY } from '@/components/shared/GlyphCard'
-import { CardIcon } from '@/components/shared/CardOrigin'
-import { RollableText } from '@/components/shared/RollableText'
+import { GlyphCard, faceText } from '@/components/shared/GlyphCard'
+import { SpellDetail, SpellTagIcon, spellCaption, spellFootnote } from '@/components/shared/SpellDetail'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { Button } from '@/components/ui/button'
@@ -193,9 +191,13 @@ const SPELL_STYLE = {
 }
 
 /**
- * A spell in the grimoire, on the same card the techniques and talents use.
- * The masthead symbol marks it as spellcraft; the label under the rule carries
- * its school and circle, and the counter beside it the DC it takes to land.
+ * A spell in the grimoire, on the technique deck's compact card: the name, a
+ * violet tag with its school and circle, the DC it takes to land, and one line
+ * on what it does. The full text is on the far side.
+ *
+ * A spell is something cast, so it carries the lighter mat the deck gives
+ * every activation. Once a casting fails it is lost until the next rest, and
+ * drops to the dark mat with the counter reading FALHOU.
  */
 function SpellCard({
   id, spell, isFailed, castingAttr, spellcastingBonus, stats, onRoll,
@@ -215,10 +217,8 @@ function SpellCard({
 }) {
   const color = isFailed ? SPELL_STYLE.failed : SPELL_STYLE.normal
 
-  const name    = spell?.name ?? id
-  const tier    = spell ? tierNumeral(spell.tier) : '·'
-  const dc      = spell ? 10 + spell.tier : null
-  const school  = spell?.school ?? 'Arcano'
+  const name = spell?.name ?? id
+  const dc   = spell ? 10 + spell.tier : null
 
   function cast(mode: RollMode = 'normal') {
     if (!spell || !onRoll || !stats) return
@@ -241,16 +241,16 @@ function SpellCard({
 
   return (
     <GlyphCard
-      glyph={<CardIcon icon={MagicWand01Icon} />}
+      face="compact"
+      origin="spell"
+      glyph={<SpellTagIcon />}
       title={name}
-      caption={`${school} ${tier}`}
+      caption={spellCaption(spell)}
       accent={color}
-      // A spell is always something cast, so it carries the filled treatment
-      // the sheet gives every activation.
-      tone="activation"
-      description={spell?.description ?? ''}
+      tone={isFailed ? 'passive' : 'activation'}
+      description={spell ? faceText(spell.summary, spell.description) : ''}
+      footnote={spellFootnote(spell)}
       status={{ text: isFailed ? 'FALHOU' : dc != null ? `DC ${dc}` : '', color }}
-      className={isFailed ? 'opacity-70' : undefined}
       footer={hasActions && (
         <>
           {castable && (
@@ -281,33 +281,18 @@ function SpellCard({
         </>
       )}
     >
-      {isFailed && (
-        <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, color: 'var(--destructive)', background: 'color-mix(in oklch, var(--destructive), transparent 85%)', border: '1px solid var(--destructive)', padding: '2px 7px', letterSpacing: '0.1em', marginBottom: 8 }}>
-          FALHOU
-        </span>
-      )}
-      {spell && (
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 10 }}>
-          {([
-            { label: 'Alcance',    value: spell.range },
-            { label: 'Duração',    value: spell.duration },
-            { label: 'Conjuração', value: spell.castingTime },
-          ] as { label: string; value: string | null | undefined }[]).map(({ label, value }) => value ? (
-            <div key={label}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color, marginBottom: 1 }}>
-                {label}
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--foreground)' }}>
-                {value}
-              </div>
-            </div>
-          ) : null)}
-        </div>
-      )}
-      {spell && (
-        <p style={{ ...DETAIL_BODY, whiteSpace: 'pre-line' }}>
-          <RollableText text={spell.description} label={spell.name} onRoll={onRoll} />
-        </p>
+      {spell ? (
+        <SpellDetail
+          spell={spell}
+          onRoll={onRoll}
+          notice={isFailed && (
+            <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--destructive)', border: '1px solid var(--destructive)', padding: '1px 6px', letterSpacing: '0.08em' }}>
+              FALHOU · PERDIDA ATÉ DESCANSAR
+            </span>
+          )}
+        />
+      ) : (
+        <p style={{ margin: 0 }}>Magia desconhecida.</p>
       )}
     </GlyphCard>
   )
