@@ -44,6 +44,7 @@ import type { VariantProps } from 'class-variance-authority'
 
 type ButtonVariants = VariantProps<typeof buttonVariants>
 import { NumInput } from '@/components/sheet/NumInput'
+import { BonusTile } from '@/components/sheet/BonusTile'
 import { ItemAttributeTag } from '@/components/sheet/ItemAttributeTag'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
@@ -1615,36 +1616,15 @@ export function InventoryView({
         { key: 'meleeBonus' as const, label: 'Corpo-a-corpo', value: meleeBonus },
         { key: 'rangedBonus' as const, label: 'À distância', value: rangedBonus },
       ] as const).map(({ key, label, value }) => (
-        <div
+        // The same raised tile as the attributes, now that the bonuses sit
+        // in the character card beside them.
+        <BonusTile
           key={key}
           className="col-span-3"
-          style={{
-            // The same raised tile as the attributes, now that the bonuses sit
-            // in the character card beside them.
-            background: 'var(--bg-raised)',
-            border: '2px solid var(--border-frame)',
-            padding: 8,
-            boxSizing: 'border-box',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
-            {label}
-          </div>
-          <NumInput
-            value={value}
-            aria-label={label}
-            onCommit={n => onMeleeRangedUpdate({ [key]: n })}
-            className={cn(
-              'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
-              value > 0
-                ? 'text-[var(--chart-2)]'
-                : value < 0
-                  ? 'text-destructive'
-                  : 'text-[var(--foreground)]',
-            )}
-          />
-        </div>
+          label={label}
+          value={value}
+          onCommit={n => onMeleeRangedUpdate({ [key]: n })}
+        />
       ))}
     </div>
   )

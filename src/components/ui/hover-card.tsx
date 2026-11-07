@@ -71,7 +71,7 @@ function HoverCardContent({
         collisionPadding={collisionPadding}
         sticky={sticky}
         positionMethod={positionMethod}
-        className={cn("isolate z-50", positionerClassName)}
+        className={cn("isolate z-[var(--z-popover)]", positionerClassName)}
       >
         <PreviewCardPrimitive.Popup
           data-slot="hover-card-content"

@@ -70,7 +70,7 @@ const DEFAULT_DC = 14
  * digitando. O armazenamento pode nem existir (aba privada, permissão negada),
  * e aí o valor simplesmente não persiste — é conveniência, não estado do jogo.
  */
-function useStickyDc(): [number, (value: number) => void, () => void] {
+export function useStickyDc(): [number, (value: number) => void, () => void] {
   const [dc, setDcState] = useState(DEFAULT_DC)
   const hydrated = useRef(false)
 
