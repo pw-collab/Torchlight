@@ -479,18 +479,14 @@ function inkFor(tone: 'passive' | 'activation') {
 
 /**
  * The compact frame, as the Figma's Button card (80:491): inside the mat, a
- * frame ruled 2px (the control edge for what holds, the ink line for what is
- * spent) and doubled by a dashed line within. Both faces draw it.
+ * single frame ruled 2px (the control edge for what holds, the ink line for
+ * what is spent). Both faces draw it.
  */
 function CompactFrame({ tone, children }: { tone: 'passive' | 'activation'; children: ReactNode }) {
   const rule = tone === 'activation' ? 'var(--border-frame)' : 'var(--border-control)'
-  const dashed: React.CSSProperties = { position: 'absolute', inset: 2, border: `2px dashed ${rule}`, pointerEvents: 'none' }
 
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0, border: `2px solid ${rule}`, display: 'flex', flexDirection: 'column', gap: 10, padding: 12, overflow: 'hidden' }}>
-      <div aria-hidden style={dashed}>
-        <div style={dashed} />
-      </div>
       {children}
     </div>
   )
