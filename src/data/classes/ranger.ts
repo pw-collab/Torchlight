@@ -15,6 +15,7 @@ export const ranger: Class = {
     {
       id: 'animal_companion',
       name: 'Animal Companion',
+      summary: 'Um animal fiel que obedece e age na sua iniciativa.',
       description:
         'Você ganha um companheiro animal fiel. Este animal obedece seus comandos e age na sua iniciativa. Pode ser um lobo, falcão, urso ou outra criatura adequada ao ambiente.',
       // TODO: kind will be configured — 'passive' with optional limited_use for special actions
@@ -22,6 +23,7 @@ export const ranger: Class = {
     {
       id: 'tracker',
       name: 'Tracker',
+      summary: 'Vantagem em SAB para rastrear e navegar na natureza.',
       description:
         'Você tem vantagem em testes de Sabedoria para rastrear criaturas e navegar em terrenos naturais.',
       // TODO: kind will be configured — 'passive' (always active)
@@ -29,6 +31,7 @@ export const ranger: Class = {
     {
       id: 'wayfinder',
       name: 'Wayfinder',
+      summary: 'Nunca se perde na natureza e reconhece plantas e animais.',
       description:
         'Você nunca se perde em terrenos naturais e pode identificar plantas, animais e fenômenos naturais comuns.',
       // TODO: kind will be configured — 'passive' (always active)

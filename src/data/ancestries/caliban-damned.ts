@@ -8,6 +8,7 @@ export const calibanDamned: Ancestry = {
   traits: [
     {
       name: 'Malediction',
+      summary: 'Uma magia arcana aleatória (círculo 1 ou 2), com CAR.',
       description: 'Aprenda uma magia arcana aleatória de círculo menor que 3. Conjure-a com CAR.',
     },
   ],

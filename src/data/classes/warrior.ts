@@ -15,6 +15,7 @@ export const warrior: Class = {
     {
       id: 'hauler',
       name: 'Hauler',
+      summary: '+mod. de CON em slots de carga.',
       description:
         'Adicione seu modificador de Constituição, se positivo, aos seus slots de carga.',
       kind: 'passive',
@@ -27,6 +28,7 @@ export const warrior: Class = {
     {
       id: 'weapon_mastery',
       name: 'Weapon Mastery',
+      summary: 'Um tipo de arma: +1 e +½ nível no ataque e no dano.',
       description:
         'Escolha um tipo de arma (ex.: espadas longas). Você ganha +1 para ataque e dano com esse tipo. Além disso, adicione metade do seu nível (arredonde para baixo) a esses rolamentos.',
       kind: 'choice',
@@ -38,6 +40,7 @@ export const warrior: Class = {
     {
       id: 'grit',
       name: 'Grit',
+      summary: 'Vantagem com FOR ou DES para vencer uma força oposta.',
       description:
         'Escolha Força ou Destreza. Você tem vantagem em testes desse atributo para superar uma força oposta, como arrombar uma porta travada (Força) ou se soltar de correntes enferrujadas (Destreza).',
       kind: 'choice',

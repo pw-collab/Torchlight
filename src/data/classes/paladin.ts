@@ -15,6 +15,7 @@ export const paladin: Class = {
     {
       id: 'divine_protection',
       name: 'Divine Protection',
+      summary: 'Vantagem contra magia e caos; aliados próximos ganham +1.',
       description:
         'O paladino faz testes para resistir a CDs contra magia e caos com vantagem. O paladino e aliados próximos ganham +1 nesses rolamentos. Se o paladino falhar usando esta habilidade, não poderá se beneficiar dela até descansar.',
       kind: 'passive',
@@ -22,6 +23,7 @@ export const paladin: Class = {
     {
       id: 'smite',
       name: 'Smite',
+      summary: '3/dia: ataque com vantagem e +1 de dano por nível, ou cura 1d8.',
       description:
         '3/dia, um paladino pode golpear seu inimigo realizando um ataque corpo a corpo com vantagem e causando +1 de dano bônus por nível. Contra criaturas demoníacas, diabólicas, dracônicas ou mortas-vivas, o dano é +2 por nível. Conta como dano mágico. Pode ser usado para tocar uma criatura e curá-la por 1d8 + 1 por nível.',
       kind: 'limited_use',

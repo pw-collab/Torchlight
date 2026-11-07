@@ -15,6 +15,7 @@ export const thief: Class = {
     {
       id: 'backstab',
       name: 'Punhalada',
+      summary: 'Contra alvo desatento: +½ nível em dados de dano da arma.',
       description:
         'Se você acertar uma criatura que não está ciente do seu ataque, você causa X dados de dano adicional da sua arma. A quantidade de dados de dano adicionais é igual à metade do seu nível (arredonde para baixo).',
       // TODO: kind will be configured — likely 'passive' (always active when condition met)
@@ -22,6 +23,7 @@ export const thief: Class = {
     {
       id: 'thievery',
       name: 'Ladroagem',
+      summary: 'Vantagem em furtividade, escalada, disfarce, armadilhas e trancas.',
       description:
         'Você é um mestre em furtos e possui as ferramentas necessárias para o ofício escondidas em seu corpo (sem ocupar espaços). Você é treinado e tem vantagem em quaisquer testes associados à Escalada, Furtividade e ocultação, Disfarces, Encontrar e desarmar armadilhas ou Tarefas delicadas como furtar e abrir fechaduras.',
       // TODO: kind will be configured — 'passive' (always active)

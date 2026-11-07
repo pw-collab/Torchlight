@@ -8,6 +8,7 @@ export const calibanBrute: Ancestry = {
   traits: [
     {
       name: 'Mighty',
+      summary: '+1 em ataque e dano corpo a corpo.',
       description: 'Você recebe +1 em rolagens de ataque e dano com armas corpo a corpo.',
     },
   ],

@@ -8,6 +8,7 @@ export const dwarf: Ancestry = {
   traits: [
     {
       name: 'Stout',
+      summary: '+2 PV iniciais e ganhos de PV com vantagem.',
       description: 'Comece com +2 HP. Role os ganhos de pontos de vida com vantagem.',
     },
   ],

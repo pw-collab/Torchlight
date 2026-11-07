@@ -13,6 +13,7 @@ export const plagueDoctor: Class = {
     {
       id: 'mask_infusion',
       name: 'Mask Infusion',
+      summary: 'Inala um elixir da máscara: dura o dia, acaba ao usar.',
       description:
         'Inale um elixir herbal pré-preparado da sua máscara para infusão imediata. Dura o dia todo e expira ao ser usado.',
       kind: 'passive',
@@ -20,6 +21,7 @@ export const plagueDoctor: Class = {
     {
       id: 'mesmerize_insect',
       name: 'Mesmerize Insect',
+      summary: '1/dia, um inseto leva um elixir nocivo a um alvo Perto.',
       description:
         '1/dia, você enfeitiça um inseto para entregar automaticamente um elixir nocivo a um alvo à distância Perto, por picada ou mordida.',
       kind: 'limited_use',
@@ -28,6 +30,7 @@ export const plagueDoctor: Class = {
     {
       id: 'elixirs',
       name: 'Elixirs',
+      summary: 'Prepara elixires com teste de INT, sem gastar ação.',
       description:
         'Você pode preparar elixires com um teste de INT, aplicando o modificador do método de entrega escolhido (ver tabela de Métodos de Entrega). Isso não custa uma ação.\nEm falha, não pode preparar aquele elixir novamente até descansar. Exceto pelas infusões de máscara, elixires expiram em 5 rodadas.\nSucesso crítico aumenta a DC ou a categoria do dado em um, ou dobra a duração. Falha crítica aplica o elixir nocivo em você mesmo.',
       kind: 'passive',

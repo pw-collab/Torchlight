@@ -22,6 +22,7 @@ export const priest: Class = {
     {
       id: 'turn_undead',
       name: 'Turn Undead',
+      summary: 'Ação: mortos-vivos fracos fogem em pânico por 1d4 rodadas.',
       description:
         'Como ação, erga seu símbolo sagrado e faça uma verificação de magia. Em sucesso, mortos-vivos com ND ≤ metade do seu nível (arredonde para cima) ficam em pânico e fogem por 1d4 rodadas.',
       // TODO: kind will be configured — likely 'spell_like' (roll WIS vs DC, expend on fail)

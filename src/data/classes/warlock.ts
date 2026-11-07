@@ -13,6 +13,7 @@ export const warlock: Class = {
     {
       id: 'firebond_weapon',
       name: 'Firebond Weapon',
+      summary: 'Arma em chamas: +1d4 de dano de fogo ao acertar.',
       description:
         'Puxando das chamas eternas do abismo, você pode incendiar sua arma corpo a corpo ou à distância como parte de um ataque. Ela causa 1d4 de dano de fogo adicional ao acertar. A chama da arma não é suficiente para perfurar a escuridão.',
       kind: 'passive',
@@ -20,6 +21,7 @@ export const warlock: Class = {
     {
       id: 'pact_invocation',
       name: 'Pact Invocation',
+      summary: 'Uma Invocação ativa; rola Piromancia nos níveis pares.',
       description:
         'Você canaliza a magia implacável de um patrono de formas poderosas e únicas. Apenas um talento de Invocação pode estar ativo por vez.\nAo alcançar o 2º nível, role um talento na tabela de Piromancia, com rolagens adicionais a cada nível par. Você é imune à sua própria piromancia.',
       kind: 'passive',

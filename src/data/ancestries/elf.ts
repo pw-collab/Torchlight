@@ -8,6 +8,7 @@ export const elf: Ancestry = {
   traits: [
     {
       name: 'Farsight',
+      summary: '+1 em ataques à distância ou em conjuração.',
       description:
         'Você recebe +1 em rolagens de ataque com armas à distância ou +1 em testes de conjuração.',
     },

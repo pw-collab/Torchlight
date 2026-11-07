@@ -21,6 +21,7 @@ export const druid: Class = {
     {
       id: 'natures_bounty',
       name: "Nature's Bounty",
+      summary: '1/dia cada, 5 rodadas: Árvore (CA), Trovão (dano) ou Calma (CAR).',
       description:
         'Você pode acessar a magia do mundo natural para ampliar suas capacidades. Cada dádiva pode ser usada uma vez por dia e dura 5 rodadas; você só se beneficia de uma por vez.\n• Força da Árvore: +1 de CA, e mais +1 por uma rodada se você não se mover no seu turno.\n• Estrondo Trovejante: ataques corpo a corpo causam dano adicional igual ao seu modificador de Sabedoria, e dano dobrado contra objetos não mágicos.\n• Semblante Calmo: some seu modificador de Sabedoria a todos os testes de Carisma. Criaturas Animais, Feéricas e Vegetais não serão hostis a você.',
       kind: 'passive',
@@ -28,6 +29,7 @@ export const druid: Class = {
     {
       id: 'spellcasting',
       name: 'Spellcasting',
+      summary: 'Conjura magias Primais com SAB. DC 10 + círculo.',
       description:
         'Você pode conjurar as magias Primais que conhece. Escolha duas magias de 1º círculo da lista da natureza. A cada nível, novas magias são escolhidas conforme a tabela de Magias Primais Conhecidas. Some seu modificador de Sabedoria ao conjurar; a DC é 10 + o círculo da magia.\nSe falhar em um teste de conjuração, não pode lançar aquela magia de novo até completar um descanso. Se rolar 1, não pode lançá-la até participar de uma purga ou cerimônia ritual.',
       kind: 'passive',

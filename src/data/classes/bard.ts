@@ -15,6 +15,7 @@ export const bard: Class = {
     {
       id: 'bardic_arts',
       name: 'Bardic Arts',
+      summary: 'Vantagem em oratória, artes cênicas, lore e diplomacia.',
       description:
         'Você é treinado em oratória, artes cênicas, lore e diplomacia. Você tem vantagem em testes relacionados.',
       kind: 'passive',
@@ -22,6 +23,7 @@ export const bard: Class = {
     {
       id: 'magical_dabbler',
       name: 'Magical Dabbler',
+      summary: 'Ativa pergaminhos e varinhas com Carisma.',
       description:
         'Você pode ativar pergaminhos de magia e varinhas usando Carisma como atributo de conjuração. Se você falhar criticamente, role na tabela de contratempos do mago.',
       kind: 'passive',
@@ -29,6 +31,7 @@ export const bard: Class = {
     {
       id: 'perform',
       name: 'Perform',
+      summary: 'Teste de CAR para um efeito; falhou, perde até descansar.',
       description:
         'Faça um teste de Carisma para realizar um dos efeitos abaixo. Se falhar, não poderá usar aquele efeito novamente até descansar com sucesso.',
       kind: 'spell_like',
@@ -56,6 +59,7 @@ export const bard: Class = {
     {
       id: 'prolific',
       name: 'Prolific',
+      summary: '+1d6 no aprendizado, seu e do grupo que descansa com você.',
       description:
         'Adicione 1d6 aos seus rolamentos de aprendizado. Grupos descansando com 1 ou mais bardos adicionam 1d6 aos seus rolamentos.',
       kind: 'passive',

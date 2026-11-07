@@ -8,6 +8,7 @@ export const resurrected: Ancestry = {
   traits: [
     {
       name: 'Corpse Walking',
+      summary: 'Com 0 PV continua agindo, mas segue morrendo.',
       description:
         'Com 0 PV você permanece ativo, mas ainda está morrendo. Outra pessoa deve estabilizá-lo. Você morre prematuramente se receber novamente dano equivalente ao total de seus PV máximos.',
     },

@@ -8,6 +8,7 @@ export const calibanBestial: Ancestry = {
   traits: [
     {
       name: 'Natural Weapon',
+      summary: 'Arma natural: 1d6 de dano no contato.',
       description:
         'Você tem uma característica animal capaz de causar 1d6 de dano à distância de contato.',
     },

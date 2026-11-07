@@ -8,6 +8,7 @@ export const human: Ancestry = {
   traits: [
     {
       name: 'Ambitious',
+      summary: 'Um rolamento de talento extra no 1º nível.',
       description: 'Você ganha um rolamento de talento adicional no 1º nível.',
     },
   ],
