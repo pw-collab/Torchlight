@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
@@ -39,11 +39,12 @@ import { SectionSubheading } from '@/components/shared/SectionHeading'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
-import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { HoverCard, HoverCardContent } from '@/components/ui/hover-card'
 import type { VariantProps } from 'class-variance-authority'
 
 type ButtonVariants = VariantProps<typeof buttonVariants>
 import { NumInput } from '@/components/sheet/NumInput'
+import { ItemAttributeTag } from '@/components/sheet/ItemAttributeTag'
 import { BookViewerModal } from '@/components/sheet/BookViewerModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -352,15 +353,6 @@ const TYPE_LABEL: Record<ItemType, string> = {
   gear: 'Equipamento', treasure: 'Tesouro', document: 'Documento',
 }
 
-const TYPE_ACCENT: Record<ItemType, { color: string }> = {
-  weapon:   { color: 'var(--destructive)' },
-  armor:    { color: 'var(--chart-2)' },
-  shield:   { color: 'var(--chart-2)' },
-  gear:     { color: 'var(--muted-foreground)' },
-  treasure: { color: 'var(--chart-1)' },
-  document: { color: 'var(--muted-foreground)' },
-}
-
 // ─── The pack grid ────────────────────────────────────────────────────────────
 //
 // Figma 339:738. Every cell of the pack is a portrait card, 102 by 138, on a
@@ -385,93 +377,250 @@ const CELL_TITLE =
 /** Icon size on an occupied cell whose item has no illustration yet. */
 const TILE_ICON_SIZE = 40
 
+/** The remove button hangs off the cell's bottom edge: this gap, then its own height. */
+const REMOVE_GAP = 4
+const REMOVE_SIZE = 32
+
 /**
- * Occupied cell — a title bar over the item's illustration, and the anchor its
- * own details hang from. The cell is the trigger, so the popup opens against
- * the thing that was clicked; `children` is the `PopoverContent` that belongs
- * to it.
+ * What the overlay and the remove button share: gone until the cell is being
+ * looked at — hovered, keyboard-focused or tapped (`data-active` on the cell) —
+ * and kept while one of its own menus is open. `visibility`, not just opacity,
+ * so a hidden button can't be tabbed to or tapped by mistake.
  */
-function GridItemTile({ label, title, art, fallback, open, badge, equipped, light, onOpenChange, children }: {
+const REVEAL =
+  'invisible opacity-0 transition-[opacity,visibility] duration-100 ' +
+  'group-data-[active]/tile:visible group-data-[active]/tile:opacity-100 ' +
+  'group-has-[[aria-expanded=true]]/tile:visible group-has-[[aria-expanded=true]]/tile:opacity-100'
+
+/**
+ * Figma 353:1834 at overlay size: 90 wide at most, 32 tall, the 2px line
+ * inside. The height is the row's, not the button's (see the overlay's grid),
+ * so a button can give a few pixels back on a card too short for the stack; and
+ * on a card under 88px wide — a phone, four to a row — the label steps down a
+ * size to stay on its line.
+ */
+const OVERLAY_BUTTON =
+  'tactile h-full min-h-0 w-full min-w-0 border-2 px-1 text-xs leading-[1.2] tracking-normal @max-[88px]/tile:px-0.5 @max-[88px]/tile:text-[10px]'
+/** The solid ember action: the thing you mostly came here to do. */
+const OVERLAY_PRIMARY = 'border-border-frame'
+/** The quiet one, ruled in cream like "Criar" in the pack's heading. */
+const OVERLAY_SECONDARY = 'bg-muted text-foreground hover:bg-bg-panel border-foreground'
+
+/** A button on the overlay. `primary` is ember, `secondary` the cream-ruled dark one. */
+function OverlayButton({ tone, className, ...props }: {
+  tone: 'primary' | 'secondary'
+} & Omit<React.ComponentProps<typeof Button>, 'variant' | 'size'>) {
+  return (
+    <Button
+      variant={tone === 'primary' ? 'default' : 'outline'}
+      className={cn(OVERLAY_BUTTON, tone === 'primary' ? OVERLAY_PRIMARY : OVERLAY_SECONDARY, className)}
+      {...props}
+    />
+  )
+}
+
+/**
+ * Occupied cell — a title bar over the item's illustration. Looking at it, with
+ * the mouse, the keyboard or a finger, shows two things:
+ *
+ *  - an overlay across the cell with what can be done with the item
+ *    (Figma 353:1863): the edit icon on top, the actions the kind of item has
+ *    (`children`), and the remove icon hanging off the bottom edge;
+ *  - its details beside the cell (`details`, Figma 353:1649), read-only.
+ *
+ * There is no click-to-open any more, so a touch screen gets a tap in its
+ * place: a tap on the cell opens it, a tap on it again — or anywhere else —
+ * closes it. The mouse needs nothing but to arrive and leave.
+ */
+function GridItemTile({ label, art, fallback, active, onActiveChange, badge, equipped, light, details, editLabel, onEdit, removeLabel, onRemove, children }: {
   label: string
-  title: string
   /** The item's illustration. Without one, `fallback` is drawn on a plain ground. */
   art: string | null
   fallback: IconSvgElement
-  open: boolean
+  /** Being looked at: hovered, focused with the keyboard, or tapped. */
+  active: boolean
+  onActiveChange: (active: boolean) => void
   /** Hung over the seam between title and art — a stack's count, or the coins in the purse. */
   badge?: React.ReactNode
   /** The ember mark in the corner of whatever is in hand or worn. */
   equipped?: boolean
   /** A source of light: burning, the cell glows; spent, its drawing is greyed out. */
   light?: 'burning' | 'spent'
-  onOpenChange: (open: boolean) => void
-  children: React.ReactNode
+  /** What the popup beside the cell says. It only reads. */
+  details: React.ReactNode
+  editLabel: string
+  onEdit: () => void
+  removeLabel?: string
+  /** Without it there is nothing to remove (the purse). */
+  onRemove?: () => void
+  /** The buttons between the edit icon and the bottom of the cell. */
+  children?: React.ReactNode
 }) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  // What the last press was made with: a tap toggles, a mouse click does not.
+  const pointerType = useRef('mouse')
+  const detailsId = useId()
+
+  // A tap away from a cell a tap opened closes it. A mouse needs no such thing:
+  // leaving the cell does it.
+  const close = useRef(onActiveChange)
+  useEffect(() => { close.current = onActiveChange })
+  useEffect(() => {
+    if (!active) return
+    function tappedAway(e: PointerEvent) {
+      if (e.pointerType === 'touch' && !rootRef.current?.contains(e.target as Node)) close.current(false)
+    }
+    document.addEventListener('pointerdown', tappedAway)
+    return () => document.removeEventListener('pointerdown', tappedAway)
+  }, [active])
+
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            title={title}
-            className={cn(
-              CELL, CELL_FOCUS,
-              'bg-bg-base text-card-foreground flex cursor-pointer flex-col items-center justify-end overflow-hidden',
-              'transition-[border-color,box-shadow] duration-150',
-              open ? 'border-primary' : 'border-border-outline hover:border-border-control',
-              light === 'burning' && 'shadow-[0_0_14px_color-mix(in_oklch,var(--ember),transparent_55%)]',
-            )}
+    <div
+      ref={rootRef}
+      role="group"
+      aria-label={label}
+      aria-describedby={active ? detailsId : undefined}
+      tabIndex={0}
+      data-active={active ? '' : undefined}
+      onPointerDown={e => { pointerType.current = e.pointerType }}
+      onPointerEnter={e => { if (e.pointerType !== 'touch') onActiveChange(true) }}
+      onPointerLeave={e => { if (e.pointerType !== 'touch') onActiveChange(false) }}
+      // Only a keyboard focus counts: after a click the button keeps focus, and
+      // the overlay should go away with the mouse, not stay for that.
+      onFocus={e => { if (e.target.matches(':focus-visible')) onActiveChange(true) }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) onActiveChange(false) }}
+      className={cn(
+        CELL, CELL_FOCUS,
+        // A size container, so the overlay can ask how wide its cell is — and
+        // so a cell being looked at (or holding an open menu) is lifted above
+        // its neighbours, the remove button hanging over the row below.
+        'group/tile @container/tile data-[active]:z-10 has-[[aria-expanded=true]]:z-10',
+        'bg-bg-base text-card-foreground',
+        'transition-[border-color,box-shadow] duration-150',
+        active ? 'border-border-control' : 'border-border-outline',
+        light === 'burning' && 'shadow-[0_0_14px_color-mix(in_oklch,var(--ember),transparent_55%)]',
+      )}
+    >
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-end overflow-hidden"
+        onClick={() => { if (pointerType.current === 'touch') onActiveChange(!active) }}
+      >
+        <span className="bg-bg-panel flex min-h-9 w-full shrink-0 items-center justify-center p-1.5">
+          <span className={CELL_TITLE}>{label}</span>
+        </span>
+
+        <span className="relative min-h-0 w-full flex-1">
+          {art ? (
+            // The files are already 320px; the optimiser has nothing to add.
+            <Image
+              src={art}
+              alt=""
+              fill
+              sizes="120px"
+              unoptimized
+              className={cn('object-cover', light === 'spent' && 'opacity-50 grayscale')}
+            />
+          ) : (
+            <span className="bg-bg-raised text-muted-foreground absolute inset-0 flex items-center justify-center">
+              <HugeiconsIcon
+                icon={fallback}
+                size={TILE_ICON_SIZE}
+                strokeWidth={1.5}
+                style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE }}
+              />
+            </span>
+          )}
+
+          {badge != null && (
+            <span className="bg-bg-sunken text-card-foreground absolute top-[-4px] left-1/2 -translate-x-1/2 px-1.5 py-[3px] font-mono text-[8px] leading-none font-semibold tracking-[0.3px] whitespace-nowrap">
+              {badge}
+            </span>
+          )}
+
+          {equipped && (
+            <>
+              <Image
+                src="/items/equipado.svg"
+                alt=""
+                width={12}
+                height={11}
+                className="absolute bottom-1.5 left-1.5 h-[11px] w-[11.7333px]"
+              />
+              <span className="sr-only">Equipado</span>
+            </>
+          )}
+        </span>
+      </div>
+
+      {/* The overlay (Figma 353:1863). It covers the cell's whole box, border
+          included: the 2px line plus 4px of padding is the Figma's 6. Rows of
+          32px stacked from the bottom, so the actions sit in the same place on
+          every card — `minmax(0, 32px)` lets them squeeze together when the
+          card is too short for all of them, instead of running out of it. */}
+      <div
+        data-slot="tile-overlay"
+        onClick={e => { if (e.target === e.currentTarget && pointerType.current === 'touch') onActiveChange(false) }}
+        className={cn(
+          'bg-bg-sunken/70 border-input absolute -inset-0.5 z-10 grid auto-rows-[minmax(0,32px)] content-end gap-0.5 border-2 p-1',
+          REVEAL,
+        )}
+      >
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onEdit}
+          aria-label={editLabel}
+          title={editLabel}
+          className="tactile bg-muted text-foreground hover:bg-bg-panel h-full min-h-0 w-8 justify-self-center border-2 border-foreground"
+        >
+          <Image src="/items/editar.svg" alt="" width={16} height={16} />
+        </Button>
+        {children}
+      </div>
+
+      {/* Remove hangs below the cell, apart from the other buttons so it is
+          never the one hit by mistake. The gap is part of its box, so the
+          pointer can cross it without leaving the cell. */}
+      {onRemove && (
+        <div
+          className={cn('absolute inset-x-0 z-10 flex justify-center', REVEAL)}
+          style={{ top: 'calc(100% + 2px)', paddingTop: REMOVE_GAP }}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            aria-label={removeLabel}
+            title={removeLabel}
+            className="tactile border-destructive bg-destructive/15 hover:bg-destructive/25 border"
+            style={{ width: REMOVE_SIZE, height: REMOVE_SIZE }}
           >
-            <span className="bg-bg-panel flex min-h-9 w-full shrink-0 items-center justify-center p-1.5">
-              <span className={CELL_TITLE}>{label}</span>
-            </span>
+            <Image src="/items/remover.svg" alt="" width={16} height={16} />
+          </Button>
+        </div>
+      )}
 
-            <span className="relative min-h-0 w-full flex-1">
-              {art ? (
-                // The files are already 320px; the optimiser has nothing to add.
-                <Image
-                  src={art}
-                  alt=""
-                  fill
-                  sizes="120px"
-                  unoptimized
-                  className={cn('object-cover', light === 'spent' && 'opacity-50 grayscale')}
-                />
-              ) : (
-                <span className="bg-bg-raised text-muted-foreground absolute inset-0 flex items-center justify-center">
-                  <HugeiconsIcon
-                    icon={fallback}
-                    size={TILE_ICON_SIZE}
-                    strokeWidth={1.5}
-                    style={{ width: TILE_ICON_SIZE, height: TILE_ICON_SIZE }}
-                  />
-                </span>
-              )}
-
-              {badge != null && (
-                <span className="bg-bg-sunken text-card-foreground absolute top-[-4px] left-1/2 -translate-x-1/2 px-1.5 py-[3px] font-mono text-[8px] leading-none font-semibold tracking-[0.3px] whitespace-nowrap">
-                  {badge}
-                </span>
-              )}
-
-              {equipped && (
-                <>
-                  <Image
-                    src="/items/equipado.svg"
-                    alt=""
-                    width={12}
-                    height={11}
-                    className="absolute bottom-1.5 left-1.5 h-[11px] w-[11.7333px]"
-                  />
-                  <span className="sr-only">Equipado</span>
-                </>
-              )}
-            </span>
-          </button>
-        }
-      />
-      {children}
-    </Popover>
+      {/* The details beside the cell: read-only, so no focus is moved into it
+          and it takes no pointer events — the cells under it stay hoverable.
+          Escape puts it away. */}
+      <HoverCard
+        open={active}
+        onOpenChange={(next, eventDetails) => {
+          if (!next && eventDetails.reason === 'escape-key') onActiveChange(false)
+        }}
+      >
+        <HoverCardContent
+          {...PACK_POPOVER_POSITION}
+          anchor={rootRef}
+          id={detailsId}
+          role="tooltip"
+          positionerClassName="pointer-events-none"
+          className={PACK_POPOVER_CLASS}
+        >
+          {details}
+        </HoverCardContent>
+      </HoverCard>
+    </div>
   )
 }
 
@@ -522,210 +671,154 @@ function GridEmptyTile() {
   )
 }
 
-// ─── The item popover ─────────────────────────────────────────────────────────
+// ─── The item details ─────────────────────────────────────────────────────────
+//
+// Figma 353:1649. The card that opens beside a cell while it is looked at. It
+// only reads: the name and kind, the weight in slots, a line of what the thing
+// is, and the figures it actually has (Figma 353:1970). Nothing in it is
+// clickable — what can be done with the item lives on the cell's own overlay.
 
 /**
- * Where a pack popup hangs and how it gets out of its own way. Anchored under
- * the tile, it flips above when the row is near the bottom of the screen and
- * slides sideways — rather than jumping end to end — when the tile is in the
- * first or last column. The padding keeps it off the viewport edge, and
- * `PopoverContent` caps it to the room actually found, so a long popup scrolls
- * inside itself instead of running off the screen.
+ * Where the details hang and how they get out of their own way. Above the cell
+ * by default, so the buttons on it stay uncovered; below when the row is near
+ * the top of the screen, leaving room for the remove button hanging off the
+ * bottom edge. It slides sideways — rather than jumping end to end — when the
+ * cell is in the first or last column, and the padding keeps it off the edge.
  */
 const PACK_POPOVER_POSITION = {
-  side: 'bottom',
+  side: 'top',
   align: 'center',
-  sideOffset: 8,
+  sideOffset: ({ side }: { side: string }) => (side === 'bottom' ? REMOVE_GAP + REMOVE_SIZE + 8 : 8),
   collisionPadding: 16,
   collisionAvoidance: { side: 'flip', align: 'shift', fallbackAxisSide: 'start' },
 } as const
 
-/** Shared chrome: the blood top rule and square edges the old pane carried. */
+/** Figma 353:1649: 224 by 240, the panel's floating surface and its 2px outline. */
 const PACK_POPOVER_CLASS =
-  'w-[300px] gap-0 border border-[var(--border)] border-t-2 border-t-[var(--primary)] bg-[var(--background)] p-0'
+  'min-h-60 w-56 gap-0 border-2 border-border-outline bg-bg-panel p-0 shadow-none ring-0 select-none'
 
-const POPOVER_SECTION = 'border-b border-[var(--border)] px-3 py-2.5 last:border-b-0'
-
-function PopoverCloseButton() {
+/** The same two blocks for everything that opens one: a heading and a body. */
+function PackDetails({ title, label, slots, description, children }: {
+  title: string
+  /** The line under the title: what kind of thing it is. */
+  label: string
+  slots: number
+  description?: string
+  /** The attribute tags. */
+  children?: React.ReactNode
+}) {
   return (
-    <PopoverClose
-      render={
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          aria-label="Fechar"
-          className="text-muted-foreground shrink-0 text-[11px] leading-none hover:bg-transparent"
-        >
-          ✕
-        </Button>
-      }
-    />
+    <>
+      <div className="flex min-h-9 items-start gap-2 p-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1 tracking-[0.3px]">
+          <span className="font-heading text-card-foreground line-clamp-2 text-base leading-none font-normal [word-break:break-word]">
+            {title}
+          </span>
+          <span className="text-muted-foreground font-mono text-[8px] leading-none font-semibold uppercase">
+            {label}
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <Image src="/items/slots.svg" alt="" width={10} height={11} />
+          <span className="text-foreground font-mono text-sm leading-[1.2] font-bold tracking-[0.3px]">
+            <span className="sr-only">Slots: </span>
+            {slots}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between gap-3 p-3">
+        {description && (
+          <p className="text-muted-foreground font-[family-name:var(--font-body)] text-[11px] leading-[1.2] tracking-[0.3px]">
+            {description}
+          </p>
+        )}
+        {children && <div className="mt-auto grid grid-cols-2 gap-1">{children}</div>}
+      </div>
+    </>
   )
 }
 
-/** One labelled figure in the popup's stat strip. */
-function StatCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ minWidth: 0 }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
-        {label}
-      </div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--foreground)', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {value}
-      </div>
-    </div>
-  )
+/** "5 sp" is a figure and a unit: the unit is drawn smaller, beside it. */
+function splitCost(cost: string): { value: string; unit?: string } {
+  const m = cost.trim().match(/^(\d[\d.,]*)\s*(.+)$/)
+  return m ? { value: m[1], unit: m[2] } : { value: cost.trim() }
 }
 
 /** Only the figures an item actually has — a rope has no damage die. */
-function itemStats(item: InventoryItem, now: number): { label: string; value: string }[] {
-  const stats: { label: string; value: string }[] = [
-    { label: 'Slots', value: String(item.slots) },
-  ]
-  if (item.quantity > 1)  stats.push({ label: 'Qtd',     value: `×${item.quantity}` })
-  if (item.damageDie)     stats.push({ label: 'Dano',    value: item.damageDie })
-  if (item.acBonus)       stats.push({ label: 'CA',      value: item.type === 'shield' ? `+${item.acBonus}` : String(item.acBonus) })
-  if (item.range)         stats.push({ label: 'Alcance', value: item.range })
-  if (item.isLight)       stats.push({ label: 'Luz',     value: `${minutesLeft(item, now)}min` })
-  if (item.cost)          stats.push({ label: 'Custo',   value: item.cost })
-  return stats
+function itemTags(item: InventoryItem, now: number): React.ReactNode[] {
+  const tags: React.ReactNode[] = []
+  if (item.damageDie) tags.push(<ItemAttributeTag key="damage" kind="damage" label="Dano" value={item.damageDie} />)
+  if (item.acBonus) {
+    tags.push(<ItemAttributeTag key="armor" kind="armor" label="CA" value={item.type === 'shield' ? `+${item.acBonus}` : String(item.acBonus)} />)
+  }
+  if (item.range) tags.push(<ItemAttributeTag key="distance" kind="distance" label="Alcance" value={item.range} />)
+  if (item.isLight) {
+    tags.push(<ItemAttributeTag key="light" kind="light" label="Luz restante" value={String(minutesLeft(item, now))} unit="min" />)
+  }
+  if (item.cost) {
+    const { value, unit } = splitCost(item.cost)
+    tags.push(<ItemAttributeTag key="cost" kind="cost" label="Custo" value={value} unit={unit} />)
+  }
+  return tags
 }
 
-function StateBadge({ tone, children }: { tone: 'equipped' | 'lit'; children: React.ReactNode }) {
-  const color = tone === 'equipped' ? 'var(--chart-2)' : 'var(--primary)'
-  return (
-    <span style={{
-      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase',
-      color: tone === 'equipped' ? color : 'var(--foreground)',
-      background: `color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 80 : 85}%)`,
-      border: `1px solid color-mix(in oklch, ${color}, transparent ${tone === 'equipped' ? 65 : 70}%)`,
-      padding: '1px 5px',
-      whiteSpace: 'nowrap',
-    }}>
-      {children}
-    </span>
-  )
-}
-
-/**
- * An item's details and what can be done with it, hung off its own tile.
- * This used to be a fixed block under the grid that sat empty — with a
- * skeleton in it — whenever nothing was selected.
- *
- * The actions are grouped by weight: what you roll, what you do with the thing,
- * and what you do to the record of it.
- */
-function ItemDetailPopover({ item, now, onEdit, onRemove, onEquipToggle, onConsume, onOpen, onRollAttack, onRollDamage, onRollParry }: {
-  item: InventoryItem
-  now: number
-  onEdit: () => void
-  onRemove: () => void
-  onEquipToggle?: () => void
-  onConsume?: () => void
-  onOpen?: () => void
-  onRollAttack?: (mode: RollMode) => void
-  onRollDamage?: () => void
-  onRollParry?: () => void
-}) {
-  const accent = TYPE_ACCENT[item.type] ?? TYPE_ACCENT.gear
-  const stats = itemStats(item, now)
-  const hasRolls = Boolean(onRollAttack || onRollDamage || onRollParry)
-  const hasUses  = Boolean(onEquipToggle || onConsume || onOpen)
+function ItemDetails({ item, now }: { item: InventoryItem; now: number }) {
   const described = Boolean(item.description && item.description !== '-')
+  const kind = [TYPE_LABEL[item.type] ?? item.type, isTwoHanded(item) ? '2 mãos' : null].filter(Boolean).join(' · ')
+  const tags = itemTags(item, now)
 
   return (
-    <PopoverContent {...PACK_POPOVER_POSITION} className={PACK_POPOVER_CLASS}>
-      {/* Identity */}
-      <div className={POPOVER_SECTION} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-        <span style={{ flexShrink: 0, color: accent.color, marginTop: 1 }}>
-          <ItemGlyph item={item} size={20} now={now} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em', overflowWrap: 'anywhere' }}>
-            {item.name}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent.color }}>
-              {TYPE_LABEL[item.type] ?? item.type}
-            </span>
-            {item.equipped && <StateBadge tone="equipped">Equipado</StateBadge>}
-            {item.isLit && <StateBadge tone="lit">Acesa</StateBadge>}
-            {isTwoHanded(item) && (
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 6.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted-foreground)' }}>
-                2 mãos
-              </span>
-            )}
-          </div>
-        </div>
-        <PopoverCloseButton />
-      </div>
-
-      {/* Figures */}
-      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px 10px' }}>
-        {stats.map(stat => <StatCell key={stat.label} {...stat} />)}
-      </div>
-
-      {described && (
-        <p className={POPOVER_SECTION} style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10.5, color: 'var(--muted-foreground)', lineHeight: 1.55, margin: 0 }}>
-          {item.description}
-        </p>
-      )}
-
-      {hasRolls && (
-        <div className={POPOVER_SECTION} style={{ display: 'flex', gap: 6 }}>
-          {onRollAttack && (
-            <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={onRollAttack}>
-              <Button render={<span />} variant={BTN_VARIANT_MAP.blood} size="sm" className="flex-1 justify-center gap-1.5">
-                <HugeiconsIcon icon={Sword03Icon} size={13} strokeWidth={1.8} /> Atacar
-              </Button>
-            </RollModeMenu>
-          )}
-          {onRollDamage && <Button onClick={onRollDamage} variant={BTN_VARIANT_MAP.mist} size="sm" className="flex-1 justify-center">Dano</Button>}
-          {onRollParry && <Button onClick={onRollParry} variant={BTN_VARIANT_MAP.mist} size="sm" className="flex-1 justify-center">Aparar</Button>}
-        </div>
-      )}
-
-      {hasUses && (
-        <div className={POPOVER_SECTION} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {onEquipToggle && (
-            <Button
-              onClick={onEquipToggle}
-              variant={BTN_VARIANT_MAP[item.equipped ? 'amber' : 'dark']}
-              size="sm"
-              className="flex-1 justify-center"
-            >
-              {item.equipped ? 'Desequipar' : 'Equipar'}
-            </Button>
-          )}
-          {onConsume && <Button onClick={onConsume} variant={BTN_VARIANT_MAP.green} size="sm" className="flex-1 justify-center">Consumir</Button>}
-          {onOpen && (
-            <Button onClick={onOpen} variant={BTN_VARIANT_MAP.dark} size="sm" className="flex-1 justify-center gap-1.5">
-              <HugeiconsIcon icon={BookOpen02Icon} size={13} strokeWidth={1.8} /> Ler
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* The record itself — kept last, and quieter than the rest. */}
-      <div className={POPOVER_SECTION} style={{ display: 'flex', gap: 6 }}>
-        <Button onClick={onEdit} variant="ghost" size="sm" className="text-muted-foreground flex-1 justify-center">✎ Editar</Button>
-        <Button onClick={onRemove} variant={BTN_VARIANT_MAP.danger} size="sm" className="flex-1 justify-center">✕ Remover</Button>
-      </div>
-    </PopoverContent>
+    <PackDetails
+      title={item.name}
+      label={kind}
+      slots={item.slots ?? 0}
+      description={described ? item.description : undefined}
+    >
+      {tags.length > 0 ? tags : undefined}
+    </PackDetails>
   )
 }
 
 /**
- * The purse, opened. It sits where an item's details would sit, because in the
- * pack the purse *is* an item — clicking it should give you the coins, not a
- * description of a bag.
+ * The purse. It sits where an item's details would sit, because in the pack the
+ * purse *is* an item — hovering it should give you the coins, not a description
+ * of a bag. Changing them is the edit icon's job (see `CoinPurseModal`).
  */
-function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
+function PurseDetails({ gold, silver, copper, slots }: {
+  gold: number
+  silver: number
+  copper: number
+  slots: number
+}) {
+  const toNextSlot = COINS_PER_SLOT - ((gold + silver + copper) % COINS_PER_SLOT)
+
+  return (
+    <PackDetails
+      title="Bolsa de moedas"
+      label="Tesouro"
+      slots={slots}
+      description={`${COINS_PER_SLOT} moedas = 1 slot de carga · faltam ${toNextSlot} para o próximo.`}
+    >
+      <ItemAttributeTag kind="cost" label="Ouro" value={String(gold)} unit="PO" />
+      <ItemAttributeTag kind="cost" label="Prata" value={String(silver)} unit="PP" />
+      <ItemAttributeTag kind="cost" label="Cobre" value={String(copper)} unit="PC" />
+    </PackDetails>
+  )
+}
+
+/**
+ * The coins, edited. This used to be the purse's popup; the popup only reads
+ * now, so the three counts moved to a modal like the item's own form. Each
+ * count is saved as it is committed — there is nothing to confirm.
+ */
+function CoinPurseModal({ gold, silver, copper, slots, onUpdate, onClose }: {
   gold: number
   silver: number
   copper: number
   slots: number
   onUpdate: (patch: { gold?: number; silver?: number; copper?: number }) => void
+  onClose: () => void
 }) {
   const coins = [
     { key: 'gold'   as const, label: 'PO', color: 'text-[var(--chart-1)]',          value: gold },
@@ -736,55 +829,71 @@ function CoinPursePopover({ gold, silver, copper, slots, onUpdate }: {
   const toNextSlot = COINS_PER_SLOT - (total % COINS_PER_SLOT)
 
   return (
-    <PopoverContent {...PACK_POPOVER_POSITION} className={PACK_POPOVER_CLASS}>
-      <div className={POPOVER_SECTION} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-        <span style={{ flexShrink: 0, color: 'var(--chart-1)', marginTop: 1, display: 'inline-flex' }}>
-          <HugeiconsIcon icon={MoneyBag01Icon} size={20} strokeWidth={1.5} style={{ width: 20, height: 20 }} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13, color: 'var(--foreground)', lineHeight: 1.2, letterSpacing: '0.02em' }}>
-            Bolsa de moedas
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--chart-1)', marginTop: 4 }}>
-            Tesouro
-          </div>
-        </div>
-        <PopoverCloseButton />
-      </div>
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        background: 'rgba(0,0,0,0.7)',
+        backdropFilter: 'blur(2px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        className="worn-border animate-ink-spread"
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          borderTop: '2px solid var(--border)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+          padding: 18,
+          minWidth: 300,
+          maxWidth: 380,
+          width: '90vw',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
+        <OrnateTitle color="var(--foreground)" fontSize={10}>Bolsa de moedas</OrnateTitle>
 
-      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px 10px' }}>
-        <StatCell label="Slots" value={String(slots)} />
-        <StatCell label="Moedas" value={String(total)} />
-      </div>
-
-      <div className={POPOVER_SECTION} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-        {coins.map(({ key, label, color, value }) => (
-          <div
-            key={key}
-            className="worn-border"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
-          >
-            <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
-              {label}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {coins.map(({ key, label, color, value }) => (
+            <div
+              key={key}
+              className="worn-border"
+              style={{ background: 'var(--card)', border: '1px solid var(--border)', padding: 8, textAlign: 'center' }}
+            >
+              <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 7, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: 4 }}>
+                {label}
+              </div>
+              <NumInput
+                value={value}
+                min={0}
+                aria-label={label}
+                onCommit={n => onUpdate({ [key]: n })}
+                className={cn(
+                  'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
+                  color,
+                )}
+              />
             </div>
-            <NumInput
-              value={value}
-              min={0}
-              aria-label={label}
-              onCommit={n => onUpdate({ [key]: n })}
-              className={cn(
-                'font-heading h-auto cursor-text border-none bg-transparent p-0 text-[20px] font-bold',
-                color,
-              )}
-            />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <p className={POPOVER_SECTION} style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0 }}>
-        {COINS_PER_SLOT} moedas = 1 slot de carga · faltam {toNextSlot} para o próximo.
-      </p>
-    </PopoverContent>
+        <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 10, color: 'var(--muted-foreground)', lineHeight: 1.5, margin: 0 }}>
+          {total} {total === 1 ? 'moeda' : 'moedas'} · {slots} {slots === 1 ? 'slot' : 'slots'} · {COINS_PER_SLOT} moedas = 1 slot de carga, faltam {toNextSlot} para o próximo.
+        </p>
+
+        <Button onClick={onClose} variant={BTN_VARIANT_MAP.dark} className="w-full h-auto py-[7px]">
+          Fechar
+        </Button>
+      </div>
+    </div>
   )
 }
 
@@ -1088,13 +1197,17 @@ export function InventoryView({
   const [addingForm, setAddingForm]       = useState<Partial<InventoryItem> | null>(null)
   const [showCatalog, setShowCatalog]     = useState(false)
   const [editingId, setEditingId]         = useState<string | null>(null)
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [activeTileId, setActiveTileId]   = useState<string | null>(null)
+  const [coinsOpen, setCoinsOpen]         = useState(false)
   const [replaceFor, setReplaceFor]       = useState<string | null>(null)
   const [bookViewItem, setBookViewItem]   = useState<InventoryItem | null>(null)
 
-  // One popup at a time: the pack tracks which cell is open, and each cell asks
-  // whether the open one is itself.
-  const purseOpen = selectedItemId === COIN_PURSE_ID
+  // One cell at a time shows its overlay and details: the pack tracks which one
+  // is being looked at, and each cell asks whether that is itself. A cell only
+  // clears the slot if it still holds it — the mouse leaving one cell must not
+  // undo the keyboard having just arrived at another.
+  const setTileActive = (id: string, active: boolean) =>
+    setActiveTileId(prev => (active ? id : prev === id ? null : prev))
   const editingItem = editingId
     ? inventory.find(i => i.id === editingId) ?? null
     : null
@@ -1136,7 +1249,7 @@ export function InventoryView({
   }
 
   function removeItem(id: string) {
-    if (id === selectedItemId) setSelectedItemId(null)
+    if (id === activeTileId) setActiveTileId(null)
     if (id === editingId) setEditingId(null)
     const next = inventory.filter(i => i.id !== id)
     onUpdate(next)
@@ -1151,9 +1264,9 @@ export function InventoryView({
       ? inventory.filter(i => i.id !== id)
       : inventory.map(i => i.id === id ? { ...i, quantity: nextQty } : i)
     onUpdate(next)
-    // The last of a stack takes its popup with it — the tile it hung on is gone.
+    // The last of a stack takes its overlay with it — the tile it sat on is gone.
     if (nextQty <= 0) {
-      if (id === selectedItemId) setSelectedItemId(null)
+      if (id === activeTileId) setActiveTileId(null)
       if (item.equipped) onAcChange(calculateAC(next, dex))
     }
   }
@@ -1247,6 +1360,75 @@ export function InventoryView({
 
   // Carga (weight capacity) — shown inline in the Mochila heading
   const isEncumbered = carried > capacity
+
+  /**
+   * What the overlay offers for this kind of item (Figma 353:1863 shows a torch:
+   * equip it, or use it up). The edit and remove icons are on every cell; these
+   * are the buttons between them, top to bottom, the ember one being the thing
+   * you mostly came for:
+   *
+   *   weapon     Atk | Dmg, then Equipar      shield    Aparar, then Equipar
+   *   armor      Equipar                      gear      Consumir (a light: Equipar first)
+   *   document   Ler                          treasure  nothing but edit and remove
+   *
+   * The card is 138 tall and the edit icon takes 32 of it, so no kind gets more
+   * than two rows.
+   */
+  function renderItemActions(item: InventoryItem) {
+    const rolls  = item.type === 'weapon' && onRoll
+    const parry  = item.type === 'shield' && onRoll
+    const damage = Boolean(item.damageDie && onRoll)
+    const hasMain = Boolean(rolls || parry || item.type === 'gear' || item.type === 'document')
+
+    return (
+      <>
+        {(rolls || damage) && (
+          // A grid, not a flex row: `flex-1` starts every item from its own
+          // border and padding, so the one with a border came out wider.
+          <div className={cn('grid h-full w-full gap-0.5', rolls && damage ? 'grid-cols-2' : 'grid-cols-1')}>
+            {rolls && (
+              <RollModeMenu label={`Rolar ataque com ${item.name}`} onRoll={mode => rollAttack(item, mode)} className="block h-full min-w-0">
+                {/* Drawn as a button, not one: the menu trigger around it is the control. */}
+                <span className={cn(buttonVariants({ variant: 'default' }), OVERLAY_BUTTON, OVERLAY_PRIMARY)}>Atk</span>
+              </RollModeMenu>
+            )}
+            {damage && (
+              <OverlayButton tone="secondary" onClick={() => rollDamage(item)}>Dmg</OverlayButton>
+            )}
+          </div>
+        )}
+
+        {parry && <OverlayButton tone="primary" onClick={() => rollParry(item)}>Aparar</OverlayButton>}
+
+        {isEquippable(item) && (
+          <OverlayButton
+            tone={hasMain ? 'secondary' : 'primary'}
+            onClick={() => toggleEquipFromList(item)}
+            // "Desequipar" is the longest word on any card and the cards are
+            // fluid, so it is set a size down to stay on one line.
+            className={item.equipped ? 'text-[10px]' : undefined}
+          >
+            {item.equipped ? (
+              <>
+                {/* On a card under 88px — a phone, four to a row — even that
+                    does not fit, so the same action goes by a shorter name.
+                    The hidden one is out of the accessible name too, so the
+                    name always matches what is on the button. */}
+                <span className="@max-[88px]/tile:hidden">Desequipar</span>
+                <span className="hidden @max-[88px]/tile:inline">Guardar</span>
+              </>
+            ) : 'Equipar'}
+          </OverlayButton>
+        )}
+
+        {item.type === 'gear' && <OverlayButton tone="primary" onClick={() => consumeItem(item.id)}>Consumir</OverlayButton>}
+
+        {item.type === 'document' && (
+          <OverlayButton tone="primary" onClick={() => { setActiveTileId(null); setBookViewItem(item) }}>Ler</OverlayButton>
+        )}
+      </>
+    )
+  }
 
   // Grid cells: the purse, then every item — one cell per slot it weighs, the
   // extras drawn as echoes so the room it takes is visible where it is taken —
@@ -1538,21 +1720,15 @@ export function InventoryView({
 
             <GridItemTile
               label="Bolsa de moedas"
-              title={`Bolsa de moedas — ${purseTotal} ${purseTotal === 1 ? 'moeda' : 'moedas'}`}
               art={ITEM_ART.purse}
               fallback={MoneyBag01Icon}
               badge={purseTotal > 0 ? purseTotal : undefined}
-              open={purseOpen}
-              onOpenChange={next => setSelectedItemId(next ? COIN_PURSE_ID : null)}
-            >
-              <CoinPursePopover
-                gold={gold}
-                silver={silver}
-                copper={copper}
-                slots={purseSlots}
-                onUpdate={onCurrencyUpdate}
-              />
-            </GridItemTile>
+              active={activeTileId === COIN_PURSE_ID}
+              onActiveChange={active => setTileActive(COIN_PURSE_ID, active)}
+              details={<PurseDetails gold={gold} silver={silver} copper={copper} slots={purseSlots} />}
+              editLabel="Editar moedas"
+              onEdit={() => { setActiveTileId(null); setCoinsOpen(true) }}
+            />
             {Array.from({ length: purseCells - 1 }).map((_, i) => (
               <GridEchoTile key={`purse-echo-${i}`} label="Bolsa de moedas" />
             ))}
@@ -1560,27 +1736,20 @@ export function InventoryView({
               <Fragment key={item.id}>
                 <GridItemTile
                   label={item.name}
-                  title={item.name}
                   art={itemArt(item)}
                   fallback={iconFor(item)}
                   badge={item.quantity > 1 ? `x${item.quantity}` : undefined}
                   equipped={item.equipped}
                   light={lightState(item, now)}
-                  open={selectedItemId === item.id}
-                  onOpenChange={next => setSelectedItemId(next ? item.id : null)}
+                  active={activeTileId === item.id}
+                  onActiveChange={active => setTileActive(item.id, active)}
+                  details={<ItemDetails item={item} now={now} />}
+                  editLabel={`Editar ${item.name}`}
+                  onEdit={() => { setActiveTileId(null); setEditingId(item.id) }}
+                  removeLabel={`Remover ${item.name}`}
+                  onRemove={() => removeItem(item.id)}
                 >
-                  <ItemDetailPopover
-                    item={item}
-                    now={now}
-                    onEdit={() => { setSelectedItemId(null); setEditingId(item.id) }}
-                    onRemove={() => removeItem(item.id)}
-                    onEquipToggle={isEquippable(item) ? () => toggleEquipFromList(item) : undefined}
-                    onConsume={item.type === 'gear' ? () => consumeItem(item.id) : undefined}
-                    onOpen={item.type === 'document' ? () => { setSelectedItemId(null); setBookViewItem(item) } : undefined}
-                    onRollAttack={item.type === 'weapon' && onRoll ? mode => rollAttack(item, mode) : undefined}
-                    onRollDamage={item.damageDie && onRoll ? () => rollDamage(item) : undefined}
-                    onRollParry={item.type === 'shield' && onRoll ? () => rollParry(item) : undefined}
-                  />
+                  {renderItemActions(item)}
                 </GridItemTile>
                 {Array.from({ length: tileCount(item) - 1 }).map((_, i) => (
                   <GridEchoTile key={`${item.id}-echo-${i}`} label={item.name} />
@@ -1712,6 +1881,17 @@ export function InventoryView({
             </Button>
           </div>
         </div>
+      )}
+
+      {coinsOpen && (
+        <CoinPurseModal
+          gold={gold}
+          silver={silver}
+          copper={copper}
+          slots={purseSlots}
+          onUpdate={onCurrencyUpdate}
+          onClose={() => setCoinsOpen(false)}
+        />
       )}
 
       {editingItem && (

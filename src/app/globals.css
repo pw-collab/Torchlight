@@ -783,15 +783,18 @@ html, body {
   grid-auto-rows: max-content;
   align-content: start;
   gap: 6px;
-  /* The extra bottom room lets the last row scroll clear of the fade. */
-  padding: 24px 24px 56px;
+  /* The extra bottom room lets the last row scroll clear of the fade — and
+     clear of the remove button that hangs 36px under a cell while it is
+     hovered, so that button never lands in the fade. */
+  padding: 24px 24px 92px;
   mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
 }
 .inv-panel__form { grid-column: 1 / -1; }
 
 @media (max-width: 1100px) {
   .inv-panel { height: auto; overflow: visible; }
-  .inv-panel__grid { overflow: visible; padding-bottom: 24px; mask-image: none; }
+  /* 40px, not 24: the last row's remove button hangs 36px below its cell. */
+  .inv-panel__grid { overflow: visible; padding-bottom: 40px; mask-image: none; }
 }
 @media (max-width: 767px) {
   .inv-panel__equipment,
