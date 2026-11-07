@@ -405,12 +405,17 @@ function TechniqueCard({
   stats,
   onStateChange,
   onRoll,
+  fullFace = false,
+  className,
 }: {
   technique: ClassTechnique
   state: TechniqueState
   stats: Record<string, number>
   onStateChange: (s: TechniqueState) => void
   onRoll?: (r: RollResult) => void
+  /** The whole rule on the face rather than the one-liner, where the card has the room. */
+  fullFace?: boolean
+  className?: string
 }) {
   const kind: TechniqueKind = technique.kind ?? 'passive'
   const style = KIND_STYLE[kind]
@@ -445,8 +450,9 @@ function TechniqueCard({
       caption={style.label}
       accent={style.color}
       tone={style.tone}
-      description={faceText(technique.summary, technique.description)}
+      description={fullFace ? technique.description : faceText(technique.summary, technique.description)}
       status={statusLine}
+      className={className}
       controls={
         // Ability cards — activation techniques, floating beneath the card
         kind === 'spell_like' && technique.spellLike ? (
@@ -472,6 +478,35 @@ function TechniqueCard({
         />
       )}
     </GlyphCard>
+  )
+}
+
+/**
+ * The class's Spellcasting technique on its own (Figma 353:3198), for the
+ * grimoire's casting column: the full rule on the face, since the column has
+ * the room. Classes that cast without one (the priest) get nothing.
+ */
+export function SpellcastingCard({ classData, stats, onRoll, className }: {
+  classData: Class
+  stats: Record<string, number>
+  onRoll?: (r: RollResult) => void
+  className?: string
+}) {
+  const technique = classData.techniques.find(
+    (t): t is ClassTechnique => t !== null && t.id === 'spellcasting',
+  )
+  if (!technique) return null
+  return (
+    <TechniqueCard
+      technique={technique}
+      state={{ id: technique.id }}
+      stats={stats}
+      // A passive technique keeps no state to change.
+      onStateChange={() => {}}
+      onRoll={onRoll}
+      fullFace
+      className={className}
+    />
   )
 }
 

@@ -6,41 +6,49 @@ import { rollPool } from '@/lib/dice'
 import type { RollResult } from '@/lib/dice'
 import { DICE_TAP } from '@/lib/diceMotion'
 import { MAX_DICE } from '@/lib/diceEngine'
-import { DOCK_CELL_CLASS } from '@/components/sheet/dock'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-const KEYS = [4, 6, 8, 10, 12] as const
-type Sides = (typeof KEYS)[number]
+/** The tray's order (Figma 353:4434): the percentile first, then the polyhedra. */
+export const TRAY_DICE = [100, 4, 6, 8, 10, 12] as const
 
-const ONE_EACH: Record<Sides, number> = { 4: 1, 6: 1, 8: 1, 10: 1, 12: 1 }
+const ONE = 1
 
 /**
- * One key per die on the desktop dock (the Figma's Outline label buttons).
+ * One key per die (the Figma's Outline label buttons, light rule on --muted).
  * Each key holds a count and shows it (`D6`, `2D6`): the right button adds a
  * die, the left button rolls what it shows and the count drops back to one.
  * Past one, an × on the key's corner puts it back without rolling. The keyboard
  * gets the same through + and − (or the arrows) on a focused key.
  *
  * A key only ever rolls its own shape; mixed handfuls stay on the phone's
- * dice panel. The d20 is not here: it is the ember button beside these, which
- * opens the panel with advantage, the DC and the modifier.
+ * dice panel. The d20 is not here: it is the ember key beside these, which
+ * opens the modes, the DC and the modifier (see DiceTray).
+ *
+ * Renders the keys bare, one element each, so the parent grid places them.
  */
-export function DiceKeys({ onRoll }: { onRoll?: (result: RollResult) => void }) {
-  const [counts, setCounts] = useState(ONE_EACH)
+export function DiceKeys({ onRoll, sides: keys = TRAY_DICE, className }: {
+  onRoll?: (result: RollResult) => void
+  sides?: readonly number[]
+  /** Extra classes on each key's button. */
+  className?: string
+}) {
+  const [counts, setCounts] = useState<Record<number, number>>({})
 
-  const setCount = (sides: Sides, next: number) =>
-    setCounts(c => ({ ...c, [sides]: Math.min(MAX_DICE, Math.max(1, next)) }))
+  const countOf = (sides: number) => counts[sides] ?? ONE
+  const setCount = (sides: number, next: number) =>
+    setCounts(c => ({ ...c, [sides]: Math.min(MAX_DICE, Math.max(ONE, next)) }))
 
-  function roll(sides: Sides) {
-    const count = counts[sides]
+  function roll(sides: number) {
+    const count = countOf(sides)
     onRoll?.(rollPool(Array(count).fill(sides), `${count > 1 ? count : ''}d${sides}`))
-    setCount(sides, 1)
+    setCount(sides, ONE)
   }
 
   return (
     <>
-      {KEYS.map(sides => {
-        const count = counts[sides]
+      {keys.map(sides => {
+        const count = countOf(sides)
         const label = `${count > 1 ? count : ''}D${sides}`
         return (
           <div key={sides} className="relative min-w-0">
@@ -56,14 +64,19 @@ export function DiceKeys({ onRoll }: { onRoll?: (result: RollResult) => void }) 
               }}
               title={`Rolar ${label} · botão direito soma um d${sides}`}
               aria-label={`Rolar ${count} d${sides}. Botão direito ou mais soma um dado.`}
-              className={`${DOCK_CELL_CLASS} type-button bg-muted text-foreground border-2 border-[var(--foreground)] hover:bg-[var(--bg-panel)]`}
+              className={cn(
+                'size-full min-h-0 min-w-0 px-0 transition-colors duration-[250ms]',
+                'bg-muted text-foreground border-2 border-[var(--foreground)] hover:bg-[var(--bg-raised)]',
+                'font-mono text-[14px] leading-[1.2] font-bold tracking-normal',
+                className,
+              )}
             >
               {label}
             </Button>
             {count > 1 && (
               <button
                 type="button"
-                onClick={() => setCount(sides, 1)}
+                onClick={() => setCount(sides, ONE)}
                 title={`Voltar a um d${sides}`}
                 aria-label={`Voltar a um d${sides}`}
                 className="bg-foreground text-background hover:bg-primary hover:text-primary-foreground absolute -top-2 -right-2 flex size-5 items-center justify-center border border-[var(--border-frame)] font-mono text-[11px] leading-none font-bold outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"

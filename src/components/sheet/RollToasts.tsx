@@ -20,8 +20,8 @@ interface Props {
 
 /**
  * The fresh rolls, as toasts in the top-right corner — the phone layout,
- * which has no dock to keep a history in. The desktop sheet shows the same
- * cards in the dock instead (see RollHistory).
+ * which has no dice tray to keep a history in. The desktop sheet shows the
+ * same rolls over its dice key and in the tray instead (see DiceTray).
  */
 export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune, onRollDamage, damageRolled }: Props) {
   const now = useNow(1000)

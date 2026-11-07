@@ -393,6 +393,29 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Celular (cards de 71 a 85px): as linhas do overlay encolhem de 32px para ~27px quando o card é baixo demais, o texto desce para 10px e, abaixo de 88px de largura, "Desequipar" vira "Guardar" (não cabe). A margem de baixo da grade passou de 56 para 92px (40 no layout empilhado) para o botão de remover da última linha não cair no fade nem ser cortado.
 - Os assets novos do Figma estão em `public/items`: `editar.svg`, `remover.svg`, `slots.svg`, `custo.svg` e as máscaras `tempo-de-luz.png`, `dano.png`, `alcance.png`. Os ícones de editar e remover do Figma são a versão preenchida do Hugeicons, que o pacote gratuito não tem, por isso vieram como SVG.
 
+**Aba Grimório, marcadores, tocha e bandeja de dados** · **feita em 07/11** (Figma `353:915`, `353:3235`, `353:3490`, `353:4540`, `353:3505`)
+- Grimório (`353:915`): o painel da direita fica só com o título "Magias" (linha de 42px) e o deck. A segunda coluna do card da Ficha passa a ser a da conjuração, desenhada pelo `Spells` via portal (`castingTarget`, o mesmo padrão do inventário): título "Conjuração", o card de Spellcasting da classe com a regra inteira na frente (240px de altura, `SpellcastingCard` em `ClassPanel`), "+ Aprender" no violeta das magias (`bg-spell`), título "Bônus", o select de atributo e o bloco "Conjuração". Classe que conjura sem a técnica Spellcasting (o sacerdote) fica sem o card. No celular nada muda: os controles seguem no título do deck.
+- O bloco de bônus virou componente (`BonusTile`), usado aqui e nos bônus de corpo a corpo e distância do inventário.
+- Navegação (`353:3235`): as abas saem do card da Ficha e viram marcadores de página pendurados no pé do painel da direita, 24px da borda esquerda, o topo 9px acima do pé (`.sheet-tabs`). A aberta fica em `muted` com régua de 3px `border-control` e ícone apagado; as outras em `bg-base` com régua de 2px `border-outline` e ícone claro. O Grimório trocou de ícone para o `quran-02` do Figma.
+- O pé da grade ficou fixo em 154px (24 + uma linha de 82 + 48, a conta do Figma numa tela de 960), para os marcadores e o botão dos dados terem sempre o mesmo espaço.
+- Tocha (`353:3490`): vai para a primeira coluna do card, onde ficava a navegação. `TorchStatus` ganhou a variante `counter`: tecla de 64px com a tocha de 48px, quatro segmentos de 6px e o relógio em Bricolage. O header perdeu a tocha do meio. A barra antiga segue no painel do Mestre.
+- Bandeja de dados fechada (`353:4540`): o dock some e vira um botão d20 ciano de 64px numa moldura de 12px, no canto inferior direito. Uma rolagem nova aparece por cima dele por um tempo (15s, ou 45s para um ataque com dano por rolar), com o dano encadeado e as ofertas de Dano e Fortuna; clicar no card abre a bandeja.
+- Bandeja aberta (`353:3505`): side sheet de 304px sobre um scrim preto a 60% que cobre também o header. Em cima, as rolagens como um chat (a mais nova no pé, o dano encadeado com o `↳`, cards de 63 e 44px como no Figma); embaixo, as teclas D100, D4, D6, d20 / D8, D10, D12, fechar. O ✕ cai exatamente onde estava o botão ciano. Fecha no ✕, no scrim e no Escape. É um `Dialog` do Base UI (foco preso, foco inicial no d20, volta ao botão ao fechar).
+- d20 inline: a tecla de brasa troca os seis outros dados pelo painel do d20 nas mesmas seis células: Mod, CD e Fortuna em cima; Normal, Vant. e Desv. embaixo. A tecla do d20 fica marcada enquanto o painel está aberto e fecha ele de novo. Depois de rolar, os dados voltam. A CD continua sendo lembrada entre sessões; o aviso de desvantagem por condição aparece numa linha acima das teclas.
+- D100 é novo nas teclas. O 3D não tem esse dado, então ele cai na animação simples, como qualquer rolagem que o 3D não faz.
+- Os popovers, menus, selects e hover cards passaram do `z-50` para `--z-popover` (141), o valor que a escala de z-index já previa. Sem isso, o menu de ataques e o "Rolar" do pedido do Mestre abririam por baixo da bandeja.
+- O selo de "Selado" saiu do canto (onde agora fica o botão dos dados) e foi para a esquerda dele.
+- `RollHistory` saiu (era só do dock); os cards são os mesmos `ResultCard`.
+- Achado no caminho: o Turbopack deste ambiente às vezes não percebe a mudança no `globals.css` e continua servindo o CSS antigo, mesmo reiniciado. Apagar `.next` resolve.
+
+Decisões minhas, a confirmar:
+- **Canto direito, não esquerdo.** A mensagem falava em canto inferior esquerdo, mas os frames do Figma põem o botão e a bandeja à direita. Segui o Figma.
+- **Ataques e turno dentro da bandeja.** O Figma não mostra os dois. Ficaram numa linha acima das teclas (ataques à esquerda, turno em ciano à direita), e só aparecem quando servem: os ataques quando há algo em mãos, o turno quando o personagem está numa mesa.
+- **O que a mesa espera (morte, vez, pedidos do Mestre).** Com a bandeja aberta, fica no pé do chat. Com ela fechada, a morte, a vez quando é deste personagem e os pedidos do Mestre ficam de pé sobre o botão, sem sumir, porque são coisas que a mesa está esperando.
+- **Editar personagem** foi para o pé da coluna da tocha (o Figma deixa esse botão oculto).
+- **"Atributo" em 10px**, não 7px, pela mesma regra dos chips de 8px.
+- **Empilhado (640 a 1100px):** os marcadores ficam presos no canto inferior esquerdo da tela, espelhando o botão dos dados à direita.
+
 ---
 
 ## 7. Decisões
@@ -425,7 +448,7 @@ Cada fase é um PR que pode ir para produção sozinho.
 
 ### 7.3 Ainda em aberto
 
-1. **Coluna identidade no Grimório e na História.** Na História ela pode ser o lugar natural de handouts, descanso e modo mesa (item 4 acima).
+1. **Coluna identidade na História.** Ela pode ser o lugar natural de handouts, descanso e modo mesa (item 4 acima). No Grimório ela virou a coluna da conjuração (07/11, Figma `353:915`).
 2. **Nomes e contraste:** na Fase 1 segui as recomendações de §4.3 (`card` → `bg-base`, `accent` = marrom de destaque, `spirit` separado de `secondary`). As correções de contraste de §4.5 ficam nos componentes (Fase 4).
 
 ---

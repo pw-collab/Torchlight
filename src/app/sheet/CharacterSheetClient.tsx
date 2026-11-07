@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import type { IconSvgElement } from '@hugeicons/react'
+import Link from 'next/link'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react'
 import {
   AdventureIcon,
-  AiLearningIcon,
+  Quran02Icon,
   MoneyBag01Icon,
   ScrollIcon,
   Edit03Icon,
@@ -22,9 +23,8 @@ import { Button } from '@/components/ui/button'
 import { FloatingVitals } from '@/components/sheet/FloatingVitals'
 import { TorchStatus } from '@/components/sheet/TorchStatus'
 import { DiceRoller } from '@/components/sheet/DiceRoller'
-import { DiceKeys } from '@/components/sheet/DiceKeys'
+import { DiceTray } from '@/components/sheet/DiceTray'
 import { AttacksMenu } from '@/components/sheet/AttacksMenu'
-import { RollHistory } from '@/components/sheet/RollHistory'
 import { TabBar } from '@/components/sheet/TabBar'
 import { TabRail } from '@/components/sheet/TabRail'
 import { DiceOverlay } from '@/components/sheet/DiceOverlay'
@@ -58,7 +58,7 @@ import { pcKey, type TurnLedger } from '@/lib/turns'
 import { claimTurn, endTurn, setPartyInitiative, type TurnOutcome } from '@/lib/turnActions'
 import { rollSideInitiative } from '@/lib/encounterSetup'
 import { consumeRation, findRation, lostSpells, restoredStates, withLostSpells } from '@/lib/rest'
-import { damageFollowUp } from '@/lib/attacks'
+import { damageFollowUp, heldForCombat } from '@/lib/attacks'
 import { coinSlots, maxSlots, usedSlots } from '@/lib/slots'
 import { STAT_LABELS, isStat } from '@/data/stats'
 import type {
@@ -80,11 +80,11 @@ import { getArchetype } from '@/data/archetypes/index'
 
 type Tab = 'stats' | 'inventory' | 'spells' | 'backstory'
 
-// Labels drive the mobile bottom bar; the icons drive the desktop rail.
+// Labels drive the mobile bottom bar; the icons drive the desktop markers.
 const TAB_META: Record<Tab, { label: string; icon: IconSvgElement }> = {
   stats:     { label: 'Atributos',  icon: AdventureIcon },
   inventory: { label: 'Inventário', icon: MoneyBag01Icon },
-  spells:    { label: 'Grimório',   icon: AiLearningIcon },
+  spells:    { label: 'Grimório',   icon: Quran02Icon },
   backstory: { label: 'História',   icon: ScrollIcon },
 }
 const TAB_KEYS = Object.keys(TAB_META) as Tab[]
@@ -108,9 +108,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   // A vista de longe (§5.12): a mesma ficha, só que legível do outro lado da mesa.
   const [tableMode, setTableMode] = useState(false)
   const isMobile = useIsMobile()
-  // The character card's second column on the Inventário tab: the inventory
-  // draws its equipment slots into it (see InventoryView `equipmentTarget`).
-  const [equipmentColumn, setEquipmentColumn] = useState<HTMLElement | null>(null)
+  // The character card's second column on the Inventário and Grimório tabs:
+  // the inventory draws its equipment slots into it (see InventoryView
+  // `equipmentTarget`), the grimoire its casting (see Spells `castingTarget`).
+  const [tabColumn, setTabColumn] = useState<HTMLElement | null>(null)
 
   // ── A mesa ────────────────────────────────────────────────────────────────
   // Enquanto o personagem está numa sessão, o que acontece aqui vira linha do
@@ -619,35 +620,51 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     ? { onRollInitiative: () => void handleRollPartyInitiative(), onClaim: handleClaimTurn, onEnd: handleEndTurn }
     : null
 
+  const deathBanner = (
+    <DeathBanner
+      conditions={character.conditions}
+      myTurn={myTurn}
+      onDeathRoll={isOwner ? () => void handleDeathRoll() : undefined}
+      busy={rollPhase !== 'idle'}
+    />
+  )
+  const turnBanner = (withButton: boolean) => sessionId && (
+    <TurnBanner
+      encounter={encounter}
+      actors={encounterActors}
+      turns={turns}
+      myKey={myKey}
+      mine={myActor}
+      out={outOfFight(character.conditions)}
+      actions={turnActions}
+      busy={turnBusy}
+      notice={turnNotice?.ledger === turns ? turnNotice.text : null}
+      withButton={withButton}
+    />
+  )
+  const promptCard = <PromptCard prompts={prompts} onAnswer={answerPrompt} />
+
   /**
    * O que a mesa está esperando desta ficha: a morte rondando, a vez, os
-   * pedidos do Mestre. No desktop fica no meio do dock, ao lado das rolagens;
-   * no celular, no topo da ficha.
+   * pedidos do Mestre. No celular fica no topo da ficha; no desktop, no pé
+   * da bandeja de dados, onde o botão da vez já está ao lado (TurnButton).
    */
   const tableStatus = (
     <>
-      <DeathBanner
-        conditions={character.conditions}
-        myTurn={myTurn}
-        onDeathRoll={isOwner ? () => void handleDeathRoll() : undefined}
-        busy={rollPhase !== 'idle'}
-      />
-      {sessionId && (
-        <TurnBanner
-          encounter={encounter}
-          actors={encounterActors}
-          turns={turns}
-          myKey={myKey}
-          mine={myActor}
-          out={outOfFight(character.conditions)}
-          actions={turnActions}
-          busy={turnBusy}
-          notice={turnNotice?.ledger === turns ? turnNotice.text : null}
-          // The desktop dock has its own turn button (TurnButton) beside this.
-          withButton={isMobile}
-        />
-      )}
-      <PromptCard prompts={prompts} onAnswer={answerPrompt} />
+      {deathBanner}
+      {turnBanner(isMobile)}
+      {promptCard}
+    </>
+  )
+  /**
+   * Com a bandeja fechada, o que não pode esperar fica de pé sobre o botão
+   * do d20: a morte, a vez quando é deste personagem, e os pedidos do Mestre.
+   */
+  const tableAlerts = (
+    <>
+      {deathBanner}
+      {myTurn && turnBanner(true)}
+      {promptCard}
     </>
   )
 
@@ -744,7 +761,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onCurrencyUpdate={handleCurrencyUpdate}
         onLightChange={change => record('light', { ...change, by: 'player' })}
         clock={openSession}
-        equipmentTarget={isMobile ? null : equipmentColumn}
+        equipmentTarget={isMobile ? null : tabColumn}
       />
     ),
     spells: (
@@ -759,6 +776,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         onSpellsChange={handleSpellsChange}
         lostSpells={lostSpells(character.techniqueStates)}
         onLostSpellsChange={ids => void handleTechniqueStatesChange(withLostSpells(character.techniqueStates, ids))}
+        castingTarget={isMobile ? null : tabColumn}
       />
     ),
     backstory: (
@@ -778,11 +796,6 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       playerName={playerName}
       playerRole={`${cls?.name ?? character.classId} · Nível ${character.level}`}
       headerRight={tableBadge}
-      // The light rides the top bar over the vitals, so it stays in view
-      // whatever the panel is showing. Phones keep their floating badge.
-      headerCenter={isMobile ? undefined : (
-        <TorchStatus inventory={character.inventory} clock={openSession} onClick={() => setTab('inventory')} />
-      )}
     >
       {isMobile ? (
         <div style={{
@@ -800,18 +813,29 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           {panel}
         </div>
       ) : (
-        // The whole sheet is one screen (Figma 137:556): the character card
-        // and the tab's panel side by side, the dock floating over the foot
-        // of both (see .sheet-* in globals.css).
+        // The whole sheet is one screen (Figma 353:915): the character card
+        // and the tab's panel side by side, the tabs hanging off the foot of
+        // the panel, the dice folded into the key in the corner (see .sheet-*
+        // and .dice-tray* in globals.css).
         <div className="sheet-grid">
           <section className="sheet-card" aria-label="Personagem">
-            <div className="sheet-card__rail">
-              <TabRail
-                tabs={railItems}
-                active={tab}
-                onChange={setTab}
-                link={{ href: editHref, label: 'Editar personagem', icon: Edit03Icon }}
+            {/* The light, where the tab rail used to be, so it stays in view
+                whatever the panel shows; the edit link at the foot. */}
+            <div className="sheet-card__counters">
+              <TorchStatus
+                variant="counter"
+                inventory={character.inventory}
+                clock={openSession}
+                onClick={() => setTab('inventory')}
               />
+              <Link
+                href={editHref}
+                title="Editar personagem"
+                aria-label="Editar personagem"
+                className="tactile bg-muted text-foreground flex size-16 shrink-0 items-center justify-center border-2 border-[var(--border-frame)] transition-colors duration-150 outline-none hover:border-[var(--border-control)] focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              >
+                <HugeiconsIcon icon={Edit03Icon} size={28} strokeWidth={1.5} />
+              </Link>
             </div>
 
             <div className="sheet-card__col sheet-card__col--vitals">
@@ -819,10 +843,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
             </div>
 
             {/* The second column follows the tab: the inventory draws its
-                equipment and bonuses here; the other tabs show who the
-                character is and the talents. */}
-            {tab === 'inventory' ? (
-              <div ref={setEquipmentColumn} className="sheet-card__col sheet-card__col--identity" />
+                equipment and bonuses here, the grimoire its casting; the
+                other tabs show who the character is and the talents. */}
+            {tab === 'inventory' || tab === 'spells' ? (
+              <div ref={setTabColumn} className="sheet-card__col sheet-card__col--identity" />
             ) : (
               <div className="sheet-card__col sheet-card__col--identity">
                 {identity}
@@ -833,23 +857,33 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
           </section>
 
           <div className="sheet-panel">
-            {panel}
-          </div>
-
-          {/* The dock: the latest rolls, what the table is waiting on, the
-              attacks and the dice. */}
-          <section className="sheet-dock" aria-label="Mesa e rolagens">
-            <div className="sheet-dock__rolls">
-              <RollHistory
-                rolls={rollHistory}
-                fortuneLeft={character.luckTokens}
-                onSpendFortune={handleFortuneReroll}
-                onRollDamage={handleRollDamage}
-                damageRolled={damageRolled}
-              />
+            <div className="sheet-panel__body">
+              {panel}
             </div>
-            <div className="sheet-dock__strip">{tableStatus}</div>
-            <div className="sheet-dock__attacks">
+            <TabRail className="sheet-tabs" tabs={railItems} active={tab} onChange={setTab} />
+          </div>
+        </div>
+      )}
+
+      {/* The desktop's rolls and dice: the cyan key in the corner and the
+          side sheet it opens, with the attacks and the turn over the dice. */}
+      {!isMobile && (
+        <DiceTray
+          rolls={rollHistory}
+          onRoll={handleRoll}
+          luckTokens={character.luckTokens}
+          onLuckChange={handleLuckChange}
+          onSpendFortune={handleFortuneReroll}
+          onRollDamage={handleRollDamage}
+          damageRolled={damageRolled}
+          disadvantageFrom={disadvantages}
+          status={tableStatus}
+          alerts={tableAlerts}
+          // Only what can be used: the attacks once something is in hand,
+          // the turn once the character is at a table.
+          actions={(heldForCombat(character.inventory).length > 0 || sessionId) && (
+            <>
+              {heldForCombat(character.inventory).length > 0 && (
               <AttacksMenu
                 inventory={character.inventory}
                 str={character.stats.str}
@@ -859,8 +893,8 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
                 onRoll={handleRoll}
                 onOpenInventory={() => setTab('inventory')}
               />
-            </div>
-            <div className="sheet-dock__turn">
+              )}
+              {sessionId && (
               <TurnButton
                 inTable={Boolean(sessionId)}
                 encounter={encounter}
@@ -872,19 +906,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
                 actions={turnActions}
                 busy={turnBusy}
               />
-            </div>
-            <div className="sheet-dock__dice">
-              <DiceKeys onRoll={handleRoll} />
-              <DiceRoller
-                onRoll={handleRoll}
-                docked
-                disadvantageFrom={disadvantages}
-                luckTokens={character.luckTokens}
-                onLuckChange={handleLuckChange}
-              />
-            </div>
-          </section>
-        </div>
+              )}
+            </>
+          )}
+        />
       )}
 
       {/* Navigation: labelled bottom bar on mobile, with the dice as its
@@ -984,10 +1009,10 @@ function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--pri
       className="animate-seal"
       style={{
         position: 'fixed',
-        // Mobile sits above the bottom bar; desktop takes the bottom-right
-        // corner, clear of the dock and its roll buttons on the left.
-        bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 24,
-        right: isMobile ? 16 : 24,
+        // Mobile sits above the bottom bar; desktop sits beside the dice key
+        // in the bottom-right corner, level with its middle.
+        bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 57,
+        right: isMobile ? 16 : 132,
         zIndex: 120,
         fontFamily: 'var(--font-mono)', fontWeight: 600,
         fontSize: 10,

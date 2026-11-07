@@ -500,32 +500,31 @@ html, body {
 .app-header-center__box > * { pointer-events: auto; }
 
 /* ============================================================
-   Character sheet: two halves over a floating dock
+   Character sheet: two halves, page markers, a dice key
 
-   The Figma frame 137:556, as auto-layout. Ten columns at 24px
+   The Figma frame 353:915, as auto-layout. Ten columns at 24px
    gutters, capped at 1440px:
 
-     cols 1-5    the character card (rail · vitals · identity)
-     cols 6-10   the tab's panel
-     cols 2-9    the dock, on its own row, riding up over the foot
-                 of both halves by --dock-overlap
+     cols 1-5    the character card (torch · vitals · identity)
+     cols 6-10   the tab's panel, with the tabs hanging off its foot
+                 like bookmarks out of a book (.sheet-tabs)
 
-   The Figma lays this out on eight flexible rows with the dock
-   absolute; two rows (the halves, then the dock at its own height)
-   keep the overlap at 40px on any screen. The card's columns and the
-   panel scroll inside themselves; under 640px of height the grid
-   stops shrinking and the page scrolls; under 1100px of width it
-   stacks.
+   The Figma lays the halves on seven of eight flexible rows; here they
+   take one row and the foot is fixed at what the eighth row, the gap
+   and the padding come to on a 960px screen (24 + 82 + 48 = 154px), so
+   the markers and the dice key in the corner (DiceTray) keep their room
+   on any screen. The card's columns and the panel scroll inside
+   themselves; under 640px of height the grid stops shrinking and the
+   page scrolls; under 1100px of width it stacks.
    ============================================================ */
 .sheet-grid {
-  --dock-overlap: 40px;
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
   column-gap: 24px;
   max-width: 1440px;
   margin-inline: auto;
-  padding: 16px 48px 48px;
+  padding: 16px 48px 154px;
   /* AppShell offsets the fixed header; the grid takes the rest. */
   height: calc(100dvh - 72px - var(--safe-top));
   min-height: 640px;
@@ -534,7 +533,6 @@ html, body {
 /* grid-area: row-start / column-start / row-end / column-end */
 .sheet-card  { grid-area: 1 / 1 / 2 / 6; }
 .sheet-panel { grid-area: 1 / 6 / 2 / 11; }
-.sheet-dock  { grid-area: 2 / 2 / 3 / 10; }
 
 /* Both halves: the panel surface, framed by a 4px rule drawn outside
    the box (the Figma's OUTSIDE stroke), so it takes no room. */
@@ -546,34 +544,52 @@ html, body {
   outline: 4px solid var(--border-outline);
 }
 
-/* The panel scrolls inside its frame. Its foot stays clear of the dock,
-   so the last thing in it can always be scrolled into view. */
+/* The panel is the frame; its body scrolls inside it, so the markers can
+   hang out of the frame without being clipped. */
 .sheet-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-panel__body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding-bottom: var(--dock-overlap);
 }
 /* The tab panels each brought cards of their own (the História tab one
    per section); here the half is the card, so theirs fall away and the
    section headings' rules do the separating. */
 .sheet-panel .card-surface,
-.sheet-panel > .panel-grid {
+.sheet-panel__body > .panel-grid {
   background: none;
   border: 0;
 }
 
-/* The character card: the rail, then two columns that share the rest.
-   Each column scrolls on its own when the screen is short. */
+/* The tabs (Figma 353:3235): 24px in from the panel's left edge, their
+   tops 9px above its foot, so they cross the frame and hang below it. */
+.sheet-tabs {
+  position: absolute;
+  left: 24px;
+  top: calc(100% - 9px);
+  z-index: 1;
+}
+
+/* The character card: the torch counter, then two columns that share
+   the rest. Each column scrolls on its own when the screen is short. */
 .sheet-card {
   display: flex;
   gap: 24px;
-  padding: 24px 24px calc(24px + var(--dock-overlap));
+  padding: 24px;
   overflow: hidden;
 }
-.sheet-card__rail {
+/* The light on top, the edit link pressed to the foot. */
+.sheet-card__counters {
   flex: none;
+  width: 64px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
 }
 .sheet-card__col {
@@ -587,77 +603,153 @@ html, body {
 }
 .sheet-card__col--identity { gap: 24px; }
 
-/* The dock: a tray that floats over the foot of both halves. Ten columns
-   on two 53px rows, as the Figma sets it:
-     cols 1-2   the latest roll        cols 6-7   attacks · turn
-     cols 3-5   turn and the Mestre    cols 8-10  dice */
-.sheet-dock {
-  position: relative;
-  z-index: 1;
-  margin-top: calc(-1 * var(--dock-overlap));
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-template-rows: repeat(2, 53px);
-  gap: 12px;
-  padding: 12px;
-  background: var(--bg-raised);
-  border: 2px solid var(--border-frame);
-}
-.sheet-dock__rolls   { grid-area: 1 / 1 / 3 / 3;  min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-
-/* The latest roll fills the two rows of the rolls column; the older ones
-   rise over the panels as balloons while the stack is hovered or focused.
-   The list's padding covers the dock's own padding and border, so the
-   pointer never leaves the hover area on its way up. */
-.roll-stack {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  outline: none;
-}
-.roll-stack:focus-visible { box-shadow: 0 0 0 2px var(--ring); }
-.roll-stack__older {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 100%;
-  display: none;
-  flex-direction: column-reverse;
-  gap: 14px;
-  max-height: 50dvh;
-  overflow-y: auto;
-  margin: 0;
-  padding: 10px 0 24px;
-  list-style: none;
-}
-.roll-stack:hover .roll-stack__older,
-.roll-stack:focus-within .roll-stack__older { display: flex; }
-.sheet-dock__strip   { grid-area: 1 / 3 / 3 / 6;  min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-.sheet-dock__attacks { grid-area: 1 / 6 / 2 / 8;  min-width: 0; display: flex; }
-.sheet-dock__turn    { grid-area: 2 / 6 / 3 / 8;  min-width: 0; display: flex; }
-.sheet-dock__dice    { grid-area: 1 / 8 / 3 / 11; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 12px; }
-
 @media (max-width: 1100px) {
   .sheet-grid {
-    --dock-overlap: 0px;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto;
     row-gap: 24px;
     height: auto;
     min-height: 0;
-    padding: 8px 24px 40px;
+    /* The foot clears the markers and the dice key, both pinned to the
+       bottom of the screen once the sheet scrolls. */
+    padding: 8px 24px 120px;
   }
   .sheet-card  { grid-area: auto; flex-wrap: wrap; overflow: visible; }
-  .sheet-panel { grid-area: auto; overflow: visible; }
-  /* The dock rides the foot of the screen once the sheet scrolls. */
-  .sheet-dock  { grid-area: auto; position: sticky; bottom: 8px; }
+  .sheet-panel { grid-area: auto; }
+  .sheet-panel__body { overflow: visible; }
+  .sheet-tabs {
+    position: fixed;
+    top: auto;
+    bottom: 24px;
+    z-index: var(--z-sheet-float);
+  }
   .sheet-card__col { flex: 1 1 240px; overflow: visible; }
   /* The vitals keep about the Figma's width, so the portrait does not grow
      with the screen; the identity column takes what is left. */
   .sheet-card__col--vitals { flex: 0 1 280px; }
+}
+
+/* ============================================================
+   Dice tray (Figma 353:4540 closed, 353:3505 open)
+
+   Closed: the cyan d20 key in its 12px shell, pinned to the bottom-right
+   corner, with whatever stands over it (a fresh roll, what the table is
+   waiting on) right-aligned to where the open tray's chat will be.
+   Open: a side sheet over a scrim, from 164px down on a 960px screen,
+   the chat filling it over the dice. Its close key lands where the cyan
+   key was.
+   ============================================================ */
+.dice-tray-dock {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--z-sheet-float);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  pointer-events: none;
+}
+.dice-tray-peek {
+  /* The shell's border and padding, so the cards line up with the open
+     tray's chat. */
+  width: 276px;
+  margin-right: 14px;
+  max-height: calc(100dvh - 72px - 24px - 92px - 14px - 16px);
+  overflow-y: auto;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.dice-tray-peek > *,
+.dice-tray-shell { pointer-events: auto; }
+/* What the table waits on: the death clock, the turn, the Mestre's asks.
+   Nothing waiting, nothing drawn (and no gap kept for it). */
+.dice-tray__status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dice-tray__status:empty { display: none; }
+.dice-tray-shell {
+  padding: 12px;
+  background: var(--bg-sunken);
+  border: 2px solid var(--border-frame);
+  box-shadow: 0 8px 6px rgba(0, 0, 0, 0.25);
+}
+
+.dice-tray-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-backdrop);
+  background: rgba(0, 0, 0, 0.6);
+  transition: opacity 200ms ease;
+}
+.dice-tray {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--z-modal);
+  width: 304px;
+  max-width: calc(100vw - 48px);
+  height: calc(100dvh - 188px);
+  min-height: min(420px, calc(100dvh - 48px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-panel);
+  border: 2px solid var(--border-frame);
+  box-shadow: 0 8px 3px rgba(0, 0, 0, 0.25);
+  outline: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.dice-tray-scrim[data-starting-style],
+.dice-tray-scrim[data-ending-style] { opacity: 0; }
+.dice-tray[data-starting-style],
+.dice-tray[data-ending-style] { opacity: 0; transform: translateX(24px); }
+
+/* The chat reads from the foot: the feed sits at the bottom of the
+   scroller and grows upward. The top padding leaves room for the tags
+   riding the first card's edge. */
+.dice-tray__chat {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+.dice-tray__feed {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.dice-tray__actions {
+  flex: none;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+  height: 48px;
+}
+/* Four keys to a row: the d20 and the close key hold the last column,
+   the other dice (or the d20's panel) fill the rest in order. */
+.dice-tray__keys {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 64px);
+  gap: 8px;
+}
+.dice-tray__d20   { grid-column: 4; grid-row: 1; }
+.dice-tray__close { grid-column: 4; grid-row: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-tray,
+  .dice-tray-scrim { transition: none; }
 }
 
 /* Phones render the sheet's own mobile layout (see CharacterSheetClient),
@@ -711,8 +803,8 @@ html, body {
 }
 
 /* Desktop: the deck alone, on the half's own surface. */
-.sheet-panel > .attr-panel { grid-template-columns: minmax(0, 1fr); background: none; border: 0; }
-.sheet-panel > .attr-panel > .attr-panel__deck { grid-column: auto; }
+.sheet-panel__body > .attr-panel { grid-template-columns: minmax(0, 1fr); background: none; border: 0; }
+.sheet-panel__body > .attr-panel > .attr-panel__deck { grid-column: auto; }
 /* On the character card the talent list is a column section, not a pane. */
 .sheet-card .attr-panel__talents { overflow: visible; padding: 0; border: 0; }
 
@@ -1641,7 +1733,9 @@ html, body {
   --color-archetype-foreground:        var(--archetype-foreground);
   --color-ancestry:        var(--ancestry);
   --color-ancestry-foreground:        var(--ancestry-foreground);
-  --radius-sm:        calc(var(--radius) * 0.6);
+  --color-spell:        var(--spell);
+  --color-spell-foreground:        var(--spell-foreground);
+  --radius-sm:       calc(var(--radius) * 0.6);
   --radius-md:        calc(var(--radius) * 0.8);
   --radius-lg:        var(--radius);
   --radius-xl:        calc(var(--radius) * 1.4);

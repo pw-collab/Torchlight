@@ -31,7 +31,7 @@ const ROLL_BUTTON_CLASS =
   'font-mono bg-input border-input-border hover:border-primary h-9 min-h-9 shrink-0 px-2.5 text-[10px] font-bold tracking-[0.12em] uppercase'
 
 /**
- * The quick attack menu on the dock: whatever is in hand, ready to roll.
+ * The quick attack menu in the dice tray: whatever is in hand, ready to roll.
  *
  * The same attack, damage and parry rolls the inventory makes off its
  * equipped slots (see `lib/attacks`) — this only saves the trip to the

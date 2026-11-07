@@ -2,6 +2,8 @@
 
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { getClass } from '@/data/classes/index'
 import { getSpell, getSpellsForClass, tierNumeral } from '@/data/spells/index'
 import type { Spell } from '@/data/spells/index'
 import { rollWithMode, modifier, withDc } from '@/lib/dice'
@@ -11,7 +13,9 @@ import { NumInput } from '@/components/sheet/NumInput'
 import { GlyphCard, faceText } from '@/components/shared/GlyphCard'
 import { SpellDetail, SpellTagIcon, spellCaption, spellFootnote } from '@/components/shared/SpellDetail'
 import { OrnateTitle } from '@/components/shared/OrnateTitle'
-import { SectionHeading } from '@/components/shared/SectionHeading'
+import { SectionHeading, SectionSubheading } from '@/components/shared/SectionHeading'
+import { SpellcastingCard } from '@/components/sheet/ClassPanel'
+import { BonusTile } from '@/components/sheet/BonusTile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Item } from '@/components/ui/item'
@@ -316,13 +320,20 @@ interface Props {
    */
   lostSpells?: string[]
   onLostSpellsChange?: (ids: string[]) => void
+  /**
+   * The character card's second column on the desktop sheet. When given, the
+   * casting (the class's Spellcasting card, "+ Aprender" and the bonuses) is
+   * drawn there (Figma 353:1046) and the panel keeps the deck alone; without
+   * it (the phone, the Mestre's read) the controls ride the deck's heading.
+   */
+  castingTarget?: HTMLElement | null
 }
 
 export function Spells({
   classId, equippedSpells,
   spellcastingBonus = 0, castingAttr = 'int',
   stats, onUpdate, onRoll, onSpellsChange,
-  lostSpells, onLostSpellsChange,
+  lostSpells, onLostSpellsChange, castingTarget,
 }: Props) {
   const available  = getSpellsForClass(classId)
   const [showPicker,   setShowPicker]   = useState(false)
@@ -346,14 +357,67 @@ export function Spells({
     onSpellsChange(equippedSpells.filter(s => s !== id))
   }
 
+  const classData = getClass(classId)
+
+  // The casting column (Figma 353:1046): the class's rule for casting, the
+  // way to learn more, then the bonuses the checks take.
+  const casting = castingTarget && (
+    <div className="flex flex-col gap-3">
+      <SectionSubheading>Conjuração</SectionSubheading>
+      {classData && stats && (
+        <SpellcastingCard
+          classData={classData}
+          stats={stats}
+          onRoll={onRoll}
+          className="aspect-auto h-[240px] min-h-0"
+        />
+      )}
+      {onSpellsChange && (
+        <Button
+          className="type-button tactile h-auto w-full border-2 border-[var(--border-frame)] bg-spell px-5 py-2.5 text-[var(--ember-foreground)] hover:bg-spell/85"
+          onClick={() => setShowPicker(true)}
+        >
+          + Aprender
+        </Button>
+      )}
+      {onUpdate && (
+        <>
+          <SectionSubheading className="mt-1.5">Bônus</SectionSubheading>
+          <label className="flex items-center gap-2">
+            <span className="type-label text-muted-foreground shrink-0 tracking-[0.08em]">Atributo</span>
+            <NativeSelect
+              size="sm"
+              value={castingAttr}
+              onChange={e => onUpdate({ castingAttr: e.target.value })}
+              aria-label="Atributo de conjuração"
+              className="font-mono h-[30px] w-full min-w-0 cursor-pointer border border-[var(--border-control)] bg-muted text-[12px] font-semibold text-[var(--foreground)]"
+            >
+              {STAT_OPTIONS.map(o => (
+                <NativeSelectOption key={o.value} value={o.value}>{o.label}</NativeSelectOption>
+              ))}
+            </NativeSelect>
+          </label>
+          <BonusTile
+            label="Conjuração"
+            value={spellcastingBonus}
+            onCommit={n => onUpdate({ spellcastingBonus: n })}
+          />
+        </>
+      )}
+    </div>
+  )
+
   return (
     // Same container as the technique and talent decks: a card surface on a
     // three-column grid, heading row first, then one spell card per column.
     <section className="panel-grid">
+      {castingTarget && casting && createPortal(casting, castingTarget)}
+
       {/* ── Header ── */}
       <SectionHeading
-        className="panel-grid__row"
-        trailing={
+        // Alone in its row, the title keeps the Figma's 42px row (353:2401).
+        className={cn('panel-grid__row', castingTarget && 'min-h-[42px]')}
+        trailing={castingTarget ? undefined : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {/* Learn button */}
             {onSpellsChange && (
@@ -398,7 +462,7 @@ export function Spells({
               </div>
             )}
           </div>
-        }
+        )}
       >
         Magias
       </SectionHeading>
