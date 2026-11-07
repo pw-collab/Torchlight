@@ -3175,7 +3175,7 @@
   {
     "id": "detonate-int",
     "name": "Detonate [INT]",
-    "tier": 2,
+    "tier": 4,
     "type": "Psion",
     "range": "Near",
     "duration": "Instant",
