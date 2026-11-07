@@ -377,8 +377,21 @@ Cada fase é um PR que pode ir para produção sozinho.
 - Equipamento (`345:2082`): rótulo pequeno em cima de cada cartão, nome, uma linha de números (bônus de ataque e dado, CA, ou minutos de luz) e as ações. O "Desequipar" virou o botão de ícone com borda `destructive`. O bônus de ataque que o cartão mostra vem de `attackBonus()` em `lib/attacks.ts`, a mesma conta da rolagem.
 - Ilustrações: os 8 aquarelas do Figma foram para `public/items` (320px em WebP, ~140 KB no total; os originais têm 1024px e 1,5 MB cada). `lib/itemArt.ts` escolhe a ilustração, primeiro pelo nome (tocha, mochila, símbolo sagrado, ração, bolsa de moedas), depois pelo tipo (arma corpo a corpo, armadura, equipamento). Sem ilustração ainda: escudo, arma à distância, documento e tesouro; essas células mostram o ícone num fundo liso.
 - Luz: a tocha acesa brilha em brasa e a consumida fica cinza (o Figma mostra todas iguais).
-- Celular: a grade tem 4 colunas e o equipamento vem acima da mochila. O popover de detalhes e a bolsa de moedas seguem como estavam.
+- Celular: a grade tem 4 colunas e o equipamento vem acima da mochila. A interação das células mudou depois, ver "Hover nas células" abaixo.
 - Achado no caminho: `outline-none` junto de `focus-visible:outline-2` deixa o contorno em `none` no Tailwind 4, então o anel de foco não aparecia. Nas células novas ele só usa `focus-visible`.
+
+**Aba Inventário: hover nas células** · **feita em 07/11** (Figma `353:1863`, `353:1649`, `353:1970`)
+- Clicar na célula não abre mais o popover. Olhar para ela (mouse em cima, foco de teclado ou toque) mostra duas coisas ao mesmo tempo: o overlay de botões por cima do card e o popover ao lado.
+- Overlay (`353:1863`): cobre a caixa inteira do card (borda `--input` de 2px, 6px de respiro, botões de 32px empilhados a partir de baixo). Editar é o ícone de cima, em toda célula. O de remover fica pendurado 4px abaixo da borda, separado dos outros para não ser clicado sem querer; o espaço de 4px faz parte da caixa dele, então o mouse atravessa sem perder o hover. Os botões do meio mudam com o tipo, no máximo duas linhas:
+  - arma: `Atk | Dmg`, depois Equipar/Desequipar (as mesmas siglas dos cartões de equipamento)
+  - escudo: Aparar, Equipar · armadura: Equipar · equipamento: Consumir (uma fonte de luz: Equipar antes) · documento: Ler · tesouro: só editar e remover
+  - o botão ember é a ação principal do tipo; o de borda creme é a secundária (o Figma mostra a tocha: Equipar creme, Consumir ember)
+- Popover (`353:1649`, 224 x 240): só leitura. Título, tipo (e "2 mãos"), slots, descrição e as tags de atributo. Não recebe foco nem eventos de ponteiro, então as células embaixo continuam acessíveis; Escape fecha. Usa `ui/hover-card` (Base UI `PreviewCard`) e não o `Popover`: o Popover leva o foco para dentro e põe guardas na ordem de Tab, e aqui não há nada dentro para alcançar. Abre acima da célula e vira para baixo quando falta espaço, deixando espaço para o botão de remover.
+- Tags (`353:1970`): custo (`5 sp`, o "sp" menor ao lado), tempo de luz (`60 min`, ampulheta ember), dano (`1d6`, coração partido) e alcance (`C`, setas). Só aparece o que o item tem. **CA não existe no Figma:** armadura e escudo usam o escudo do Hugeicons no mesmo molde, a confirmar com o design.
+- Bolsa de moedas: o popover mostra PO/PP/PC só para ler; para mudar as moedas, o ícone de editar abre um modal (`CoinPurseModal`), no padrão do modal de editar item. **Decisão minha, a confirmar.**
+- Toque: não existe hover, então tocar na célula abre e fechar é tocar de novo ou tocar fora. Teclado: Tab chega na célula (abre), Tab seguinte entra nos botões, Escape fecha.
+- Celular (cards de 71 a 85px): as linhas do overlay encolhem de 32px para ~27px quando o card é baixo demais, o texto desce para 10px e, abaixo de 88px de largura, "Desequipar" vira "Guardar" (não cabe). A margem de baixo da grade passou de 56 para 92px (40 no layout empilhado) para o botão de remover da última linha não cair no fade nem ser cortado.
+- Os assets novos do Figma estão em `public/items`: `editar.svg`, `remover.svg`, `slots.svg`, `custo.svg` e as máscaras `tempo-de-luz.png`, `dano.png`, `alcance.png`. Os ícones de editar e remover do Figma são a versão preenchida do Hugeicons, que o pacote gratuito não tem, por isso vieram como SVG.
 
 ---
 
