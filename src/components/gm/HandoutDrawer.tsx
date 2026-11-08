@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
 
 export interface Delivery {
   title: string
@@ -46,6 +47,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [draft, setDraft] = useState<Handout>(BLANK)
   const [saving, setSaving] = useState(false)
+  const fail = useFailNotice()
   const [targets, setTargets] = useState<string[]>([])
 
   // Ninguém marcado quer dizer a mesa inteira — o caso comum é a carta lida em
@@ -87,6 +89,8 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
         const saved = rowToHandout(data as HandoutRow)
         setHandouts(prev => prev.map(h => (h.id === saved.id ? saved : h)))
         setDraft(saved)
+      } else {
+        fail.report(failMessage('O documento não foi salvo. O texto continua aqui.'))
       }
     } else {
       const { data } = await supabase
@@ -98,6 +102,8 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
         const saved = rowToHandout(data as HandoutRow)
         setHandouts(prev => [saved, ...prev])
         setDraft(saved)
+      } else {
+        fail.report(failMessage('O documento não foi salvo. O texto continua aqui.'))
       }
     }
     setSaving(false)
@@ -108,7 +114,11 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
     const ok = window.confirm(`Descartar "${draft.title}"? O que já foi entregue continua na mesa.`)
     if (!ok) return
     const supabase = createClient()
-    await supabase.from('handouts').delete().eq('id', draft.id)
+    const { error } = await supabase.from('handouts').delete().eq('id', draft.id)
+    if (error) {
+      fail.report(failMessage(`"${draft.title}" não foi descartado.`))
+      return
+    }
     setHandouts(prev => prev.filter(h => h.id !== draft.id))
     setDraft(BLANK)
   }
@@ -128,6 +138,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
   }
 
   return (
+    <>
     <div
       onClick={onClose}
       className="fixed inset-0 z-[150] flex items-center justify-center p-4"
@@ -302,5 +313,8 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
         </div>
       </div>
     </div>
+    {/* Outside the backdrop, so closing the notice doesn't close the drawer. */}
+    <FailNotice failure={fail.failure} onClose={fail.clear} />
+    </>
   )
 }

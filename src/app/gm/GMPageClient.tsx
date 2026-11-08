@@ -30,6 +30,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { cn } from '@/lib/utils'
+import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
 
 interface Props {
   gmName: string
@@ -60,6 +61,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
   const [editingNpc, setEditingNpc] = useState<NPC | null>(null)
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const fail = useFailNotice()
   const [gmRolls, setGmRolls] = useState<RollResult[]>([])
   /** O recap da mesa que acabou de ser encerrada (§5.11). */
   const [recap, setRecap] = useState<{ id: string; name: string; events: SessionEvent[] } | null>(null)
@@ -135,10 +137,17 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       kind: 'session',
       payload: { action: 'end', sessionName: session.name },
     })
-    await supabase
+    const { error } = await supabase
       .from('sessions')
       .update({ active: false, ended_at: new Date().toISOString() })
       .eq('id', session.id)
+    // Clearing the panel on a refused write would hide a table that is still
+    // open, with its code still valid. Keep it on screen and say so.
+    if (error) {
+      setEnding(false)
+      fail.report(failMessage(`"${session.name}" continua aberta.`))
+      return
+    }
 
     // O log é lido aqui porque o painel da sessão sai da tela junto com ela, e
     // com ele o feed de onde o recap sai (§5.11). A leitura é uma só, no fim.
@@ -219,7 +228,12 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     if (!ok) return
     setDeletingId(id)
     const supabase = createClient()
-    await supabase.from('npcs').delete().eq('id', id)
+    const { error } = await supabase.from('npcs').delete().eq('id', id)
+    if (error) {
+      setDeletingId(null)
+      fail.report(failMessage('A ficha não foi excluída.'))
+      return
+    }
     setNpcs(prev => {
       const remaining = prev.filter(n => n.id !== id)
       setSelectedNpcId(cur => (cur === id ? (remaining[0]?.id ?? null) : cur))
@@ -233,13 +247,22 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
     const next = !npc.favorite
     setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, favorite: next } : n)))
     const supabase = createClient()
-    await supabase.from('npcs').update({ favorite: next }).eq('id', npc.id)
+    const { error } = await supabase.from('npcs').update({ favorite: next }).eq('id', npc.id)
+    if (error) {
+      // Optimistic, so a refusal has to be walked back or the star lies.
+      setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, favorite: npc.favorite } : n)))
+      fail.report(failMessage(`A estrela de ${npc.name} não foi salva.`))
+    }
   }
 
   async function setTags(npc: NPC, next: string[]) {
     setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, tags: next } : n)))
     const supabase = createClient()
-    await supabase.from('npcs').update({ tags: next }).eq('id', npc.id)
+    const { error } = await supabase.from('npcs').update({ tags: next }).eq('id', npc.id)
+    if (error) {
+      setNpcs(prev => prev.map(n => (n.id === npc.id ? { ...n, tags: npc.tags } : n)))
+      fail.report(failMessage(`As etiquetas de ${npc.name} não foram salvas.`))
+    }
   }
 
   /** Uma variante do mesmo monstro, para os três goblins não serem redigitados. */
@@ -555,6 +578,7 @@ export function GMPageClient({ gmName, gmId, session: initialSession }: Props) {
       {!atTable && <DiceRoller onRoll={handleGmRoll} floating />}
       <RollToasts rolls={gmRolls} />
       <LiveAnnouncer message={gmRolls[0] ? describeRoll(gmRolls[0]) : null} id={gmRolls[0]?.id} />
+      <FailNotice failure={fail.failure} onClose={fail.clear} />
     </AppShell>
   )
 }
