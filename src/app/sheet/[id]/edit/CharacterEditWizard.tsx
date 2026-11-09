@@ -25,6 +25,7 @@ import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
+import { applyTalentChange, targetsOf, targetsPatch, type TalentTargets } from '@/lib/talents'
 
 type StepId = 'ancestry' | 'class' | 'archetype' | 'stats' | 'hp' | 'origin' | 'equipment' | 'talents' | 'spells' | 'narrative' | 'review'
 /** The advancement track is the landing tab; every other tab is an editing step. */
@@ -78,6 +79,12 @@ export function CharacterEditWizard({ character }: Props) {
   const [knowledgeAreas, setKnowledgeAreas] = useState<KnowledgeArea[]>(character.knowledgeAreas)
   const [spells, setSpells]         = useState<string[]>(character.spells)
   const [localTalents, setLocalTalents] = useState<Talent[]>(character.talents)
+  // The bonuses a talent can move, besides the attributes. Kept here so the
+  // talents can move them while the wizard is open.
+  const [bonuses, setBonuses] = useState(() => {
+    const { meleeBonus, rangedBonus, spellcastingBonus, ac } = targetsOf(character)
+    return { meleeBonus, rangedBonus, spellcastingBonus, ac }
+  })
   const [backgroundDetails, setBackgroundDetails] = useState(character.backgroundDetails ?? {})
   const [relations, setRelations]   = useState(character.relations ?? {})
   const [impulses, setImpulses]     = useState(character.impulses ?? {})
@@ -128,12 +135,39 @@ export function CharacterEditWizard({ character }: Props) {
       case 'hp':        return { hp_max: hpMax, hp_current: Math.min(hpCurrent, hpMax) } as Partial<CharacterRow>
       case 'origin':    return { domain_id: domainId || null, languages, faith: faith || null } as Partial<CharacterRow>
       case 'equipment': return { knowledge_areas: knowledgeAreas } as Partial<CharacterRow>
-      case 'talents':   return { talents: localTalents } as Partial<CharacterRow>
+      case 'talents':   return { talents: localTalents, ...statsRow(), ...bonusRow() } as Partial<CharacterRow>
       case 'spells':    return { spells } as Partial<CharacterRow>
       case 'narrative': return { background_details: backgroundDetails, relations, impulses } as Partial<CharacterRow>
       // 'progress' writes through commitProgression as each level resolves.
       default: return {}
     }
+  }
+
+  function statsRow(): Partial<CharacterRow> {
+    return { str: stats.str, dex: stats.dex, con: stats.con, int: stats.int, wis: stats.wis, cha: stats.cha }
+  }
+
+  /** The bonuses talents moved since the wizard opened — only those, so nothing else is overwritten. */
+  function bonusRow(): Partial<CharacterRow> {
+    return targetsPatch(targetsOf(character), { stats: character.stats, ...bonuses })
+  }
+
+  /**
+   * Swaps the talent list, moving every attribute and bonus the change
+   * touches: a talent that leaves takes its bonus with it.
+   */
+  function moveTalents(next: Talent[]): Partial<CharacterRow> {
+    const before: TalentTargets = { stats, ...bonuses }
+    const after = applyTalentChange(before, localTalents, next)
+    setStats(after.stats)
+    setBonuses({
+      meleeBonus: after.meleeBonus,
+      rangedBonus: after.rangedBonus,
+      spellcastingBonus: after.spellcastingBonus,
+      ac: after.ac,
+    })
+    setLocalTalents(next)
+    return { talents: next, ...targetsPatch(before, after) }
   }
 
   async function saveStep(stepId: TabId) {
@@ -185,8 +219,7 @@ export function CharacterEditWizard({ character }: Props) {
       row.hp_current = nextCurrent
     }
     if (patch.talents !== undefined) {
-      setLocalTalents(patch.talents)
-      row.talents = patch.talents
+      Object.assign(row, moveTalents(patch.talents))
     }
     if (patch.levelProgress !== undefined) {
       setLevelProgress(patch.levelProgress)
@@ -236,6 +269,7 @@ export function CharacterEditWizard({ character }: Props) {
       languages,
       knowledge_areas: knowledgeAreas,
       talents: localTalents,
+      ...bonusRow(),
       level_progress: levelProgress,
       spells,
       background_details: backgroundDetails,
@@ -397,7 +431,7 @@ export function CharacterEditWizard({ character }: Props) {
               <StepTalents
                 classId={classId}
                 talents={localTalents}
-                onChange={setLocalTalents}
+                onChange={next => { moveTalents(next) }}
               />
             )}
             {current.id === 'spells' && (

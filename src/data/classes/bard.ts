@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { attacks, distribute, fromTable, pick } from '@/data/talentOptions'
 
 export const bard: Class = {
   id: 'bard',
@@ -67,11 +68,15 @@ export const bard: Class = {
   ],
 
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: 'Encontre uma varinha aleatória de padre ou mago (você escolhe).' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 para ataques corpo a corpo e à distância, ou +1 para rolamentos de Curinga Mágico.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 pontos para distribuir em quaisquer atributos.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'Encontre uma varinha aleatória de padre ou mago (você escolhe).',
+      options: [...pick('wand-priest', 'Varinha de padre'), ...pick('wand-wizard', 'Varinha de mago')] },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 para ataques corpo a corpo e à distância, ou +1 para rolamentos de Curinga Mágico.',
+      options: [...attacks(1), ...pick('wild-magic', '+1 em rolamentos de Curinga Mágico')] },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 pontos para distribuir em quaisquer atributos.',
+      options: distribute(2) },
     { roll: '10-11', min: 10, max: 11, effect: 'Reduza a CD de seus efeitos de Performance em 3 cada (role novamente em caso de duplicata).' },
-    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento.',
+      options: fromTable() },
   ],
 
   archetypeLabel: 'Arquétipo de Bardo',

@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, note, spellcasting, statBoost } from '@/data/talentOptions'
 
 export const wizard: Class = {
   id: 'wizard',
@@ -42,11 +43,15 @@ export const wizard: Class = {
 
   // Talent table from Wizard.md — note the 3-7 / 8-9 split (distinct from other classes)
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: 'Crie um item mágico aleatório de um tipo que você escolher.' },
-    { roll: '3-7',   min: 3,  max: 7,  effect: '+2 para o atributo Inteligência ou +1 para testes de conjuração de mago.' },
-    { roll: '8-9',   min: 8,  max: 9,  effect: 'Ganhe vantagem para conjurar uma magia que você conheça.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'Crie um item mágico aleatório de um tipo que você escolher.',
+      options: note('Escolher o tipo de item', 'Que tipo de item mágico?', 'ex.: anel') },
+    { roll: '3-7',   min: 3,  max: 7,  effect: '+2 para o atributo Inteligência ou +1 para testes de conjuração de mago.',
+      options: [...statBoost(2, 'int'), ...spellcasting(1)] },
+    { roll: '8-9',   min: 8,  max: 9,  effect: 'Ganhe vantagem para conjurar uma magia que você conheça.',
+      options: note('Escolher a magia', 'Qual magia tem vantagem?', 'ex.: Bola de Fogo') },
     { roll: '10-11', min: 10, max: 11, effect: 'Aprenda uma magia adicional de mago de qualquer nível que você conheça.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento ou +2 pontos para distribuir nos atributos.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento ou +2 pontos para distribuir nos atributos.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Escola de Magia',

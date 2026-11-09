@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, note, spellcasting, statBoost } from '@/data/talentOptions'
 
 /** Homebrew class from the campaign wiki. */
 export const witch: Class = {
@@ -47,10 +48,13 @@ export const witch: Class = {
 
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: "1/day, teleport to your familiar's location as a move." },
-    { roll: '3-7',   min: 3,  max: 7,  effect: '+2 to Charisma stat or +1 to witch spellcasting checks.' },
-    { roll: '8-9',   min: 8,  max: 9,  effect: 'Gain advantage on casting one spell you know.' },
+    { roll: '3-7',   min: 3,  max: 7,  effect: '+2 to Charisma stat or +1 to witch spellcasting checks.',
+      options: [...statBoost(2, 'cha'), ...spellcasting(1)] },
+    { roll: '8-9',   min: 8,  max: 9,  effect: 'Gain advantage on casting one spell you know.',
+      options: note('Escolher a magia', 'Qual magia tem vantagem?', 'ex.: Sono') },
     { roll: '10-11', min: 10, max: 11, effect: 'Learn one additional witch spell of any tier you know.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   startingGear: ['dagger', 'leather-armor', 'tocha', 'frasco-ou-garrafa'],

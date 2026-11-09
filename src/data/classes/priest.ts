@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, spellcasting, statBoost } from '@/data/talentOptions'
 
 export const priest: Class = {
   id: 'priest',
@@ -34,10 +35,14 @@ export const priest: Class = {
 
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: 'Learn one random divine spell of any tier you can cast.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to spellcasting checks.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Wisdom or Charisma stat.' },
-    { roll: '10-11', min: 10, max: 11, effect: '+1 to Strength or Constitution stat.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to spellcasting checks.',
+      options: spellcasting(1) },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Wisdom or Charisma stat.',
+      options: statBoost(2, 'wis', 'cha') },
+    { roll: '10-11', min: 10, max: 11, effect: '+1 to Strength or Constitution stat.',
+      options: statBoost(1, 'str', 'con') },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Deidade',

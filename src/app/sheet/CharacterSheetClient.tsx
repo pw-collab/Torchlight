@@ -32,6 +32,7 @@ import { RollToasts } from '@/components/sheet/RollToasts'
 import { InventoryView } from '@/components/sheet/InventoryView'
 import { FloatingTorch } from '@/components/sheet/FloatingTorch'
 import { TalentsPanel } from '@/components/sheet/TalentsPanel'
+import { talentListPatch } from '@/lib/talents'
 import { ClassPanel } from '@/components/sheet/ClassPanel'
 import { CharacterIdentity } from '@/components/sheet/CharacterIdentity'
 import { Divider } from '@/components/shared/Divider'
@@ -507,8 +508,12 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     if (out.foes != null) record('encounter', { action: 'initiative', party: roll.total, foes: out.foes })
   }
 
+  /**
+   * A talent that adds to an attribute or a bonus moves that number with it:
+   * in when the talent arrives (or its choice is made), out when it is deleted.
+   */
   async function handleTalentsUpdate(talents: Talent[]) {
-    await updateCharacter({ talents: talents as any } as Partial<CharacterRow>)
+    await updateCharacter(talentListPatch(character!, talents))
   }
 
   async function handleTechniqueStatesChange(states: import('@/types/technique.types').TechniqueState[]) {
@@ -598,6 +603,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
   )
   const talents = (
     <TalentsPanel
+      classId={character.classId}
       talents={character.talents}
       levelProgress={character.levelProgress}
       currentLevel={character.level}

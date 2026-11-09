@@ -1,3 +1,4 @@
+import type { TalentOption } from './talent.types'
 export type ArmorType = 'none' | 'light' | 'medium' | 'heavy' | 'shield'
 export type WeaponType = 'simple' | 'martial' | 'ranged'
 export type Stat = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
@@ -129,6 +130,12 @@ export interface TalentTableEntry {
   min: number
   max: number
   effect: string
+  /**
+   * How the row plays out on the sheet. One option with fixed effects applies
+   * on its own; more than one, or one that asks for something, makes the
+   * player choose. Left out, the row is text only and changes no number.
+   */
+  options?: TalentOption[]
 }
 
 // ─── Spellcasting ─────────────────────────────────────────────────────────────

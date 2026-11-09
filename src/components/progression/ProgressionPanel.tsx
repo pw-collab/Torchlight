@@ -15,7 +15,9 @@ import {
   type LevelRewardKind,
 } from '@/lib/progression'
 import type { LevelEntry } from '@/types/progression.types'
-import type { Talent } from '@/types/talent.types'
+import type { Talent, TalentChoice } from '@/types/talent.types'
+import { chooseTalent, rowForTalent, talentFromRoll } from '@/lib/talents'
+import { TalentChoiceDialog } from '@/components/shared/TalentChoiceDialog'
 import { LevelCard } from './LevelCard'
 import { LevelTrack } from './LevelTrack'
 
@@ -60,6 +62,8 @@ export function ProgressionPanel({
 }: Props) {
   const [selected, setSelected] = useState(level)
   const [busy, setBusy] = useState<LevelRewardKind | 'level' | null>(null)
+  /** The talent whose choice dialog is open. */
+  const [choosingId, setChoosingId] = useState<string | null>(null)
 
   const classData = getClass(classId)
   const conMod = modifier(con)
@@ -67,6 +71,9 @@ export function ProgressionPanel({
   const state = track[selected - 1] ?? track[0]
   const xpNeeded = xpForLevel(level)
   const done = sealedCount(level, levelProgress)
+  const levelTalent = state.entry?.talentId ? talents.find(t => t.id === state.entry!.talentId) : undefined
+  const choosing = talents.find(t => t.id === choosingId)
+  const choosingRow = choosing ? rowForTalent(choosing, classData) : undefined
 
   /** Short pause so the roll reads as a roll rather than an instant number swap. */
   function withRollDelay(kind: LevelRewardKind, apply: () => Promise<void>) {
@@ -110,13 +117,15 @@ export function ProgressionPanel({
     withRollDelay('talent', async () => {
       const result = rollClassTalent(classData.id)
       if (!result) return
-      const talent: Talent = {
-        id: Math.random().toString(36).substring(2, 9),
-        name: result.entry.effect,
-        origin: 'class',
+      // A row that adds a fixed bonus lands with it; one that asks for a
+      // choice lands pending and opens the choice right away.
+      const talent: Talent = talentFromRoll({
+        classData,
+        roll: result.roll,
+        row: result.entry,
         description: `Nível ${state.level} — 2d6: ${result.roll} (${result.die1}+${result.die2}) — ${classData.name}`,
         level: state.level,
-      }
+      })
       const entry: LevelEntry = {
         ...existing,
         talentId: talent.id,
@@ -130,7 +139,15 @@ export function ProgressionPanel({
         talents: [...talents, talent],
         levelProgress: upsertEntry(levelProgress, entry),
       })
+      if (talent.pending) setChoosingId(talent.id)
     })
+  }
+
+  async function handleChoice(choice: TalentChoice) {
+    if (!choosing || !choosingRow || !classData) return
+    const next = chooseTalent(choosing, choosingRow, classData.talentTable, choice)
+    if (!next) return
+    await onCommit({ talents: talents.map(t => (t.id === next.id ? next : t)) })
   }
 
   async function handleUndo(kind: LevelRewardKind) {
@@ -229,8 +246,21 @@ export function ProgressionPanel({
           onAdvance={handleAdvance}
           onRegress={handleRegress}
           onXpChange={handleXpChange}
+          talent={levelTalent}
+          onChooseTalent={levelTalent ? () => setChoosingId(levelTalent.id) : undefined}
         />
       </div>
+
+      {choosing && choosingRow && classData && (
+        <TalentChoiceDialog
+          open
+          onOpenChange={open => { if (!open) setChoosingId(null) }}
+          row={choosingRow}
+          table={classData.talentTable}
+          initial={choosing.choice}
+          onConfirm={handleChoice}
+        />
+      )}
 
       {/* The strip lives at the bottom edge, the way a battlepass track does. */}
       <div className="bg-background/95 fixed inset-x-0 bottom-0 z-10 border-t border-[var(--border)] px-2 pt-1 pb-[calc(10px+var(--safe-bottom))] backdrop-blur-[6px]">

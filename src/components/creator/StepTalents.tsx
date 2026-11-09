@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import type { Talent } from '@/types/talent.types'
+import type { Talent, TalentChoice } from '@/types/talent.types'
 import { rollClassTalent, getClass } from '@/data/classes/index'
+import { chooseTalent, effectLabel, rowForTalent, rowNeedsChoice, talentFromRoll } from '@/lib/talents'
+import { EffectChip, TalentChoiceDialog } from '@/components/shared/TalentChoiceDialog'
 import { StepProse } from '@/components/creator/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -41,6 +43,7 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
   const classData = getClass(classId)
   const [lastRoll, setLastRoll] = useState<{ roll: number; die1: number; die2: number; effect: string } | null>(null)
   const [tableOpen, setTableOpen] = useState(false)
+  const [choosingId, setChoosingId] = useState<string | null>(null)
 
   const classTalents = talents.filter(t => t.origin === 'class')
   // Classes whose 2d6 table has not been written in the wiki yet can't roll.
@@ -53,14 +56,24 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
     const r = rollClassTalent(classData.id)
     if (!r) return
     setLastRoll({ roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect })
-    const newTalent: Talent = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: r.entry.effect,
-      origin: 'class',
+    const newTalent: Talent = talentFromRoll({
+      classData,
+      roll: r.roll,
+      row: r.entry,
       description: `Talento de classe — 2d6: ${r.roll} (${r.die1}+${r.die2}) — ${classData.name}`,
-    }
+    })
     onChange([...talents, newTalent])
     onRolled?.(newTalent.id, { roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect })
+    if (newTalent.pending) setChoosingId(newTalent.id)
+  }
+
+  const choosing = talents.find(t => t.id === choosingId)
+  const choosingRow = choosing ? rowForTalent(choosing, classData) : undefined
+
+  function confirmChoice(choice: TalentChoice) {
+    if (!choosing || !choosingRow || !classData) return
+    const next = chooseTalent(choosing, choosingRow, classData.talentTable, choice)
+    if (next) onChange(talents.map(t => (t.id === next.id ? next : t)))
   }
 
   function remove(id: string) {
@@ -256,6 +269,29 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
                       {talent.description}
                     </ItemDescription>
                   )}
+                  {(talent.choiceLabel || (talent.effects?.length ?? 0) > 0) && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      {talent.choiceLabel && (
+                        <span className="text-[11px] text-[var(--foreground)]">→ {talent.choiceLabel}</span>
+                      )}
+                      {talent.effects?.map((effect, i) => <EffectChip key={i} label={effectLabel(effect)} />)}
+                    </div>
+                  )}
+                  {talent.pending && (
+                    <span className="font-mono mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-[var(--primary-text)] uppercase">
+                      ● Escolha pendente
+                    </span>
+                  )}
+                  {rowNeedsChoice(rowForTalent(talent, classData)) && (
+                    <Button
+                      variant={talent.pending ? 'default' : 'secondary'}
+                      size="sm"
+                      className="tactile mt-2 self-start"
+                      onClick={() => setChoosingId(talent.id)}
+                    >
+                      {talent.pending ? '✦ Fazer a escolha' : '↺ Alterar escolha'}
+                    </Button>
+                  )}
                 </ItemContent>
                 <ItemActions>
                   <Button
@@ -273,6 +309,17 @@ export function StepTalents({ classId, talents, onChange, rollBudget, showIntro,
           </div>
         )}
       </div>
+
+      {choosing && choosingRow && (
+        <TalentChoiceDialog
+          open
+          onOpenChange={open => { if (!open) setChoosingId(null) }}
+          row={choosingRow}
+          table={classData.talentTable}
+          initial={choosing.choice}
+          onConfirm={confirmChoice}
+        />
+      )}
     </div>
   )
 }

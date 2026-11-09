@@ -1,9 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import type { Talent, TalentOrigin } from '@/types/talent.types'
+import type { Talent, TalentChoice, TalentEffectTarget, TalentOrigin } from '@/types/talent.types'
 import type { LevelEntry } from '@/types/progression.types'
 import type { RollResult } from '@/lib/dice'
+import { getClass } from '@/data/classes/index'
+import {
+  EFFECT_TARGETS,
+  chooseTalent,
+  effectLabel,
+  effectTarget,
+  makeEffect,
+  rowForTalent,
+  rowNeedsChoice,
+  targetLabel,
+} from '@/lib/talents'
+import { EffectChip, TalentChoiceDialog } from '@/components/shared/TalentChoiceDialog'
 import { DETAIL_BODY } from '@/components/shared/GlyphCard'
 import { ORIGIN_LABEL } from '@/components/shared/CardOrigin'
 import { RollableText } from '@/components/shared/RollableText'
@@ -42,6 +54,8 @@ export function talentLevel(talent: Talent, levelProgress: LevelEntry[]): number
 }
 
 interface Props {
+  /** The character's class: rolled talents find their table row through it. */
+  classId: string
   talents: Talent[]
   /** Matches rolled talents back to the level that gave them. */
   levelProgress: LevelEntry[]
@@ -59,13 +73,17 @@ interface Props {
  * besides (a reward, a boon) goes in through "Adicionar". A row opens its
  * detail beside the list, with the edit and delete actions.
  */
-export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, onRoll }: Props) {
+export function TalentsPanel({ classId, talents, levelProgress, currentLevel, onUpdate, onRoll }: Props) {
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [choosingId, setChoosingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm(currentLevel))
 
+  const classData = getClass(classId)
   const invalid = !form.name.trim() || !form.description.trim()
+  const choosing = talents.find(t => t.id === choosingId)
+  const choosingRow = choosing ? rowForTalent(choosing, classData) : undefined
 
   // In the order they were earned; a talent with no level on record goes last.
   const rows = talents
@@ -86,9 +104,10 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
   function submitForm() {
     if (invalid) return
     const level = parseLevel(form.level)
+    const effects = formEffects(form.effects)
     if (editingId) {
       onUpdate(talents.map(t => t.id === editingId
-        ? { ...t, name: form.name, origin: form.origin, description: form.description, level }
+        ? { ...t, name: form.name, origin: form.origin, description: form.description, level, effects }
         : t,
       ))
     } else {
@@ -98,14 +117,32 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
         origin: form.origin,
         description: form.description,
         level,
+        effects,
       }])
     }
     closeForm()
   }
 
+  function startChoice(t: Talent) {
+    setOpenId(null)
+    setChoosingId(t.id)
+  }
+
+  function confirmChoice(choice: TalentChoice) {
+    if (!choosing || !choosingRow || !classData) return
+    const next = chooseTalent(choosing, choosingRow, classData.talentTable, choice)
+    if (next) onUpdate(talents.map(t => (t.id === next.id ? next : t)))
+  }
+
   function startEdit(t: Talent) {
     const level = talentLevel(t, levelProgress)
-    setForm({ name: t.name, origin: t.origin, description: t.description, level: level != null ? String(level) : '' })
+    setForm({
+      name: t.name,
+      origin: t.origin,
+      description: t.description,
+      level: level != null ? String(level) : '',
+      effects: (t.effects ?? []).map(e => ({ target: effectTarget(e), amount: String(e.amount) })),
+    })
     setEditingId(t.id)
     setFormOpen(true)
     setOpenId(null)
@@ -124,7 +161,13 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
       </h2>
 
       <div className="flex flex-col gap-1.5">
-        {rows.map(({ talent, level }) => (
+        {rows.map(({ talent, level }) => {
+          const row = rowForTalent(talent, classData)
+          const canChoose = rowNeedsChoice(row)
+          // Talents from before effects existed added nothing on their own;
+          // the player may have added the bonus by hand.
+          const legacy = talent.effects === undefined
+          return (
           <Popover
             key={talent.id}
             open={openId === talent.id}
@@ -139,7 +182,17 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
               )}
             >
               <span className={cn(BADGE_CLASS, 'bg-[var(--ember)] text-[var(--ember-foreground)]')}>{level ?? '✦'}</span>
-              <span className={ROW_TEXT_CLASS}>{talent.name}</span>
+              <span className={ROW_TEXT_CLASS}>
+                {talent.name}
+                {talent.choiceLabel && (
+                  <span className="mt-0.5 block font-semibold not-italic">→ {talent.choiceLabel}</span>
+                )}
+                {talent.pending && (
+                  <span className="font-mono mt-0.5 block text-[8px] font-semibold tracking-[0.12em] text-[var(--primary-text)] uppercase not-italic">
+                    ● Escolha pendente
+                  </span>
+                )}
+              </span>
             </PopoverTrigger>
 
             <PopoverContent
@@ -161,6 +214,38 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
                   <RollableText text={talent.description} label={talent.name} onRoll={onRoll} />
                 </p>
               </div>
+              {(talent.choiceLabel || (talent.effects?.length ?? 0) > 0 || talent.pending) && (
+                <div className="flex flex-col gap-1.5 border-b border-[var(--border)] px-3 py-2.5">
+                  <span className="font-mono text-[8px] font-semibold tracking-[0.14em] text-[var(--muted-foreground)] uppercase">
+                    {talent.pending ? 'Falta escolher' : 'Aplicado à ficha'}
+                  </span>
+                  {talent.choiceLabel && (
+                    <span className="font-body text-[13px] text-[var(--foreground)]">{talent.choiceLabel}</span>
+                  )}
+                  {(talent.effects?.length ?? 0) > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {talent.effects!.map((effect, i) => <EffectChip key={i} label={effectLabel(effect)} />)}
+                    </div>
+                  )}
+                  {talent.pending && (
+                    <span className="font-body text-[12px] text-[var(--muted-foreground)] italic">
+                      Nenhum bônus entra na ficha até a escolha ser feita.
+                    </span>
+                  )}
+                </div>
+              )}
+              {canChoose && (
+                <div className="flex flex-col gap-1.5 border-b border-[var(--border)] px-3 py-2.5">
+                  <Button className="tactile w-full" onClick={() => startChoice(talent)}>
+                    {talent.pending || legacy ? '✦ Escolher' : '↺ Alterar escolha'}
+                  </Button>
+                  {legacy && !talent.pending && (
+                    <span className="font-body text-[11px] leading-snug text-[var(--muted-foreground)] italic">
+                      Talento antigo: se o bônus já foi somado à mão, desfaça-o antes, ou ele conta duas vezes.
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="flex gap-2 px-3 py-2.5">
                 <Button variant="secondary" className="tactile flex-1" onClick={() => startEdit(talent)}>
                   ✎ Editar
@@ -169,9 +254,15 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
                   ✕ Excluir
                 </Button>
               </div>
+              {(talent.effects?.length ?? 0) > 0 && (
+                <p className="font-body m-0 px-3 pb-2.5 text-[11px] leading-snug text-[var(--muted-foreground)] italic">
+                  Excluir também tira da ficha os bônus acima.
+                </p>
+              )}
             </PopoverContent>
           </Popover>
-        ))}
+          )
+        })}
 
         <button
           type="button"
@@ -197,6 +288,17 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
         </p>
       )}
 
+      {choosing && choosingRow && classData && (
+        <TalentChoiceDialog
+          open
+          onOpenChange={open => { if (!open) setChoosingId(null) }}
+          row={choosingRow}
+          table={classData.talentTable}
+          initial={choosing.choice}
+          onConfirm={confirmChoice}
+        />
+      )}
+
       {/* Add / edit form — stacked, since the column is narrow */}
       {formOpen && (
         <div className="animate-ink-spread bg-secondary border-border flex flex-col gap-2.5 border p-3">
@@ -220,7 +322,7 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
                 onValueChange={value => setForm(f => ({ ...f, origin: value as TalentOrigin }))}
               >
                 <SelectTrigger id="talent-origin" className={cn(FIELD_INPUT_CLASS, 'w-full')}>
-                  <SelectValue />
+                  <SelectValue>{(origin: string) => ORIGIN_LABEL[origin as TalentOrigin]}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {(['ancestry', 'class', 'general'] as TalentOrigin[]).map(origin => (
@@ -259,6 +361,11 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
             />
           </Field>
 
+          <EffectsEditor
+            value={form.effects}
+            onChange={effects => setForm(f => ({ ...f, effects }))}
+          />
+
           <Button onClick={submitForm} disabled={invalid} className="tactile w-full">
             {editingId ? '✦ Salvar' : '✦ Registrar'}
           </Button>
@@ -268,8 +375,83 @@ export function TalentsPanel({ talents, levelProgress, currentLevel, onUpdate, o
   )
 }
 
+interface EffectDraft {
+  target: TalentEffectTarget
+  /** As typed, so "-" on the way to "-1" survives. */
+  amount: string
+}
+
 function emptyForm(level: number) {
-  return { name: '', origin: 'general' as TalentOrigin, description: '', level: String(level) }
+  return {
+    name: '',
+    origin: 'general' as TalentOrigin,
+    description: '',
+    level: String(level),
+    effects: [] as EffectDraft[],
+  }
+}
+
+/** The drafts that are real numbers, as effects. */
+function formEffects(drafts: EffectDraft[]) {
+  return drafts
+    .map(d => ({ target: d.target, amount: parseInt(d.amount, 10) }))
+    .filter(d => Number.isFinite(d.amount) && d.amount !== 0)
+    .map(d => makeEffect(d.target, d.amount))
+}
+
+/**
+ * The bonuses a hand-written talent adds — a boon from the GM, an item's
+ * blessing. Whatever is listed here goes onto the sheet with the talent and
+ * comes off with it.
+ */
+function EffectsEditor({ value, onChange }: { value: EffectDraft[]; onChange: (next: EffectDraft[]) => void }) {
+  function patch(index: number, next: Partial<EffectDraft>) {
+    onChange(value.map((d, i) => (i === index ? { ...d, ...next } : d)))
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className={FIELD_LABEL_CLASS}>Bônus na ficha</span>
+      {value.map((draft, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <Select value={draft.target} onValueChange={target => patch(i, { target: target as TalentEffectTarget })}>
+            <SelectTrigger aria-label="Onde o bônus entra" className={cn(FIELD_INPUT_CLASS, 'min-w-0 flex-1')}>
+              <SelectValue>{(target: string) => targetLabel(target as TalentEffectTarget)}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {EFFECT_TARGETS.map(target => (
+                <SelectItem key={target} value={target}>{targetLabel(target)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input
+            type="text"
+            inputMode="numeric"
+            aria-label="Valor do bônus"
+            value={draft.amount}
+            onChange={e => patch(i, { amount: e.target.value.replace(/[^\d-]/g, '').slice(0, 3) })}
+            className={cn(FIELD_INPUT_CLASS, 'w-12 shrink-0 text-center')}
+          />
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Remover bônus"
+            onClick={() => onChange(value.filter((_, j) => j !== i))}
+          >
+            ✕
+          </Button>
+        </div>
+      ))}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="tactile self-start"
+        onClick={() => onChange([...value, { target: 'str', amount: '1' }])}
+      >
+        + Bônus
+      </Button>
+    </div>
+  )
 }
 
 /** The form keeps the level as typed; anything that isn't a level is no level. */

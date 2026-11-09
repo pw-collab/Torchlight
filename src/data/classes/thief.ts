@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { attacks, distribute, fromTable, statBoost } from '@/data/talentOptions'
 
 export const thief: Class = {
   id: 'thief',
@@ -35,9 +36,12 @@ export const thief: Class = {
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: 'Gain advantage on initiative rolls. (reroll if duplicate)' },
     { roll: '3-5',   min: 3,  max: 5,  effect: 'Your Backstab deals +1 dice of damage.' },
-    { roll: '6-9',   min: 6,  max: 9,  effect: '+2 to Strength, Dexterity, or Charisma stat.' },
-    { roll: '10-11', min: 10, max: 11, effect: '+1 to melee and ranged attacks.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+    { roll: '6-9',   min: 6,  max: 9,  effect: '+2 to Strength, Dexterity, or Charisma stat.',
+      options: statBoost(2, 'str', 'dex', 'cha') },
+    { roll: '10-11', min: 10, max: 11, effect: '+1 to melee and ranged attacks.',
+      options: attacks(1) },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Especialização',

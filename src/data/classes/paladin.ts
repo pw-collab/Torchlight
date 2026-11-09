@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { attacks, distribute, fromTable, statBoost } from '@/data/talentOptions'
 
 export const paladin: Class = {
   id: 'paladin',
@@ -39,10 +40,13 @@ export const paladin: Class = {
 
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: 'Ganhe 1 uso adicional de Golpe e Imposição de Mãos por dia.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 para rolamentos de ataque corpo a corpo e à distância.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 para Força, Constituição ou Carisma.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 para rolamentos de ataque corpo a corpo e à distância.',
+      options: attacks(1) },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 para Força, Constituição ou Carisma.',
+      options: statBoost(2, 'str', 'con', 'cha') },
     { roll: '10-11', min: 10, max: 11, effect: '+1 Proteção Divina e o alcance aumenta: o dobro de próximo/perto (máximo).' },
-    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento ou +2 pontos para distribuir nos atributos.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento ou +2 pontos para distribuir nos atributos.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Arquétipo de Paladino',
