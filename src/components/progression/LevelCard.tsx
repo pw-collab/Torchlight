@@ -5,6 +5,9 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import { FavouriteIcon, SparklesIcon, SquareLock01Icon, Tick02Icon } from '@hugeicons/core-free-icons'
 import type { Class } from '@/types/class.types'
 import type { LevelEntry } from '@/types/progression.types'
+import type { Talent } from '@/types/talent.types'
+import { effectLabel, rowForTalent, rowNeedsChoice } from '@/lib/talents'
+import { EffectChip } from '@/components/shared/TalentChoiceDialog'
 import type { LevelRewardKind, LevelState } from '@/lib/progression'
 import { MAX_LEVEL, MIN_LEVEL } from '@/lib/progression'
 import { NumInput } from '@/components/sheet/NumInput'
@@ -31,6 +34,10 @@ interface Props {
   onAdvance: () => void
   onRegress: () => void
   onXpChange: (xp: number) => void
+  /** The talent this level's roll produced, when it is still on the sheet. */
+  talent?: Talent
+  /** Opens the choice for that talent. */
+  onChooseTalent?: () => void
 }
 
 /**
@@ -53,6 +60,8 @@ export function LevelCard({
   onAdvance,
   onRegress,
   onXpChange,
+  talent,
+  onChooseTalent,
 }: Props) {
   const { level, rewards, done, status, isCurrent, entry } = state
 
@@ -174,6 +183,8 @@ export function LevelCard({
             busy={busy}
             onRoll={onRoll}
             onUndo={onUndo}
+            talent={talent}
+            onChooseTalent={onChooseTalent}
           />
         ))}
 
@@ -267,6 +278,8 @@ interface SectionProps {
   busy: LevelRewardKind | 'level' | null
   onRoll: (kind: LevelRewardKind) => void
   onUndo: (kind: LevelRewardKind) => void
+  talent?: Talent
+  onChooseTalent?: () => void
 }
 
 /** One reward of a level: its explanation, its roll, and its receipt once rolled. */
@@ -282,6 +295,8 @@ function RewardSection({
   busy,
   onRoll,
   onUndo,
+  talent,
+  onChooseTalent,
 }: SectionProps) {
   const [tableOpen, setTableOpen] = useState(false)
   const isHp = kind === 'hp'
@@ -382,6 +397,14 @@ function RewardSection({
 
       {resolved && entry && <RewardReceipt kind={kind} entry={entry} hpMax={hpMax} />}
 
+      {resolved && !isHp && talent && (
+        <TalentOutcome
+          talent={talent}
+          canChoose={!locked && rowNeedsChoice(rowForTalent(talent, classData))}
+          onChoose={onChooseTalent}
+        />
+      )}
+
       {!locked &&
         (resolved ? (
           <Button
@@ -417,6 +440,54 @@ function RewardSection({
                   : '✦ Rolar 2d6 na tabela'}
           </Button>
         ))}
+    </div>
+  )
+}
+
+/**
+ * What the rolled talent did to the sheet: the bonus it added, or the choice
+ * still owed before it adds anything.
+ */
+function TalentOutcome({
+  talent,
+  canChoose,
+  onChoose,
+}: {
+  talent: Talent
+  canChoose: boolean
+  onChoose?: () => void
+}) {
+  const effects = talent.effects ?? []
+  return (
+    <div
+      className={cn(
+        'flex flex-col gap-2 border px-3 py-2.5',
+        talent.pending ? 'border-[var(--primary)] bg-[var(--primary)]/10' : 'border-[var(--border)]',
+      )}
+    >
+      <span className="font-mono font-semibold text-[8px] tracking-[0.2em] text-[var(--muted-foreground)] uppercase">
+        {talent.pending ? 'Escolha pendente' : 'Na ficha'}
+      </span>
+      {talent.pending ? (
+        <span className="font-sans text-[12px] leading-snug text-[var(--foreground)] italic">
+          Este talento pede uma escolha. Nenhum bônus entra na ficha até ela ser feita.
+        </span>
+      ) : (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {talent.choiceLabel && (
+            <span className="font-sans text-[12.5px] text-[var(--foreground)]">{talent.choiceLabel}</span>
+          )}
+          {effects.map((effect, i) => <EffectChip key={i} label={effectLabel(effect)} />)}
+          {!talent.choiceLabel && effects.length === 0 && (
+            <span className="font-mono text-[9px] text-[var(--muted-foreground)]">sem bônus numérico</span>
+          )}
+        </div>
+      )}
+      {canChoose && onChoose && (
+        <Button variant={talent.pending ? 'default' : 'secondary'} className="tactile w-full" onClick={onChoose}>
+          {talent.pending ? '✦ Fazer a escolha' : '↺ Alterar escolha'}
+        </Button>
+      )}
     </div>
   )
 }

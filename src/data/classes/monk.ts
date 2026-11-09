@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, melee, note, statBoost } from '@/data/talentOptions'
 
 export const monk: Class = {
   id: 'monk',
@@ -89,10 +90,13 @@ export const monk: Class = {
 
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: 'Você pode se mover o dobro do alcance próximo em seu turno e ainda realizar uma ação (role novamente se duplicado).' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+2 para Força, Destreza ou Constituição; ou ganhe +1 para ataques corpo a corpo.' },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+2 para Força, Destreza ou Constituição; ou ganhe +1 para ataques corpo a corpo.',
+      options: [...statBoost(2, 'str', 'dex', 'con'), ...melee(1)] },
     { roll: '7-9',   min: 7,  max: 9,  effect: 'Seu Iron Palm causa um dado adicional de dano, no máximo 3d4.' },
-    { roll: '10-11', min: 10, max: 11, effect: 'Você ganha vantagem em testes de Misticismo para uma técnica que escolher (exceto Golpe Suave).' },
-    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento de Monge ou +2 pontos para distribuir nos atributos.' },
+    { roll: '10-11', min: 10, max: 11, effect: 'Você ganha vantagem em testes de Misticismo para uma técnica que escolher (exceto Golpe Suave).',
+      options: note('Escolher a técnica', 'Qual técnica de Misticismo?', 'ex.: Passo do Vento') },
+    { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento de Monge ou +2 pontos para distribuir nos atributos.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Arquétipo de Monge',

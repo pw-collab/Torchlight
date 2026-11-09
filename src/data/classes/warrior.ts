@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { attacks, distribute, fromTable, note, statBoost } from '@/data/talentOptions'
 
 export const warrior: Class = {
   id: 'warrior',
@@ -58,11 +59,16 @@ export const warrior: Class = {
   ],
 
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: 'Gain Weapon Mastery with one additional weapon type.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee and ranged attacks.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity, or Constitution stat.' },
-    { roll: '10-11', min: 10, max: 11, effect: 'Choose one kind of armor. You get +1 AC from that armor.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'Gain Weapon Mastery with one additional weapon type.',
+      options: note('Escolher o tipo de arma', 'Qual tipo de arma?', 'ex.: machados') },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee and ranged attacks.',
+      options: attacks(1) },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity, or Constitution stat.',
+      options: statBoost(2, 'str', 'dex', 'con') },
+    { roll: '10-11', min: 10, max: 11, effect: 'Choose one kind of armor. You get +1 AC from that armor.',
+      options: note('Escolher a armadura', 'Qual tipo de armadura dá +1 de CA?', 'ex.: cota de malha') },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Arquétipo de Combate',

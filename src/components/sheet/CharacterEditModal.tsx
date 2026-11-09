@@ -6,6 +6,7 @@ import type { Stat } from '@/types/class.types'
 import type { Class } from '@/types/class.types'
 import type { Talent } from '@/types/talent.types'
 import { rollClassTalent } from '@/data/classes/index'
+import { applyTalentChange, talentFromRoll, targetsOf, targetsPatch, type TalentTargets } from '@/lib/talents'
 import { getAncestry } from '@/data/ancestries/index'
 import { getDomain } from '@/data/domains/index'
 import { Button } from '@/components/ui/button'
@@ -127,17 +128,41 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
     if (!r) return
     const rollInfo = { roll: r.roll, die1: r.die1, die2: r.die2, effect: r.entry.effect }
     setLastRoll(rollInfo)
-    const newTalent: Talent = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: r.entry.effect,
-      origin: 'class',
+    // A row that asks for a choice lands pending; the choice is made on the sheet.
+    const newTalent: Talent = talentFromRoll({
+      classData,
+      roll: r.roll,
+      row: r.entry,
       description: `Talento de classe — 2d6: ${r.roll} (${r.die1}+${r.die2}) — ${classData.name}`,
-    }
-    setLocalTalents(prev => [...prev, newTalent])
+    })
+    moveTalents([...localTalents, newTalent])
   }
 
   function removeClassTalent(id: string) {
-    setLocalTalents(prev => prev.filter(t => t.id !== id))
+    moveTalents(localTalents.filter(t => t.id !== id))
+  }
+
+  // The bonuses a talent can move besides the attributes, so a talent that
+  // leaves here takes its bonus with it on save.
+  const [bonuses, setBonuses] = useState(() => {
+    const { meleeBonus, rangedBonus, spellcastingBonus, ac } = targetsOf(character)
+    return { meleeBonus, rangedBonus, spellcastingBonus, ac }
+  })
+
+  function moveTalents(next: Talent[]) {
+    const before: TalentTargets = {
+      stats: { str: form.str, dex: form.dex, con: form.con, int: form.int, wis: form.wis, cha: form.cha },
+      ...bonuses,
+    }
+    const after = applyTalentChange(before, localTalents, next)
+    setForm(f => ({ ...f, ...after.stats }))
+    setBonuses({
+      meleeBonus: after.meleeBonus,
+      rangedBonus: after.rangedBonus,
+      spellcastingBonus: after.spellcastingBonus,
+      ac: after.ac,
+    })
+    setLocalTalents(next)
   }
 
   // ── Language state ──────────────────────────────────────────────────────────
@@ -199,6 +224,8 @@ export function CharacterEditModal({ character, classData, onSave, onClose }: Pr
       wis: form.wis,
       cha: form.cha,
       talents: localTalents,
+      // Only the bonuses the talents moved here, so nothing else is overwritten.
+      ...targetsPatch(targetsOf(character), { stats: character.stats, ...bonuses }),
       languages: localLanguages,
     } as Partial<CharacterRow>)
     setSaving(false)

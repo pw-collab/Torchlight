@@ -26,6 +26,7 @@ import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { discordIdOf } from '@/lib/discordId'
+import { applyEffects, talentTotals } from '@/lib/talents'
 import { blankDraft, clearDraft, readDraft, writeDraft, type CreatorDraft } from '@/lib/creatorDraft'
 
 /** The creation chapters, in the order the rulebook lays them out. */
@@ -169,6 +170,12 @@ function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: 
   const archetype = archetypeId ? getArchetype(archetypeId) : undefined
   const hasSpells = cls?.spellcasting != null
   const talentBudget = talentBudgetFor(ancestryId)
+  // What the rolled talents add on top of the rolled attributes and the gear —
+  // "+2 Força" is already in the Força the character is born with.
+  const withTalents = applyEffects(
+    { stats, meleeBonus: 0, rangedBonus: 0, spellcastingBonus: 0, ac: 0 },
+    talentTotals(talents),
+  )
 
   const steps = useMemo(
     () => ALL_STEPS.filter(s => s.id !== 'spells' || hasSpells),
@@ -202,7 +209,7 @@ function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: 
       case 'hp':        return hpMax > 0
       // Classes whose 2d6 table is still unwritten have nothing to roll.
       case 'talents':   return (cls?.talentTable.length ?? 0) === 0
-        || talents.filter(t => t.origin === 'class').length >= talentBudget
+        || (talents.filter(t => t.origin === 'class').length >= talentBudget && !talents.some(t => t.pending))
       case 'narrative': return name.trim().length > 0
       default:          return true
     }
@@ -225,9 +232,11 @@ function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: 
       case 'archetype': return 'Escolha um arquétipo para seguir.'
       case 'origin':    return 'Escolha uma ancestralidade para seguir.'
       case 'hp':        return 'Role os pontos de vida para seguir.'
-      case 'talents':   return talentBudget > 1
-        ? `Role os ${talentBudget} talentos de classe para seguir.`
-        : 'Role o talento de classe para seguir.'
+      case 'talents':   return talents.some(t => t.pending)
+        ? 'Faça a escolha do talento para seguir.'
+        : talentBudget > 1
+          ? `Role os ${talentBudget} talentos de classe para seguir.`
+          : 'Role o talento de classe para seguir.'
       case 'narrative': return 'Dê um nome ao personagem para seguir.'
       default:          return ''
     }
@@ -349,10 +358,13 @@ function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: 
       archetype_id: archetypeId || null,
       ancestry_id: ancestryId,
       level: 1,
-      str: stats.str, dex: stats.dex, con: stats.con,
-      int: stats.int, wis: stats.wis, cha: stats.cha,
+      str: withTalents.stats.str, dex: withTalents.stats.dex, con: withTalents.stats.con,
+      int: withTalents.stats.int, wis: withTalents.stats.wis, cha: withTalents.stats.cha,
       hp_max: hpMax, hp_current: hpMax,
-      ac: armorClassFor(equipment, stats.dex),
+      ac: armorClassFor(equipment, withTalents.stats.dex) + withTalents.ac,
+      melee_bonus: withTalents.meleeBonus,
+      ranged_bonus: withTalents.rangedBonus,
+      spellcasting_bonus: withTalents.spellcastingBonus,
       luck_tokens: 0,
       equipment,
       spells,
@@ -550,7 +562,7 @@ function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: 
             classId={classId}
             archetypeId={archetypeId}
             ancestryId={ancestryId}
-            stats={stats}
+            stats={withTalents.stats}
             hpMax={hpMax}
             domainId={domainId}
             languages={languages}

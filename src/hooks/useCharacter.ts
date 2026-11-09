@@ -6,10 +6,19 @@ import type { Character, CharacterRow } from '@/types/character.types'
 import { rowToCharacter } from '@/types/character.types'
 import { normalizeBackground, normalizeImpulses, normalizeRelations } from '@/lib/story'
 import { createCharacterSaver } from '@/lib/characterSaver'
+import { STAT_KEYS } from '@/data/stats'
 
 function patchCharacter(character: Character, updates: Partial<CharacterRow>): Character {
+  // Attributes move when a talent that adds to one arrives or leaves.
+  const stats = { ...character.stats }
+  for (const stat of STAT_KEYS) {
+    const value = updates[stat]
+    if (value !== undefined) stats[stat] = value
+  }
   return {
     ...character,
+    stats,
+    ...(updates.ac !== undefined && { ac: updates.ac }),
     ...(updates.hp_current !== undefined && { hpCurrent: updates.hp_current }),
     ...(updates.luck_tokens !== undefined && { luckTokens: updates.luck_tokens }),
     ...('torch_end_at' in updates && { torchEndAt: updates.torch_end_at ?? null }),

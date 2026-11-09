@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, melee, spellcasting, statBoost } from '@/data/talentOptions'
 
 /** Homebrew class from the campaign wiki. */
 export const sorcerer: Class = {
@@ -41,10 +42,13 @@ export const sorcerer: Class = {
 
   talentTable: [
     { roll: '2',     min: 2,  max: 2,  effect: 'Your critical failure threshold increases by 1 — both natural 1 and natural 2 now trigger a Mishap. In return, your Empowered Metamagic costs +1 DC less (minimum +1).' },
-    { roll: '3-7',   min: 3,  max: 7,  effect: '+1 to spellcasting checks, or +1 to melee attack rolls.' },
-    { roll: '8-9',   min: 8,  max: 9,  effect: '+2 to Strength, Dexterity, or Constitution.' },
+    { roll: '3-7',   min: 3,  max: 7,  effect: '+1 to spellcasting checks, or +1 to melee attack rolls.',
+      options: [...spellcasting(1), ...melee(1)] },
+    { roll: '8-9',   min: 8,  max: 9,  effect: '+2 to Strength, Dexterity, or Constitution.',
+      options: statBoost(2, 'str', 'dex', 'con') },
     { roll: '10-11', min: 10, max: 11, effect: 'You learn a random spell of one tier higher than your current maximum. Until you reach the level to normally cast that tier, treat every failed check for that spell as a critical failure.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose any talent from this table, or gain +2 points to distribute freely among your ability scores.' },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose any talent from this table, or gain +2 points to distribute freely among your ability scores.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   startingGear: ['dagger', 'leather-armor', 'tocha'],

@@ -1,4 +1,5 @@
 import type { Class } from '@/types/class.types'
+import { distribute, fromTable, melee, note, ranged, statBoost } from '@/data/talentOptions'
 
 export const ranger: Class = {
   id: 'ranger',
@@ -40,11 +41,16 @@ export const ranger: Class = {
   ],
 
   talentTable: [
-    { roll: '2',     min: 2,  max: 2,  effect: 'You deal d12 damage with one weapon type you choose.' },
-    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee or ranged attacks and damage.' },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity, or Intelligence.' },
-    { roll: '10-11', min: 10, max: 11, effect: 'You gain ADV on Herbalism checks for an herb you choose.' },
-    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.' },
+    { roll: '2',     min: 2,  max: 2,  effect: 'You deal d12 damage with one weapon type you choose.',
+      options: note('Escolher o tipo de arma', 'Qual tipo de arma causa d12?', 'ex.: arcos longos') },
+    { roll: '3-6',   min: 3,  max: 6,  effect: '+1 to melee or ranged attacks and damage.',
+      options: [...melee(1), ...ranged(1)] },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 to Strength, Dexterity, or Intelligence.',
+      options: statBoost(2, 'str', 'dex', 'int') },
+    { roll: '10-11', min: 10, max: 11, effect: 'You gain ADV on Herbalism checks for an herb you choose.',
+      options: note('Escolher a erva', 'Qual erva?', 'ex.: Raiz-de-sangue') },
+    { roll: '12',    min: 12, max: 12, effect: 'Choose a talent or +2 points to distribute to stats.',
+      options: [...fromTable(), ...distribute(2)] },
   ],
 
   archetypeLabel: 'Domínio Natural',
