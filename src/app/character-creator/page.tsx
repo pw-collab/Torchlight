@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { StepStats, EMPTY_STATS, type StatRoll } from '@/components/creator/StepStats'
+import { StepStats, type StatRoll } from '@/components/creator/StepStats'
 import { StepClass } from '@/components/creator/StepClass'
 import { StepArchetype } from '@/components/creator/StepArchetype'
 import { StepOrigin } from '@/components/creator/StepOrigin'
@@ -26,6 +26,7 @@ import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { discordIdOf } from '@/lib/discordId'
+import { blankDraft, clearDraft, readDraft, writeDraft, type CreatorDraft } from '@/lib/creatorDraft'
 
 /** The creation chapters, in the order the rulebook lays them out. */
 type StepId =
@@ -67,39 +68,101 @@ interface TalentRollRecord {
   effect: string
 }
 
+const noSubscribe = () => () => {}
+
+/**
+ * The server has no storage, so it renders a blank form; once hydrated, the
+ * form is mounted again from the stored draft. The remount is the point: the
+ * fields start from the draft instead of being patched into it afterwards.
+ */
 export default function CharacterCreatorPage() {
+  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false)
+  const draft = useMemo(() => (hydrated ? readDraft() : null), [hydrated])
+  return <CreatorForm key={hydrated ? 'client' : 'server'} draft={draft} persist={hydrated} />
+}
+
+function CreatorForm({ draft, persist }: { draft: CreatorDraft | null; persist: boolean }) {
   const router = useRouter()
-  const [tab, setTab] = useState<StepId>('stats')
+  const start = draft ?? blankDraft()
+  const [tab, setTab] = useState<StepId>(start.tab as StepId)
 
   // Identity
-  const [name, setName] = useState('')
-  const [classId, setClassId] = useState('')
-  const [archetypeId, setArchetypeId] = useState('')
-  const [ancestryId, setAncestryId] = useState('')
+  const [name, setName] = useState(start.name)
+  const [classId, setClassId] = useState(start.classId)
+  const [archetypeId, setArchetypeId] = useState(start.archetypeId)
+  const [ancestryId, setAncestryId] = useState(start.ancestryId)
 
   // Attributes & vitality
-  const [statRolls, setStatRolls] = useState<StatRoll[]>([])
-  const [stats, setStats] = useState<Record<Stat, number>>(EMPTY_STATS)
-  const [hpMax, setHpMax] = useState(0)
+  const [statRolls, setStatRolls] = useState<StatRoll[]>(start.statRolls)
+  const [stats, setStats] = useState<Record<Stat, number>>(start.stats)
+  const [hpMax, setHpMax] = useState(start.hpMax)
 
   // Origin
-  const [domainId, setDomainId] = useState('')
-  const [languages, setLanguages] = useState<string[]>([])
-  const [faith, setFaith] = useState('')
+  const [domainId, setDomainId] = useState(start.domainId)
+  const [languages, setLanguages] = useState<string[]>(start.languages)
+  const [faith, setFaith] = useState(start.faith)
 
   // Talents, gear, spells
-  const [talents, setTalents] = useState<Talent[]>([])
-  const [talentRolls, setTalentRolls] = useState<Record<string, TalentRollRecord>>({})
-  const [extraItems, setExtraItems] = useState<InventoryItem[]>([])
-  const [knowledgeAreas, setKnowledgeAreas] = useState<KnowledgeArea[]>([])
-  const [spells, setSpells] = useState<string[]>([])
+  const [talents, setTalents] = useState<Talent[]>(start.talents)
+  const [talentRolls, setTalentRolls] = useState<Record<string, TalentRollRecord>>(start.talentRolls)
+  const [extraItems, setExtraItems] = useState<InventoryItem[]>(start.extraItems)
+  const [knowledgeAreas, setKnowledgeAreas] = useState<KnowledgeArea[]>(start.knowledgeAreas)
+  const [spells, setSpells] = useState<string[]>(start.spells)
 
   // Narrative
-  const [backgroundDetails, setBackgroundDetails] = useState<BackgroundDetails>({ facts: [] })
-  const [relations, setRelations] = useState<Relations>({ people: [], institutions: [] })
-  const [impulses, setImpulses] = useState<Impulses>({ objectives: [], secrets: [], flaws: [], fears: [] })
+  const [backgroundDetails, setBackgroundDetails] = useState<BackgroundDetails>(start.backgroundDetails)
+  const [relations, setRelations] = useState<Relations>(start.relations)
+  const [impulses, setImpulses] = useState<Impulses>(start.impulses)
 
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  // ── Draft ────────────────────────────────────────────────────────────────
+  /** A stored draft was put back, so the page says so and offers a way out. */
+  const [resumed, setResumed] = useState(draft !== null)
+
+  /** Puts every field back to a draft's value; "Começar do zero" passes a blank one. */
+  function applyDraft(d: CreatorDraft) {
+    setTab(d.tab as StepId)
+    setName(d.name)
+    setClassId(d.classId)
+    setArchetypeId(d.archetypeId)
+    setAncestryId(d.ancestryId)
+    setStatRolls(d.statRolls)
+    setStats(d.stats)
+    setHpMax(d.hpMax)
+    setDomainId(d.domainId)
+    setLanguages(d.languages)
+    setFaith(d.faith)
+    setTalents(d.talents)
+    setTalentRolls(d.talentRolls)
+    setExtraItems(d.extraItems)
+    setKnowledgeAreas(d.knowledgeAreas)
+    setSpells(d.spells)
+    setBackgroundDetails(d.backgroundDetails)
+    setRelations(d.relations)
+    setImpulses(d.impulses)
+  }
+
+  // The blank form the server rendered must not write: it would erase the
+  // draft before the hydrated one could read it.
+  useEffect(() => {
+    if (!persist) return
+    writeDraft({
+      v: 1, tab, name, classId, archetypeId, ancestryId, statRolls, stats, hpMax,
+      domainId, languages, faith, talents, talentRolls, extraItems, knowledgeAreas,
+      spells, backgroundDetails, relations, impulses,
+    })
+  }, [tab, name, classId, archetypeId, ancestryId, statRolls, stats, hpMax, domainId, languages,
+    faith, talents, talentRolls, extraItems, knowledgeAreas, spells, backgroundDetails, relations, impulses, persist])
+
+  function startOver() {
+    clearDraft()
+    applyDraft(blankDraft())
+    setResumed(false)
+    setSaveError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const cls = getClass(classId)
   const ancestry = getAncestry(ancestryId)
@@ -153,6 +216,22 @@ export default function CharacterCreatorPage() {
   }, [steps, stats, classId, cls, archetypeId, ancestryId, hpMax, talents, talentBudget, name])
 
   const canAdvance = isComplete(current.id)
+
+  /** Why "Próximo" is off: a disabled button alone never says what is missing. */
+  function blockedHint(id: StepId): string {
+    switch (id) {
+      case 'stats':     return 'Role os atributos e dê um valor a cada um dos seis.'
+      case 'class':     return 'Escolha uma classe para seguir.'
+      case 'archetype': return 'Escolha um arquétipo para seguir.'
+      case 'origin':    return 'Escolha uma ancestralidade para seguir.'
+      case 'hp':        return 'Role os pontos de vida para seguir.'
+      case 'talents':   return talentBudget > 1
+        ? `Role os ${talentBudget} talentos de classe para seguir.`
+        : 'Role o talento de classe para seguir.'
+      case 'narrative': return 'Dê um nome ao personagem para seguir.'
+      default:          return ''
+    }
+  }
 
   // The tab strip scrolls on narrow screens; keep the active tab in view.
   const stripRef = useRef<HTMLDivElement>(null)
@@ -235,6 +314,7 @@ export default function CharacterCreatorPage() {
 
   async function save() {
     setSaving(true)
+    setSaveError(null)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
@@ -291,8 +371,15 @@ export default function CharacterCreatorPage() {
 
     const { data, error } = await supabase.from('characters').insert(row).select('id').single()
 
-    if (data) router.push(`/sheet/${data.id}`)
-    else { console.error(error); setSaving(false) }
+    if (data) {
+      clearDraft()
+      router.push(`/sheet/${data.id}`)
+    } else {
+      console.error(error)
+      // The draft is still stored, so nothing is lost by trying again later.
+      setSaveError('Não deu para selar o registro. Nada se perdeu: confira a conexão e tente de novo.')
+      setSaving(false)
+    }
   }
 
   return (
@@ -352,6 +439,21 @@ export default function CharacterCreatorPage() {
           </nav>
         </div>
       </header>
+
+      {resumed && (
+        <div className="mt-4 flex w-full max-w-[760px] flex-wrap items-center justify-between gap-x-3 gap-y-1 border border-[var(--border)] bg-[var(--card)] px-4 py-2">
+          <p className="font-body text-[12px] text-[var(--muted-foreground)] italic">
+            Rascunho retomado de onde você parou.
+          </p>
+          <button
+            type="button"
+            onClick={startOver}
+            className="font-mono min-h-11 text-[10px] font-semibold tracking-[0.12em] text-[var(--muted-foreground)] uppercase underline-offset-4 outline-none hover:text-[var(--foreground)] hover:underline focus-visible:ring-[3px] focus-visible:ring-[var(--ring)]/50"
+          >
+            Começar do zero
+          </button>
+        </div>
+      )}
 
       {/* ── Chapter heading ───────────────────────────────────────────────── */}
       <div key={current.id} className="animate-mist-rise mt-6 mb-5 w-full max-w-[760px] text-center">
@@ -485,6 +587,7 @@ export default function CharacterCreatorPage() {
             variant="outline"
             onClick={next}
             disabled={!canAdvance}
+            aria-describedby={canAdvance ? undefined : 'creator-blocked'}
             className={cn(
               'h-auto flex-[2] px-4 py-3.5 text-[9px] tracking-[0.16em] transition-all duration-200',
               canAdvance
@@ -508,6 +611,18 @@ export default function CharacterCreatorPage() {
           >
             {saving ? '⟳ Registrando...' : '✦ Selar o Registro'}
           </Button>
+        )}
+      </div>
+      {!isLast && !canAdvance && (
+        <p id="creator-blocked" className="font-body mt-2 w-full max-w-[760px] text-right text-[12px] text-[var(--muted-foreground)] italic">
+          {blockedHint(current.id)}
+        </p>
+      )}
+      <div role="alert" className="w-full max-w-[760px]">
+        {saveError && (
+          <p className="font-body mt-2 border border-[var(--destructive)] bg-[var(--card)] px-4 py-2 text-[13px] text-[var(--card-foreground)]">
+            {saveError}
+          </p>
         )}
       </div>
 

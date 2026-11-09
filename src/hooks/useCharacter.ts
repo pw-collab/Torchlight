@@ -45,6 +45,8 @@ export function useCharacter(characterId: string) {
   /** Counts saves and misses; 0 means none yet. They key the sheet's save stamps. */
   const [savedAt, setSavedAt] = useState(0)
   const [conflictAt, setConflictAt] = useState(0)
+  /** Counts saves the database refused outright (offline, timeout, policy). */
+  const [failedAt, setFailedAt] = useState(0)
 
   // Saves go through the saver so they can't overwrite a change someone else
   // just made (see lib/characterSaver).
@@ -64,7 +66,10 @@ export function useCharacter(characterId: string) {
       onRow: row => setCharacter(rowToCharacter(row)),
       onSaved: () => setSavedAt(n => n + 1),
       onConflict: () => setConflictAt(n => n + 1),
-      onError: (updates, error) => console.error('[useCharacter] falha ao salvar', Object.keys(updates), error),
+      onError: (updates, error) => {
+        console.error('[useCharacter] falha ao salvar', Object.keys(updates), error)
+        setFailedAt(n => n + 1)
+      },
     })
   }, [characterId])
 
@@ -104,12 +109,13 @@ export function useCharacter(characterId: string) {
   /**
    * Returns false when the write did not land: the sheet is reset to the
    * server row. A save that lost to someone else's also sets `conflictAt`, so
-   * the sheet can say so instead of failing silently.
+   * the sheet can say so instead of failing silently; a refused one sets
+   * `failedAt` for the same reason.
    */
   function updateCharacter(updates: Partial<CharacterRow>): Promise<boolean> {
     setCharacter(prev => (prev ? patchCharacter(prev, updates) : prev))
     return saver.save(updates)
   }
 
-  return { character, loading, updateCharacter, savedAt, conflictAt }
+  return { character, loading, updateCharacter, savedAt, conflictAt, failedAt }
 }

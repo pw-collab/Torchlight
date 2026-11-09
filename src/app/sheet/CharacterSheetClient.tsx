@@ -44,6 +44,7 @@ import { handoutItem, handoutsFor } from '@/lib/handouts'
 import { TableBadge } from '@/components/sheet/TableBadge'
 import { TableToasts } from '@/components/sheet/TableToasts'
 import { LiveAnnouncer } from '@/components/shared/LiveAnnouncer'
+import { FailNotice, failMessage } from '@/components/shared/FailNotice'
 import { describeRoll } from '@/lib/rollSpeech'
 import { PromptCard } from '@/components/sheet/PromptCard'
 import { TurnBanner, TurnButton } from '@/components/sheet/TurnBanner'
@@ -100,7 +101,10 @@ interface Props {
 }
 
 export function CharacterSheetClient({ characterId, playerName, isOwner }: Props) {
-  const { character, loading, updateCharacter, savedAt, conflictAt } = useCharacter(characterId)
+  const { character, loading, updateCharacter, savedAt, conflictAt, failedAt } = useCharacter(characterId)
+  // A refused save already put the sheet back to what is stored; this says so,
+  // and stays until closed, since the player may have looked away mid-change.
+  const [failSeen, setFailSeen] = useState(0)
   const [tab, setTab] = useState<Tab>('stats')
   const [rollHistory, setRollHistory] = useState<RollResult[]>([])
   /** Os ataques cujo dano já foi rolado do próprio cartão. */
@@ -982,6 +986,10 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
       <LiveAnnouncer
         message={conflictAt ? 'A ficha foi mudada por outra pessoa ao mesmo tempo. Confira e refaça.' : null}
         id={String(conflictAt)}
+      />
+      <FailNotice
+        failure={failedAt > failSeen ? { id: failedAt, message: failMessage('A mudança não foi salva e a ficha voltou ao que estava.') } : null}
+        onClose={() => setFailSeen(failedAt)}
       />
     </AppShell>
   )

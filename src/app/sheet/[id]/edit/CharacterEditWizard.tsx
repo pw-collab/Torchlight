@@ -24,6 +24,7 @@ import type { Stat } from '@/types/class.types'
 import type { Talent } from '@/types/talent.types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
 
 type StepId = 'ancestry' | 'class' | 'archetype' | 'stats' | 'hp' | 'origin' | 'equipment' | 'talents' | 'spells' | 'narrative' | 'review'
 /** The advancement track is the landing tab; every other tab is an editing step. */
@@ -83,6 +84,7 @@ export function CharacterEditWizard({ character }: Props) {
 
   const [saving, setSaving]   = useState(false)
   const [stepSaving, setStepSaving] = useState(false)
+  const fail = useFailNotice()
 
   const cls      = getClass(classId)
   const ancestry = getAncestry(ancestryId)
@@ -138,7 +140,9 @@ export function CharacterEditWizard({ character }: Props) {
     const patch = patchForStep(stepId)
     if (Object.keys(patch).length === 0) return
     const supabase = createClient()
-    await supabase.from('characters').update(patch).eq('id', character.id)
+    const { error } = await supabase.from('characters').update(patch).eq('id', character.id)
+    // The wizard keeps the values, and "Selar Alterações" writes them all again.
+    if (error) fail.report(failMessage('Este passo não foi salvo ainda.'))
   }
 
   async function goToTab(target: TabId) {
@@ -191,7 +195,8 @@ export function CharacterEditWizard({ character }: Props) {
 
     if (Object.keys(row).length === 0) return
     const supabase = createClient()
-    await supabase.from('characters').update(row).eq('id', character.id)
+    const { error } = await supabase.from('characters').update(row).eq('id', character.id)
+    if (error) fail.report(failMessage('O nível não foi salvo ainda; "Selar Alterações" tenta de novo.'))
   }
 
   function handleAncestryChange(id: string) {
@@ -213,8 +218,9 @@ export function CharacterEditWizard({ character }: Props) {
 
   async function saveAll() {
     setSaving(true)
+    fail.clear()
     const supabase = createClient()
-    await supabase.from('characters').update({
+    const { error } = await supabase.from('characters').update({
       name: name.trim(),
       ancestry_id: ancestryId,
       class_id: classId,
@@ -236,6 +242,12 @@ export function CharacterEditWizard({ character }: Props) {
       relations,
       impulses,
     } as Partial<CharacterRow>).eq('id', character.id)
+    // Leaving on a failed write would drop every change made here.
+    if (error) {
+      fail.report(failMessage('As alterações não foram salvas. Elas continuam aqui.'))
+      setSaving(false)
+      return
+    }
     router.push(`/sheet/${character.id}`)
   }
 
@@ -492,6 +504,7 @@ export function CharacterEditWizard({ character }: Props) {
           </span>
         </div>
       )}
+      <FailNotice failure={fail.failure} onClose={fail.clear} />
     </div>
   )
 }

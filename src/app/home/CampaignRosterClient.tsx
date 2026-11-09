@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { RosterCard } from './RosterCard'
 import type { RosterCharacter } from './roster.types'
+import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
 
 interface Props {
   characters: RosterCharacter[]
@@ -85,6 +86,7 @@ export function CampaignRosterClient({
   const [characters, setCharacters] = useState(initialCharacters)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+  const { failure, report, clear } = useFailNotice()
 
   const pageSize = usePageSize()
   const pageCount = Math.max(1, Math.ceil(characters.length / pageSize))
@@ -108,12 +110,14 @@ export function CampaignRosterClient({
       // GMs can delete any char (characters_delete_gm_all policy).
       const { error } = await supabase.from('characters').delete().eq('id', char.id)
 
-      if (!error) {
-        setCharacters(prev => prev.filter(c => c.id !== char.id))
-        router.refresh()
+      if (error) {
+        report(failMessage(`A ficha de "${char.name}" não foi excluída.`))
+        return
       }
+      setCharacters(prev => prev.filter(c => c.id !== char.id))
+      router.refresh()
     },
-    [router]
+    [router, report]
   )
 
   function handleRenamed(id: string, name: string) {
@@ -234,6 +238,7 @@ export function CampaignRosterClient({
           onRenamed={handleRenamed}
         />
       )}
+      <FailNotice failure={failure} onClose={clear} />
     </AppShell>
   )
 }

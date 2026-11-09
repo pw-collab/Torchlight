@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { FailNotice, failMessage, useFailNotice } from '@/components/shared/FailNotice'
 
 interface Props {
   gmId: string
@@ -62,6 +63,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
   const [loading, setLoading] = useState(true)
   const [draft, setDraft] = useState<Scene>(BLANK)
   const [busy, setBusy] = useState(false)
+  const fail = useFailNotice()
   const [started, setStarted] = useState<string | null>(null)
   // O elenco vem daqui e não do painel de sessão: a aba de preparo é lida
   // sozinha, e uma cena iniciada tem de sentar quem está na mesa agora. O par
@@ -154,6 +156,8 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
       const saved = rowToScene(data as SceneRow)
       replace(saved)
       setDraft(saved)
+    } else {
+      fail.report(failMessage('A cena não foi guardada. O texto continua no rascunho.'))
     }
     setBusy(false)
   }
@@ -162,7 +166,13 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
     const ok = window.confirm(`Apagar a cena "${scene.title}"?`)
     if (!ok) return
     const supabase = createClient()
-    await supabase.from('scenes').delete().eq('id', scene.id)
+    const { error } = await supabase.from('scenes').delete().eq('id', scene.id)
+    // The list only lets go once the notebook did: a refused delete used to
+    // vanish here and come back on the next visit.
+    if (error) {
+      fail.report(failMessage(`"${scene.title}" não foi apagada.`))
+      return
+    }
     setScenes(prev => prev.filter(s => s.id !== scene.id))
     if (draft.id === scene.id) setDraft(BLANK)
   }
@@ -177,6 +187,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
       .select()
       .single()
     if (data) replace(rowToScene(data as SceneRow))
+    else fail.report(failMessage(`"${scene.title}" não mudou de estado.`))
   }
 
   /**
@@ -442,6 +453,7 @@ export function ScenesPanel({ gmId, gmName, session, onStarted }: Props) {
           {busy ? 'Guardando…' : draft.id ? 'Salvar cena' : 'Guardar cena'}
         </Button>
       </div>
+      <FailNotice failure={fail.failure} onClose={fail.clear} />
     </div>
   )
 }
