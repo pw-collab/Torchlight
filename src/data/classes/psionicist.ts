@@ -1,5 +1,5 @@
 import type { Class } from '@/types/class.types'
-import { distribute, fromTable, melee, pick, statBoost } from '@/data/talentOptions'
+import { distribute, fromTable, melee, pick, spreadStats } from '@/data/talentOptions'
 
 export const psionicist: Class = {
   id: 'psionicist',
@@ -71,8 +71,8 @@ export const psionicist: Class = {
     { roll: '2',     min: 2,  max: 2,  effect: 'Ganhe um uso adicional de sua Devoção Psiônica.' },
     { roll: '3-6',   min: 3,  max: 6,  effect: '+1 para ataques corpo a corpo ou +1 para manifestar Ciências.',
       options: [...melee(1), ...pick('psionic-checks', '+1 para manifestar Ciências', [{ kind: 'spellcasting', amount: 1 }])] },
-    { roll: '7-9',   min: 7,  max: 9,  effect: '+2 para Inteligência, Constituição ou Sabedoria.',
-      options: statBoost(2, 'int', 'con', 'wis') },
+    { roll: '7-9',   min: 7,  max: 9,  effect: '+1 em dois atributos diferentes.',
+      options: spreadStats(2) },
     { roll: '10-11', min: 10, max: 11, effect: 'Aprenda uma Ciência Psiônica adicional de qualquer círculo que você possa manifestar.' },
     { roll: '12',    min: 12, max: 12, effect: 'Escolha um talento ou +2 pontos para distribuir nos atributos.',
       options: [...fromTable(), ...distribute(2)] },
