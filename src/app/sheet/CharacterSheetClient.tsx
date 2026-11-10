@@ -226,6 +226,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
     throwRoll,
     startRoll,
     settle: settleRoll,
+    dismiss: dismissRoll,
     fallBackToTimed,
   } = useDiceRoll({ onSettled: onRollSettled })
 
@@ -948,6 +949,7 @@ export function CharacterSheetClient({ characterId, playerName, isOwner }: Props
         mode={rollMode}
         throwRoll={throwRoll}
         onSettled={settleRoll}
+        onDismiss={dismissRoll}
         onUnavailable={fallBackToTimed}
       />
       {/* Phones get the fresh rolls as toasts; the desktop shows the same

@@ -154,6 +154,22 @@ export function useDiceRoll({ onSettled }: Options = {}) {
     land(current)
   }, [clearTimers, land])
 
+  /**
+   * The player clicked through. Whatever is left of the show is dropped, but
+   * never the result: a roll cut short in the air still lands in the history
+   * — just without the fanfare it didn't wait for.
+   */
+  const dismiss = useCallback(() => {
+    const current = rollRef.current
+    if (!current) return
+    clearTimers()
+    if (landedRef.current !== current.id) {
+      landedRef.current = current.id
+      settledRef.current?.(current)
+    }
+    setPhase('idle')
+  }, [clearTimers])
+
   /** Called by DiceStage when the table can't perform the roll after all. */
   const fallBackToTimed = useCallback(() => {
     tableBroken.current = true
@@ -170,6 +186,7 @@ export function useDiceRoll({ onSettled }: Options = {}) {
     mode,
     startRoll,
     settle,
+    dismiss,
     fallBackToTimed,
     /** The roll DiceStage should throw — set once the anticipation beat ends. */
     throwRoll: mode === 'physics' && phase !== 'idle' && phase !== 'charge' ? roll : null,

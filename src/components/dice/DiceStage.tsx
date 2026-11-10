@@ -10,10 +10,16 @@ import {
   readDiceTheme,
   supportsWebGL,
 } from '@/lib/diceEngine'
+import { installArena, type DiceArena } from '@/lib/diceArena'
 import { collisionSfx } from '@/lib/diceSfx'
 
 /* ============================================================
-   DiceStage — the physics table.
+   DiceStage — the physics dais.
+
+   The dice don't get a table to cross: lib/diceArena frames the
+   engine as a small arena, Baldur's Gate style, where they drop in
+   the middle and spin until they show a face. This component fills
+   whatever box it is given with that arena.
 
    Owns one open-dice-dnd roller for the lifetime of the sheet: the
    WebGL context is expensive to build and browsers cap how many can
@@ -42,6 +48,7 @@ interface Props {
 export function DiceStage({ throwRoll, visible, onSettled, onUnavailable }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const rollerRef = useRef<DiceRoller | null>(null)
+  const arenaRef = useRef<DiceArena | null>(null)
   const effectsRef = useRef<typeof import('open-dice-dnd')['effects'] | null>(null)
   const thrownRef = useRef<string | null>(null)
   const goneRef = useRef(false)
@@ -57,6 +64,8 @@ export function DiceStage({ throwRoll, visible, onSettled, onUnavailable }: Prop
     goneRef.current = false
     return () => {
       goneRef.current = true
+      arenaRef.current?.dispose()
+      arenaRef.current = null
       rollerRef.current?.destroy()
       rollerRef.current = null
     }
@@ -87,6 +96,9 @@ export function DiceStage({ throwRoll, visible, onSettled, onUnavailable }: Prop
         sounds,
         soundVolume: 0.45,
       })
+      // Null on an engine whose internals moved: the dice still roll, just
+      // across the box instead of in the middle of it.
+      arenaRef.current = installArena(rollerRef.current)
     } catch (err) {
       console.warn('Could not start the 3D dice table.', err)
       return null
@@ -111,6 +123,7 @@ export function DiceStage({ throwRoll, visible, onSettled, onUnavailable }: Prop
       if (!config) { unavailableRef.current(); return }
 
       try {
+        arenaRef.current?.prepare(config.length)
         if (effectsRef.current) {
           roller.setEffectRules(effectRulesFor(roll, theme, effectsRef.current))
         }

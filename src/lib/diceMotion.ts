@@ -15,8 +15,9 @@ import type { RollResult } from '@/lib/dice'
  * That part is the library's to own. Everything else on the clock is ours,
  * and it used to be 2.36s of it — more than half the roll. Trimmed hard:
  * the anticipation beat reads at half its old length, and the settled result
- * no longer holds the screen, because RollToasts keeps it in the corner for
- * 15s anyway.
+ * holds only as long as it takes to read, because RollToasts keeps it in the
+ * corner for 15s anyway. The arena (lib/diceArena) drops dice in place rather
+ * than throwing them across a table, which settles sooner still.
  */
 export const DICE_TIME = {
   /** Pre-roll rattle in the "hand" — anticipation beat. */
@@ -25,10 +26,20 @@ export const DICE_TIME = {
   tumble: 420,
   /** Extra slow-motion final bounce, crits/fumbles only. */
   slowmo: 360,
-  /** How long the settled result lingers before the overlay fades. */
-  linger: 1200,
+  /**
+   * After the die shows its face: the beat before the modifier folds into
+   * the number, and the beat before the verdict is stamped under it.
+   */
+  tally: 240,
+  verdict: 620,
+  /**
+   * How long the settled result holds before the overlay fades on its own.
+   * Long enough to read die, total and verdict in that order; anyone in a
+   * hurry clicks through, which dismisses it at once.
+   */
+  linger: 1700,
   /** Shorter linger when the roll skipped the theatrics. */
-  lingerReduced: 1000,
+  lingerReduced: 1100,
   /**
    * Physics rolls land when the table says the dice stopped, not on a clock.
    * This is only the watchdog: if a die wedges against a wall or the render
