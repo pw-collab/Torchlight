@@ -141,10 +141,11 @@ export interface TalentTableEntry {
 // ─── Spellcasting ─────────────────────────────────────────────────────────────
 
 /**
- * The four spell lists. A class draws from one of them; the catalog tags every
- * spell with the traditions that may learn it.
+ * The spell lists. A class draws from one of them; the catalog tags every
+ * spell with the traditions that may learn it. `Psion` holds the Psionicist's
+ * Sciences, which manifest through the same check as any spell.
  */
-export type SpellTradition = 'Arcane' | 'Divine' | 'Primal' | 'Witchcraft'
+export type SpellTradition = 'Arcane' | 'Divine' | 'Primal' | 'Witchcraft' | 'Psion'
 
 /** Portuguese labels for the tradition chips in the spell picker. */
 export const TRADITION_LABEL: Record<SpellTradition, string> = {
@@ -152,6 +153,7 @@ export const TRADITION_LABEL: Record<SpellTradition, string> = {
   Divine: 'Divino',
   Primal: 'Primal',
   Witchcraft: 'Bruxaria',
+  Psion: 'Psiônica',
 }
 
 export interface SpellcastingConfig {

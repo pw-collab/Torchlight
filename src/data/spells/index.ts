@@ -1,4 +1,5 @@
 import type { Spell, SpellTradition } from './types'
+import type { Stat } from '@/types/class.types'
 import { SPELLS } from './spells'
 
 export type { Spell, SpellTradition } from './types'
@@ -36,6 +37,26 @@ export function getSpellsForClass(classId?: string): Spell[] {
   return SPELLS
 }
 
+/** True for the Psionicist's Sciences — the catalog's `Psion` list. */
+export function isPsionic(spell: Spell): boolean {
+  return spell.classes.includes('Psion')
+}
+
+const PSIONIC_STAT_TAG: Record<string, Stat> = {
+  STR: 'str', DEX: 'dex', CON: 'con', INT: 'int', WIS: 'wis', CHA: 'cha',
+}
+
+/**
+ * The attribute a Science is manifested with. Every Psion entry names it at
+ * the end of its title ("Aura Sight [WIS]"): it was the Power Score the old
+ * roll-under rule read, and it is now the modifier the d20 adds. Undefined
+ * for anything that is not a Science, which casts with the sheet's attribute.
+ */
+export function psionicStat(spell: Spell): Stat | undefined {
+  if (!isPsionic(spell)) return undefined
+  const tag = /\[([A-Z]{3})\]\s*$/.exec(spell.name)?.[1]
+  return tag ? PSIONIC_STAT_TAG[tag] : undefined
+}
 
 /**
  * A spell's circle in Roman numerals, as every card face writes it. Indexed by
