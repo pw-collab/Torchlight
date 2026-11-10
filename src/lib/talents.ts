@@ -217,6 +217,8 @@ export function resolveChoice(
     )
     const spent = spread.reduce((sum, [, n]) => sum + n, 0)
     if (spent !== option.distribute.points) return null
+    const cap = option.distribute.maxPerStat
+    if (cap != null && spread.some(([, n]) => n > cap)) return null
     for (const [stat, amount] of spread) effects.push({ kind: 'stat', stat, amount })
     parts.push(spread.map(([stat, n]) => `+${n} ${STAT_FULL[stat]}`).join(', '))
   }

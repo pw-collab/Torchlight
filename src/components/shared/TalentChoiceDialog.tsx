@@ -180,6 +180,7 @@ function OptionPicker({
         <PointSplitter
           points={selected.distribute.points}
           stats={selected.distribute.stats ?? STAT_KEYS}
+          maxPerStat={selected.distribute.maxPerStat}
           value={value.points ?? {}}
           onChange={points => onChange({ ...value, points })}
         />
@@ -309,11 +310,14 @@ function ChoiceButton({
 function PointSplitter({
   points,
   stats,
+  maxPerStat,
   value,
   onChange,
 }: {
   points: number
   stats: Stat[]
+  /** No attribute takes more than this many points, when set. */
+  maxPerStat?: number
   value: Partial<Record<Stat, number>>
   onChange: (points: Partial<Record<Stat, number>>) => void
 }) {
@@ -324,6 +328,7 @@ function PointSplitter({
     const current = value[stat] ?? 0
     const next = current + delta
     if (next < 0 || (delta > 0 && left <= 0)) return
+    if (maxPerStat != null && next > maxPerStat) return
     const out = { ...value, [stat]: next }
     if (next === 0) delete out[stat]
     onChange(out)
@@ -364,7 +369,7 @@ function PointSplitter({
                   variant="ghost"
                   size="icon-xs"
                   onClick={() => bump(stat, 1)}
-                  disabled={left <= 0}
+                  disabled={left <= 0 || (maxPerStat != null && n >= maxPerStat)}
                   aria-label={`Dar um ponto a ${STAT_FULL[stat]}`}
                 >
                   +

@@ -49,6 +49,15 @@ export function spellcasting(amount: number): TalentOption[] {
   }]
 }
 
+/** "+1 to N different attributes": N points, never two on the same one. */
+export function spreadStats(count: number): TalentOption[] {
+  return [{
+    id: 'spread',
+    label: `+1 em ${count} atributos diferentes`,
+    distribute: { points: count, maxPerStat: 1 },
+  }]
+}
+
 /** "+N points to distribute to stats". */
 export function distribute(points: number, stats?: Stat[]): TalentOption[] {
   return [{ id: 'distribute', label: `Distribuir +${points} pontos nos atributos`, distribute: { points, stats } }]

@@ -38,8 +38,12 @@ export interface TalentOption {
   label: string
   /** Added as written. */
   effects?: TalentEffect[]
-  /** The player splits `points` among `stats` (all six when left out). */
-  distribute?: { points: number; stats?: Stat[] }
+  /**
+   * The player splits `points` among `stats` (all six when left out), with
+   * at most `maxPerStat` on any one of them when set ("+1 to two different
+   * attributes" is 2 points, 1 per stat).
+   */
+  distribute?: { points: number; stats?: Stat[]; maxPerStat?: number }
   /** The player writes a detail the rule leaves open. */
   note?: { prompt: string; placeholder?: string }
   /** The player takes another row of this table instead. */

@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { getClass } from '@/data/classes/index'
-import { getSpell, getSpellsForClass, tierNumeral } from '@/data/spells/index'
+import { getSpell, getSpellsForClass, psionicStat, tierNumeral } from '@/data/spells/index'
+import { STAT_LABELS } from '@/data/stats'
+import type { Stat } from '@/types/class.types'
 import type { Spell } from '@/data/spells/index'
 import { rollWithMode, modifier, withDc } from '@/lib/dice'
 import { RollModeMenu } from '@/components/shared/RollModeMenu'
@@ -167,6 +169,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
                 </div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--muted-foreground)' }}>
                   {spell.school && `${spell.school} · `}DC {10 + spell.tier}
+                  {psionicStat(spell) && ` · ${STAT_LABELS[psionicStat(spell)!]}`}
                   {spell.range && ` · ${spell.range}`}
                   {spell.duration && ` · ${spell.duration}`}
                 </div>
@@ -223,14 +226,23 @@ function SpellCard({
 
   const name = spell?.name ?? id
   const dc   = spell ? 10 + spell.tier : null
+  // A Science rolls the attribute its title names, not the sheet's casting
+  // attribute: that is what is left of the old Power Score.
+  const psiStat: Stat | undefined = spell ? psionicStat(spell) : undefined
+  const verb = psiStat ? 'Manifestar' : 'Conjurar'
+  const dcText = dc != null ? `DC ${dc}${psiStat ? ` · ${STAT_LABELS[psiStat]}` : ''}` : ''
 
   function cast(mode: RollMode = 'normal') {
     if (!spell || !onRoll || !stats) return
-    const castMod  = modifier(stats[castingAttr] ?? 10) + spellcastingBonus
+    const castMod  = modifier(stats[psiStat ?? castingAttr] ?? 10) + spellcastingBonus
     const spellDC  = 10 + spell.tier
-    const rolled   = rollWithMode('d20', `Conjurar: ${spell.name}`, `DC ${spellDC}`, castMod, mode)
+    const rolled   = rollWithMode('d20', `${verb}: ${spell.name}`, dcText, castMod, mode)
     rolled.isCritical = rolled.result === 20
     rolled.isFumble   = rolled.result === 1
+    // A Science's text carries what a natural 20 and a natural 1 do; the
+    // roll names which one fired so nobody has to look it up mid-fight.
+    if (psiStat && rolled.isCritical) rolled.subLabel = `${dcText} · Efeito de Poder`
+    if (psiStat && rolled.isFumble)   rolled.subLabel = `${dcText} · Falha Crítica`
     const result   = withDc(rolled, spellDC)
     onRoll(result)
     // The spell is lost on the same verdict the toast reports — a natural 20
@@ -254,17 +266,17 @@ function SpellCard({
       tone={isFailed ? 'passive' : 'activation'}
       description={spell ? faceText(spell.summary, spell.description) : ''}
       footnote={spellFootnote(spell)}
-      status={{ text: isFailed ? 'FALHOU' : dc != null ? `DC ${dc}` : '', color }}
+      status={{ text: isFailed ? (psiStat ? 'ESGOTADA' : 'FALHOU') : dcText, color }}
       footer={hasActions && (
         <>
           {castable && (
-            <RollModeMenu label={`Conjurar ${spell.name}`} onRoll={cast} className="flex-1">
+            <RollModeMenu label={`${verb} ${spell.name}`} onRoll={cast} className="flex-1">
               <Button
                 render={<span />}
                 className="tactile w-full border-[var(--background)] text-[var(--background)]"
                 style={{ background: color }}
               >
-                Conjurar
+                {verb}
               </Button>
             </RollModeMenu>
           )}
@@ -291,7 +303,7 @@ function SpellCard({
           onRoll={onRoll}
           notice={isFailed && (
             <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, color: 'var(--destructive)', border: '1px solid var(--destructive)', padding: '1px 6px', letterSpacing: '0.08em' }}>
-              FALHOU · PERDIDA ATÉ DESCANSAR
+              {psiStat ? 'ESGOTADA · ATÉ DESCANSAR' : 'FALHOU · PERDIDA ATÉ DESCANSAR'}
             </span>
           )}
         />

@@ -1,7 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { getLearnableSpells, getSpell, maxSpellTier } from '@/data/spells/index'
+import { getLearnableSpells, getSpell, maxSpellTier, psionicStat } from '@/data/spells/index'
+import type { Spell } from '@/data/spells/index'
+import { STAT_LABELS } from '@/data/stats'
 import { getClass } from '@/data/classes/index'
 import { TRADITION_LABEL, type SpellTradition } from '@/types/class.types'
 import { GlyphCard, faceText } from '@/components/shared/GlyphCard'
@@ -19,11 +21,17 @@ interface Props {
   level?: number
 }
 
-const TRADITIONS: SpellTradition[] = ['Arcane', 'Divine', 'Primal', 'Witchcraft']
+const TRADITIONS: SpellTradition[] = ['Arcane', 'Divine', 'Primal', 'Witchcraft', 'Psion']
 
 /** Known spells wear the sheet's verdigris; the rest keep the spell accent. */
 const SPELL_ACCENT = 'var(--chart-1)'
 const KNOWN_ACCENT = 'var(--chart-2)'
+
+/** "DC 11", or "DC 11 · SAB" for a Science, which rolls its own attribute. */
+function dcLabel(spell: Spell): string {
+  const stat = psionicStat(spell)
+  return `DC ${10 + spell.tier}${stat ? ` · ${STAT_LABELS[stat]}` : ''}`
+}
 
 export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Props) {
   const cls = getClass(classId)
@@ -63,7 +71,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
       <StepProse>
         Algumas classes ganham acesso a feitiços mágicos. A quantidade de magias que você conhece é
         definida pela tabela da página Lançando Feitiços. As listas são separadas por tipo — Arcano,
-        Divino, Primal e Bruxaria — e a sua classe conjura da lista{' '}
+        Divino, Primal, Bruxaria e Psiônica — e a sua classe conjura da lista{' '}
         {TRADITION_LABEL[classTradition]}.
       </StepProse>
 
@@ -149,7 +157,7 @@ export function StepSpells({ classId, selectedSpells, onChange, level = 1 }: Pro
               tone={learned ? 'activation' : 'passive'}
               description={faceText(spell.summary, spell.description)}
               footnote={spellFootnote(spell)}
-              status={learned ? { text: '✓', color: accent } : { text: `DC ${10 + spell.tier}`, color: 'var(--muted-foreground)' }}
+              status={learned ? { text: '✓', color: accent } : { text: dcLabel(spell), color: 'var(--muted-foreground)' }}
               open={openId === spell.id}
               onOpenChange={open => setOpenId(cur => (open ? spell.id : cur === spell.id ? null : cur))}
               footer={
