@@ -3,27 +3,58 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion'
 import type { RollResult } from '@/lib/dice'
-import { DICE_SPRING, heroKind, parseDie, type RollPhase } from '@/lib/diceMotion'
+import { DICE_SPRING, DICE_TIME, heroKind, parseDie, type RollPhase } from '@/lib/diceMotion'
+import { discardedIndex } from '@/lib/diceEngine'
 import type { RollMode } from '@/hooks/useDiceRoll'
 import { DiceScene, type SceneDie } from '@/components/dice/DiceScene'
 import { DiceStage } from '@/components/dice/DiceStage'
 import { ResultBurst } from '@/components/dice/ResultBurst'
 
 /* ============================================================
-   DiceOverlay — the cinematic layer for a roll.
+   DiceOverlay — the cinematic layer for a roll, staged the way
+   Baldur's Gate 3 stages one.
 
-   Owns no timing of its own: it renders whatever phase
-   useDiceRoll says we're in.
+   The screen dims and everything gathers on a single column in the
+   middle: what is being rolled and the number to beat above, a dais
+   where the die spins in place, and underneath it the arithmetic —
+   the face, the modifier folding into it, then the verdict stamped
+   on. A click anywhere (or Escape) carries on without waiting.
 
-   In physics mode the dice are real: DiceStage takes the whole
-   viewport as its table and brings its own impact audio, glow and
-   camera work, so the overlay's job shrinks to the backdrop and a
-   result panel docked along the bottom, clear of the dice.
+   Owns no timing of its own: it renders whatever phase useDiceRoll
+   says we're in. Two things can stand on the dais:
 
-   In timed mode it plays the hand-animated version — the DiceScene
-   centred, with the camera shake, the ResultBurst and the spring
-   pop-in of the panel all landing on the same beat.
+   physics — DiceStage, real dice from open-dice-dnd, framed as a
+             close-up arena by lib/diceArena. The engine brings its
+             own impact audio, glow and camera work.
+
+   timed   — DiceScene, the hand-animated SVG dice, with the camera
+             shake and the ResultBurst landing on the same beat. Used
+             for reduced motion, dice the engine can't draw, and any
+             WebGL failure.
    ============================================================ */
+
+/**
+ * Side of the dais. One value, shared by the canvas (which lives for the
+ * whole session and so can't sit inside the animated HUD) and the HUD that
+ * hangs its text above and below it — both centre the same box on screen.
+ * The `vh` term keeps room for that text on a phone held sideways.
+ */
+const ARENA = 'min(78vw, 44vh, 340px)'
+
+/** A fixed box of ARENA size, dead centre. `margin: auto` rather than a
+    transform, so the canvas inside never lands on a half pixel. */
+const CENTERED: React.CSSProperties = {
+  position: 'fixed', inset: 0, margin: 'auto',
+  width: ARENA, height: ARENA,
+  pointerEvents: 'none',
+}
+
+const CAPS: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)', fontWeight: 600,
+  letterSpacing: '0.3em', textTransform: 'uppercase',
+}
+
+const TEXT_SHADOW = '0 2px 12px rgba(0,0,0,0.9)'
 
 interface Props {
   phase: RollPhase
@@ -35,6 +66,18 @@ interface Props {
   onSettled: (rollId: string) => void
   /** DiceStage reporting it can't perform the roll. */
   onUnavailable: () => void
+  /** The player clicked through — close the overlay now. */
+  onDismiss: () => void
+}
+
+/** What the roll amounted to, in the words the table uses. */
+function verdictFor(roll: RollResult): { text: string; color: string } | null {
+  if (roll.isCritical) return { text: 'Sucesso Crítico', color: 'var(--chart-1)' }
+  if (roll.isFumble) return { text: 'Falha Crítica', color: 'var(--destructive)' }
+  if (roll.dc === undefined) return null
+  return roll.success
+    ? { text: 'Sucesso', color: 'var(--spirit)' }
+    : { text: 'Falha', color: 'var(--destructive)' }
 }
 
 /** Total counts up from the raw die result to the modified total. */
@@ -51,7 +94,7 @@ function CountUpTotal({ from, to, color, shadow, reduced }: {
     if (skip) return
     const controls = animate(from, to, {
       duration: 0.35,
-      delay: 0.22,
+      delay: DICE_TIME.tally / 1000,
       ease: 'easeOut',
       onUpdate: v => setAnimated(Math.round(v)),
     })
@@ -67,7 +110,7 @@ function CountUpTotal({ from, to, color, shadow, reduced }: {
       style={{
         display: 'inline-block',
         fontFamily: 'var(--font-heading)',
-        fontSize: 72,
+        fontSize: 'clamp(44px, 9vh, 72px)',
         fontWeight: 700,
         lineHeight: 1,
         color,
@@ -80,61 +123,55 @@ function CountUpTotal({ from, to, color, shadow, reduced }: {
   )
 }
 
-export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavailable }: Props) {
+export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavailable, onDismiss }: Props) {
   const reduced = !!useReducedMotion()
   const visible = phase !== 'idle' && roll !== null
 
-  // `mode` holds its value between rolls, so this keeps the table — and with
+  // `mode` holds its value between rolls, so this keeps the dais — and with
   // it the WebGL context, which is slow to build and capped per document —
   // mounted from the first physics roll onwards. It only comes down if the
-  // table reports it can't run, which latches the hook into timed mode too.
+  // engine reports it can't run, which latches the hook into timed mode too.
   const [tableFailed, setTableFailed] = useState(false)
   const handleUnavailable = useCallback(() => {
     setTableFailed(true)
     onUnavailable()
   }, [onUnavailable])
 
+  // Escape carries on, same as a click. Enter and Space are left alone: they
+  // are what fired the roll, and a held key would dismiss it on arrival.
+  useEffect(() => {
+    if (!visible) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onDismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [visible, onDismiss])
+
   const physics = mode === 'physics' && !tableFailed
 
   const hero = roll ? heroKind(roll) : null
-  const isCritical = hero === 'crit'
-  const isFumble = hero === 'fumble'
   const landed = phase === 'landed'
+  const verdict = roll ? verdictFor(roll) : null
+  const modifier = roll?.modifier ?? 0
 
   // Advantage shows both faces with the loser struck through; every other roll
   // — a lone die or a whole pool — shows each die it actually threw.
   const advSides = roll?.sides ?? (roll ? parseDie(roll.die).sides : 20)
+  const discarded = roll ? discardedIndex(roll) : null
   const dice: SceneDie[] =
     roll?.rolls && roll.rolls.length > 1
-      ? roll.rolls.map(v => ({ finalValue: v, sides: advSides, kept: v === roll.result }))
+      ? roll.rolls.map((v, i) => ({ finalValue: v, sides: advSides, kept: i !== discarded }))
       : roll?.dice?.length
       ? roll.dice.map(d => ({ finalValue: d.value, sides: d.sides, kept: true }))
       : [{ finalValue: roll?.result ?? 20, sides: advSides, kept: true }]
-  // Advantage can roll doubles — make sure exactly one die reads as kept.
-  if (roll?.rolls && roll.rolls.length > 1 && dice.filter(d => d.kept).length > 1) {
-    let found = false
-    for (const d of dice) {
-      if (d.kept && found) d.kept = false
-      if (d.kept) found = true
-    }
-  }
 
-  const borderColor = isCritical && landed
-    ? 'var(--chart-1)'
-    : isFumble && landed
-    ? 'var(--destructive)'
-    : 'var(--border)'
-
-  const numberColor = isCritical ? 'var(--chart-1)' : isFumble ? 'var(--destructive)' : 'var(--muted-foreground)'
-  const numberShadow = isCritical
-    ? '0 0 24px var(--chart-1)'
-    : isFumble
-    ? '0 0 24px var(--destructive)'
-    : 'none'
+  // The dais takes the colour of the outcome once there is one.
+  const accent = landed && verdict ? verdict.color : 'var(--border)'
+  const numberColor = verdict?.color ?? 'var(--foreground)'
 
   // Camera reaction on impact: jitter + a small zoom punch, stronger on crits/fumbles.
-  // Physics rolls skip it — the engine shakes its own camera, and jolting the
-  // result panel while the dice sit still reads as a glitch.
+  // Physics rolls skip it — the engine shakes its own camera.
   const cameraAnimate = !reduced && landed && !physics
     ? {
         x: hero ? [0, -10, 9, -7, 5, -3, 0] : [0, -6, 5, -3, 2, 0],
@@ -144,36 +181,81 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
       }
     : { x: 0, y: 0, scale: 1 }
 
+  const fade = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0, transition: { duration: 0.28, ease: 'easeIn' as const } },
+    transition: { duration: 0.18 },
+  }
+
   return (
     <>
-      {/* Backdrop, below the dice so they read against it. */}
+      {/* What takes the click: one press anywhere carries on. Kept out of the
+          fading layers on purpose — those linger for their exit animation, and
+          a catcher that lingered with them would swallow the next roll's click. */}
+      {visible && (
+        <div
+          data-testid="dice-backdrop"
+          onClick={onDismiss}
+          style={{ position: 'fixed', inset: 0, zIndex: 200 }}
+        />
+      )}
+
       <AnimatePresence>
         {visible && (
           <motion.div
             key="dice-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.28, ease: 'easeIn' } }}
-            transition={{ duration: 0.18 }}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 200,
-              pointerEvents: 'none',
-              background: 'rgba(0,0,0,0.3)',
-              backdropFilter: 'blur(2px)',
-              WebkitBackdropFilter: 'blur(2px)',
-            }}
-          />
+            {...fade}
+            style={{ position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none' }}
+          >
+            {/* The dim. */}
+            <div
+              style={{
+                position: 'absolute', inset: 0,
+                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%)',
+                backdropFilter: 'blur(3px)',
+                WebkitBackdropFilter: 'blur(3px)',
+              }}
+            />
+            {/* The dais: a lit disc and a ring, under the dice. */}
+            <div style={CENTERED}>
+              <motion.div
+                animate={{ borderColor: accent, boxShadow: landed && verdict
+                  ? `0 0 44px -6px ${verdict.color}, inset 0 0 36px -10px ${verdict.color}`
+                  : '0 0 30px -12px var(--primary), inset 0 0 30px -14px var(--primary)' }}
+                transition={{ duration: 0.35 }}
+                style={{
+                  position: 'absolute', inset: '4%',
+                  borderRadius: '50%',
+                  border: '1px solid var(--border)',
+                  background: 'radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%)',
+                }}
+              />
+              {/* Slow outer ring — the only thing moving while the dice load. */}
+              {!reduced && (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 24, ease: 'linear', repeat: Infinity }}
+                  style={{
+                    position: 'absolute', inset: 0,
+                    borderRadius: '50%',
+                    border: '1px dashed color-mix(in oklch, var(--muted-foreground), transparent 55%)',
+                  }}
+                />
+              )}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* The physics table. Mounted for the page's life once used, and always
+      {/* The physics dais. Mounted for the page's life once used, and always
           present in the tree so the WebGL context survives between rolls —
           only its opacity follows the overlay. */}
       {physics && (
         <div
           style={{
-            position: 'fixed', inset: 0, zIndex: 201,
-            pointerEvents: 'none',
+            ...CENTERED,
+            zIndex: 201,
             opacity: visible ? 1 : 0,
             transition: `opacity ${visible ? 180 : 280}ms ease`,
           }}
@@ -191,31 +273,56 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
         {visible && roll && (
         <motion.div
           key="dice-hud"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.28, ease: 'easeIn' } }}
-          transition={{ duration: 0.18 }}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 202,
-            display: 'flex', alignItems: 'center',
-            // Real dice own the middle of the screen, so the readout docks
-            // along the bottom instead of landing on top of them.
-            justifyContent: physics ? 'flex-end' : 'center',
-            flexDirection: 'column',
-            paddingBottom: physics ? 'calc(env(safe-area-inset-bottom, 0px) + 96px)' : 0,
-            pointerEvents: 'none',
-          }}
+          {...fade}
+          role="status"
+          aria-live="polite"
+          style={{ ...CENTERED, zIndex: 202 }}
         >
-          {/* Camera rig — everything inside shakes together on impact */}
-          <motion.div
-            animate={cameraAnimate}
-            style={{
-              position: 'relative',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-              willChange: 'transform',
-            }}
-          >
-            {!physics && (
+          {/* Above the dais: what is being rolled, and the number to beat. */}
+          <div style={{
+            position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 'min(92vw, 460px)', paddingBottom: 10,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            textAlign: 'center', textShadow: TEXT_SHADOW,
+          }}>
+            <motion.span
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                fontFamily: 'var(--font-heading)', fontWeight: 700,
+                fontSize: 'clamp(16px, 3.4vh, 22px)', lineHeight: 1.15,
+                color: 'var(--foreground)',
+              }}
+            >
+              {roll.label}
+            </motion.span>
+            {roll.dc !== undefined && (
+              <>
+                <span style={{ ...CAPS, fontSize: 8, color: 'var(--muted-foreground)', marginTop: 4 }}>
+                  Classe de Dificuldade
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-heading)', fontWeight: 700,
+                  fontSize: 'clamp(24px, 5.2vh, 34px)', lineHeight: 1,
+                  color: 'var(--foreground)',
+                }}>
+                  {roll.dc}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* On the dais, when the engine isn't: the hand-animated dice. */}
+          {!physics && (
+            <motion.div
+              animate={cameraAnimate}
+              style={{
+                position: 'absolute', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                willChange: 'transform',
+              }}
+            >
               <div style={{ position: 'relative' }}>
                 <DiceScene
                   key={roll.id}
@@ -227,125 +334,120 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                 />
                 {landed && !reduced && <ResultBurst key={`burst-${roll.id}`} hero={hero} seed={roll.id} />}
               </div>
+            </motion.div>
+          )}
+
+          {/* Below the dais: the arithmetic, then the verdict. */}
+          <div style={{
+            position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 'min(92vw, 460px)', paddingTop: 8,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            textAlign: 'center', textShadow: TEXT_SHADOW,
+          }}>
+            {!landed && (
+              <motion.span
+                animate={reduced ? { opacity: 1 } : { opacity: [0.45, 1, 0.45] }}
+                transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ ...CAPS, fontSize: 9, color: 'var(--muted-foreground)' }}
+              >
+                Rolando...
+              </motion.span>
             )}
 
-            {/* Label chip — present from the first frame so the roll reads as intentional */}
-            <motion.span
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                fontFamily: 'var(--font-mono)', fontWeight: 600,
-                fontSize: 9,
-                letterSpacing: '0.3em',
-                textTransform: 'uppercase',
-                color: 'var(--muted-foreground)',
-              }}
-            >
-              {landed ? roll.label : 'Rolando...'}
-            </motion.span>
-
-            {/* Result panel — spring pop, never a linear fade */}
             {landed && (
-              <motion.div
-                key={`panel-${roll.id}`}
-                className="worn-border"
-                initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: -3, y: 14 }}
-                animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0, y: 0 }}
-                transition={reduced ? { duration: 0.3 } : DICE_SPRING.panel}
-                style={{
-                  position: 'relative',
-                  marginTop: 6,
-                  background: isCritical
-                    ? 'linear-gradient(148deg, var(--chart-1) 0%, var(--card) 42%, var(--secondary) 100%), var(--background)'
-                    : isFumble
-                    ? 'linear-gradient(148deg, var(--primary) 0%, var(--card) 42%, var(--secondary) 100%), var(--background)'
-                    : 'var(--background)',
-                  border: `1px solid ${borderColor}`,
-                  borderTop: `2px solid ${isCritical ? 'var(--chart-1)' : isFumble ? 'var(--destructive)' : 'var(--border)'}`,
-                  boxShadow: isCritical
-                    ? '0 8px 40px var(--chart-1), 0 4px 20px rgba(0,0,0,0.8)'
-                    : isFumble
-                    ? '0 8px 40px var(--destructive), 0 4px 20px rgba(0,0,0,0.8)'
-                    : '0 8px 40px rgba(0,0,0,0.8)',
-                  padding: '18px 44px 20px',
-                  minWidth: 200,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                  willChange: 'transform',
-                }}
-              >
-                <CountUpTotal
-                  from={roll.result}
-                  to={roll.total}
-                  color={numberColor}
-                  shadow={numberShadow}
-                  reduced={reduced}
-                />
-
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 4 }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--muted-foreground)' }}>
-                    {roll.die}
-                    {roll.modifier !== undefined && roll.modifier !== 0
-                      ? (roll.modifier > 0 ? ` +${roll.modifier}` : ` ${roll.modifier}`)
-                      : ''}
-                  </span>
-
-                  {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                      <span style={{
-                        fontFamily: 'var(--font-mono)', fontWeight: 600,
-                        fontSize: 7,
-                        letterSpacing: '0.16em',
-                        textTransform: 'uppercase',
-                        color: roll.advantage === 'advantage' ? 'var(--chart-2)' : 'var(--destructive)',
-                      }}>
-                        {roll.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
-                      </span>
-                      {roll.rolls.map((r, idx) => {
-                        const kept = dice[idx]?.kept ?? r === roll.result
-                        return (
-                          <span
-                            key={idx}
-                            style={{
-                              fontFamily: 'var(--font-mono)',
-                              fontSize: 14,
-                              fontWeight: kept ? 700 : 400,
-                              color: kept ? 'var(--foreground)' : 'var(--muted-foreground)',
-                              textDecoration: kept ? 'none' : 'line-through',
-                              opacity: kept ? 1 : 0.55,
-                            }}
-                          >
-                            {r}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {(isCritical || isFumble) && (
+              <div key={`tally-${roll.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                <div style={{ position: 'relative' }}>
+                  <CountUpTotal
+                    from={roll.result}
+                    to={roll.total}
+                    color={numberColor}
+                    shadow={verdict ? `0 0 26px ${verdict.color}, ${TEXT_SHADOW}` : TEXT_SHADOW}
+                    reduced={reduced}
+                  />
+                  {/* The modifier flies up into the number as it starts to count. */}
+                  {modifier !== 0 && !reduced && (
                     <motion.span
-                      initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.5, rotate: isCritical ? 5 : -5 }}
-                      animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0 }}
-                      transition={reduced ? { duration: 0.3, delay: 0.1 } : { ...DICE_SPRING.panel, delay: 0.16 }}
-                      className={isCritical ? 'animate-crit' : 'animate-fumble'}
+                      initial={{ opacity: 0, x: '-50%', y: 34, scale: 1 }}
+                      animate={{ opacity: [0, 1, 1, 0], x: '-50%', y: [34, 30, 4, -6], scale: [1, 1.1, 0.9, 0.5] }}
+                      transition={{ duration: (DICE_TIME.tally + 260) / 1000, times: [0, 0.25, 0.8, 1], ease: 'easeIn' }}
                       style={{
-                        display: 'inline-block',
-                        fontFamily: 'var(--font-mono)', fontWeight: 600,
-                        fontSize: 10,
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: isCritical ? 'var(--chart-1)' : 'var(--destructive)',
-                        textShadow: isCritical ? '0 0 8px var(--chart-1)' : 'none',
-                        marginTop: 2,
+                        position: 'absolute', left: '50%', top: '50%',
+                        fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 18,
+                        color: 'var(--primary)', whiteSpace: 'nowrap',
                       }}
                     >
-                      {isCritical ? '✦ Crítico!' : '☠ Falha Crítica!'}
+                      {modifier > 0 ? `+${modifier}` : modifier}
                     </motion.span>
                   )}
                 </div>
-              </motion.div>
+
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--muted-foreground)' }}>
+                  {roll.die}
+                  {modifier !== 0 ? (modifier > 0 ? ` +${modifier}` : ` ${modifier}`) : ''}
+                </span>
+
+                {roll.advantage && roll.rolls && roll.rolls.length > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      ...CAPS, fontSize: 8, letterSpacing: '0.16em',
+                      color: roll.advantage === 'advantage' ? 'var(--spirit)' : 'var(--destructive)',
+                    }}>
+                      {roll.advantage === 'advantage' ? 'Vantagem' : 'Desvantagem'}
+                    </span>
+                    {roll.rolls.map((r, idx) => {
+                      const kept = idx !== discarded
+                      return (
+                        <span
+                          key={idx}
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 14,
+                            fontWeight: kept ? 700 : 400,
+                            color: kept ? 'var(--foreground)' : 'var(--muted-foreground)',
+                            textDecoration: kept ? 'none' : 'line-through',
+                            opacity: kept ? 1 : 0.55,
+                          }}
+                        >
+                          {r}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* The verdict is stamped last, once the total has been read. */}
+                {verdict && (
+                  <motion.span
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.7, y: -4 }}
+                    animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+                    transition={reduced
+                      ? { duration: 0.3, delay: 0.1 }
+                      : { ...DICE_SPRING.panel, delay: DICE_TIME.verdict / 1000 }}
+                    className={hero === 'crit' ? 'animate-crit' : hero === 'fumble' ? 'animate-fumble' : undefined}
+                    style={{
+                      display: 'inline-block',
+                      marginTop: 2,
+                      fontFamily: 'var(--font-heading)', fontWeight: 700,
+                      fontSize: 'clamp(16px, 3.6vh, 24px)',
+                      letterSpacing: '0.14em', textTransform: 'uppercase',
+                      color: verdict.color,
+                    }}
+                  >
+                    {verdict.text}
+                  </motion.span>
+                )}
+
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.7 }}
+                  transition={{ duration: 0.3, delay: reduced ? 0.2 : 0.9 }}
+                  style={{ ...CAPS, fontSize: 7, letterSpacing: '0.22em', color: 'var(--muted-foreground)', marginTop: 4 }}
+                >
+                  Toque para continuar
+                </motion.span>
+              </div>
             )}
-          </motion.div>
+          </div>
         </motion.div>
         )}
       </AnimatePresence>

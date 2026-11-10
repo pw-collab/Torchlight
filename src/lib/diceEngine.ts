@@ -1,6 +1,7 @@
 import type { DiceConfig, DieType, EffectRule } from 'open-dice-dnd'
 import type { RollResult } from '@/lib/dice'
 import { parseDie } from '@/lib/diceMotion'
+import { fadeDie, focusCamera } from '@/lib/diceArena'
 
 /* ============================================================
    diceEngine — the seam between Torchlight's roll math and the
@@ -189,41 +190,68 @@ export function diceConfigFor(roll: RollResult, theme: DiceTheme): DiceConfig[] 
 }
 
 /**
- * Settle-time effects, rebuilt per roll so the payoff matches the outcome
- * this app already decided on: gold bloom and confetti on a crit, a red
- * flare and a camera kick on a fumble, a quiet tint otherwise.
+ * Which die of an advantage/disadvantage pair was thrown away, as an index
+ * into the dice on the table — or null when the roll keeps everything.
  *
- * Rules match on the face showing, which is the only handle the engine
- * gives us — so on a crit the effect lands on whichever die reads 20,
- * which is exactly the die the player is looking at.
+ * A pair can come up doubles, so "the face that isn't the result" isn't
+ * enough: the first die showing the result is kept, the other one goes.
  */
-export function effectRulesFor(roll: RollResult, theme: DiceTheme, fx: Engine['effects']): EffectRule[] {
-  // Crits and fumbles are only ever flagged for a lone d20 (see rollPool), so
-  // the rule can name that die directly rather than deriving a type that a
-  // mixed pool wouldn't have.
+export function discardedIndex(roll: RollResult): number | null {
+  if (!roll.rolls || roll.rolls.length < 2) return null
+  const kept = roll.rolls.indexOf(roll.result)
+  if (kept === -1) return null
+  return kept === 0 ? 1 : 0
+}
+
+/**
+ * Settle-time effects, rebuilt per roll so the payoff matches the outcome
+ * this app already decided on: gold bloom on a crit, a red flare and a
+ * camera kick on a fumble, a quiet tint otherwise. The die that advantage
+ * threw away fades back instead of lighting up.
+ *
+ * The camera is ours rather than the engine's: `focusCamera` slides it over
+ * the settled dice, and carries the crit's push-in and the fumble's rattle.
+ */
+export function effectRulesFor(
+  roll: RollResult,
+  theme: DiceTheme,
+  fx: Engine['effects'],
+): EffectRule[] {
+  const discarded = discardedIndex(roll)
+  // Rules are matched die by die, in table order, once per rule — so a
+  // counter is all it takes to tell the two dice of a pair apart.
+  const nth = (wanted: boolean) => {
+    let i = 0
+    return () => (i++ === discarded) === wanted
+  }
+  const rules: EffectRule[] = [{
+    match: 'any',
+    play: focusCamera(roll.isCritical ? { punch: 0.2 } : roll.isFumble ? { shake: 0.35 } : {}),
+  }]
+  if (discarded !== null) rules.push({ match: nth(true), play: fadeDie() })
+  const kept = discarded === null ? null : nth(false)
+
+  // Crits and fumbles are only ever flagged for a d20 (see rollPool), so the
+  // rule can name that die directly rather than deriving a type that a mixed
+  // pool wouldn't have.
   if (roll.isCritical) {
-    return [{
-      match: { type: 'd20', visible: roll.result },
+    rules.push({
+      match: kept ?? { type: 'd20', visible: roll.result },
       play: [
         fx.glow({ color: theme.crit, intensity: 1.4 }),
         fx.haloRing({ color: theme.crit }),
         fx.particleBurst({ color: theme.crit }),
-        fx.slowMoZoom(),
       ],
-    }]
+    })
+  } else if (roll.isFumble) {
+    rules.push({
+      match: kept ?? { type: 'd20', visible: roll.result },
+      play: fx.glow({ color: theme.fumble, intensity: 1.2 }),
+    })
+  } else {
+    rules.push({ match: kept ?? 'any', play: fx.glow({ color: theme.neutral, intensity: 0.5 }) })
   }
-
-  if (roll.isFumble) {
-    return [{
-      match: { type: 'd20', visible: roll.result },
-      play: [
-        fx.glow({ color: theme.fumble, intensity: 1.2 }),
-        fx.screenShake({ intensity: 0.5 }),
-      ],
-    }]
-  }
-
-  return [{ match: 'any', play: fx.glow({ color: theme.neutral, intensity: 0.5 }) }]
+  return rules
 }
 
 /** True when this roll can be staged with the physics engine. */
