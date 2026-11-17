@@ -36,7 +36,7 @@ export function RollToasts({ rolls, fortuneLeft = 0, onSpendFortune, onRollDamag
       position: 'fixed',
       top: 58,
       right: 10,
-      zIndex: 150,
+      zIndex: 'var(--z-drawer)',
       display: 'flex',
       flexDirection: 'column',
       gap: 8,

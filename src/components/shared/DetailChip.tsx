@@ -135,7 +135,7 @@ export function DetailChip({ label, trailing, children, detailLabel, tone }: Pro
           sideOffset={6}
           collisionPadding={16}
           positionerClassName="pointer-events-none"
-          className="w-max max-w-[min(340px,calc(100vw-32px))] gap-2.5 border border-[var(--border)] px-3 pt-2.5 pb-3 text-left text-sm shadow-[0_6px_20px_rgba(0,0,0,0.7)] ring-0"
+          className="w-max max-w-[min(340px,calc(100vw-32px))] gap-2.5 border border-[var(--border)] px-3 pt-2.5 pb-3 text-left text-sm shadow-[var(--shadow-lg)] ring-0"
         >
           {children}
         </HoverCardContent>

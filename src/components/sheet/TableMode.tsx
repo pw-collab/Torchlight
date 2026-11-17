@@ -39,7 +39,7 @@ export function TableMode({ character, clock, onClose }: Props) {
 
   return createPortal(
     <div
-      className="animate-mist-rise fixed inset-0 z-[200] flex flex-col"
+      className="animate-mist-rise fixed inset-0 z-[var(--z-overlay)] flex flex-col"
       style={{ background: 'var(--background)' }}
     >
       {/* Cabeçalho: quem é, e a saída. */}

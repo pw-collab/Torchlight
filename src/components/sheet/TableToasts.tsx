@@ -61,7 +61,7 @@ export function TableToasts({ events, characterId, since }: Props) {
         <div
           style={{
             position: 'fixed',
-            zIndex: 150,
+            zIndex: 'var(--z-drawer)',
             display: 'flex',
             flexDirection: 'column-reverse',
             gap: 8,
@@ -87,7 +87,7 @@ export function TableToasts({ events, characterId, since }: Props) {
                   background: 'var(--card)',
                   border: `1px solid ${accent}`,
                   borderLeftWidth: 3,
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
+                  boxShadow: 'var(--shadow-toast)',
                   padding: '9px 12px',
                   display: 'flex',
                   alignItems: 'flex-start',

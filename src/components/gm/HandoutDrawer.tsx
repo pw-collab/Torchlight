@@ -141,8 +141,8 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
     <>
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[150] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(3px)' }}
+      className="fixed inset-0 z-[var(--z-drawer)] flex items-center justify-center p-4"
+      style={{ background: 'var(--scrim)', backdropFilter: 'blur(3px)' }}
     >
       <div
         onClick={e => e.stopPropagation()}
@@ -150,7 +150,7 @@ export function HandoutDrawer({ gmId, seats, onDeliver, onClose }: Props) {
         style={{
           background: 'var(--background)',
           border: '2px solid var(--border)',
-          boxShadow: '0 12px 48px rgba(0,0,0,0.9)',
+          boxShadow: 'var(--shadow-modal-lg)',
         }}
       >
         <div className="flex items-center justify-between">

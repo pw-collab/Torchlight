@@ -44,7 +44,7 @@ export function RosterCard({ char, canAccess, onEdit, onDelete, index = 0 }: Pro
         ) : (
           <div className="size-full bg-[repeating-linear-gradient(135deg,var(--border)_0px,var(--border)_1px,transparent_1px,transparent_8px)]" />
         )}
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_62.5%,rgba(0,0,0,0.8)_86.54%)]" />
+        <div className="absolute inset-0 bg-[image:var(--scrim-foot)]" />
       </div>
 
       <div className="relative flex min-h-px w-full flex-1 flex-col items-start gap-3 px-[18px] py-5">

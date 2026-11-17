@@ -45,7 +45,7 @@ function AttributeIcon({ kind }: { kind: ItemAttributeKind }) {
       // The Figma centres a 13px mask in the 14px slot.
       return (
         <span aria-hidden className="flex size-[14px] shrink-0 items-center justify-center">
-          <MaskIcon src="/items/dano.png" size={13} className="bg-[#ff444c]" />
+          <MaskIcon src="/items/dano.png" size={13} className="bg-destructive" />
         </span>
       )
     case 'distance':

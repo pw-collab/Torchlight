@@ -271,7 +271,7 @@ export function AvatarUpload({ characterId, portraitUrl, onUpload, editable = tr
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'rgba(0,0,0,0.45)',
+              background: 'var(--scrim-faint)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

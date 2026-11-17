@@ -168,8 +168,8 @@ export function FloatingVitals({
     <div
       onClick={() => setOpen(false)}
       style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.72)',
+        position: 'fixed', inset: 0, zIndex: 'var(--z-modal-backdrop)',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(3px)',
         WebkitBackdropFilter: 'blur(3px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -184,7 +184,7 @@ export function FloatingVitals({
           background: 'var(--background)',
           border: '2px solid var(--border)',
           borderRadius: 0,
-          boxShadow: '0 12px 48px rgba(0,0,0,0.9)',
+          boxShadow: 'var(--shadow-modal-lg)',
           padding: '18px 18px 20px',
           display: 'flex', flexDirection: 'column', gap: 16,
           cursor: 'default',
@@ -395,7 +395,7 @@ export function FloatingVitals({
             title={open ? 'Recolher controles' : 'Dano / Cura / XP'}
           >
             <div style={{ position: 'absolute', inset: 0, background: 'var(--chart-2)' }} />
-            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right 400ms cubic-bezier(0.4,0,0.2,1)' }} />
+            <div key={flash ?? 'idle'} style={{ position: 'absolute', inset: 0, right: `${100 - hpPercent}%`, background: 'var(--primary)', transition: 'right var(--duration-base) var(--ease-ritual)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 6px', gap: 3 }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 8, letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--primary-foreground)', lineHeight: 1 }}>PV</span>
               <span style={{ fontFamily: 'var(--font-numeral)', fontSize: 17, color: 'var(--primary-foreground)', lineHeight: 1 }}>

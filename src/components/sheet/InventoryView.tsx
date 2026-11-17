@@ -249,8 +249,8 @@ function CatalogPickerModal({ onAdd, onClose }: {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
-        background: 'rgba(0,0,0,0.7)',
+        zIndex: 'var(--z-modal-backdrop)',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
@@ -264,7 +264,7 @@ function CatalogPickerModal({ onAdd, onClose }: {
           background: 'var(--card), var(--card)',
           border: '1px solid var(--border)',
           borderTop: '2px solid var(--border)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+          boxShadow: 'var(--shadow-modal)',
           padding: 18,
           minWidth: 340,
           maxWidth: 460,
@@ -835,8 +835,8 @@ function CoinPurseModal({ gold, silver, copper, slots, onUpdate, onClose }: {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
-        background: 'rgba(0,0,0,0.7)',
+        zIndex: 'var(--z-modal-backdrop)',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
@@ -850,7 +850,7 @@ function CoinPurseModal({ gold, silver, copper, slots, onUpdate, onClose }: {
           background: 'var(--card)',
           border: '1px solid var(--border)',
           borderTop: '2px solid var(--border)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+          boxShadow: 'var(--shadow-modal)',
           padding: 18,
           minWidth: 300,
           maxWidth: 380,
@@ -1063,8 +1063,8 @@ function EditItemModal({ item, onSave, onCancel }: {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
-        background: 'rgba(0,0,0,0.7)',
+        zIndex: 'var(--z-modal-backdrop)',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
@@ -1078,7 +1078,7 @@ function EditItemModal({ item, onSave, onCancel }: {
           background: 'var(--card)',
           border: '1px solid var(--border)',
           borderTop: '2px solid var(--border)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+          boxShadow: 'var(--shadow-modal)',
           padding: 18,
           minWidth: 340,
           maxWidth: 460,
@@ -1748,7 +1748,7 @@ export function InventoryView({
       {/* Equip selection modal */}
       {selectingSlot && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-modal-backdrop)', background: 'var(--scrim)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setSelectingSlot(null)}
         >
           <div
@@ -1757,7 +1757,7 @@ export function InventoryView({
               background: 'var(--card), var(--card)',
               border: '1px solid var(--border)',
               borderTop: '2px solid var(--border)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+              boxShadow: 'var(--shadow-modal)',
               padding: 24,
               minWidth: 280,
               maxWidth: 360,
@@ -1808,7 +1808,7 @@ export function InventoryView({
 
       {replaceFor && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-modal-backdrop)', background: 'var(--scrim)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           onClick={() => setReplaceFor(null)}
         >
           <div
@@ -1817,7 +1817,7 @@ export function InventoryView({
               background: 'var(--card), var(--card)',
               border: '1px solid var(--border)',
               borderTop: '2px solid var(--border)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.8)',
+              boxShadow: 'var(--shadow-modal)',
               padding: 24,
               minWidth: 280,
               maxWidth: 360,
