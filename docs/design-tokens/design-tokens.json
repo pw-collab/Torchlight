@@ -382,11 +382,88 @@
     "glow-gold": {
       "$value": "0 0 8px color-mix(in oklch, var(--chart-1), transparent 55%)",
       "$type": "shadow"
+    },
+    "lift": {
+      "$value": "0 10px 24px rgba(0,0,0,0.55)",
+      "$type": "shadow",
+      "$description": "A card rising off the table"
+    },
+    "toast": {
+      "$value": "0 2px 12px rgba(0,0,0,0.6)",
+      "$type": "shadow",
+      "$description": "Toasts, notices, the save seal"
+    },
+    "modal": {
+      "$value": "0 8px 40px rgba(0,0,0,0.8)",
+      "$type": "shadow",
+      "$description": "Dialogs"
+    },
+    "modal-lg": {
+      "$value": "0 12px 48px rgba(0,0,0,0.9)",
+      "$type": "shadow",
+      "$description": "Drawers and the big modals"
+    },
+    "sheet-up": {
+      "$value": "0 -6px 32px rgba(0,0,0,0.85)",
+      "$type": "shadow",
+      "$description": "A panel that opens upward from the foot"
+    },
+    "tray": {
+      "$value": "0 8px 3px rgba(0,0,0,0.25)",
+      "$type": "shadow",
+      "$description": "The dice tray and the tab keys"
+    },
+    "text-shadow-roll": {
+      "$value": "0 2px 12px rgba(0,0,0,0.9)",
+      "$type": "shadow",
+      "$description": "Text over the dice overlay"
+    },
+    "text-shadow-pop": {
+      "$value": "0 2px 0 rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.6)",
+      "$type": "shadow",
+      "$description": "Floating numbers"
+    }
+  },
+  "scrim": {
+    "default": {
+      "$value": "rgba(0,0,0,0.72)",
+      "$type": "color",
+      "$description": "Behind modals and drawers"
+    },
+    "soft": {
+      "$value": "rgba(0,0,0,0.6)",
+      "$type": "color",
+      "$description": "Behind the dice tray"
+    },
+    "faint": {
+      "$value": "rgba(0,0,0,0.45)",
+      "$type": "color",
+      "$description": "Over a busy avatar"
+    },
+    "focus": {
+      "$value": "radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%)",
+      "$description": "Dice overlay dim, darkest at the centre"
+    },
+    "dais": {
+      "$value": "radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%)",
+      "$description": "The disc under the dice"
+    },
+    "foot": {
+      "$value": "linear-gradient(to bottom, rgba(0,0,0,0) 62.5%, rgba(0,0,0,0.8) 86.54%)",
+      "$description": "A card foot, so a caption sits on the portrait"
     }
   },
   "zIndex": {
     "sheet-float": {
       "$value": 50,
+      "$type": "number"
+    },
+    "header": {
+      "$value": 60,
+      "$type": "number"
+    },
+    "menu": {
+      "$value": 70,
       "$type": "number"
     },
     "vitals": {
@@ -419,6 +496,14 @@
     },
     "popover": {
       "$value": 141,
+      "$type": "number"
+    },
+    "drawer": {
+      "$value": 150,
+      "$type": "number"
+    },
+    "overlay": {
+      "$value": 200,
       "$type": "number"
     },
     "grain": {

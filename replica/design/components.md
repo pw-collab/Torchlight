@@ -19,12 +19,12 @@ Nothing here needed rebuilding: tokens, the Tailwind mapping and an accessible p
 
 | | value |
 | --- | --- |
-| Fonts | Bricolage Grotesque (headings, numerals, buttons; weight fixed at 800), Libre Franklin (body and small-caps labels). Both open source, from Google Fonts. |
+| Fonts | Germania One (titles from 16px up and the inked numerals; one weight, so size is the hierarchy lever), Libre Franklin (running text and every label, tag and button under 16px), Bricolage Grotesque (the torch clock and nav readouts only, 500 to 800). All open source, from Google Fonts. |
 | Corners | `--radius: 0`. Every corner is square, on purpose. |
 | Spacing | Tailwind 4px base. Most used: 8px, 10px, 4px, 6px, 12px, 16px. |
-| Shadows | sm / md / lg black drops, plus `glow-candle` (red) and `glow-blood` for hover. |
+| Shadows | Black drops by use: `--shadow-sm/md/lg`, `--shadow-lift` (a card rising), `--shadow-toast`, `--shadow-modal`, `--shadow-modal-lg`, `--shadow-sheet-up` (panels opening from the foot), `--shadow-tray`. Glows tint from the theme: `--glow-candle`, `--glow-blood`, `--glow-gold`. Dimming behind a modal is `--scrim`, `--scrim-soft`, `--scrim-faint`. Components use the variables, not literals. |
 | Motion | `--ease-ritual` cubic-bezier(.4,0,.2,1); press 90ms, base 400ms, slow 700ms; about 20 named keyframes. All killed by the global `prefers-reduced-motion` rule, and the dice honour it too. |
-| Layers | z-index scale from `--z-sheet-float` 50 up to `--z-vignette` 9999. |
+| Layers | z-index scale from `--z-sheet-float` 50 (then `--z-header` 60, `--z-menu` 70, `--z-drawer` 150, `--z-overlay` 200) up to `--z-vignette` 9999. |
 | Icons | Hugeicons (free set). |
 
 ### Colour roles (dark)
@@ -74,7 +74,7 @@ marks the selection, so the state is still visible.
 1. **No type scale.** Inline `fontSize` uses 23 different values. About 80 uses are below 10px,
    down to 6px. Tailwind's `text-xs` (12px) is the most common class. For an app read on a
    phone across a table, a floor of 10px for uppercase labels and 12px for anything else is
-   the minimum. Proposed 7-step scale in `tokens.json` → `type_proposed`.
+   the minimum. The Figma redesign added the `type-*` utilities in `globals.css` (12 roles, listed in `tokens.json` → `type`); code written before it still uses inline sizes.
 2. **Twelve breakpoints.** CSS uses 400, 420, 480, 640, 767, 900, 1000, 1024, 1100, 1440 and 1536px,
    plus Tailwind's sm, md and lg. Three or four would cover it: 640, 1024, 1440.
 3. **Roll toasts were silent to screen readers. Fixed 2026-10-10.** A live region
@@ -95,7 +95,7 @@ Button  (src/components/ui/button.tsx + .cn-button in style-lyra.css)
   variants  default (solid red), secondary (dark, gold rule), outline, ghost,
             destructive, hollow (red outline), link
   sizes     xs 24px, sm 28px, default 32px, lg 36px; icon 24 / 28 / 32 / 36 square
-  type      Bricolage, uppercase, tracking .08em, text-xs (default and lg set text-sm / text-base)
+  type      Libre Franklin 700 (`--font-mono`), uppercase, tracking .08em, text-xs (default and lg set text-sm / text-base)
   states    default, hover, active (1px sink, or .tactile scale .96), focus-visible
             (border to ring + 1px ring at 50%; ring is a light grey, 3.5:1 against the unfocused border), disabled (50% opacity, no pointer),
             aria-invalid (destructive ring)
@@ -178,7 +178,7 @@ Dice  (DiceStage, DiceScene, DiceOverlay, ResultBurst, DieIcon, DieGlyph)
 
 ```
 Headings  (OrnateTitle, SectionHeading)
-  type      Bricolage 800, uppercase, letter-spacing for hierarchy (weight is fixed)
+  type      Germania One (`--font-heading`), uppercase, letter-spacing for hierarchy (one weight, size does the rest)
   used on   all themed pages
 ```
 
@@ -191,7 +191,7 @@ GM table  (SessionPanel + src/components/gm/table/*, the .gm-* rules in globals.
             (plate | commands | log) at a fixed height. Under 1024px the page scrolls, the
             round line sticks to the top and the deck becomes a drawer at the foot with one
             tab per column.
-  look      no theme of its own: card fill with the border rule, square corners, Bricolage
+  look      no theme of its own: card fill with the border rule, square corners, Germania One
             and Libre Franklin. Command tiles are the TabRail squares with a label (input
             fill, input-border edge, the sidebar-primary red for the turn action). Figures
             reuse the vitals' AC badge and HP bar; the light meter is TorchStatus; the plate

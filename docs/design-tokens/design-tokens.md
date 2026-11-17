@@ -108,21 +108,46 @@ Loaded from Google Fonts in `src/app/layout.tsx`. `font-synthesis-weight: none` 
 
 ## Shadows
 
-| Token | Value |
-|---|---|
-| `--shadow-sm` | `0 2px 6px rgba(0,0,0,0.35)` |
-| `--shadow-md` | `0 4px 14px rgba(0,0,0,0.45)` |
-| `--shadow-lg` | `0 8px 28px rgba(0,0,0,0.55)` |
-| `--glow-candle` | `0 0 12px color-mix(in oklch, var(--primary), transparent 60%)` |
-| `--glow-blood` | `0 0 8px color-mix(in oklch, var(--destructive), transparent 50%)` |
-| `--glow-blood-soft` | `0 0 10px color-mix(in oklch, var(--destructive), transparent 75%)` |
-| `--glow-gold` | `0 0 8px color-mix(in oklch, var(--chart-1), transparent 55%)` |
+Black on purpose: a shadow does not follow the palette. Glows tint from theme colours.
+
+| Token | Value | Use |
+|---|---|---|
+| `--shadow-sm` | `0 2px 6px rgba(0,0,0,0.35)` |  |
+| `--shadow-md` | `0 4px 14px rgba(0,0,0,0.45)` |  |
+| `--shadow-lg` | `0 8px 28px rgba(0,0,0,0.55)` |  |
+| `--glow-candle` | `0 0 12px color-mix(in oklch, var(--primary), transparent 60%)` |  |
+| `--glow-blood` | `0 0 8px color-mix(in oklch, var(--destructive), transparent 50%)` |  |
+| `--glow-blood-soft` | `0 0 10px color-mix(in oklch, var(--destructive), transparent 75%)` |  |
+| `--glow-gold` | `0 0 8px color-mix(in oklch, var(--chart-1), transparent 55%)` |  |
+| `--shadow-lift` | `0 10px 24px rgba(0,0,0,0.55)` | A card rising off the table |
+| `--shadow-toast` | `0 2px 12px rgba(0,0,0,0.6)` | Toasts, notices, the save seal |
+| `--shadow-modal` | `0 8px 40px rgba(0,0,0,0.8)` | Dialogs |
+| `--shadow-modal-lg` | `0 12px 48px rgba(0,0,0,0.9)` | Drawers and the big modals |
+| `--shadow-sheet-up` | `0 -6px 32px rgba(0,0,0,0.85)` | A panel that opens upward from the foot |
+| `--shadow-tray` | `0 8px 3px rgba(0,0,0,0.25)` | The dice tray and the tab keys |
+| `--text-shadow-roll` | `0 2px 12px rgba(0,0,0,0.9)` | Text over the dice overlay |
+| `--text-shadow-pop` | `0 2px 0 rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.6)` | Floating numbers |
+
+## Scrims
+
+What dims the page behind a modal, a drawer or a busy panel.
+
+| Token | Value | Use |
+|---|---|---|
+| `--scrim` | `rgba(0,0,0,0.72)` | Behind modals and drawers |
+| `--scrim-soft` | `rgba(0,0,0,0.6)` | Behind the dice tray |
+| `--scrim-faint` | `rgba(0,0,0,0.45)` | Over a busy avatar |
+| `--scrim-focus` | `radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%)` | Dice overlay dim, darkest at the centre |
+| `--scrim-dais` | `radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%)` | The disc under the dice |
+| `--scrim-foot` | `linear-gradient(to bottom, rgba(0,0,0,0) 62.5%, rgba(0,0,0,0.8) 86.54%)` | A card foot, so a caption sits on the portrait |
 
 ## Z-index
 
 | Token | Value |
 |---|---|
 | `--z-sheet-float` | 50 |
+| `--z-header` | 60 |
+| `--z-menu` | 70 |
 | `--z-vitals` | 85 |
 | `--z-torch` | 90 |
 | `--z-toast` | 95 |
@@ -131,8 +156,12 @@ Loaded from Google Fonts in `src/app/layout.tsx`. `font-synthesis-weight: none` 
 | `--z-seal` | 120 |
 | `--z-popover-backdrop` | 140 |
 | `--z-popover` | 141 |
+| `--z-drawer` | 150 |
+| `--z-overlay` | 200 |
 | `--z-grain` | 9998 |
 | `--z-vignette` | 9999 |
+
+Local stacking (z-10, z-20, 1 to 6 inside one component) stays literal. Only layers that compete across the page are tokens.
 
 ## Motion
 
@@ -159,10 +188,18 @@ These are literals in CSS, not variables.
 | Breakpoints used | 400, 420, 640, 767, 900, 1000, 1100, 1440, 1536 (plus 480 and 1024 in a few spots) |
 | Safe area | `--safe-top/right/bottom/left` from `env(safe-area-inset-*)` |
 
-## Heads up: `replica/design/tokens.json` is out of date
+## Rules for components
 
-- Its `font.heading` says Bricolage Grotesque. The CSS now uses **Germania One** for headings and Bricolage only for `--font-stat`.
-- It is missing `--spell`, `--spell-foreground`, `--chart-1` to `--chart-5`, `--ember`, most `--sidebar-*`, `--border`, and the `--bg-sunken/base/panel` and `--border-outline/frame/control` names.
-- Its `type_proposed` scale was never adopted. The real scale is the `type-*` utilities above.
-- Its `input-on-card`, `destructive-10-on-card` and `border-on-background` are computed blends for the contrast script, not CSS tokens.
-- All hex values that exist in both files match.
+- Colour: Tailwind role classes (`bg-card`, `text-muted-foreground`, `bg-bg-raised`) or `var(--token)`. No hex, no `rgb()` in components.
+- Elevation and dimming: `var(--shadow-*)`, `var(--scrim*)`, `var(--text-shadow-*)`.
+- Layers that compete across the page: `var(--z-*)`. Easing: `var(--ease-ritual)`. Durations: `var(--duration-base)`, `var(--duration-slow)`.
+- Fonts: `var(--font-*)`.
+
+Left literal on purpose:
+
+- `#000` inside `mask-image` gradients (`GlyphCard.tsx`, `.attr-panel__deck`, `.inv-panel__grid`). Only the alpha counts, the colour never shows.
+- `FALLBACK_THEME` in `src/lib/diceEngine.ts`. It is the server-side fallback for the 3D dice and mirrors `--ember`, `--ember-foreground`, `--chart-1`, `--destructive`, `--chart-2`. The engine reads the live tokens once the page is in the browser.
+- Inline `fontSize` and spacing values. They have no one-to-one match in the `type-*` scale, so moving them would change layouts.
+- The light `:root` block in `globals.css`. It is shadcn scaffolding the app never renders.
+
+`replica/design/tokens.json` is the hex snapshot for `replica/design/contrast.py`. Regenerate it from `globals.css` when a colour changes.
