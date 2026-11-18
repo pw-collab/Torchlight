@@ -1029,7 +1029,7 @@ function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--pri
         // in the bottom-right corner, level with its middle.
         bottom: isMobile ? 'calc(72px + var(--safe-bottom))' : 57,
         right: isMobile ? 16 : 132,
-        zIndex: 120,
+        zIndex: 'var(--z-seal)',
         fontFamily: 'var(--font-mono)', fontWeight: 600,
         fontSize: 10,
         letterSpacing: '0.16em',
@@ -1039,7 +1039,7 @@ function SaveSeal({ savedAt, isMobile, label = '✦ Selado', border = 'var(--pri
         border: `1px solid ${border}`,
         borderRadius: 2,
         padding: '6px 12px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.6)',
+        boxShadow: 'var(--shadow-toast)',
         pointerEvents: 'none',
       }}
     >

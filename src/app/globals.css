@@ -87,8 +87,32 @@
   --glow-blood-soft: 0 0 10px color-mix(in oklch, var(--destructive), transparent 75%);
   --glow-gold:    0 0 8px color-mix(in oklch, var(--chart-1), transparent 55%);
 
+  /* Elevation, by what is floating. Black on purpose: a shadow is the
+     absence of light, so it does not follow the palette. */
+  --shadow-lift:     0 10px 24px rgba(0,0,0,0.55);   /* a card rising off the table */
+  --shadow-toast:    0 2px 12px rgba(0,0,0,0.6);     /* toasts, notices, the save seal */
+  --shadow-modal:    0 8px 40px rgba(0,0,0,0.8);     /* dialogs */
+  --shadow-modal-lg: 0 12px 48px rgba(0,0,0,0.9);    /* drawers and the big modals */
+  --shadow-sheet-up: 0 -6px 32px rgba(0,0,0,0.85);   /* a panel that opens upward from the foot */
+  --shadow-tray:     0 8px 3px rgba(0,0,0,0.25);     /* the dice tray and the tab keys */
+  --text-shadow-roll: 0 2px 12px rgba(0,0,0,0.9);    /* text over the dice overlay */
+  --text-shadow-pop:  0 2px 0 rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.6); /* floating numbers */
+
+  /* Scrims: what dims the page behind a modal, a drawer, a busy panel. */
+  --scrim:       rgba(0,0,0,0.72);
+  --scrim-soft:  rgba(0,0,0,0.6);
+  --scrim-faint: rgba(0,0,0,0.45);
+  /* The dice overlay's dim: darkest at the centre, where the dice land. */
+  --scrim-focus: radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%);
+  /* The disc under the dice, tinted by the action colour. */
+  --scrim-dais:  radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%);
+  /* A card's foot, so a caption can sit on the portrait. */
+  --scrim-foot:  linear-gradient(to bottom, rgba(0,0,0,0) 62.5%, rgba(0,0,0,0.8) 86.54%);
+
   /* Z-index scale */
   --z-sheet-float:      50;
+  --z-header:           60;   /* top bar, bottom tab bar, the closed d20 key */
+  --z-menu:             70;   /* menus that open from those bars */
   --z-vitals:           85;
   --z-torch:            90;
   --z-toast:            95;
@@ -97,6 +121,8 @@
   --z-seal:             120;
   --z-popover-backdrop: 140;
   --z-popover:          141;
+  --z-drawer:           150;  /* the GM's drawers and the table's toasts */
+  --z-overlay:          200;  /* full-screen takeovers: dice roll, table mode */
   --z-grain:            9998;
   --z-vignette:         9999;
 
@@ -183,8 +209,8 @@ html, body {
   70%       { opacity: 0.97; filter: brightness(1.01); }
 }
 
-.animate-ink-spread { animation: inkSpread 600ms cubic-bezier(0.4,0,0.2,1) both; }
-.animate-mist-rise  { animation: mistRise  500ms cubic-bezier(0.4,0,0.2,1) both; }
+.animate-ink-spread { animation: inkSpread 600ms var(--ease-ritual) both; }
+.animate-mist-rise  { animation: mistRise  500ms var(--ease-ritual) both; }
 .animate-flicker    { animation: candleFlicker 4s ease-in-out infinite; }
 
 /* ============================================================
@@ -209,7 +235,7 @@ html, body {
 
 /* Card lift — rising off the table on hover. */
 .card-lift { transition: transform 250ms var(--ease-ritual), box-shadow 250ms var(--ease-ritual); }
-.card-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.55); }
+.card-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
 
 /* ------------------------------------------------------------
    Card flip — how a deck card opens
@@ -272,7 +298,7 @@ html, body {
    scrolled away. It waits, hidden, for the card to come back. */
 .card-actions__positioner[data-anchor-hidden] { visibility: hidden; }
 .card-actions {
-  animation: cardActionsIn 420ms cubic-bezier(0.4,0,0.2,1) both;
+  animation: cardActionsIn 420ms var(--ease-ritual) both;
   transform-origin: var(--transform-origin);
   display: flex;
   flex-direction: column;
@@ -286,7 +312,7 @@ html, body {
   padding: 8px;
   background: var(--secondary);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+  box-shadow: var(--shadow-lift);
 }
 .card-actions[data-side='top'] { --actions-rise: -8px; }
 /* Short of room, the popover scrolls as a whole. Left to shrink, the ability
@@ -422,7 +448,7 @@ html, body {
   animation: deathPulse 1.8s ease-in-out infinite;
 }
 .death-vignette[data-state="dead"] {
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, var(--scrim) 100%);
   animation: none;
 }
 
@@ -676,14 +702,14 @@ html, body {
   padding: 12px;
   background: var(--bg-sunken);
   border: 2px solid var(--border-frame);
-  box-shadow: 0 8px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-tray);
 }
 
 .dice-tray-scrim {
   position: fixed;
   inset: 0;
   z-index: var(--z-modal-backdrop);
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--scrim-soft);
   transition: opacity 200ms ease;
 }
 .dice-tray {
@@ -701,7 +727,7 @@ html, body {
   padding: 12px;
   background: var(--bg-panel);
   border: 2px solid var(--border-frame);
-  box-shadow: 0 8px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-tray);
   outline: none;
   transition: opacity 200ms ease, transform 200ms ease;
 }
@@ -2096,7 +2122,7 @@ html, body {
     position: sticky;
     top: 0;
     z-index: 20;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+    box-shadow: var(--shadow-lift);
   }
   .gm-stage { overflow: visible; padding: 28px 12px 16px; }
   .gm-stage::after { display: none; }
@@ -2115,7 +2141,7 @@ html, body {
     display: flex;
     flex-direction: column;
     padding-bottom: var(--safe-bottom);
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-sheet-up);
   }
   .gm-deck__tabs {
     display: flex;
@@ -2428,7 +2454,7 @@ html, body {
   margin-top: -12px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75), transparent 70%);
+  background: radial-gradient(ellipse at center, var(--scrim), transparent 70%);
   transition: width 250ms var(--ease-ritual);
 }
 .gm-fig.is-active .gm-fig__shadow {
@@ -2466,7 +2492,7 @@ html, body {
 .gm-fig:hover { transform: translateY(-3px); }
 .gm-fig:hover .gm-fig__portrait {
   border-color: var(--ring);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--shadow-lift);
 }
 .gm-fig:focus-visible .gm-fig__portrait {
   border-color: var(--ring);
@@ -2544,7 +2570,7 @@ html, body {
   font-family: var(--font-numeral);
   font-size: 26px;
   line-height: 1;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.6);
+  text-shadow: var(--text-shadow-pop);
   transform: translateX(-50%);
   animation: gmPop 1.7s ease-out forwards;
 }

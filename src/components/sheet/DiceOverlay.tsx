@@ -54,7 +54,7 @@ const CAPS: React.CSSProperties = {
   letterSpacing: '0.3em', textTransform: 'uppercase',
 }
 
-const TEXT_SHADOW = '0 2px 12px rgba(0,0,0,0.9)'
+const TEXT_SHADOW = 'var(--text-shadow-roll)'
 
 interface Props {
   phase: RollPhase
@@ -197,7 +197,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
         <div
           data-testid="dice-backdrop"
           onClick={onDismiss}
-          style={{ position: 'fixed', inset: 0, zIndex: 200 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-overlay)' }}
         />
       )}
 
@@ -206,13 +206,13 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
           <motion.div
             key="dice-backdrop"
             {...fade}
-            style={{ position: 'fixed', inset: 0, zIndex: 200, pointerEvents: 'none' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 'var(--z-overlay)', pointerEvents: 'none' }}
           >
             {/* The dim. */}
             <div
               style={{
                 position: 'absolute', inset: 0,
-                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%)',
+                background: 'var(--scrim-focus)',
                 backdropFilter: 'blur(3px)',
                 WebkitBackdropFilter: 'blur(3px)',
               }}
@@ -228,7 +228,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
                   position: 'absolute', inset: '4%',
                   borderRadius: '50%',
                   border: '1px solid var(--border)',
-                  background: 'radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%)',
+                  background: 'var(--scrim-dais)',
                 }}
               />
               {/* Slow outer ring — the only thing moving while the dice load. */}
@@ -255,7 +255,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
         <div
           style={{
             ...CENTERED,
-            zIndex: 201,
+            zIndex: 'calc(var(--z-overlay) + 1)',
             opacity: visible ? 1 : 0,
             transition: `opacity ${visible ? 180 : 280}ms ease`,
           }}
@@ -276,7 +276,7 @@ export function DiceOverlay({ phase, roll, mode, throwRoll, onSettled, onUnavail
           {...fade}
           role="status"
           aria-live="polite"
-          style={{ ...CENTERED, zIndex: 202 }}
+          style={{ ...CENTERED, zIndex: 'calc(var(--z-overlay) + 2)' }}
         >
           {/* Above the dais: what is being rolled, and the number to beat. */}
           <div style={{

@@ -47,7 +47,7 @@ export function TabRail<K extends string>({ tabs, active, onChange, className }:
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'tactile flex size-16 shrink-0 cursor-pointer items-center justify-center',
-              'drop-shadow-[0_8px_3px_rgba(0,0,0,0.25)] transition-colors duration-150',
+              '[filter:drop-shadow(var(--shadow-tray))] transition-colors duration-150',
               'outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
               isActive
                 ? 'bg-muted text-muted-foreground border-[3px] border-[var(--border-control)]'

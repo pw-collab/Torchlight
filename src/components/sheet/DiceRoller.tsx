@@ -198,7 +198,7 @@ export function DiceRoller({
                 ? DOCK_BUTTON_CLASS
                 : 'bg-input border-input-border data-popup-open:bg-primary data-popup-open:border-primary px-0 transition-colors duration-[250ms]',
               !docked && (floating
-                ? 'fixed right-6 bottom-6 z-60 size-14 min-h-14 shadow-[0_6px_24px_rgba(0,0,0,0.75)]'
+                ? 'fixed right-6 bottom-6 z-[var(--z-header)] size-14 min-h-14 shadow-[var(--shadow-lg)]'
                 : 'h-12 min-h-12 w-14'),
             )}
           />
@@ -237,9 +237,9 @@ export function DiceRoller({
         sideOffset={12}
         aria-label="Rolar dados"
         className={cn(
-          'bg-popover border-border z-70 flex w-[min(320px,calc(100vw-32px))] flex-col gap-3',
+          'bg-popover border-border z-[var(--z-menu)] flex w-[min(320px,calc(100vw-32px))] flex-col gap-3',
           'max-h-[calc(100dvh-150px)] overflow-y-auto border-2 px-3 pt-3.5 pb-4',
-          'shadow-[0_-6px_32px_rgba(0,0,0,0.85)]',
+          'shadow-[var(--shadow-sheet-up)]',
         )}
       >
         <PopoverHeader className="p-0">

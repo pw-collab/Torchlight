@@ -79,8 +79,8 @@ export function AttacksMenu({ inventory, str, dex, meleeBonus, rangedBonus, onRo
         sideOffset={12}
         aria-label="Ataques"
         className={
-          'bg-popover border-border z-70 flex w-[min(320px,calc(100vw-32px))] flex-col gap-3 ' +
-          'border-2 px-3 pt-3.5 pb-4 shadow-[0_-6px_32px_rgba(0,0,0,0.85)]'
+          'bg-popover border-border z-[var(--z-menu)] flex w-[min(320px,calc(100vw-32px))] flex-col gap-3 ' +
+          'border-2 px-3 pt-3.5 pb-4 shadow-[var(--shadow-sheet-up)]'
         }
       >
         <PopoverHeader className="p-0">

@@ -16,7 +16,7 @@ interface Props {
  */
 export function FortuneBar({ luckTokens, onLuckChange }: Props) {
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', width: '100%', boxShadow: '0 3px 8px rgba(0,0,0,0.5)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--border)', width: '100%', boxShadow: 'var(--shadow-sm)', padding: 6, display: 'flex', alignItems: 'center', gap: 8, boxSizing: 'border-box' }}>
       <div style={{ flex: '1 0 0', display: 'flex', justifyContent: 'space-between' }}>
         {Array.from({ length: Math.max(luckTokens, 5) }).map((_, i) => (
           <Button

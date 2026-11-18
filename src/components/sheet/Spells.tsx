@@ -67,8 +67,8 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 100,
-        background: 'rgba(0,0,0,0.75)',
+        zIndex: 'var(--z-modal-backdrop)',
+        background: 'var(--scrim)',
         backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
@@ -82,7 +82,7 @@ function SpellPickerModal({ available, learned, onLearn, onClose }: {
         style={{
           background: 'var(--card)',
           border: '1px solid var(--border)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.85)',
+          boxShadow: 'var(--shadow-modal)',
           padding: '16px 16px',
           width: '100%',
           maxWidth: 480,

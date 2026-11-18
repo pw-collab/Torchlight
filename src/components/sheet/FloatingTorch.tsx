@@ -52,14 +52,14 @@ export function FloatingTorch({ inventory, onClick, clock }: Props) {
       onClick={onClick}
       variant="outline"
       className={cn(
-        'animate-drop-in fixed z-90 flex h-auto items-center gap-2.5 rounded-sm bg-[var(--card)] px-3 py-2',
+        'animate-drop-in fixed z-[var(--z-torch)] flex h-auto items-center gap-2.5 rounded-sm bg-[var(--card)] px-3 py-2',
         // Desktop: the top-right corner is the only strip the sheet layout
         // leaves free — the header sits left, the vitals column starts below.
         isMobile ? 'top-[58px] left-2.5' : 'top-6 right-6',
         isLow ? 'border-[var(--destructive)]' : 'border-[var(--primary)]',
         onClick ? 'cursor-pointer' : 'cursor-default',
       )}
-      style={{ boxShadow: `0 4px 16px rgba(0,0,0,0.6), 0 0 14px ${haloColor}` }}
+      style={{ boxShadow: `var(--shadow-md), 0 0 14px ${haloColor}` }}
       title={`${KIND_LABEL[source.lightKind ?? 'torch']} acesa — ${mins} min restantes`}
       aria-label={`Fonte de luz acesa: ${source.name}, ${mins} minutos restantes`}
     >

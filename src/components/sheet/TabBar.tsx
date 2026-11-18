@@ -33,8 +33,8 @@ export function TabBar<K extends string>({ tabs, active, onChange, trailing }: P
     <nav
       aria-label="Navegação da ficha"
       className={cn(
-        'bg-sidebar fixed inset-x-0 bottom-0 z-60 flex justify-center',
-        'border-sidebar-border border-t-2 shadow-[0_-4px_24px_rgba(0,0,0,0.7)]',
+        'bg-sidebar fixed inset-x-0 bottom-0 z-[var(--z-header)] flex justify-center',
+        'border-sidebar-border border-t-2 shadow-[var(--shadow-sheet-up)]',
         'pt-1.5 pb-[calc(6px+var(--safe-bottom))]',
         isMobile ? 'px-2' : 'px-6',
       )}

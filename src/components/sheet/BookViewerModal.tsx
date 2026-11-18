@@ -134,7 +134,7 @@ export function BookViewerModal({ item, onClose, onSaveContent, readOnly }: Prop
           </DialogHeader>
 
           {/* Book spread */}
-          <div className="flex border border-[var(--border)] shadow-[0_16px_60px_rgba(0,0,0,0.85),0_4px_16px_rgba(0,0,0,0.6)]">
+          <div className="flex border border-[var(--border)] shadow-[var(--shadow-modal-lg),var(--shadow-md)]">
             {/* Left page */}
             <div className={PAGE_CLASS}>
               <div className="absolute bottom-2.5 left-4 text-[9px] text-[var(--muted-foreground)] italic">

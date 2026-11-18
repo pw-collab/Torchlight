@@ -1,0 +1,601 @@
+{
+  "$description": "Torchlight design tokens. Dark theme only (the app renders <html class=\"dark\">, there is no light mode). Extracted from src/app/globals.css; aliases use DTCG {path} syntax. Resolved hex values are in design-tokens.md.",
+  "color": {
+    "palette": {
+      "bg-sunken": {
+        "$value": "#110d0b",
+        "$type": "color",
+        "$description": "The page behind everything"
+      },
+      "bg-base": {
+        "$value": "#1c1512",
+        "$type": "color",
+        "$description": "Panels"
+      },
+      "bg-raised": {
+        "$value": "#2a201c",
+        "$type": "color",
+        "$description": "Blocks on a panel: HP, attributes, the dock"
+      },
+      "bg-panel": {
+        "$value": "#372b27",
+        "$type": "color",
+        "$description": "What floats: popovers, menus"
+      },
+      "ember": {
+        "$value": "#df7653",
+        "$type": "color",
+        "$description": "The action colour, and the light"
+      },
+      "ember-foreground": {
+        "$value": "#1b1513",
+        "$type": "color"
+      },
+      "spirit": {
+        "$value": "#48b8d2",
+        "$type": "color",
+        "$description": "The counterweight: turns, secondary actions"
+      },
+      "spirit-foreground": {
+        "$value": "#131a1b",
+        "$type": "color"
+      },
+      "border-outline": {
+        "$value": "#53433c",
+        "$type": "color",
+        "$description": "Panel frames and dividers"
+      },
+      "border-frame": {
+        "$value": "#110d0b",
+        "$type": "color",
+        "$description": "The ink line around controls"
+      },
+      "border-control": {
+        "$value": "#8f796a",
+        "$type": "color",
+        "$description": "Edge of a control, 3:1 or better"
+      },
+      "class": {
+        "$value": "{color.palette.ember}",
+        "$type": "color",
+        "$description": "Identity tag: class"
+      },
+      "class-foreground": {
+        "$value": "#34140a",
+        "$type": "color"
+      },
+      "archetype": {
+        "$value": "#9f815d",
+        "$type": "color",
+        "$description": "Identity tag: archetype"
+      },
+      "archetype-foreground": {
+        "$value": "#201a13",
+        "$type": "color"
+      },
+      "ancestry": {
+        "$value": "#8fb4c0",
+        "$type": "color",
+        "$description": "Identity tag: ancestry"
+      },
+      "ancestry-foreground": {
+        "$value": "#182e34",
+        "$type": "color"
+      },
+      "spell": {
+        "$value": "#b59fd6",
+        "$type": "color",
+        "$description": "Spells, on the grimoire's cards"
+      },
+      "spell-foreground": {
+        "$value": "#221a2e",
+        "$type": "color"
+      }
+    },
+    "role": {
+      "background": {
+        "$value": "{color.palette.bg-sunken}",
+        "$type": "color",
+        "$description": "Page"
+      },
+      "foreground": {
+        "$value": "#ecdbb8",
+        "$type": "color",
+        "$description": "Default text"
+      },
+      "card": {
+        "$value": "{color.palette.bg-base}",
+        "$type": "color",
+        "$description": "Panel surface"
+      },
+      "card-foreground": {
+        "$value": "#ecd9b7",
+        "$type": "color"
+      },
+      "popover": {
+        "$value": "{color.palette.bg-panel}",
+        "$type": "color",
+        "$description": "Floating surfaces"
+      },
+      "popover-foreground": {
+        "$value": "{color.role.foreground}",
+        "$type": "color"
+      },
+      "primary": {
+        "$value": "{color.palette.ember}",
+        "$type": "color",
+        "$description": "Fill for main actions"
+      },
+      "primary-foreground": {
+        "$value": "{color.palette.ember-foreground}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "#2d221f",
+        "$type": "color",
+        "$description": "Quiet surface"
+      },
+      "secondary-foreground": {
+        "$value": "{color.role.foreground}",
+        "$type": "color"
+      },
+      "muted": {
+        "$value": "#2d221f",
+        "$type": "color",
+        "$description": "Subdued surface"
+      },
+      "muted-foreground": {
+        "$value": "#b0a18f",
+        "$type": "color",
+        "$description": "Dim labels"
+      },
+      "accent": {
+        "$value": "#6e564e",
+        "$type": "color",
+        "$description": "Highlighted item (Figma \"card\")"
+      },
+      "accent-foreground": {
+        "$value": "#ecd9b7",
+        "$type": "color"
+      },
+      "destructive": {
+        "$value": "#ff6467",
+        "$type": "color",
+        "$description": "Danger"
+      },
+      "border": {
+        "$value": "{color.palette.border-outline}",
+        "$type": "color",
+        "$description": "Rules"
+      },
+      "input": {
+        "$value": "rgb(242 162 136 / 15%)",
+        "$type": "color",
+        "$description": "Selected-state fill (15% alpha)"
+      },
+      "ring": {
+        "$value": "{color.role.foreground}",
+        "$type": "color",
+        "$description": "Focus ring"
+      },
+      "chart-1": {
+        "$value": "#d9c7a3",
+        "$type": "color",
+        "$description": "Also used as the gold highlight in glows and rules"
+      },
+      "chart-2": {
+        "$value": "#b0a18f",
+        "$type": "color"
+      },
+      "chart-3": {
+        "$value": "#6e564e",
+        "$type": "color"
+      },
+      "chart-4": {
+        "$value": "#53433c",
+        "$type": "color"
+      },
+      "chart-5": {
+        "$value": "#2d221f",
+        "$type": "color"
+      },
+      "sidebar": {
+        "$value": "{color.palette.bg-base}",
+        "$type": "color",
+        "$description": "Nav surface"
+      },
+      "sidebar-foreground": {
+        "$value": "{color.role.foreground}",
+        "$type": "color"
+      },
+      "sidebar-primary": {
+        "$value": "{color.palette.ember}",
+        "$type": "color"
+      },
+      "sidebar-primary-foreground": {
+        "$value": "{color.palette.ember-foreground}",
+        "$type": "color"
+      },
+      "sidebar-accent": {
+        "$value": "{color.role.muted}",
+        "$type": "color"
+      },
+      "sidebar-accent-foreground": {
+        "$value": "{color.role.foreground}",
+        "$type": "color"
+      },
+      "sidebar-border": {
+        "$value": "{color.palette.border-outline}",
+        "$type": "color"
+      },
+      "sidebar-ring": {
+        "$value": "{color.palette.border-control}",
+        "$type": "color"
+      },
+      "torch": {
+        "$value": "{color.palette.ember}",
+        "$type": "color",
+        "$description": "Light source that is burning"
+      },
+      "primary-text": {
+        "$value": "{color.palette.ember}",
+        "$type": "color",
+        "$description": "Ember used as text (AA on dark surfaces)"
+      },
+      "input-border": {
+        "$value": "{color.palette.border-control}",
+        "$type": "color",
+        "$description": "Edge of a control"
+      }
+    }
+  },
+  "font": {
+    "heading": {
+      "$value": "'Germania One', Georgia, serif",
+      "$type": "fontFamily",
+      "$description": "Titles from 16px up. Single weight, size is the hierarchy lever."
+    },
+    "numeral": {
+      "$value": "'Germania One', Georgia, serif",
+      "$type": "fontFamily",
+      "$description": "Inked numerals: modifiers, HP, AC"
+    },
+    "body": {
+      "$value": "'Libre Franklin', sans-serif",
+      "$type": "fontFamily",
+      "$description": "Running text (variable 100-900)"
+    },
+    "mono": {
+      "$value": "'Libre Franklin', sans-serif",
+      "$type": "fontFamily",
+      "$description": "Labels and metadata under 16px. Not a monospace."
+    },
+    "stat": {
+      "$value": "'Bricolage Grotesque', sans-serif",
+      "$type": "fontFamily",
+      "$description": "Clock and nav readouts (wght 500-800, opsz 12-96)"
+    }
+  },
+  "typography": {
+    "display-xl": {
+      "fontFamily": "{font.heading}",
+      "fontSize": "48px",
+      "lineHeight": 1.2
+    },
+    "display-lg": {
+      "fontFamily": "{font.numeral}",
+      "fontSize": "28px",
+      "lineHeight": 1
+    },
+    "display-md": {
+      "fontFamily": "{font.heading}",
+      "fontSize": "24px",
+      "lineHeight": 1.2
+    },
+    "display-sm": {
+      "fontFamily": "{font.heading}",
+      "fontSize": "18px",
+      "lineHeight": 1.2
+    },
+    "title": {
+      "fontFamily": "{font.heading}",
+      "fontSize": "16px",
+      "lineHeight": 1.2,
+      "textTransform": "uppercase"
+    },
+    "button": {
+      "fontFamily": "{font.mono}",
+      "fontWeight": 700,
+      "fontSize": "16px",
+      "lineHeight": 1.2,
+      "textTransform": "uppercase"
+    },
+    "tag": {
+      "fontFamily": "{font.mono}",
+      "fontWeight": 600,
+      "fontSize": "14px",
+      "lineHeight": 1.3
+    },
+    "body": {
+      "fontFamily": "{font.body}",
+      "fontSize": "12px",
+      "lineHeight": 1.5
+    },
+    "caption": {
+      "fontFamily": "{font.mono}",
+      "fontSize": "10px",
+      "lineHeight": 1.2
+    },
+    "label": {
+      "fontFamily": "{font.mono}",
+      "fontSize": "10px",
+      "lineHeight": 1.5,
+      "letterSpacing": "0.12em",
+      "textTransform": "uppercase"
+    },
+    "clock": {
+      "fontFamily": "{font.stat}",
+      "fontWeight": 700,
+      "fontSize": "14px",
+      "letterSpacing": "0.08em"
+    },
+    "nav": {
+      "fontFamily": "{font.stat}",
+      "fontWeight": 500,
+      "fontSize": "12px",
+      "letterSpacing": "0.11em",
+      "textTransform": "uppercase"
+    }
+  },
+  "radius": {
+    "base": {
+      "$value": "0",
+      "$type": "dimension",
+      "$description": "--radius: 0. Square corners by design; every radius-* utility resolves to 0."
+    }
+  },
+  "shadow": {
+    "sm": {
+      "$value": "0 2px 6px rgba(0,0,0,0.35)",
+      "$type": "shadow"
+    },
+    "md": {
+      "$value": "0 4px 14px rgba(0,0,0,0.45)",
+      "$type": "shadow"
+    },
+    "lg": {
+      "$value": "0 8px 28px rgba(0,0,0,0.55)",
+      "$type": "shadow"
+    },
+    "glow-candle": {
+      "$value": "0 0 12px color-mix(in oklch, var(--primary), transparent 60%)",
+      "$type": "shadow"
+    },
+    "glow-blood": {
+      "$value": "0 0 8px color-mix(in oklch, var(--destructive), transparent 50%)",
+      "$type": "shadow"
+    },
+    "glow-blood-soft": {
+      "$value": "0 0 10px color-mix(in oklch, var(--destructive), transparent 75%)",
+      "$type": "shadow"
+    },
+    "glow-gold": {
+      "$value": "0 0 8px color-mix(in oklch, var(--chart-1), transparent 55%)",
+      "$type": "shadow"
+    },
+    "lift": {
+      "$value": "0 10px 24px rgba(0,0,0,0.55)",
+      "$type": "shadow",
+      "$description": "A card rising off the table"
+    },
+    "toast": {
+      "$value": "0 2px 12px rgba(0,0,0,0.6)",
+      "$type": "shadow",
+      "$description": "Toasts, notices, the save seal"
+    },
+    "modal": {
+      "$value": "0 8px 40px rgba(0,0,0,0.8)",
+      "$type": "shadow",
+      "$description": "Dialogs"
+    },
+    "modal-lg": {
+      "$value": "0 12px 48px rgba(0,0,0,0.9)",
+      "$type": "shadow",
+      "$description": "Drawers and the big modals"
+    },
+    "sheet-up": {
+      "$value": "0 -6px 32px rgba(0,0,0,0.85)",
+      "$type": "shadow",
+      "$description": "A panel that opens upward from the foot"
+    },
+    "tray": {
+      "$value": "0 8px 3px rgba(0,0,0,0.25)",
+      "$type": "shadow",
+      "$description": "The dice tray and the tab keys"
+    },
+    "text-shadow-roll": {
+      "$value": "0 2px 12px rgba(0,0,0,0.9)",
+      "$type": "shadow",
+      "$description": "Text over the dice overlay"
+    },
+    "text-shadow-pop": {
+      "$value": "0 2px 0 rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.6)",
+      "$type": "shadow",
+      "$description": "Floating numbers"
+    }
+  },
+  "scrim": {
+    "default": {
+      "$value": "rgba(0,0,0,0.72)",
+      "$type": "color",
+      "$description": "Behind modals and drawers"
+    },
+    "soft": {
+      "$value": "rgba(0,0,0,0.6)",
+      "$type": "color",
+      "$description": "Behind the dice tray"
+    },
+    "faint": {
+      "$value": "rgba(0,0,0,0.45)",
+      "$type": "color",
+      "$description": "Over a busy avatar"
+    },
+    "focus": {
+      "$value": "radial-gradient(ellipse at center, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 45%, rgba(0,0,0,0.42) 100%)",
+      "$description": "Dice overlay dim, darkest at the centre"
+    },
+    "dais": {
+      "$value": "radial-gradient(circle, color-mix(in oklch, var(--primary), transparent 86%) 0%, rgba(0,0,0,0.35) 62%, rgba(0,0,0,0.1) 100%)",
+      "$description": "The disc under the dice"
+    },
+    "foot": {
+      "$value": "linear-gradient(to bottom, rgba(0,0,0,0) 62.5%, rgba(0,0,0,0.8) 86.54%)",
+      "$description": "A card foot, so a caption sits on the portrait"
+    }
+  },
+  "zIndex": {
+    "sheet-float": {
+      "$value": 50,
+      "$type": "number"
+    },
+    "header": {
+      "$value": 60,
+      "$type": "number"
+    },
+    "menu": {
+      "$value": 70,
+      "$type": "number"
+    },
+    "vitals": {
+      "$value": 85,
+      "$type": "number"
+    },
+    "torch": {
+      "$value": 90,
+      "$type": "number"
+    },
+    "toast": {
+      "$value": 95,
+      "$type": "number"
+    },
+    "modal-backdrop": {
+      "$value": 100,
+      "$type": "number"
+    },
+    "modal": {
+      "$value": 101,
+      "$type": "number"
+    },
+    "seal": {
+      "$value": 120,
+      "$type": "number"
+    },
+    "popover-backdrop": {
+      "$value": 140,
+      "$type": "number"
+    },
+    "popover": {
+      "$value": 141,
+      "$type": "number"
+    },
+    "drawer": {
+      "$value": 150,
+      "$type": "number"
+    },
+    "overlay": {
+      "$value": 200,
+      "$type": "number"
+    },
+    "grain": {
+      "$value": 9998,
+      "$type": "number"
+    },
+    "vignette": {
+      "$value": 9999,
+      "$type": "number"
+    }
+  },
+  "motion": {
+    "ease-ritual": {
+      "$value": [
+        0.4,
+        0,
+        0.2,
+        1
+      ],
+      "$type": "cubicBezier"
+    },
+    "duration-press": {
+      "$value": "90ms",
+      "$type": "duration",
+      "$description": "Used inline in .tactile, not a CSS variable"
+    },
+    "duration-base": {
+      "$value": "400ms",
+      "$type": "duration"
+    },
+    "duration-slow": {
+      "$value": "700ms",
+      "$type": "duration"
+    }
+  },
+  "layout": {
+    "$description": "Conventions written as literals in CSS, not variables.",
+    "columns": {
+      "$value": 12,
+      "$type": "number"
+    },
+    "columns-phone": {
+      "$value": 6,
+      "$type": "number",
+      "$description": "At 640px and below"
+    },
+    "gutter": {
+      "$value": "24px",
+      "$type": "dimension"
+    },
+    "gutter-phone": {
+      "$value": "12px",
+      "$type": "dimension"
+    },
+    "page-margin": {
+      "$value": "48px",
+      "$type": "dimension"
+    },
+    "content-max": {
+      "$value": "1440px",
+      "$type": "dimension"
+    },
+    "content-max-wide": {
+      "$value": "1760px",
+      "$type": "dimension",
+      "$description": "Campaign roster (/home)"
+    },
+    "header-height": {
+      "$value": "72px",
+      "$type": "dimension"
+    }
+  },
+  "breakpoint": {
+    "xs": {
+      "$value": "400px",
+      "$type": "dimension"
+    },
+    "mobile": {
+      "$value": "640px",
+      "$type": "dimension"
+    },
+    "tablet": {
+      "$value": "768px",
+      "$type": "dimension"
+    },
+    "sheet-stack": {
+      "$value": "1100px",
+      "$type": "dimension"
+    },
+    "content-max": {
+      "$value": "1440px",
+      "$type": "dimension"
+    }
+  }
+}

@@ -32,7 +32,7 @@ export function FailNotice({ failure, onClose }: { failure: Failure | null; onCl
       {failure && (
         <div
           key={failure.id}
-          className="animate-mist-rise fixed inset-x-4 z-[200] mx-auto flex max-w-[480px] items-start gap-3 border border-[var(--destructive)] bg-[var(--card)] px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+          className="animate-mist-rise fixed inset-x-4 z-[var(--z-overlay)] mx-auto flex max-w-[480px] items-start gap-3 border border-[var(--destructive)] bg-[var(--card)] px-4 py-3 shadow-[var(--shadow-toast)]"
           style={{ bottom: 'calc(88px + var(--safe-bottom))' }}
         >
           <span aria-hidden className="font-mono pt-px text-[12px] text-[var(--destructive)]">✖</span>

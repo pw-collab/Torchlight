@@ -30,8 +30,8 @@ export function rollTone(roll: RollResult) {
       ? `linear-gradient(148deg, ${accent} 0%, var(--card) 100%), var(--card)`
       : 'var(--card)',
     shadow: accent
-      ? `0 4px 20px ${accent}, 0 2px 12px rgba(0,0,0,0.6)`
-      : '0 2px 12px rgba(0,0,0,0.6)',
+      ? `0 4px 20px ${accent}, var(--shadow-toast)`
+      : 'var(--shadow-toast)',
     number: accent ?? 'var(--foreground)',
     label: accent ?? 'var(--muted-foreground)',
   }
