@@ -229,7 +229,7 @@ export function FloatingVitals({
                 aria-label="XP atual"
                 className={cn(
                   'h-auto w-11 cursor-text border-none bg-transparent p-0 text-right text-base',
-                  'font-[var(--font-numeral)]',
+                  'font-numeral',
                   xpReady ? 'text-[var(--chart-1)]' : 'text-[var(--muted-foreground)]',
                 )}
               />
@@ -261,7 +261,7 @@ export function FloatingVitals({
               placeholder="−11"
               title="Quanto aplicar — Enter tira, +5 cura"
               aria-label="Quanto aplicar. Um número tira vida, com mais na frente cura, Enter aplica."
-              className="bg-secondary border-border text-secondary-foreground placeholder:text-muted-foreground h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-[var(--font-numeral)] text-2xl"
+              className="bg-secondary border-border text-secondary-foreground placeholder:text-muted-foreground h-auto min-h-13 min-w-0 flex-1 rounded-none text-center font-numeral text-2xl"
             />
             <Button
               onClick={() => applyFromButton(1)}

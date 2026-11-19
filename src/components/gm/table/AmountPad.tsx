@@ -51,7 +51,7 @@ export function AmountPad({
         onKeyDown={e => { if (e.key === 'Enter' && actions[0]) apply(actions[0]) }}
         placeholder="0"
         aria-label="Quantidade"
-        className="border-input-border bg-secondary text-secondary-foreground h-12 text-center font-[var(--font-numeral)] text-2xl"
+        className="border-input-border bg-secondary text-secondary-foreground h-12 text-center font-numeral text-2xl"
       />
       <div className="flex flex-wrap gap-1">
         {presets.map(n => (

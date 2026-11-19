@@ -80,7 +80,7 @@ export function PcCommands({ ctl, seat }: { ctl: TableController; seat: Seat }) 
           >
             −
           </Button>
-          <span className="font-[var(--font-numeral)] min-w-12 text-center text-4xl text-[var(--chart-1)]">
+          <span className="font-numeral min-w-12 text-center text-4xl text-[var(--chart-1)]">
             ✦ {c.luckTokens}
           </span>
           <Button

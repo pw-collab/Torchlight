@@ -270,7 +270,7 @@ function StatCheck({ actor, sheet, onRoll }: { actor: EncounterActor; sheet?: NP
               }}
             >
               <span className={cn(buttonVariants({ variant: 'outline' }), 'flex h-14 w-full flex-col items-center justify-center gap-0.5')}>
-                <span className="font-[var(--font-numeral)] text-lg text-[var(--foreground)]">{signed(mod)}</span>
+                <span className="font-numeral text-lg text-[var(--foreground)]">{signed(mod)}</span>
                 <span className="font-mono font-semibold text-[10px] tracking-[0.14em] text-[var(--muted-foreground)] uppercase">{STAT_LABELS[stat]}</span>
               </span>
             </RollModeMenu>
