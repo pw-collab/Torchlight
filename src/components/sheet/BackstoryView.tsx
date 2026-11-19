@@ -541,7 +541,7 @@ function SubPanel({
           {title}
         </h3>
         {count !== undefined && (
-          <span className="font-[var(--font-mono)] text-[11px] leading-none font-bold" style={{ color: count > 0 ? accent : 'var(--muted-foreground)' }}>
+          <span className="font-mono text-[11px] leading-none font-bold" style={{ color: count > 0 ? accent : 'var(--muted-foreground)' }}>
             {count}
           </span>
         )}
@@ -711,7 +711,7 @@ function KnowledgeSection({ character, onUpdate }: {
                       onChange={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 })}
                       onBlur={e => updateArea(i, { bonus: parseInt(e.target.value) || 0 }, true)}
                       aria-label={`Bônus de ${area.name || 'área de conhecimento'}`}
-                      className="font-[var(--font-numeral)] text-foreground h-auto w-9 rounded-none border-none bg-transparent p-0 text-center text-[15px] [-moz-appearance:textfield]"
+                      className="font-numeral text-foreground h-auto w-9 rounded-none border-none bg-transparent p-0 text-center text-[15px] [-moz-appearance:textfield]"
                     />
                   </span>
                   <RemoveButton onClick={() => saveAreas(areas.filter((_, j) => j !== i))} label={`Remover ${area.name || 'área'}`} />
